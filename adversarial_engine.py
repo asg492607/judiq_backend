@@ -199,11 +199,11 @@ class AdversarialEngine:
         # 2. Debt/Payment Contradiction
         if "no_debt_proof" in concept_names and case_data.get("partial_payment_admitted"):
             contradictions.append({
-                "severity": "Strategic contradiction",
+                "severity": "Material credibility risk",
                 "issue": "Liability/Payment Conflict",
-                "detail": "Admitting partial payment while denying debt proof provides a strategic opening for the defence to argue 'Settled Liability'.",
-                "remediation": "Produce ledger entries showing the balance as a 'Running Account' deficit.",
-                "penalty": -20
+                "detail": "Admitting to receiving partial payment while failing to prove the remaining debt balance is fatal. If the cheque amount is larger than the actual due amount post-payment, S.138 is not maintainable (Dashrathbhai Trikambhai Patel ruling).",
+                "remediation": "Amend pleadings to show the cheque was issued explicitly for the remaining balance, or withdraw and file a civil recovery suit.",
+                "penalty": -40
             })
 
         # 3. Director/Role Contradiction

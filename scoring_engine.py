@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 import logging
 from typing import List, Dict, Any
 from kb_manager import kb_manager
@@ -204,6 +204,11 @@ class ScoringEngineV12:
             causality_map.append({"fact": "Notice Defect", "impact": -25, "rationale": "Statutory notice must be perfect."})
 
         # Signature & Alteration
+        if "signature_dispute" in existing_concepts and not case_data.get("signature_verified_by_bank"):
+            score -= 35
+            trace.append("-35 CRITICAL: Signature Disputed and Unverified (Anti-Gaming Rule).")
+            causality_map.append({"fact": "Unverified Signature Dispute", "impact": -35, "type": "negative", "rationale": "Without bank verification or handwriting expert, a signature dispute is a massive vulnerability."})
+
         if case_data.get("handwriting_different") or "material_alteration" in existing_concepts:
             score -= 40
             trace.append("-40 FATAL: Material Alteration Trap (S.87).")
@@ -223,6 +228,13 @@ class ScoringEngineV12:
 
         if low_reliability_evidence:
             uncertainty_messages.append(f"â€œConfidence reduced because evidence reliability is weak for: {', '.join(low_reliability_evidence)}.â€")
+
+        # Evidence Reliability Penalty Integration
+        for name, data in evidence_reliability.items():
+            if data.get("score", 1.0) < 0.5:
+                score -= 15
+                trace.append(f"-15 EVIDENTIARY: Low reliability on critical evidence ({name}).")
+                causality_map.append({"fact": f"Low Reliability: {name}", "impact": -15, "type": "negative", "rationale": data.get("reason", "Evidence format is vulnerable to challenge.")})
 
         # Final Score Cap
         final_score = max(0, min(99, score))

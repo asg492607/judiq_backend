@@ -1,0 +1,164 @@
+{
+  "vulnerability_models": {
+    "IPC_420": {
+      "name": "Civil Dispute Cloak (S.420 IPC)",
+      "severity": "CRITICAL",
+      "why_applied": "Accused claims the dispute is purely civil (breach of contract) and lacks initial fraudulent intent.",
+      "risk": "Courts routinely quash S.420 FIRs if the dispute is a mere breach of contract without proof of deceptive intent at the 'inception' of the transaction.",
+      "evidence_needed": "Communications showing false representations *before* the contract was signed.",
+      "precedent": "Hridaya Ranjan Prasad Verma vs. State of Bihar",
+      "chain": [
+        "1. Defence argues this is a civil breach of contract.",
+        "2. Highlights partial performance or genuine business failure.",
+        "3. Burden shifts to Prosecution to prove 'deception at inception'."
+      ],
+      "probability_collapse": 0.85,
+      "rebuttal_tree": {
+        "defence_evidence": "Partial payments or delivery challans.",
+        "prosecution_counter": "Show forged documents or fake credentials presented at day 1.",
+        "burden_shift_effect": "Immediate quashing risk u/s 482 CrPC if intent is missing.",
+        "magistrate_view": "Highly skeptical of using criminal law for debt recovery."
+      }
+    },
+    "IPC_498A": {
+      "name": "Omnibus Allegations (S.498A IPC)",
+      "severity": "HIGH",
+      "why_applied": "Distant relatives of the husband have been impleaded with vague, non-specific allegations.",
+      "risk": "Supreme Court strictly deprecates the practice of roping in entire families without specific attribution of overt acts.",
+      "evidence_needed": "Specific dates, times, and exact words/actions of cruelty by each relative.",
+      "precedent": "Geeta Mehrotra vs. State of UP & Kahkashan Kausar vs. State of Bihar",
+      "chain": [
+        "1. Defence highlights vague, general, and omnibus allegations against relatives.",
+        "2. Files for Quashing u/s 482 CrPC.",
+        "3. High Court strikes down proceedings against extended family."
+      ],
+      "probability_collapse": 0.75,
+      "rebuttal_tree": {
+        "defence_evidence": "Proof of separate residence or lack of specific incidents.",
+        "prosecution_counter": "Provide specific instances of demand of dowry linked directly to the relatives.",
+        "burden_shift_effect": "Relatives highly likely to be discharged.",
+        "magistrate_view": "Will scrutinize FIR for specific acts; intolerant of omnibus claims."
+      }
+    },
+    "IPC_302": {
+      "name": "Sudden Provocation / Exception 1 (S.302 IPC)",
+      "severity": "FATAL",
+      "why_applied": "Incident occurred during a sudden fight without premeditation.",
+      "risk": "Charge may be downgraded from Murder (S.302) to Culpable Homicide Not Amounting to Murder (S.304 Part I/II).",
+      "evidence_needed": "Eyewitness testimony proving absence of premeditation.",
+      "precedent": "K.M. Nanavati vs. State of Maharashtra",
+      "chain": [
+        "1. Defence admits the act but pleads Exception 1 (Grave & Sudden Provocation).",
+        "2. Proves loss of self-control due to victim's actions.",
+        "3. Conviction shifts from life/death to maximum 10 years."
+      ],
+      "probability_collapse": 0.60,
+      "rebuttal_tree": {
+        "defence_evidence": "Witnesses to the sudden fight / lack of weapon preparation.",
+        "prosecution_counter": "Show cooling-off period or premeditated arming.",
+        "burden_shift_effect": "Burden heavily on Defence to prove the Exception.",
+        "magistrate_view": "Will look for sustained intent vs. heat of the moment."
+      }
+    },
+    "IPC_376": {
+      "name": "Consensual Relationship / False Promise (S.376 IPC)",
+      "severity": "CRITICAL",
+      "why_applied": "Parties had a long-standing prior relationship.",
+      "risk": "A breach of promise to marry is not rape if the promise was given in good faith but could not be fulfilled due to unforeseen circumstances.",
+      "evidence_needed": "WhatsApp chats, hotel records, length of relationship.",
+      "precedent": "Pramod Suryabhan Pawar vs. State of Maharashtra",
+      "chain": [
+        "1. Defence proves a long, consensual relationship.",
+        "2. Argues the promise to marry was genuine at inception.",
+        "3. Asserts subsequent break-up does not constitute 'misconception of fact'."
+      ],
+      "probability_collapse": 0.80,
+      "rebuttal_tree": {
+        "defence_evidence": "Romantic chats, mutual travel, lack of coercion.",
+        "prosecution_counter": "Show the accused was already married or had fraudulent intent from day 1.",
+        "burden_shift_effect": "High probability of bail and eventual acquittal if consent is established.",
+        "magistrate_view": "Will distinguish between a false promise and a breach of promise."
+      }
+    },
+    "NDPS_S50": {
+      "name": "Procedural Violation of Search (S.50 NDPS)",
+      "severity": "FATAL",
+      "why_applied": "Personal search conducted without offering presence of a Gazetted Officer/Magistrate.",
+      "risk": "Section 50 is mandatory. Any personal recovery made in violation vitiates the trial.",
+      "evidence_needed": "Notice under S.50 and consent memo.",
+      "precedent": "Vijaysinh Chandubha Jadeja vs. State of Gujarat",
+      "chain": [
+        "1. Defence establishes personal search was done.",
+        "2. Shows S.50 notice was defective or not given.",
+        "3. Entire recovery becomes inadmissible."
+      ],
+      "probability_collapse": 0.95,
+      "rebuttal_tree": {
+        "defence_evidence": "Cross-exam of seizing officer.",
+        "prosecution_counter": "Argue recovery was from a bag/vehicle (S.43) and not personal body search.",
+        "burden_shift_effect": "Automatic acquittal if S.50 is violated on personal search.",
+        "magistrate_view": "Zero tolerance for NDPS procedural lapses."
+      }
+    },
+    "NDPS_S37": {
+      "name": "Twin Conditions for Bail (S.37 NDPS)",
+      "severity": "CRITICAL",
+      "why_applied": "Recovery involves commercial quantity.",
+      "risk": "Bail is nearly impossible unless the court is satisfied there are reasonable grounds to believe the accused is not guilty.",
+      "evidence_needed": "Proof of tampering, planted evidence, or massive procedural flaw.",
+      "precedent": "Narcotics Control Bureau vs. Mohit Aggarwal",
+      "chain": [
+        "1. Prosecution invokes S.37 based on commercial quantity.",
+        "2. Court mandates satisfaction of twin conditions.",
+        "3. Bail is rejected routinely."
+      ],
+      "probability_collapse": 0.10,
+      "rebuttal_tree": {
+        "defence_evidence": "Establish S.50/S.42 violation to break prima facie case.",
+        "prosecution_counter": "Rely on FSL report and huge quantity.",
+        "burden_shift_effect": "Burden solely on accused to prove innocence at bail stage.",
+        "magistrate_view": "Will not grant bail without glaring procedural errors."
+      }
+    },
+    "CRPC_197": {
+      "name": "Lack of Sanction (S.197 CrPC)",
+      "severity": "FATAL",
+      "why_applied": "Accused is a public servant acting in discharge of official duty.",
+      "risk": "Cognizance cannot be taken without prior sanction from the competent government authority.",
+      "evidence_needed": "Proof of official duty nexus.",
+      "precedent": "D. Devaraja vs. Owais Sabeer Hussain",
+      "chain": [
+        "1. Defence files application for discharge/quashing citing S.197.",
+        "2. Proves the act was reasonably connected to official duties.",
+        "3. Court drops proceedings for want of sanction."
+      ],
+      "probability_collapse": 0.90,
+      "rebuttal_tree": {
+        "defence_evidence": "Official orders, duty roster.",
+        "prosecution_counter": "Argue the act (e.g., bribery, fake encounter) was completely outside the scope of duty.",
+        "burden_shift_effect": "Proceedings halt immediately upon S.197 applicability.",
+        "magistrate_view": "Bound by law to reject cognizance without sanction."
+      }
+    },
+    "MEDICAL_OCULAR": {
+      "name": "Medical vs Ocular Contradiction",
+      "severity": "HIGH",
+      "why_applied": "Eyewitness account contradicts the Post-Mortem or Medico-Legal Certificate (MLC).",
+      "risk": "If eyewitness says 'shot from front' but PM report shows 'entry wound in back', the eyewitness credibility collapses.",
+      "evidence_needed": "Cross-examination comparing witness statement (S.161) with Doctor's testimony.",
+      "precedent": "Thaman Kumar vs. State of UT of Chandigarh",
+      "chain": [
+        "1. Defence cross-examines eyewitness on weapon and angle of attack.",
+        "2. Confronts medical expert with the impossibility of the ocular account.",
+        "3. Court rejects eyewitness testimony."
+      ],
+      "probability_collapse": 0.80,
+      "rebuttal_tree": {
+        "defence_evidence": "Medical treatises (Modi's Jurisprudence).",
+        "prosecution_counter": "Argue minor discrepancies do not vitiate the core truth of the testimony.",
+        "burden_shift_effect": "Creates strong reasonable doubt.",
+        "magistrate_view": "Medical evidence usually trumps ocular if contradiction is absolute."
+      }
+    }
+  }
+}

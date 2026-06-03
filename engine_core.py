@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 from typing import Dict, List, Any
 from datetime import datetime
 import importlib
@@ -23,18 +23,19 @@ class EngineRegistry:
     def __init__(self):
         # Configuration for lazy loading
         self._modules = {
-            "scoring":     "app.services.scoring_engine.ScoringEngineV12",
-            "semantic":    "app.services.semantic_engine.SemanticEngineV12",
-            "adversarial": "app.services.adversarial_engine.AdversarialEngine",
-            "criminal_adversarial": "app.services.criminal_adversarial_engine.CriminalAdversarialEngine",
-            "strategy":    "app.services.strategy_engine.StrategyEngine",
-            "criminal_strategy": "app.services.criminal_engine.CriminalEngine",
-            "draft":       "app.services.draft_engine.DraftEngine",
-            "reasoning":   "app.services.reasoning_engine.ReasoningEngine",
-            "timeline":    "app.services.timeline_engine.TimelineEngine",
-            "simulator":   "app.services.simulator_engine.SimulatorEngine",
-            "defence":     "app.services.defence_engine.DefenceEngineV12",
-            "decision":    "app.services.decision_support_engine.DecisionSupportEngine"
+            "scoring":     "scoring_engine.ScoringEngineV12",
+            "criminal_scoring": "criminal_scoring_engine.CriminalScoringEngine",
+            "semantic":    "semantic_engine.SemanticEngineV12",
+            "adversarial": "adversarial_engine.AdversarialEngine",
+            "criminal_adversarial": "criminal_adversarial_engine.CriminalAdversarialEngine",
+            "strategy":    "strategy_engine.StrategyEngine",
+            "criminal_strategy": "criminal_engine.CriminalEngine",
+            "draft":       "draft_engine.DraftEngine",
+            "reasoning":   "reasoning_engine.ReasoningEngine",
+            "timeline":    "timeline_engine.TimelineEngine",
+            "simulator":   "simulator_engine.SimulatorEngine",
+            "defence":     "defence_engine.DefenceEngineV12",
+            "decision":    "decision_support_engine.DecisionSupportEngine"
         }
         self._instances = {}
 
@@ -105,6 +106,7 @@ class JudiQEngine:
         is_criminal = case_data.get("case_type") == "criminal" or "criminal" in text.lower() or "fir" in text.lower()
         adv_module = "criminal_adversarial" if is_criminal else "adversarial"
         strat_module = "criminal_strategy" if is_criminal else "strategy"
+        scoring_module = "criminal_scoring" if is_criminal else "scoring"
 
         # -- 3. Adversarial Audit ---------------------------------------------
         adversarial_engine = registry.get(adv_module)
@@ -157,12 +159,19 @@ class JudiQEngine:
         )
 
         # -- 4. Scoring Engine ------------------------------------------------
-        scoring_engine = registry.get("scoring")
-        scoring_result = _safe_call(
-            scoring_engine.calculate_score_with_trace, case_data, concepts, contradictions, {},
-            fallback={"score": 50, "final_score": 50, "reasoning_trace": ["Internal scoring error."]},
-            context="ScoringEngine"
-        )
+        scoring_engine = registry.get(scoring_module)
+        if is_criminal:
+            scoring_result = _safe_call(
+                scoring_engine.calculate_score, case_data, concepts, contradictions,
+                fallback={"score": 50, "final_score": 50, "reasoning_trace": ["Internal scoring error."]},
+                context="CriminalScoringEngine"
+            )
+        else:
+            scoring_result = _safe_call(
+                scoring_engine.calculate_score_with_trace, case_data, concepts, contradictions, {},
+                fallback={"score": 50, "final_score": 50, "reasoning_trace": ["Internal scoring error."]},
+                context="ScoringEngine"
+            )
         final_score = float(scoring_result.get("final_score") or scoring_result.get("score") or 50)
 
         # -- 5. Strategic Layer -----------------------------------------------

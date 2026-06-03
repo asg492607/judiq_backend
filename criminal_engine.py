@@ -13,8 +13,16 @@ class CriminalEngine:
         from .criminal_timeline_engine import CriminalTimelineEngine
         from .criminal_economics_engine import CriminalEconomicsEngine
         from .criminal_rules_engine import CriminalRulesEngine
+        from .criminal_scoring_engine import CriminalScoringEngine
+        
+        contradictions = CriminalAdversarialEngine.detect_contradictions(case_data, concepts)
+        scoring_data = CriminalScoringEngine.calculate_score(case_data, concepts, contradictions)
         
         return {
+            "score": scoring_data["score"],
+            "verdict": scoring_data["verdict"],
+            "score_breakdown": scoring_data["score_breakdown"],
+            "causality_map": scoring_data["causality_map"],
             "statutory_rules": CriminalRulesEngine.evaluate_rules(case_data),
             "litigation_map": CriminalEngine.generate_litigation_map(case_data, severity_score, concepts),
             "roadmap": CriminalAdversarialEngine.calculate_stage_survivability(severity_score, adversarial_risk),
