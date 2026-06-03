@@ -175,15 +175,15 @@ class ScoringEngineV12:
 
         # Basalingappa & Sushil Kumar Check
         if amount > 2000000 and not case_data.get("loan_via_bank") and not case_data.get("complainant_itr_available"):
-            score -= 60
-            trace.append("-60 FATAL EVIDENTIARY GAP: â‚¹20L+ cash loan without ITR.")
-            causality_map.append({"fact": "Basalingappa Fatal", "impact": -60, "rationale": "High-value cash loans without source proof are fatal."})
+            score -= 40
+            trace.append("-40 FATAL EVIDENTIARY GAP: ₹20L+ cash loan without ITR.")
+            causality_map.append({"fact": "Basalingappa Fatal", "impact": -40, "rationale": "High-value cash loans without source proof are fatal."})
             if "unaccounted_cash_loans" not in concept_names:
                 concepts.append({"concept": "unaccounted_cash_loans", "confidence": 0.95, "legal_impact": "Fatal evidentiary gap for high-value cash loans per Basalingappa ruling."})
         elif amount > 500000 and not case_data.get("loan_via_bank") and not case_data.get("complainant_itr_available"):
-            score -= 45
-            trace.append("-45 REBUTTAL RISK: High-value cash loan without ITR.")
-            causality_map.append({"fact": "Basalingappa High Risk", "impact": -45, "rationale": "Lending capacity is a standard defence attack."})
+            score -= 25
+            trace.append("-25 REBUTTAL RISK: High-value cash loan without ITR.")
+            causality_map.append({"fact": "Basalingappa High Risk", "impact": -25, "rationale": "Lending capacity is a standard defence attack."})
             if "unaccounted_cash_loans" not in concept_names:
                 concepts.append({"concept": "unaccounted_cash_loans", "confidence": 0.85, "legal_impact": "High risk of acquittal on financial capacity grounds."})
 

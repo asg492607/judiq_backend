@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 from typing import Dict, List, Any
 from engine_core import JudiQEngine
 
@@ -99,6 +99,46 @@ class EngineDiagnostics:
             },
             "max_score": 30,
             "required_risks": ["premature_complaint"]
+        },
+        {
+            "name": "CRIMINAL_S498A_OMNIBUS",
+            "data": {
+                "case_type": "criminal",
+                "offense_type": "498A",
+                "relatives_implicated": True
+            },
+            "max_score": 60,
+            "required_risks": []
+        },
+        {
+            "name": "CRIMINAL_S395_TIP_FAILED",
+            "data": {
+                "case_type": "criminal",
+                "offense_type": "395",
+                "tip_failed": True
+            },
+            "max_score": 60,
+            "required_risks": []
+        },
+        {
+            "name": "CRIMINAL_S379_TITLE_DISPUTE",
+            "data": {
+                "case_type": "criminal",
+                "offense_type": "379",
+                "title_dispute": True
+            },
+            "max_score": 60,
+            "required_risks": []
+        },
+        {
+            "name": "CRIMINAL_S406_NO_ENTRUSTMENT",
+            "data": {
+                "case_type": "criminal",
+                "offense_type": "406",
+                "entrustment_proven": False
+            },
+            "max_score": 60,
+            "required_risks": []
         }
     ]
 

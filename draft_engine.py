@@ -74,7 +74,7 @@ def _header(title: str) -> str:
 
 def _case_meta(case_data: Dict):
     today = datetime.now().strftime("%d %B %Y")
-    amount = case_data.get("amount", "[AMOUNT]")
+    amount = case_data.get("amount", "________ (Amount)")
     if isinstance(amount, (int, float)) and amount > 0:
         if amount >= 100000:
             amount_str = f"Rs. {amount:,.0f}/- (Rupees {_num_to_words(int(amount))} only)"
@@ -164,10 +164,10 @@ Under instructions from and on behalf of my client {complainant}, I hereby serve
 
 Yours faithfully,
 
-[ADVOCATE NAME]
+________ (Advocate Name)
 Advocate & Legal Advisor
-[BAR REGISTRATION NUMBER]
-[CONTACT / CHAMBER ADDRESS]
+________ (Bar Reg. No.)
+________ (Contact/Chamber Address)
 
 On behalf of: {complainant}
 """
@@ -175,28 +175,28 @@ On behalf of: {complainant}
 
 def generate_certificate_63_bsa(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
-    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "[YOUR NAME]"
+    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Your Name)"
     device_type = case_data.get("device_type", "Smartphone / Personal Computer")
     
     return f"""{_header("CERTIFICATE UNDER SECTION 63(4) OF THE BHARATIYA SAKSHYA ADHINIYAM (BSA)")}
 
 IN THE COURT OF THE LEARNED JUDICIAL MAGISTRATE / METROPOLITAN MAGISTRATE
-AT [COURT LOCATION]
+AT ________ (Court Location)
 
 COMPLAINT NO.: _____ / {datetime.now().year}
 
 IN THE MATTER OF:
 {complainant}                                              ... COMPLAINANT
 VERSUS
-[ACCUSED NAME]                                             ... ACCUSED
+________ (Accused Name)                                             ... ACCUSED
 
 AFFIDAVIT / CERTIFICATE UNDER SECTION 63(4) OF THE BHARATIYA SAKSHYA ADHINIYAM (BSA) FOR ADMISSIBILITY OF ELECTRONIC RECORDS
 
-I, {complainant}, adult, residing at [ADDRESS], do hereby solemnly affirm and state as under:
+I, {complainant}, adult, residing at ________ (Address), do hereby solemnly affirm and state as under:
 
 1. That I am the Complainant in the present case and I am fully conversant with the facts and circumstances of the case and am competent to depose to this affidavit.
 
-2. That for the purpose of the present case, I am relying upon electronic records in the form of [WhatsApp Messages / Email Correspondence / SMS Logs] exchanged between me and the Accused.
+2. That for the purpose of the present case, I am relying upon electronic records in the form of ________ (Digital Evidence) exchanged between me and the Accused.
 
 3. That the said electronic records were produced by a computer/communication device, namely a {device_type}, which was owned/operated by me and was used regularly to store or process information for the purposes of my activities.
 
@@ -206,14 +206,14 @@ I, {complainant}, adult, residing at [ADDRESS], do hereby solemnly affirm and st
 
 6. That the information contained in the electronic record reproduces or is derived from information fed into the device in the ordinary course of the said activities.
 
-7. That the printouts/digital copies of the [WhatsApp/Email] records produced herewith as ANNEXURE-____ are true and faithful reproductions of the originals stored in the electronic device and have been prepared under my personal supervision.
+7. That the printouts/digital copies of the ________ (Digital Medium) records produced herewith as ANNEXURE-____ are true and faithful reproductions of the originals stored in the electronic device and have been prepared under my personal supervision.
 
 8. That the contents of this certificate are true to the best of my knowledge and belief.
 
 DEPONENT
 
 VERIFICATION:
-Verified at [PLACE] on this {today} that the contents of the above affidavit are true and correct to my knowledge and nothing material has been concealed therefrom.
+Verified at ________ (Place) on this {today} that the contents of the above affidavit are true and correct to my knowledge and nothing material has been concealed therefrom.
 
                                                             DEPONENT
 """
@@ -238,9 +238,9 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     branch = case_data.get("branch_name") or case_data.get("branchName") or ""
     bank_full = f"{bank}, {branch}" if branch else bank
 
-    dishonour_date = case_data.get("dishonour_date") or case_data.get("dishonourDate") or "[DATE]"
+    dishonour_date = case_data.get("dishonour_date") or case_data.get("dishonourDate") or "________ (Date)"
     dishonour_reason = case_data.get("dishonour_reason") or case_data.get("dishonourReason") or "Insufficient Funds"
-    notice_date = case_data.get("notice_date") or case_data.get("noticeDate") or "[NOTICE DATE]"
+    notice_date = case_data.get("notice_date") or case_data.get("noticeDate") or "________ (Notice Date)"
 
     court_name = case_data.get("court_name") or case_data.get("courtName") or "District Court"
 
@@ -270,9 +270,9 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     auth_clause = ""
     if complainant_type != "Individual":
         is_auth = case_data.get("is_authorized", False)
-        auth_name = case_data.get("authorized_person_name", "[EXACT NAME OF AUTHORIZED PERSON]")
+        auth_name = case_data.get("authorized_person_name", "________ (Name of Authorized Person)")
         if is_auth:
-            auth_clause = f"The Complainant is a {complainant_type} and is represented by its Authorized Signatory, Mr./Ms. {auth_name}, who is duly empowered by way of a Board Resolution dated [DATE PRIOR TO NOTICE] and a Letter of Authority, produced herewith as ANNEXURE-A. The said representative is fully conversant with the facts and circumstances of the present case and is competent to depose on behalf of the Complainant per the mandate of 'A.C. Narayanan vs. State of Maharashtra'."
+            auth_clause = f"The Complainant is a {complainant_type} and is represented by its Authorized Signatory, Mr./Ms. {auth_name}, who is duly empowered by way of a Board Resolution dated ________ (Date prior to notice) and a Letter of Authority, produced herewith as ANNEXURE-A. The said representative is fully conversant with the facts and circumstances of the present case and is competent to depose on behalf of the Complainant per the mandate of 'A.C. Narayanan vs. State of Maharashtra'."
         else:
             auth_clause = f"The Complainant is a {complainant_type} filing through its representative. [🚨 FATAL DEFECT WARNING: A.C. Narayanan Trap. You MUST annex a Board Resolution naming the exact person signing this complaint, and it MUST have been passed BEFORE the legal notice was sent]."
 
@@ -281,7 +281,7 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     if accused_type != "Individual":
         has_directors = case_data.get("directors_named", False)
         director_names = case_data.get("director_names", "")
-        director_roles = case_data.get("director_roles", "[SPECIFY EXACT ROLES e.g., Managing Director overseeing finance]")
+        director_roles = case_data.get("director_roles", "________ (Specify Exact Roles)")
         
         if has_directors and director_names:
             liability_clause = f"""3. THE VICARIOUS LIABILITY (SEC. 141):
@@ -290,7 +290,7 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     Specifically, their exact roles are as follows: {director_roles}. They were actively involved in the day-to-day management and decision-making processes of the Accused No. 1, and the dishonoured cheque in question was issued with their full knowledge, consent, and connivance.
     The Accused Nos. 2 onwards are thus vicariously liable for the acts of the Accused No. 1 as per the mandatory provisions of Section 141 of the Negotiable Instruments Act, 1881 and the law laid down by the Hon'ble Supreme Court in 'Aneeta Hada v. Godfather Travels'."""
         elif has_directors:
-            liability_clause = f"3. THE VICARIOUS LIABILITY (SEC. 141): That the Accused No. 1 is a {accused_type} and the other Accused persons are its Directors/Officers who were in charge of and responsible for the conduct of the business (Exact roles: [SPECIFY ROLES]) as per Section 141 of the NI Act."
+            liability_clause = f"3. THE VICARIOUS LIABILITY (SEC. 141): That the Accused No. 1 is a {accused_type} and the other Accused persons are its Directors/Officers who were in charge of and responsible for the conduct of the business (Exact roles: ________ (Specify Roles)) as per Section 141 of the NI Act."
         else:
             liability_clause = f"3. That the Accused is a {accused_type}. [🚨 FATAL DEFECT WARNING: You must name the specific Directors/Officers in charge of the company and describe their EXACT ROLES to satisfy Section 141 and avoid dismissal at the threshold stage per 'Aneeta Hada' ruling]."
 
@@ -302,15 +302,14 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
 
     # ── EVIDENCE PLEADINGS (Advocate Hardening) ──────────────────────────
     if is_aggressive:
-        debt_pleading = f"""The Complainant respectfully submits that the Accused bears an incontrovertible liability of {amount_str}, crystallised through {transaction_nature}. 
-    This liability is not based on mere oral assertions but is conclusively established by contemporaneous documentary evidence (e.g., invoices/ledgers/agreements). 
-    The Accused's issuance of the subject cheque was a deliberate acknowledgment of this debt. The subsequent dishonour reveals a premeditated design to evade lawful obligations, thereby attracting the strict rigours of Section 138 of the NI Act."""
+        debt_pleading = f"""The Complainant submits that the Accused is bound by an incontrovertible liability of {amount_str}, arising out of {transaction_nature}. 
+    This liability is securely established by contemporaneous commercial records. The issuance of the subject cheque by the Accused was an explicit acknowledgment of this debt. Its subsequent dishonour is a clear demonstration of the Accused's mala fide intent to evade lawful obligations, compelling the Complainant to invoke the strict provisions of Section 138 of the NI Act."""
     else:
         debt_pleading = f"The Complainant states that the Accused is indebted to the Complainant for a sum of {amount_str} arising from {transaction_nature}. The said debt is legally enforceable and constitutes a valid liability under law."
     
     if case_data.get("communication_records"):
         if is_aggressive:
-            debt_pleading += f" The Accused's culpability is further aggravated by an unassailable digital trail of WhatsApp messages and Emails wherein the debt stands explicitly admitted. This electronic evidence, supported by a mandatory Section 63(4) BSA Certificate, renders any denial by the Accused legally untenable."
+            debt_pleading += f" The Accused's liability is further cemented by a clear digital trail (including WhatsApp/Email exchanges) wherein the debt stands unequivocally admitted. This electronic evidence, supported by a mandatory Section 63(4) BSA Certificate, renders any defense by the Accused legally untenable."
         else:
             debt_pleading += f" The Accused has repeatedly acknowledged the said debt and liability via various communications, including WhatsApp messages and Emails, which are produced herewith along with the mandatory Certificate under Section 63(4) of the Bharatiya Sakshya Adhiniyam (BSA)."
     elif case_data.get("debt_proof_type") == "verbal_agreement" or case_data.get("agreement_type") == "Verbal Agreement":
@@ -397,7 +396,7 @@ ANNEXURE-F: Section 63(4) BSA Certificate for WhatsApp/Email records (Mandatory)
 VERIFICATION:
 I, {complainant}, do hereby solemnly verify that the contents of the above Complaint are true and correct to the best of my knowledge, information, and belief. Nothing material has been concealed therefrom, and all supporting documents are annexed herewith.
 
-Place: [PLACE]
+Place: ________ (Place)
 Date: {today}
                                                         {complainant}
                                                         (Complainant)
@@ -478,8 +477,8 @@ WARNING: Do NOT file raw AI output. You MUST 'humanize' the draft to avoid 'Cook
 
 def generate_settlement_draft(case_data: Dict, score: int) -> str:
     today, amount_str = _case_meta(case_data)
-    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "[COMPLAINANT NAME]"
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "[ACCUSED NAME]"
+    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
     
     # Calculate realistic settlement interest (capped at 12%)
     interest_rate = 12 
@@ -519,7 +518,7 @@ Kindly revert with your response within 7 working days.
 
 Yours faithfully,
 
-[ADVOCATE NAME]
+________ (Advocate Name)
 For and on behalf of {complainant}
 
 Note: Case Strength Score {score}/100 — Strategic Settlement Recommended. 
@@ -529,8 +528,8 @@ Basis: Amicable resolution preferred over protracted litigation for moderate str
 
 def generate_delay_condonation(case_data: Dict) -> str:
     today, amount_str = _case_meta(case_data)
-    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "[COMPLAINANT NAME]"
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "[ACCUSED NAME]"
+    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
     delay_days = case_data.get("delay_days", "___")
     
     # Dynamic Reason Selection
@@ -547,7 +546,7 @@ def generate_delay_condonation(case_data: Dict) -> str:
     return f"""{_header("APPLICATION FOR CONDONATION OF DELAY — SECTION 142(1)(b) NI ACT")}
 
 IN THE COURT OF THE LEARNED JUDICIAL MAGISTRATE / METROPOLITAN MAGISTRATE
-AT [COURT LOCATION]
+AT ________ (Court Location)
 
 COMPLAINT NO.: _____ / {datetime.now().year}
 
@@ -564,7 +563,7 @@ RESPECTFULLY SHOWETH:
    The Complainant has filed the accompanying Complaint under Section 138 of the NI Act against the Accused. The contents of the said Complaint may be read as part and parcel of this application.
 
 2. THE DELAY:
-   That there has been a technical delay of {delay_days} days in filing the present Complaint. The limitation period expired on [DATE], and the Complaint is being filed today.
+   That there has been a technical delay of {delay_days} days in filing the present Complaint. The limitation period expired on ________ (Date), and the Complaint is being filed today.
 
 3. SUFFICIENT CAUSE:
    That the said delay occurred due to the following bona fide reasons:
@@ -586,26 +585,26 @@ It is, therefore, most respectfully prayed that this Hon'ble Court may be please
 (a) Condone the delay of {delay_days} days in filing the accompanying Complaint;
 (b) Admit the Complaint and proceed with the trial in the interest of justice.
 
-Place: [PLACE]
+Place: ________ (Place)
 Date: {today}
 
                                                         {complainant}
                                                         (Complainant)
 Through:
-[ADVOCATE NAME]
+________ (Advocate Name)
 Advocate for Complainant
 """
 
 
 def generate_application_143a(case_data: Dict) -> str:
     today, amount_str = _case_meta(case_data)
-    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "[COMPLAINANT NAME]"
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "[ACCUSED NAME]"
+    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
     
     return f"""{_header("APPLICATION FOR INTERIM COMPENSATION — SECTION 143A NI ACT")}
 
 IN THE COURT OF THE LEARNED JUDICIAL MAGISTRATE / METROPOLITAN MAGISTRATE
-AT [COURT LOCATION]
+AT ________ (Court Location)
 
 COMPLAINT NO.: _____ / {datetime.now().year}
 
@@ -635,13 +634,13 @@ It is, therefore, most respectfully prayed that this Hon'ble Court may be please
 (a) Direct the Accused to pay 20% of the cheque amount as interim compensation to the Complainant in accordance with Section 143A of the Negotiable Instruments Act, 1881;
 (b) Pass such other order(s) as this Hon'ble Court may deem fit in the interest of justice.
 
-Place: [PLACE]
+Place: ________ (Place)
 Date: {today}
 
                                                         {complainant}
                                                         (Complainant)
 Through:
-[ADVOCATE NAME]
+________ (Advocate Name)
 Advocate for Complainant
 """
 
@@ -682,8 +681,8 @@ DISCLAIMER: AI-generated strategic assessment. Not a substitute for professional
 
 def generate_fir_draft(case_data: Dict, concepts: List[Dict]) -> str:
     today, _ = _case_meta(case_data)
-    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "[INFORMANT NAME]"
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "[ACCUSED NAME / UNKNOWN]"
+    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Informant Name)"
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name / Unknown)"
     offense = case_data.get("offense_type", "General Criminal Offence")
     
     return f"""{_header("FIRST INFORMATION REPORT (FIR) DRAFT — SECTION 154 CrPC / 173 BNSS")}
@@ -692,19 +691,19 @@ Date: {today}
 
 To,
 The Station House Officer (SHO),
-Police Station: [POLICE STATION NAME],
-District: [DISTRICT]
+Police Station: ________ (Police Station),
+District: ________ (District)
 
 Subject: Information regarding commission of cognizable offence(s) under Section(s) {offense} of the IPC/BNS by {accused}.
 
 Respected Sir/Madam,
 
 1. INFORMANT DETAILS:
-   I, {complainant}, residing at [INFORMANT ADDRESS], contact number [CONTACT NUMBER], state as follows:
+   I, {complainant}, residing at ________ (Informant Address), contact number ________ (Contact Number), state as follows:
 
 2. DETAILS OF INCIDENT:
    [DESCRIBE THE EXACT INCIDENT — Date, Time, Place of Occurrence].
-   The accused {accused} committed the following acts: [INSERT DETAILED NARRATIVE OF OFFENCE].
+   The accused {accused} committed the following acts: ________ (Detailed Narrative of Offence).
 
 3. WEAPONS / INJURIES / LOSS (If Applicable):
    [Specify if any weapons were used, injuries sustained, or property lost/stolen].
@@ -728,7 +727,7 @@ Yours faithfully,
 
 def generate_regular_bail(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "[ACCUSED NAME]"
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
     offense = case_data.get("offense_type", "General")
     
     # Inject Antil Guidelines if applicable
@@ -738,15 +737,15 @@ def generate_regular_bail(case_data: Dict) -> str:
         
     return f"""{_header("REGULAR BAIL APPLICATION — SECTION 437/439 CrPC / 480 BNSS")}
 
-IN THE COURT OF [SESSIONS JUDGE / MAGISTRATE], [LOCATION]
+IN THE COURT OF ________ (Sessions Judge / Magistrate), ________ (Location)
 CRIMINAL MISC. BAIL APPLICATION NO. ______ OF {datetime.now().year}
-ARISING OUT OF FIR NO. [FIR NO.]
-U/S {offense} IPC/BNS, P.S. [POLICE STATION]
+ARISING OUT OF FIR NO. ________ (FIR No.)
+U/S {offense} IPC/BNS, P.S. ________ (Police Station)
 
 IN THE MATTER OF:
 {accused}                                                  ... APPLICANT/ACCUSED
 VERSUS
-STATE OF [STATE NAME]                                      ... PROSECUTION
+STATE OF ________ (State Name)                                      ... PROSECUTION
 
 APPLICATION FOR GRANT OF REGULAR BAIL
 
@@ -761,12 +760,12 @@ MOST RESPECTFULLY SHOWETH:
    That the Applicant has movable and immovable property in the city and is the sole breadwinner of the family. There is absolutely no risk of flight.
 
 4. NO TAMPERING WITH EVIDENCE:
-   That the investigation is largely complete [or documentary in nature]. The Applicant undertakes not to tamper with prosecution witnesses or evidence. {antil_clause}
+   That the investigation is largely complete ________ (or documentary in nature). The Applicant undertakes not to tamper with prosecution witnesses or evidence. {antil_clause}
 
 PRAYER:
 It is respectfully prayed that this Hon'ble Court may be pleased to enlarge the Applicant on regular bail upon furnishing suitable sureties, to meet the ends of justice.
 
-Place: [PLACE]
+Place: ________ (Place)
 Date: {today}
 
 Through Counsel
@@ -774,25 +773,25 @@ Through Counsel
 
 def generate_anticipatory_bail(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "[ACCUSED NAME]"
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
     offense = case_data.get("offense_type", "General")
     
     return f"""{_header("ANTICIPATORY BAIL APPLICATION — SECTION 438 CrPC / 482 BNSS")}
 
-IN THE COURT OF THE DISTRICT & SESSIONS JUDGE, [LOCATION]
+IN THE COURT OF THE DISTRICT & SESSIONS JUDGE, ________ (Location)
 ANTICIPATORY BAIL APPLICATION NO. ______ OF {datetime.now().year}
 
 IN THE MATTER OF:
 {accused}                                                  ... APPLICANT
 VERSUS
-STATE OF [STATE NAME]                                      ... PROSECUTION
+STATE OF ________ (State Name)                                      ... PROSECUTION
 
 APPLICATION FOR ENLARGEMENT ON BAIL IN THE EVENT OF ARREST
 
 MOST RESPECTFULLY SHOWETH:
 
 1. APPREHENSION OF ARREST:
-   That the Applicant has credible information and reasonable apprehension of being arrested by the police of P.S. [POLICE STATION] in connection with a false and frivolous complaint regarding offences u/s {offense}.
+   That the Applicant has credible information and reasonable apprehension of being arrested by the police of P.S. ________ (Police Station) in connection with a false and frivolous complaint regarding offences u/s {offense}.
 
 2. MALA FIDE INTENT:
    That the Complainant, with ulterior motives and to humiliate the Applicant in society, has lodged this completely fabricated complaint. The dispute, if any, is purely civil in nature.
@@ -803,7 +802,7 @@ MOST RESPECTFULLY SHOWETH:
 PRAYER:
 It is prayed that in the event of arrest, the Applicant may be released on Anticipatory Bail subject to terms and conditions deemed fit by this Hon'ble Court.
 
-Place: [PLACE]
+Place: ________ (Place)
 Date: {today}
 
 Through Counsel
@@ -811,11 +810,11 @@ Through Counsel
 
 def generate_discharge_application(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "[ACCUSED NAME]"
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
     
     return f"""{_header("DISCHARGE APPLICATION — SECTION 227/239 CrPC / 250/262 BNSS")}
 
-IN THE COURT OF [SESSIONS JUDGE / MAGISTRATE], [LOCATION]
+IN THE COURT OF ________ (Sessions Judge / Magistrate), ________ (Location)
 
 IN THE MATTER OF:
 STATE                                                      ... PROSECUTION
@@ -837,7 +836,7 @@ MOST RESPECTFULLY SHOWETH:
 PRAYER:
 It is prayed that the charges against the Accused be dropped and the Accused be discharged to prevent the abuse of the process of the Court.
 
-Place: [PLACE]
+Place: ________ (Place)
 Date: {today}
 
 Through Counsel
@@ -845,20 +844,20 @@ Through Counsel
 
 def generate_quashing_petition(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "[ACCUSED NAME]"
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
     offense = case_data.get("offense_type", "General")
     
     return f"""{_header("QUASHING PETITION — SECTION 482 CrPC / 528 BNSS")}
 
-IN THE HON'BLE HIGH COURT OF [STATE / JURISDICTION]
+IN THE HON'BLE HIGH COURT OF ________ (State / Jurisdiction)
 CRIMINAL MISC. PETITION NO. ______ OF {datetime.now().year}
 
 IN THE MATTER OF:
 {accused}                                                  ... PETITIONER
 VERSUS
-STATE OF [STATE NAME] & ANR.                               ... RESPONDENTS
+STATE OF ________ (State Name) & ANR.                               ... RESPONDENTS
 
-PETITION UNDER SECTION 482 OF THE CODE OF CRIMINAL PROCEDURE FOR QUASHING OF FIR NO. [FIR NO.] DATED [DATE] U/S {offense} P.S. [POLICE STATION] AND ALL CONSEQUENTIAL PROCEEDINGS
+PETITION UNDER SECTION 482 OF THE CODE OF CRIMINAL PROCEDURE FOR QUASHING OF FIR NO. ________ (FIR No.) DATED ________ (Date) U/S {offense} P.S. ________ (Police Station) AND ALL CONSEQUENTIAL PROCEEDINGS
 
 MOST RESPECTFULLY SHOWETH:
 
@@ -871,9 +870,9 @@ MOST RESPECTFULLY SHOWETH:
    That the crux of the dispute between the parties is inherently civil/commercial in nature (e.g., breach of contract/partnership dispute). The Complainant is attempting to weaponize the criminal justice system to exert pressure for a civil recovery, which is strictly deprecated by the Hon'ble Supreme Court in 'Indian Oil Corp v. NEPC India'.
 
 PRAYER:
-It is prayed that this Hon'ble Court may be pleased to quash the impugned FIR No. [FIR No.] and all consequential proceedings emanating therefrom.
+It is prayed that this Hon'ble Court may be pleased to quash the impugned FIR No. ________ (FIR No.) and all consequential proceedings emanating therefrom.
 
-Place: [PLACE]
+Place: ________ (Place)
 Date: {today}
 
 Through Counsel
@@ -881,23 +880,23 @@ Through Counsel
 
 def generate_suspension_sentence(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "[APPELLANT NAME]"
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Appellant Name)"
     
     return f"""{_header("APPLICATION FOR SUSPENSION OF SENTENCE — SECTION 389 CrPC / 430 BNSS")}
 
-IN THE COURT OF [SESSIONS JUDGE / HIGH COURT], [LOCATION]
+IN THE COURT OF ________ (Sessions Judge / High Court), ________ (Location)
 CRIMINAL MISC. APPLICATION IN CRIMINAL APPEAL NO. ______ OF {datetime.now().year}
 
 IN THE MATTER OF:
 {accused}                                                  ... APPELLANT
 VERSUS
-STATE OF [STATE NAME]                                      ... RESPONDENT
+STATE OF ________ (State Name)                                      ... RESPONDENT
 
 APPLICATION UNDER SECTION 389 OF CrPC FOR SUSPENSION OF SENTENCE AND GRANT OF BAIL PENDING APPEAL
 
 MOST RESPECTFULLY SHOWETH:
 
-1. That the Appellant has preferred the accompanying Criminal Appeal challenging the judgment and order of conviction dated [DATE] passed by the Ld. Trial Court, whereby the Appellant has been sentenced to undergo rigorous imprisonment for [X] years.
+1. That the Appellant has preferred the accompanying Criminal Appeal challenging the judgment and order of conviction dated ________ (Date) passed by the Ld. Trial Court, whereby the Appellant has been sentenced to undergo rigorous imprisonment for ________ (X) years.
 
 2. SHORT SENTENCE:
    That the sentence imposed is a short-term sentence (less than 3/5 years). As per the settled law, where the appeal is not likely to be heard in the near future and the sentence is short, the sentence ought to be suspended pending appeal to prevent the right of appeal from becoming illusory.
@@ -908,7 +907,7 @@ MOST RESPECTFULLY SHOWETH:
 PRAYER:
 It is prayed that the execution of the sentence be suspended and the Appellant be enlarged on bail pending the final disposal of the accompanying appeal.
 
-Place: [PLACE]
+Place: ________ (Place)
 Date: {today}
 
 Through Counsel
@@ -916,24 +915,24 @@ Through Counsel
 
 def generate_criminal_appeal(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "[APPELLANT NAME]"
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Appellant Name)"
     offense = case_data.get("offense_type", "General")
     
     return f"""{_header("CRIMINAL APPEAL — SECTION 374 CrPC / 415 BNSS")}
 
-IN THE COURT OF [SESSIONS JUDGE / HIGH COURT], [LOCATION]
+IN THE COURT OF ________ (Sessions Judge / High Court), ________ (Location)
 CRIMINAL APPEAL NO. ______ OF {datetime.now().year}
 
 IN THE MATTER OF:
 {accused}                                                  ... APPELLANT
 VERSUS
-STATE OF [STATE NAME]                                      ... RESPONDENT
+STATE OF ________ (State Name)                                      ... RESPONDENT
 
-CRIMINAL APPEAL UNDER SECTION 374 OF THE CrPC AGAINST THE JUDGMENT OF CONVICTION DATED [DATE] PASSED IN CASE NO. [CASE NO.] U/S {offense}
+CRIMINAL APPEAL UNDER SECTION 374 OF THE CrPC AGAINST THE JUDGMENT OF CONVICTION DATED ________ (Date) PASSED IN CASE NO. ________ (Case No.) U/S {offense}
 
 MOST RESPECTFULLY SHOWETH:
 
-1. That the present appeal is directed against the impugned judgment and order of sentence dated [DATE], whereby the Ld. Trial Court has erroneously convicted the Appellant based on conjectures and surmises.
+1. That the present appeal is directed against the impugned judgment and order of sentence dated ________ (Date), whereby the Ld. Trial Court has erroneously convicted the Appellant based on conjectures and surmises.
 
 GROUNDS OF APPEAL:
 
@@ -944,7 +943,7 @@ C. BECAUSE the defence evidence (DW-1) was arbitrarily discarded without assigni
 PRAYER:
 It is prayed that the impugned judgment of conviction and order of sentence be set aside and the Appellant be acquitted of all charges.
 
-Place: [PLACE]
+Place: ________ (Place)
 Date: {today}
 
 Through Counsel
@@ -952,33 +951,33 @@ Through Counsel
 
 def generate_recall_witness(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "[APPLICANT NAME]"
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Applicant Name)"
     
     return f"""{_header("APPLICATION TO RECALL WITNESS — SECTION 311 CrPC / 348 BNSS")}
 
-IN THE COURT OF [SESSIONS JUDGE / MAGISTRATE], [LOCATION]
+IN THE COURT OF ________ (Sessions Judge / Magistrate), ________ (Location)
 
 IN THE MATTER OF:
 STATE                                                      ... PROSECUTION
 VERSUS
 {accused}                                                  ... ACCUSED
 
-APPLICATION UNDER SECTION 311 OF THE CrPC FOR RECALLING PROSECUTION WITNESS (PW-[X]) FOR FURTHER CROSS-EXAMINATION
+APPLICATION UNDER SECTION 311 OF THE CrPC FOR RECALLING PROSECUTION WITNESS (PW-________ (X)) FOR FURTHER CROSS-EXAMINATION
 
 MOST RESPECTFULLY SHOWETH:
 
-1. That the present case is pending adjudication before this Hon'ble Court and is fixed for [Next Stage] on [Next Date].
+1. That the present case is pending adjudication before this Hon'ble Court and is fixed for ________ (Next Stage) on ________ (Next Date).
 
 2. ESSENTIAL FOR JUST DECISION:
-   That subsequent to the cross-examination of PW-[X] ([Witness Name]), certain material documents/facts have surfaced which go to the root of the matter. Recalling the witness is essential for arriving at a just decision of the case as mandated by the second part of Section 311 CrPC.
+   That subsequent to the cross-examination of PW-________ (X) (________ (Witness Name)), certain material documents/facts have surfaced which go to the root of the matter. Recalling the witness is essential for arriving at a just decision of the case as mandated by the second part of Section 311 CrPC.
 
 3. NO DELAY TACTIC:
    That this application is bona fide and not filed to protract the trial. The defence will be severely prejudiced if the opportunity to confront the witness with these newly discovered facts is denied.
 
 PRAYER:
-It is prayed that PW-[X] be recalled for further cross-examination in the interest of justice and fair trial.
+It is prayed that PW-________ (X) be recalled for further cross-examination in the interest of justice and fair trial.
 
-Place: [PLACE]
+Place: ________ (Place)
 Date: {today}
 
 Through Counsel
@@ -986,30 +985,30 @@ Through Counsel
 
 def generate_add_accused(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
-    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "[COMPLAINANT NAME]"
+    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
     
     return f"""{_header("APPLICATION TO SUMMON ADDITIONAL ACCUSED — SECTION 319 CrPC / 358 BNSS")}
 
-IN THE COURT OF [SESSIONS JUDGE / MAGISTRATE], [LOCATION]
+IN THE COURT OF ________ (Sessions Judge / Magistrate), ________ (Location)
 
 IN THE MATTER OF:
 {complainant} / STATE                                      ... COMPLAINANT/PROSECUTION
 VERSUS
-[CURRENT ACCUSED] & ORS.                                   ... ACCUSED
+________ (Current Accused) & ORS.                                   ... ACCUSED
 
 APPLICATION UNDER SECTION 319 OF THE CrPC FOR SUMMONING ADDITIONAL ACCUSED PERSON
 
 MOST RESPECTFULLY SHOWETH:
 
-1. That the trial in the present matter is ongoing. During the recording of evidence of PW-[X], specific and overt acts have been attributed to one Mr./Ms. [NAME OF PROPOSED ACCUSED], who was not charge-sheeted by the police.
+1. That the trial in the present matter is ongoing. During the recording of evidence of PW-________ (X), specific and overt acts have been attributed to one Mr./Ms. ________ (Name of Proposed Accused), who was not charge-sheeted by the police.
 
 2. STRONG PRIMA FACIE EVIDENCE:
    That the testimony before this Hon'ble Court establishes a strong prima facie case against the proposed accused. As per the Constitution Bench ruling in 'Hardeep Singh v. State of Punjab', the evidence is more than a mere probability of complicity.
 
 PRAYER:
-It is prayed that Mr./Ms. [NAME] be summoned to stand trial alongside the current accused persons, to meet the ends of justice.
+It is prayed that Mr./Ms. ________ (Name) be summoned to stand trial alongside the current accused persons, to meet the ends of justice.
 
-Place: [PLACE]
+Place: ________ (Place)
 Date: {today}
 
 Through Counsel
@@ -1017,11 +1016,11 @@ Through Counsel
 
 def generate_exemption_appearance(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "[ACCUSED NAME]"
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
     
     return f"""{_header("EXEMPTION FROM PERSONAL APPEARANCE — SECTION 205/317 CrPC / 355 BNSS")}
 
-IN THE COURT OF [SESSIONS JUDGE / MAGISTRATE], [LOCATION]
+IN THE COURT OF ________ (Sessions Judge / Magistrate), ________ (Location)
 
 IN THE MATTER OF:
 STATE                                                      ... PROSECUTION
@@ -1035,7 +1034,7 @@ MOST RESPECTFULLY SHOWETH:
 1. That the Accused is a law-abiding citizen and has been regularly appearing before this Hon'ble Court.
 
 2. UNAVOIDABLE REASON:
-   That today, the Accused is unable to attend the Court due to [Medical Illness / Urgent Professional Exigency / Severe Viral Fever]. A medical certificate/proof is annexed herewith.
+   That today, the Accused is unable to attend the Court due to ________ (Reason for Absence). A medical certificate/proof is annexed herewith.
 
 3. NO PREJUDICE TO TRIAL:
    That the absence of the Accused is neither intentional nor deliberate. The Accused's counsel is present and the identity of the Accused is not disputed. The trial will not be impeded by his/her absence today.
@@ -1043,7 +1042,7 @@ MOST RESPECTFULLY SHOWETH:
 PRAYER:
 It is prayed that the personal appearance of the Accused be exempted for today only.
 
-Place: [PLACE]
+Place: ________ (Place)
 Date: {today}
 
 Through Counsel
@@ -1051,11 +1050,11 @@ Through Counsel
 
 def generate_superdari_application(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
-    applicant = case_data.get("complainant_name") or case_data.get("accused_name") or "[APPLICANT NAME]"
+    applicant = case_data.get("complainant_name") or case_data.get("accused_name") or "________ (Applicant Name)"
     
     return f"""{_header("SUPERDARI APPLICATION (RELEASE OF PROPERTY) — SECTION 451 CrPC / 497 BNSS")}
 
-IN THE COURT OF [MAGISTRATE], [LOCATION]
+IN THE COURT OF ________ (Magistrate), ________ (Location)
 
 IN THE MATTER OF:
 {applicant}                                                ... APPLICANT
@@ -1066,7 +1065,7 @@ APPLICATION UNDER SECTION 451 OF THE CrPC FOR RELEASE OF VEHICLE / PROPERTY ON S
 
 MOST RESPECTFULLY SHOWETH:
 
-1. That the Applicant is the registered owner of the vehicle [Make/Model] bearing Registration No. [Reg No.], which was seized by the police in connection with the present FIR.
+1. That the Applicant is the registered owner of the vehicle ________ (Make/Model) bearing Registration No. ________ (Reg No.), which was seized by the police in connection with the present FIR.
 
 2. DEPRECIATION OF ASSET:
    That the vehicle is currently parked at the police station, exposed to extreme weather, and is rapidly deteriorating in value and mechanical condition, as noted by the Hon'ble Supreme Court in 'Sunderbhai Ambalal Desai v. State of Gujarat'.
@@ -1077,7 +1076,7 @@ MOST RESPECTFULLY SHOWETH:
 PRAYER:
 It is prayed that the seized vehicle be released to the Applicant on Superdari upon furnishing a suitable indemnity bond.
 
-Place: [PLACE]
+Place: ________ (Place)
 Date: {today}
 
 Through Counsel
@@ -1085,12 +1084,12 @@ Through Counsel
 
 def generate_protest_petition(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
-    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "[COMPLAINANT NAME]"
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "[ACCUSED NAME]"
+    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
     
     return f"""{_header("PROTEST PETITION AGAINST CLOSURE REPORT")}
 
-IN THE COURT OF [MAGISTRATE], [LOCATION]
+IN THE COURT OF ________ (Magistrate), ________ (Location)
 
 IN THE MATTER OF:
 {complainant}                                              ... COMPLAINANT
@@ -1101,7 +1100,7 @@ PROTEST PETITION AGAINST THE FINAL REPORT (CLOSURE REPORT) FILED BY THE POLICE U
 
 MOST RESPECTFULLY SHOWETH:
 
-1. That the police have filed a Closure Report / B-Summary in FIR No. [FIR NO.], erroneously concluding that no case is made out against the Accused.
+1. That the police have filed a Closure Report / B-Summary in FIR No. ________ (FIR No.), erroneously concluding that no case is made out against the Accused.
 
 2. TAINTED INVESTIGATION:
    That the Investigating Officer (IO) has acted in a highly partisan manner and deliberately ignored the direct evidence, medical reports, and independent eyewitness statements provided by the Complainant.
@@ -1112,7 +1111,7 @@ MOST RESPECTFULLY SHOWETH:
 PRAYER:
 It is prayed that this Hon'ble Court reject the Closure Report, take cognizance of the offences, and summon the Accused to face trial.
 
-Place: [PLACE]
+Place: ________ (Place)
 Date: {today}
 
 Through Counsel
@@ -1176,3 +1175,5 @@ class DraftEngine:
             return generate_application_143a(case_data)
         else:
             return generate_legal_opinion(score, concepts, case_data)
+
+

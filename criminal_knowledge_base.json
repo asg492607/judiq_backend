@@ -299,6 +299,146 @@
         "burden_shift_effect": "Often seen as a filler charge; easy to dismantle.",
         "magistrate_view": "Will ignore S.506 if isolated from other major offences."
       }
+    },
+    "IPC_379": {
+      "name": "Absence of Dishonest Intent / Title Dispute (S.379 IPC)",
+      "severity": "HIGH",
+      "why_applied": "Theft charged, but the accused claims a bona fide claim of right over the property.",
+      "risk": "Theft requires 'dishonest intention' to take property. A genuine civil dispute over ownership negates S.379.",
+      "evidence_needed": "Civil court injunctions, partnership deeds, or prior correspondence showing claim of right.",
+      "precedent": "Chandi Kumar Das Karmakar vs. Abanidhar Roy",
+      "chain": [
+        "1. Defence establishes a pre-existing dispute over the property.",
+        "2. Argues possession was taken under a bona fide belief of right.",
+        "3. Court quashes FIR as purely a civil dispute."
+      ],
+      "probability_collapse": 0.85,
+      "rebuttal_tree": {
+        "defence_evidence": "Title deeds or ongoing civil litigation.",
+        "prosecution_counter": "Argue the claim of right is a sham and the taking was clandestine.",
+        "burden_shift_effect": "Extremely effective for quashing if supported by civil documents.",
+        "magistrate_view": "Will convert to civil suit if title is genuinely contested."
+      }
+    },
+    "IPC_392": {
+      "name": "Lack of Extortion/Fear for Robbery (S.392 IPC)",
+      "severity": "FATAL",
+      "why_applied": "Robbery charged, but theft did not involve violence or fear of instant death/hurt.",
+      "risk": "Theft is 'robbery' only if, in order to commit theft, the offender voluntarily causes or attempts to cause death, hurt, or wrongful restraint.",
+      "evidence_needed": "Medical records showing no injuries, CCTV footage showing stealth rather than force.",
+      "precedent": "State of Maharashtra vs. Joseph Mingel",
+      "chain": [
+        "1. Defence proves property was taken without any threat or force.",
+        "2. Highlights absence of injuries or weapons.",
+        "3. Charge downgraded from Robbery (S.392) to Theft (S.379/380)."
+      ],
+      "probability_collapse": 0.75,
+      "rebuttal_tree": {
+        "defence_evidence": "MLC showing no injuries, cross-exam on exact sequence of events.",
+        "prosecution_counter": "Argue that even fear of wrongful restraint is sufficient.",
+        "burden_shift_effect": "Significantly reduces minimum mandatory sentences.",
+        "magistrate_view": "Scrutinizes the immediate prelude to the taking of property."
+      }
+    },
+    "IPC_395": {
+      "name": "Identification Failure / Less than 5 Persons (S.395 IPC)",
+      "severity": "CRITICAL",
+      "why_applied": "Dacoity charged, but Test Identification Parade (TIP) failed or fewer than 5 persons proven.",
+      "risk": "Dacoity strictly requires 5 or more persons. If some are acquitted bringing the number below 5, the charge fails.",
+      "evidence_needed": "Defective TIP proceedings, alibi for co-accused.",
+      "precedent": "Ram Shankar vs. State of UP",
+      "chain": [
+        "1. Defence attacks the TIP (delayed or accused shown to witnesses prior).",
+        "2. Co-accused acquitted, dropping the total participants below 5.",
+        "3. Conviction under S.395 is legally unsustainable; drops to S.392."
+      ],
+      "probability_collapse": 0.80,
+      "rebuttal_tree": {
+        "defence_evidence": "Cross-examination of Investigating Officer on TIP protocols.",
+        "prosecution_counter": "Argue that unknown/absconding persons made up the number to 5+.",
+        "burden_shift_effect": "Massive reduction in severity if Dacoity charge is dismantled.",
+        "magistrate_view": "TIP is crucial. Delay in holding TIP is fatal to prosecution."
+      }
+    },
+    "IPC_406": {
+      "name": "No Entrustment of Property (S.406 IPC)",
+      "severity": "FATAL",
+      "why_applied": "Criminal Breach of Trust charged without proof of 'entrustment'.",
+      "risk": "Without clear entrustment (fiduciary duty) and subsequent misappropriation, a mere failure to return money/goods is a civil breach.",
+      "evidence_needed": "Absence of a trust deed or specific agreement outlining the holding of property in trust.",
+      "precedent": "Velji Raghavji Patel vs. State of Maharashtra",
+      "chain": [
+        "1. Defence proves the transaction was a standard commercial sale/loan.",
+        "2. Highlights that property transferred absolutely, not 'entrusted'.",
+        "3. Quashing of S.406 charge."
+      ],
+      "probability_collapse": 0.90,
+      "rebuttal_tree": {
+        "defence_evidence": "Invoices showing absolute sale.",
+        "prosecution_counter": "Show emails establishing that goods were only for job-work/safe-keeping.",
+        "burden_shift_effect": "Prosecution must prove the exact nature of the fiduciary relationship.",
+        "magistrate_view": "Will distinguish strictly between a debtor and a trustee."
+      }
+    },
+    "IPC_499": {
+      "name": "Exception 8 or 9 / Good Faith (S.499/500 IPC)",
+      "severity": "HIGH",
+      "why_applied": "Defamation charged for statements made to authorities or in public interest.",
+      "risk": "Accusations made in good faith to authorized persons (Exception 8) or for protection of interest (Exception 9) are protected.",
+      "evidence_needed": "Proof that the statement was a formal complaint to police/authorities.",
+      "precedent": "Kishore Balkrishna vs. State of Maharashtra",
+      "chain": [
+        "1. Defence admits making the statement.",
+        "2. Proves it was part of a lawful complaint/litigation.",
+        "3. Argues absolute/qualified privilege."
+      ],
+      "probability_collapse": 0.85,
+      "rebuttal_tree": {
+        "defence_evidence": "Copies of FIRs or legal notices containing the alleged defamatory statements.",
+        "prosecution_counter": "Prove malice and that the statements were broadcast to unrelated third parties (e.g., social media).",
+        "burden_shift_effect": "Defence burden to prove good faith under S.105 Evidence Act.",
+        "magistrate_view": "Reluctant to entertain defamation for pleadings in court."
+      }
+    },
+    "IPC_147": {
+      "name": "No Common Object (S.147/149 IPC)",
+      "severity": "MEDIUM",
+      "why_applied": "Rioting/Unlawful Assembly charged without proving a shared illegal goal.",
+      "risk": "Mere presence at the scene without sharing the 'common object' of the unlawful assembly does not attract S.149 vicarious liability.",
+      "evidence_needed": "Evidence that the accused was a curious bystander or tried to pacify the crowd.",
+      "precedent": "Muthu Naicker vs. State of Tamil Nadu",
+      "chain": [
+        "1. Defence admits presence but denies participation.",
+        "2. Highlights lack of overt act or weapon.",
+        "3. Avoids vicarious liability for the main offence (e.g., murder by the mob)."
+      ],
+      "probability_collapse": 0.70,
+      "rebuttal_tree": {
+        "defence_evidence": "Video footage showing inaction or distancing from the mob.",
+        "prosecution_counter": "Argue that joining the assembly with knowledge of its object is enough.",
+        "burden_shift_effect": "Splits the accused from the main perpetrators.",
+        "magistrate_view": "Will look for active participation or shouting of slogans."
+      }
+    },
+    "IPC_304A": {
+      "name": "Contributory Negligence / Error of Judgment (S.304A IPC)",
+      "severity": "HIGH",
+      "why_applied": "Death by rash/negligent act (usually traffic accidents), but victim was at fault.",
+      "risk": "Criminal negligence requires 'gross' or 'culpable' negligence. A mere error of judgment or the victim's sudden dashing into the road is a defense.",
+      "evidence_needed": "Brake marks, mechanical inspection report, eyewitnesses to the victim's movement.",
+      "precedent": "Mahadeo Hari Lokre vs. State of Maharashtra",
+      "chain": [
+        "1. Defence proves the vehicle was at a moderate speed.",
+        "2. Shows the victim created a sudden, unavoidable emergency.",
+        "3. Act deemed an accident, not gross negligence."
+      ],
+      "probability_collapse": 0.75,
+      "rebuttal_tree": {
+        "defence_evidence": "Skid marks analysis, mechanical clearance.",
+        "prosecution_counter": "Argue that the driver should have anticipated pedestrian movement in that zone.",
+        "burden_shift_effect": "Raises reasonable doubt on the 'rash' element.",
+        "magistrate_view": "Will rely heavily on the site map (panchnama) and mechanical inspector's report."
+      }
     }
   }
 }

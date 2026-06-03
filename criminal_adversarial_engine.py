@@ -153,6 +153,30 @@ class CriminalAdversarialEngine:
             node = _build_node("IPC_120B")
             if node: analysis_nodes.append(node)
 
+        if offense_type in ["379", "380"] and case_data.get("title_dispute"):
+            node = _build_node("IPC_379")
+            if node: analysis_nodes.append(node)
+
+        if offense_type == "392" and not case_data.get("violence_used"):
+            node = _build_node("IPC_392")
+            if node: analysis_nodes.append(node)
+
+        if offense_type == "395" and case_data.get("tip_failed"):
+            node = _build_node("IPC_395")
+            if node: analysis_nodes.append(node)
+
+        if offense_type in ["499", "500"] and case_data.get("good_faith_complaint"):
+            node = _build_node("IPC_499")
+            if node: analysis_nodes.append(node)
+
+        if offense_type in ["147", "148", "149"] and not case_data.get("common_object_shared"):
+            node = _build_node("IPC_147")
+            if node: analysis_nodes.append(node)
+
+        if offense_type == "304A" and case_data.get("victim_contributory_negligence"):
+            node = _build_node("IPC_304A")
+            if node: analysis_nodes.append(node)
+
         if case_data.get("pmla_case") and case_data.get("predicate_quashed"):
             node = _build_node("PMLA_PREDICATE")
             if node: analysis_nodes.append(node)
