@@ -159,6 +159,146 @@
         "burden_shift_effect": "Creates strong reasonable doubt.",
         "magistrate_view": "Medical evidence usually trumps ocular if contradiction is absolute."
       }
+    },
+    "IPC_307": {
+      "name": "No Vital Injury (S.307 IPC)",
+      "severity": "HIGH",
+      "why_applied": "Charge of Attempt to Murder where injuries are simple or non-vital.",
+      "risk": "If the medical report shows only simple injuries (e.g., laceration on arm), intent to kill is hard to prove. Charge may drop to S.324/323.",
+      "evidence_needed": "MLC showing nature of injury as simple.",
+      "precedent": "State of MP vs. Kashiram",
+      "chain": [
+        "1. Defence highlights MLC showing simple injuries.",
+        "2. Argues lack of intent/knowledge to cause death.",
+        "3. Court downgrades charge to voluntarily causing hurt."
+      ],
+      "probability_collapse": 0.70,
+      "rebuttal_tree": {
+        "defence_evidence": "Doctor's testimony on injury severity.",
+        "prosecution_counter": "Argue intent (mens rea) is key, even if the blow missed or injury was minor.",
+        "burden_shift_effect": "Defence must prove absence of lethal intent.",
+        "magistrate_view": "Will heavily rely on the weapon used and part of the body targeted."
+      }
+    },
+    "IPC_326": {
+      "name": "Weapon Not Dangerous (S.326 IPC)",
+      "severity": "MEDIUM",
+      "why_applied": "Grievous hurt alleged with a dangerous weapon, but weapon is blunt or ordinary.",
+      "risk": "If the weapon is not an 'instrument for shooting, stabbing or cutting', S.326 drops to S.325 (bailable/compoundable with permission).",
+      "evidence_needed": "Seizure memo showing weapon type (e.g., lathi).",
+      "precedent": "Prabhu vs. State of MP",
+      "chain": [
+        "1. Defence examines the recovered weapon.",
+        "2. Proves it is not 'deadly' under S.326.",
+        "3. Charge modified to S.325."
+      ],
+      "probability_collapse": 0.65,
+      "rebuttal_tree": {
+        "defence_evidence": "Cross-examination of recovery witness.",
+        "prosecution_counter": "Argue that the manner of use makes even an ordinary object deadly.",
+        "burden_shift_effect": "Lowers maximum sentence significantly.",
+        "magistrate_view": "Strictly interprets 'dangerous weapon'."
+      }
+    },
+    "IPC_354": {
+      "name": "Delay in FIR / Lack of Outrage Intent (S.354 IPC)",
+      "severity": "HIGH",
+      "why_applied": "Unexplained delay in reporting sexual harassment or absence of culpable intent.",
+      "risk": "Delay in S.354 cases, especially in workplace/neighborhood disputes, often suggests an afterthought or counter-blast.",
+      "evidence_needed": "Timeline showing delay, proof of prior enmity.",
+      "precedent": "Rupan Deol Bajaj vs. KPS Gill (on definition of modesty)",
+      "chain": [
+        "1. Defence establishes long delay in filing FIR.",
+        "2. Proves prior property/civil dispute.",
+        "3. Court views allegations as false implication."
+      ],
+      "probability_collapse": 0.75,
+      "rebuttal_tree": {
+        "defence_evidence": "Call Detail Records showing normal interaction post-incident.",
+        "prosecution_counter": "Explain delay due to social stigma or family pressure.",
+        "burden_shift_effect": "Cast serious doubt on complainant's credibility.",
+        "magistrate_view": "Cautious if FIR is filed only after a counter-complaint."
+      }
+    },
+    "IPC_468": {
+      "name": "No Benefit Derived (S.468/471 IPC)",
+      "severity": "CRITICAL",
+      "why_applied": "Alleged forgery did not result in cheating or wrongful gain.",
+      "risk": "Forgery for the purpose of cheating (S.468) requires proof that the forged document was actually used (S.471) to deceive.",
+      "evidence_needed": "Absence of financial loss to the complainant.",
+      "precedent": "Sheila Sebastian vs. R. Jawaharaj",
+      "chain": [
+        "1. Defence shows no property/money changed hands.",
+        "2. Argues mere creation of document without use is not S.468.",
+        "3. Case drops to S.465 (simple forgery, bailable)."
+      ],
+      "probability_collapse": 0.80,
+      "rebuttal_tree": {
+        "defence_evidence": "Bank statements showing no loss.",
+        "prosecution_counter": "Argue the *attempt* to use the document is sufficient.",
+        "burden_shift_effect": "Breaks the cheating-forgery nexus.",
+        "magistrate_view": "Requires concrete proof of the document's deployment."
+      }
+    },
+    "IPC_304B": {
+      "name": "No Proximate Demand (S.304B IPC)",
+      "severity": "FATAL",
+      "why_applied": "Dowry death alleged, but no dowry demand 'soon before' death.",
+      "risk": "The presumption under S.113B Evidence Act only triggers if cruelty/demand occurred *soon before* the unnatural death.",
+      "evidence_needed": "Proof of cordial relations immediately preceding the death.",
+      "precedent": "Bansi Lal vs. State of Haryana",
+      "chain": [
+        "1. Defence proves last demand was years ago.",
+        "2. Argues no live link between demand and death.",
+        "3. Court refuses to draw S.113B presumption."
+      ],
+      "probability_collapse": 0.90,
+      "rebuttal_tree": {
+        "defence_evidence": "Recent WhatsApp chats, happy photographs.",
+        "prosecution_counter": "Rely on witness testimony of recent, unrecorded verbal demands.",
+        "burden_shift_effect": "Prevents the reverse burden of proof from activating.",
+        "magistrate_view": "Crucial requirement. 'Soon before' is strictly construed."
+      }
+    },
+    "IPC_120B": {
+      "name": "Lack of Meeting of Minds (S.120B IPC)",
+      "severity": "HIGH",
+      "why_applied": "Criminal conspiracy charged based on mere association.",
+      "risk": "Conspiracy requires an agreement to do an illegal act. Mere presence or association with main accused is insufficient.",
+      "evidence_needed": "Absence of call records, money trail, or prior planning.",
+      "precedent": "Kehar Singh vs. State (Delhi Administration)",
+      "chain": [
+        "1. Defence shows accused had no knowledge of the main crime.",
+        "2. Highlights lack of communication (CDRs).",
+        "3. Discharged from conspiracy charge."
+      ],
+      "probability_collapse": 0.85,
+      "rebuttal_tree": {
+        "defence_evidence": "Alibi, lack of CDR linkage.",
+        "prosecution_counter": "Conspiracy is hatched in secrecy; rely on circumstantial chain.",
+        "burden_shift_effect": "Extremely effective at the discharge stage.",
+        "magistrate_view": "Will look for a definite 'meeting of minds'."
+      }
+    },
+    "IPC_506": {
+      "name": "Empty Threats (S.506 IPC)",
+      "severity": "MEDIUM",
+      "why_applied": "Criminal intimidation alleged without real intent to cause alarm.",
+      "risk": "Mere outburst in anger without intention to cause alarm does not amount to criminal intimidation.",
+      "evidence_needed": "Context of the quarrel showing it was a heat-of-the-moment exchange.",
+      "precedent": "Manik Taneja vs. State of Karnataka",
+      "chain": [
+        "1. Defence argues words were uttered in sudden anger.",
+        "2. Shows complainant was not actually alarmed (e.g., filed FIR days later).",
+        "3. Charge quashed/acquitted."
+      ],
+      "probability_collapse": 0.70,
+      "rebuttal_tree": {
+        "defence_evidence": "Delay in FIR, presence of other people who didn't take it seriously.",
+        "prosecution_counter": "Argue the threat caused severe mental distress.",
+        "burden_shift_effect": "Often seen as a filler charge; easy to dismantle.",
+        "magistrate_view": "Will ignore S.506 if isolated from other major offences."
+      }
     }
   }
 }

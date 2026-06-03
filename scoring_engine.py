@@ -63,14 +63,10 @@ class ScoringEngineV12:
         uncertainty_messages = []
         low_reliability_evidence = []
         
-        # --- V3 ENHANCEMENT: SCORE CALIBRATION & JITTER ---
-        # Deterministic jitter based on case data to avoid '74/100' trap
-        jitter_seed = len(str(case_data.get('case_id', ''))) + int(ensure_number(case_data.get('amount', 0)) % 17)
-        jitter = (jitter_seed % 7) - 3 # Range: -3 to +3
-        
-        base_score = 12 + (jitter_seed % 5) # Varied base
+        # --- V3 ENHANCEMENT: STRICT CALIBRATION (NO JITTER) ---
+        base_score = 15
         score = base_score
-        trace.append(f"Standard Litigation Baseline: {base_score} points (Calibrated for jurisdiction).")
+        trace.append(f"Standard Litigation Baseline: {base_score} points (Strictly Calibrated for Jurisdiction).")
         causality_map.append({"fact": "Litigation Baseline", "impact": base_score, "type": "neutral", "rationale": "Base probability of recovery in Indian courts."})
 
         # --- V3 ENHANCEMENT: EVIDENCE RELIABILITY ---

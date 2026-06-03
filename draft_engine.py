@@ -102,17 +102,17 @@ def _num_to_words(n: int) -> str:
 def generate_legal_notice(case_data: Dict) -> str:
     today, amount_str = _case_meta(case_data)
 
-    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "[YOUR NAME]"
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "[ACCUSED NAME]"
-    accused_addr = case_data.get("accused_address") or case_data.get("accusedAddress") or "[ACCUSED ADDRESS]"
+    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
+    accused_addr = case_data.get("accused_address") or case_data.get("accusedAddress") or "________ (Accused Address)"
 
-    cheque_no = case_data.get("cheque_number") or case_data.get("chequeNumber") or "______"
-    cheque_date = case_data.get("cheque_date") or case_data.get("chequeDate") or "[DATE]"
-    bank = case_data.get("bank_name") or case_data.get("bankName") or "[BANK NAME]"
+    cheque_no = case_data.get("cheque_number") or case_data.get("chequeNumber") or "________"
+    cheque_date = case_data.get("cheque_date") or case_data.get("chequeDate") or "________ (Cheque Date)"
+    bank = case_data.get("bank_name") or case_data.get("bankName") or "________ (Bank Name)"
     branch = case_data.get("branch_name") or case_data.get("branchName") or ""
     bank_full = f"{bank}, {branch}" if branch else bank
 
-    dishonour_date = case_data.get("dishonour_date") or case_data.get("dishonourDate") or "[DATE]"
+    dishonour_date = case_data.get("dishonour_date") or case_data.get("dishonourDate") or "________ (Date)"
     dishonour_reason = case_data.get("dishonour_reason") or case_data.get("dishonourReason") or "Funds Insufficient"
 
     description = case_data.get("description", "")
@@ -223,18 +223,18 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     today, amount_str = _case_meta(case_data)
     is_aggressive = tone.lower() == "aggressive"
 
-    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "[COMPLAINANT NAME]"
-    complainant_addr = case_data.get("complainant_address") or case_data.get("complainantAddress") or "[COMPLAINANT ADDRESS]"
-    complainant_phone = case_data.get("complainant_phone") or case_data.get("complainantPhone") or "[CONTACT]"
+    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
+    complainant_addr = case_data.get("complainant_address") or case_data.get("complainantAddress") or "________ (Complainant Address)"
+    complainant_phone = case_data.get("complainant_phone") or case_data.get("complainantPhone") or "________ (Contact Number)"
     complainant_type = case_data.get("complainant_type", "Individual")
 
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "[ACCUSED NAME]"
-    accused_addr = case_data.get("accused_address") or case_data.get("accusedAddress") or "[ACCUSED ADDRESS]"
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
+    accused_addr = case_data.get("accused_address") or case_data.get("accusedAddress") or "________ (Accused Address)"
     accused_type = case_data.get("accused_type", "Individual")
 
-    cheque_no = case_data.get("cheque_number") or case_data.get("chequeNumber") or "______"
-    cheque_date = case_data.get("cheque_date") or case_data.get("chequeDate") or "[DATE]"
-    bank = case_data.get("bank_name") or case_data.get("bankName") or "[BANK NAME]"
+    cheque_no = case_data.get("cheque_number") or case_data.get("chequeNumber") or "________"
+    cheque_date = case_data.get("cheque_date") or case_data.get("chequeDate") or "________ (Cheque Date)"
+    bank = case_data.get("bank_name") or case_data.get("bankName") or "________ (Bank Name)"
     branch = case_data.get("branch_name") or case_data.get("branchName") or ""
     bank_full = f"{bank}, {branch}" if branch else bank
 
@@ -302,15 +302,15 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
 
     # ── EVIDENCE PLEADINGS (Advocate Hardening) ──────────────────────────
     if is_aggressive:
-        debt_pleading = f"""The Complainant categorically asserts that the Accused is heavily indebted to the tune of {amount_str}. This sum represents a crystallized, legally enforceable liability arising from {transaction_nature}. 
-    This debt is not merely an entry in a ledger but is fortified by unassailable documentary evidence, including [Bank Statements/Ledger Accounts/Invoices], which unequivocally prove the flow of consideration. 
-    The Accused has deliberately and with mala fide intent exploited the Complainant's professional trust, and the issuance of the dishonoured cheque was a calculated act of deception aimed at causing wrongful loss to the Complainant and wrongful gain to the Accused."""
+        debt_pleading = f"""The Complainant respectfully submits that the Accused bears an incontrovertible liability of {amount_str}, crystallised through {transaction_nature}. 
+    This liability is not based on mere oral assertions but is conclusively established by contemporaneous documentary evidence (e.g., invoices/ledgers/agreements). 
+    The Accused's issuance of the subject cheque was a deliberate acknowledgment of this debt. The subsequent dishonour reveals a premeditated design to evade lawful obligations, thereby attracting the strict rigours of Section 138 of the NI Act."""
     else:
         debt_pleading = f"The Complainant states that the Accused is indebted to the Complainant for a sum of {amount_str} arising from {transaction_nature}. The said debt is legally enforceable and constitutes a valid liability under law."
     
     if case_data.get("communication_records"):
         if is_aggressive:
-            debt_pleading += f" The Accused's culpability is further established by an unassailable digital trail of WhatsApp messages and Emails, where the debt was repeatedly admitted. This evidence is fortified by a mandatory Section 63(4) BSA Certificate, making it trial-ready and inadmissible to denial."
+            debt_pleading += f" The Accused's culpability is further aggravated by an unassailable digital trail of WhatsApp messages and Emails wherein the debt stands explicitly admitted. This electronic evidence, supported by a mandatory Section 63(4) BSA Certificate, renders any denial by the Accused legally untenable."
         else:
             debt_pleading += f" The Accused has repeatedly acknowledged the said debt and liability via various communications, including WhatsApp messages and Emails, which are produced herewith along with the mandatory Certificate under Section 63(4) of the Bharatiya Sakshya Adhiniyam (BSA)."
     elif case_data.get("debt_proof_type") == "verbal_agreement" or case_data.get("agreement_type") == "Verbal Agreement":
@@ -321,7 +321,7 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
 
     prayer_compensation = ""
     if is_aggressive:
-        prayer_compensation = "(c) Direct the Accused to pay MAXIMUM INTERIM COMPENSATION of 20% under Section 143A of the NI Act, as the Accused's defense is prima facie meritless and intended only to delay justice;"
+        prayer_compensation = "(c) Direct the Accused to pay MAXIMUM INTERIM COMPENSATION of 20% under Section 143A of the NI Act, as the defense is ex-facie frivolous and dilatory;"
     else:
         prayer_compensation = "(c) Direct the Accused to pay INTERIM COMPENSATION under Section 143A of the NI Act (20% of cheque amount);"
 
