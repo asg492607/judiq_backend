@@ -113,23 +113,23 @@ class CriminalAdversarialEngine:
                 "collapse_risk": f"{int(tree.get('probability_collapse', 0.5) * 100)}%"
             }
 
-        if offense_type == "420" and case_data.get("contract_exists"):
+        if offense_type in ["420", "318"] and case_data.get("contract_exists"):
             node = _build_node("IPC_420")
             if node: analysis_nodes.append(node)
             
-        if offense_type == "406" and not case_data.get("entrustment_proven"):
+        if offense_type in ["406", "316"] and not case_data.get("entrustment_proven"):
             node = _build_node("IPC_406")
             if node: analysis_nodes.append(node)
 
-        if offense_type == "498A" and case_data.get("relatives_implicated"):
+        if offense_type in ["498A", "85"] and case_data.get("relatives_implicated"):
             node = _build_node("IPC_498A")
             if node: analysis_nodes.append(node)
 
-        if offense_type == "302" and case_data.get("sudden_provocation"):
+        if offense_type in ["302", "103"] and case_data.get("sudden_provocation"):
             node = _build_node("IPC_302")
             if node: analysis_nodes.append(node)
 
-        if offense_type == "376" and case_data.get("prior_relationship"):
+        if offense_type in ["376", "64"] and case_data.get("prior_relationship"):
             node = _build_node("IPC_376")
             if node: analysis_nodes.append(node)
 
@@ -137,15 +137,15 @@ class CriminalAdversarialEngine:
             node = _build_node("NDPS_S50")
             if node: analysis_nodes.append(node)
 
-        if offense_type == "307" and case_data.get("superficial_injuries"):
+        if offense_type in ["307", "109"] and case_data.get("superficial_injuries"):
             node = _build_node("IPC_307")
             if node: analysis_nodes.append(node)
 
-        if offense_type in ["326", "324"] and case_data.get("injury_dispute"):
+        if offense_type in ["326", "324", "118", "115"] and case_data.get("injury_dispute"):
             node = _build_node("IPC_326")
             if node: analysis_nodes.append(node)
 
-        if offense_type in ["468", "471", "467"] and not case_data.get("fsl_report_positive"):
+        if offense_type in ["468", "471", "467", "336", "340", "338"] and not case_data.get("fsl_report_positive"):
             node = _build_node("IPC_468")
             if node: analysis_nodes.append(node)
 
@@ -153,27 +153,27 @@ class CriminalAdversarialEngine:
             node = _build_node("IPC_120B")
             if node: analysis_nodes.append(node)
 
-        if offense_type in ["379", "380"] and case_data.get("title_dispute"):
+        if offense_type in ["379", "380", "303", "305"] and case_data.get("title_dispute"):
             node = _build_node("IPC_379")
             if node: analysis_nodes.append(node)
 
-        if offense_type == "392" and not case_data.get("violence_used"):
+        if offense_type in ["392", "309"] and not case_data.get("violence_used"):
             node = _build_node("IPC_392")
             if node: analysis_nodes.append(node)
 
-        if offense_type == "395" and case_data.get("tip_failed"):
+        if offense_type in ["395", "310"] and case_data.get("tip_failed"):
             node = _build_node("IPC_395")
             if node: analysis_nodes.append(node)
 
-        if offense_type in ["499", "500"] and case_data.get("good_faith_complaint"):
+        if offense_type in ["499", "500", "356"] and case_data.get("good_faith_complaint"):
             node = _build_node("IPC_499")
             if node: analysis_nodes.append(node)
 
-        if offense_type in ["147", "148", "149"] and not case_data.get("common_object_shared"):
+        if offense_type in ["147", "148", "149", "189", "190", "191"] and not case_data.get("common_object_shared"):
             node = _build_node("IPC_147")
             if node: analysis_nodes.append(node)
 
-        if offense_type == "304A" and case_data.get("victim_contributory_negligence"):
+        if offense_type in ["304A", "106"] and case_data.get("victim_contributory_negligence"):
             node = _build_node("IPC_304A")
             if node: analysis_nodes.append(node)
 
@@ -209,15 +209,15 @@ class CriminalAdversarialEngine:
             node = _build_node("CRPC_167")
             if node: analysis_nodes.append(node)
 
-        if offense_type in ["378", "379", "THEFT"] and case_data.get("claim_of_right"):
+        if offense_type in ["378", "379", "THEFT", "303"] and case_data.get("claim_of_right"):
             node = _build_node("IPC_378")
             if node: analysis_nodes.append(node)
 
-        if offense_type in ["390", "392", "ROBBERY"] and case_data.get("no_imminent_fear"):
+        if offense_type in ["390", "392", "ROBBERY", "309"] and case_data.get("no_imminent_fear"):
             node = _build_node("IPC_390")
             if node: analysis_nodes.append(node)
 
-        if offense_type in ["441", "448", "TRESPASS"] and case_data.get("civil_possession_dispute"):
+        if offense_type in ["441", "448", "TRESPASS", "329", "333"] and case_data.get("civil_possession_dispute"):
             node = _build_node("IPC_441")
             if node: analysis_nodes.append(node)
 
@@ -261,11 +261,11 @@ class CriminalAdversarialEngine:
             node = _build_node("CRPC_319")
             if node: analysis_nodes.append(node)
 
-        if offense_type in ["191", "193", "PERJURY"] and case_data.get("private_complaint"):
+        if offense_type in ["191", "193", "PERJURY", "227", "229"] and case_data.get("private_complaint"):
             node = _build_node("IPC_193")
             if node: analysis_nodes.append(node)
 
-        if offense_type in ["499", "500", "DEFAMATION"] and case_data.get("good_faith_exception"):
+        if offense_type in ["499", "500", "DEFAMATION", "356"] and case_data.get("good_faith_exception"):
             node = _build_node("IPC_499")
             if node: analysis_nodes.append(node)
 
@@ -273,23 +273,23 @@ class CriminalAdversarialEngine:
             node = _build_node("CRPC_389")
             if node: analysis_nodes.append(node)
 
-        if offense_type == "304A" and case_data.get("no_proximate_cause"):
+        if offense_type in ["304A", "106"] and case_data.get("no_proximate_cause"):
             node = _build_node("IPC_304A")
             if node: analysis_nodes.append(node)
 
-        if offense_type == "354" and case_data.get("no_sexual_intent"):
+        if offense_type in ["354", "74"] and case_data.get("no_sexual_intent"):
             node = _build_node("IPC_354")
             if node: analysis_nodes.append(node)
 
-        if offense_type == "304B" and not case_data.get("soon_before_death_nexus"):
+        if offense_type in ["304B", "80"] and not case_data.get("soon_before_death_nexus"):
             node = _build_node("IPC_304B")
             if node: analysis_nodes.append(node)
 
-        if offense_type == "494" and not case_data.get("essential_ceremonies_proven"):
+        if offense_type in ["494", "82"] and not case_data.get("essential_ceremonies_proven"):
             node = _build_node("IPC_494")
             if node: analysis_nodes.append(node)
 
-        if offense_type == "149" and case_data.get("mere_bystander"):
+        if offense_type in ["149", "190"] and case_data.get("mere_bystander"):
             node = _build_node("IPC_149")
             if node: analysis_nodes.append(node)
 

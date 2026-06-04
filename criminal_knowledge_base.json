@@ -1,444 +1,430 @@
 {
-  "vulnerability_models": {
-    "IPC_420": {
-      "name": "Civil Dispute Cloak (S.420 IPC)",
-      "severity": "CRITICAL",
-      "why_applied": "Accused claims the dispute is purely civil (breach of contract) and lacks initial fraudulent intent.",
-      "risk": "Courts routinely quash S.420 FIRs if the dispute is a mere breach of contract without proof of deceptive intent at the 'inception' of the transaction.",
-      "evidence_needed": "Communications showing false representations *before* the contract was signed.",
-      "precedent": "Hridaya Ranjan Prasad Verma vs. State of Bihar",
-      "chain": [
-        "1. Defence argues this is a civil breach of contract.",
-        "2. Highlights partial performance or genuine business failure.",
-        "3. Burden shifts to Prosecution to prove 'deception at inception'."
-      ],
-      "probability_collapse": 0.85,
-      "rebuttal_tree": {
-        "defence_evidence": "Partial payments or delivery challans.",
-        "prosecution_counter": "Show forged documents or fake credentials presented at day 1.",
-        "burden_shift_effect": "Immediate quashing risk u/s 482 CrPC if intent is missing.",
-        "magistrate_view": "Highly skeptical of using criminal law for debt recovery."
-      }
-    },
-    "IPC_498A": {
-      "name": "Omnibus Allegations (S.498A IPC)",
-      "severity": "HIGH",
-      "why_applied": "Distant relatives of the husband have been impleaded with vague, non-specific allegations.",
-      "risk": "Supreme Court strictly deprecates the practice of roping in entire families without specific attribution of overt acts.",
-      "evidence_needed": "Specific dates, times, and exact words/actions of cruelty by each relative.",
-      "precedent": "Geeta Mehrotra vs. State of UP & Kahkashan Kausar vs. State of Bihar",
-      "chain": [
-        "1. Defence highlights vague, general, and omnibus allegations against relatives.",
-        "2. Files for Quashing u/s 482 CrPC.",
-        "3. High Court strikes down proceedings against extended family."
-      ],
-      "probability_collapse": 0.75,
-      "rebuttal_tree": {
-        "defence_evidence": "Proof of separate residence or lack of specific incidents.",
-        "prosecution_counter": "Provide specific instances of demand of dowry linked directly to the relatives.",
-        "burden_shift_effect": "Relatives highly likely to be discharged.",
-        "magistrate_view": "Will scrutinize FIR for specific acts; intolerant of omnibus claims."
-      }
-    },
-    "IPC_302": {
-      "name": "Sudden Provocation / Exception 1 (S.302 IPC)",
-      "severity": "FATAL",
-      "why_applied": "Incident occurred during a sudden fight without premeditation.",
-      "risk": "Charge may be downgraded from Murder (S.302) to Culpable Homicide Not Amounting to Murder (S.304 Part I/II).",
-      "evidence_needed": "Eyewitness testimony proving absence of premeditation.",
-      "precedent": "K.M. Nanavati vs. State of Maharashtra",
-      "chain": [
-        "1. Defence admits the act but pleads Exception 1 (Grave & Sudden Provocation).",
-        "2. Proves loss of self-control due to victim's actions.",
-        "3. Conviction shifts from life/death to maximum 10 years."
-      ],
-      "probability_collapse": 0.60,
-      "rebuttal_tree": {
-        "defence_evidence": "Witnesses to the sudden fight / lack of weapon preparation.",
-        "prosecution_counter": "Show cooling-off period or premeditated arming.",
-        "burden_shift_effect": "Burden heavily on Defence to prove the Exception.",
-        "magistrate_view": "Will look for sustained intent vs. heat of the moment."
-      }
-    },
-    "IPC_376": {
-      "name": "Consensual Relationship / False Promise (S.376 IPC)",
-      "severity": "CRITICAL",
-      "why_applied": "Parties had a long-standing prior relationship.",
-      "risk": "A breach of promise to marry is not rape if the promise was given in good faith but could not be fulfilled due to unforeseen circumstances.",
-      "evidence_needed": "WhatsApp chats, hotel records, length of relationship.",
-      "precedent": "Pramod Suryabhan Pawar vs. State of Maharashtra",
-      "chain": [
-        "1. Defence proves a long, consensual relationship.",
-        "2. Argues the promise to marry was genuine at inception.",
-        "3. Asserts subsequent break-up does not constitute 'misconception of fact'."
-      ],
-      "probability_collapse": 0.80,
-      "rebuttal_tree": {
-        "defence_evidence": "Romantic chats, mutual travel, lack of coercion.",
-        "prosecution_counter": "Show the accused was already married or had fraudulent intent from day 1.",
-        "burden_shift_effect": "High probability of bail and eventual acquittal if consent is established.",
-        "magistrate_view": "Will distinguish between a false promise and a breach of promise."
-      }
-    },
-    "NDPS_S50": {
-      "name": "Procedural Violation of Search (S.50 NDPS)",
-      "severity": "FATAL",
-      "why_applied": "Personal search conducted without offering presence of a Gazetted Officer/Magistrate.",
-      "risk": "Section 50 is mandatory. Any personal recovery made in violation vitiates the trial.",
-      "evidence_needed": "Notice under S.50 and consent memo.",
-      "precedent": "Vijaysinh Chandubha Jadeja vs. State of Gujarat",
-      "chain": [
-        "1. Defence establishes personal search was done.",
-        "2. Shows S.50 notice was defective or not given.",
-        "3. Entire recovery becomes inadmissible."
-      ],
-      "probability_collapse": 0.95,
-      "rebuttal_tree": {
-        "defence_evidence": "Cross-exam of seizing officer.",
-        "prosecution_counter": "Argue recovery was from a bag/vehicle (S.43) and not personal body search.",
-        "burden_shift_effect": "Automatic acquittal if S.50 is violated on personal search.",
-        "magistrate_view": "Zero tolerance for NDPS procedural lapses."
-      }
-    },
-    "NDPS_S37": {
-      "name": "Twin Conditions for Bail (S.37 NDPS)",
-      "severity": "CRITICAL",
-      "why_applied": "Recovery involves commercial quantity.",
-      "risk": "Bail is nearly impossible unless the court is satisfied there are reasonable grounds to believe the accused is not guilty.",
-      "evidence_needed": "Proof of tampering, planted evidence, or massive procedural flaw.",
-      "precedent": "Narcotics Control Bureau vs. Mohit Aggarwal",
-      "chain": [
-        "1. Prosecution invokes S.37 based on commercial quantity.",
-        "2. Court mandates satisfaction of twin conditions.",
-        "3. Bail is rejected routinely."
-      ],
-      "probability_collapse": 0.10,
-      "rebuttal_tree": {
-        "defence_evidence": "Establish S.50/S.42 violation to break prima facie case.",
-        "prosecution_counter": "Rely on FSL report and huge quantity.",
-        "burden_shift_effect": "Burden solely on accused to prove innocence at bail stage.",
-        "magistrate_view": "Will not grant bail without glaring procedural errors."
-      }
-    },
-    "CRPC_197": {
-      "name": "Lack of Sanction (S.197 CrPC)",
-      "severity": "FATAL",
-      "why_applied": "Accused is a public servant acting in discharge of official duty.",
-      "risk": "Cognizance cannot be taken without prior sanction from the competent government authority.",
-      "evidence_needed": "Proof of official duty nexus.",
-      "precedent": "D. Devaraja vs. Owais Sabeer Hussain",
-      "chain": [
-        "1. Defence files application for discharge/quashing citing S.197.",
-        "2. Proves the act was reasonably connected to official duties.",
-        "3. Court drops proceedings for want of sanction."
-      ],
-      "probability_collapse": 0.90,
-      "rebuttal_tree": {
-        "defence_evidence": "Official orders, duty roster.",
-        "prosecution_counter": "Argue the act (e.g., bribery, fake encounter) was completely outside the scope of duty.",
-        "burden_shift_effect": "Proceedings halt immediately upon S.197 applicability.",
-        "magistrate_view": "Bound by law to reject cognizance without sanction."
-      }
-    },
-    "MEDICAL_OCULAR": {
-      "name": "Medical vs Ocular Contradiction",
-      "severity": "HIGH",
-      "why_applied": "Eyewitness account contradicts the Post-Mortem or Medico-Legal Certificate (MLC).",
-      "risk": "If eyewitness says 'shot from front' but PM report shows 'entry wound in back', the eyewitness credibility collapses.",
-      "evidence_needed": "Cross-examination comparing witness statement (S.161) with Doctor's testimony.",
-      "precedent": "Thaman Kumar vs. State of UT of Chandigarh",
-      "chain": [
-        "1. Defence cross-examines eyewitness on weapon and angle of attack.",
-        "2. Confronts medical expert with the impossibility of the ocular account.",
-        "3. Court rejects eyewitness testimony."
-      ],
-      "probability_collapse": 0.80,
-      "rebuttal_tree": {
-        "defence_evidence": "Medical treatises (Modi's Jurisprudence).",
-        "prosecution_counter": "Argue minor discrepancies do not vitiate the core truth of the testimony.",
-        "burden_shift_effect": "Creates strong reasonable doubt.",
-        "magistrate_view": "Medical evidence usually trumps ocular if contradiction is absolute."
-      }
-    },
-    "IPC_307": {
-      "name": "No Vital Injury (S.307 IPC)",
-      "severity": "HIGH",
-      "why_applied": "Charge of Attempt to Murder where injuries are simple or non-vital.",
-      "risk": "If the medical report shows only simple injuries (e.g., laceration on arm), intent to kill is hard to prove. Charge may drop to S.324/323.",
-      "evidence_needed": "MLC showing nature of injury as simple.",
-      "precedent": "State of MP vs. Kashiram",
-      "chain": [
-        "1. Defence highlights MLC showing simple injuries.",
-        "2. Argues lack of intent/knowledge to cause death.",
-        "3. Court downgrades charge to voluntarily causing hurt."
-      ],
-      "probability_collapse": 0.70,
-      "rebuttal_tree": {
-        "defence_evidence": "Doctor's testimony on injury severity.",
-        "prosecution_counter": "Argue intent (mens rea) is key, even if the blow missed or injury was minor.",
-        "burden_shift_effect": "Defence must prove absence of lethal intent.",
-        "magistrate_view": "Will heavily rely on the weapon used and part of the body targeted."
-      }
-    },
-    "IPC_326": {
-      "name": "Weapon Not Dangerous (S.326 IPC)",
-      "severity": "MEDIUM",
-      "why_applied": "Grievous hurt alleged with a dangerous weapon, but weapon is blunt or ordinary.",
-      "risk": "If the weapon is not an 'instrument for shooting, stabbing or cutting', S.326 drops to S.325 (bailable/compoundable with permission).",
-      "evidence_needed": "Seizure memo showing weapon type (e.g., lathi).",
-      "precedent": "Prabhu vs. State of MP",
-      "chain": [
-        "1. Defence examines the recovered weapon.",
-        "2. Proves it is not 'deadly' under S.326.",
-        "3. Charge modified to S.325."
-      ],
-      "probability_collapse": 0.65,
-      "rebuttal_tree": {
-        "defence_evidence": "Cross-examination of recovery witness.",
-        "prosecution_counter": "Argue that the manner of use makes even an ordinary object deadly.",
-        "burden_shift_effect": "Lowers maximum sentence significantly.",
-        "magistrate_view": "Strictly interprets 'dangerous weapon'."
-      }
-    },
-    "IPC_354": {
-      "name": "Delay in FIR / Lack of Outrage Intent (S.354 IPC)",
-      "severity": "HIGH",
-      "why_applied": "Unexplained delay in reporting sexual harassment or absence of culpable intent.",
-      "risk": "Delay in S.354 cases, especially in workplace/neighborhood disputes, often suggests an afterthought or counter-blast.",
-      "evidence_needed": "Timeline showing delay, proof of prior enmity.",
-      "precedent": "Rupan Deol Bajaj vs. KPS Gill (on definition of modesty)",
-      "chain": [
-        "1. Defence establishes long delay in filing FIR.",
-        "2. Proves prior property/civil dispute.",
-        "3. Court views allegations as false implication."
-      ],
-      "probability_collapse": 0.75,
-      "rebuttal_tree": {
-        "defence_evidence": "Call Detail Records showing normal interaction post-incident.",
-        "prosecution_counter": "Explain delay due to social stigma or family pressure.",
-        "burden_shift_effect": "Cast serious doubt on complainant's credibility.",
-        "magistrate_view": "Cautious if FIR is filed only after a counter-complaint."
-      }
-    },
-    "IPC_468": {
-      "name": "No Benefit Derived (S.468/471 IPC)",
-      "severity": "CRITICAL",
-      "why_applied": "Alleged forgery did not result in cheating or wrongful gain.",
-      "risk": "Forgery for the purpose of cheating (S.468) requires proof that the forged document was actually used (S.471) to deceive.",
-      "evidence_needed": "Absence of financial loss to the complainant.",
-      "precedent": "Sheila Sebastian vs. R. Jawaharaj",
-      "chain": [
-        "1. Defence shows no property/money changed hands.",
-        "2. Argues mere creation of document without use is not S.468.",
-        "3. Case drops to S.465 (simple forgery, bailable)."
-      ],
-      "probability_collapse": 0.80,
-      "rebuttal_tree": {
-        "defence_evidence": "Bank statements showing no loss.",
-        "prosecution_counter": "Argue the *attempt* to use the document is sufficient.",
-        "burden_shift_effect": "Breaks the cheating-forgery nexus.",
-        "magistrate_view": "Requires concrete proof of the document's deployment."
-      }
-    },
-    "IPC_304B": {
-      "name": "No Proximate Demand (S.304B IPC)",
-      "severity": "FATAL",
-      "why_applied": "Dowry death alleged, but no dowry demand 'soon before' death.",
-      "risk": "The presumption under S.113B Evidence Act only triggers if cruelty/demand occurred *soon before* the unnatural death.",
-      "evidence_needed": "Proof of cordial relations immediately preceding the death.",
-      "precedent": "Bansi Lal vs. State of Haryana",
-      "chain": [
-        "1. Defence proves last demand was years ago.",
-        "2. Argues no live link between demand and death.",
-        "3. Court refuses to draw S.113B presumption."
-      ],
-      "probability_collapse": 0.90,
-      "rebuttal_tree": {
-        "defence_evidence": "Recent WhatsApp chats, happy photographs.",
-        "prosecution_counter": "Rely on witness testimony of recent, unrecorded verbal demands.",
-        "burden_shift_effect": "Prevents the reverse burden of proof from activating.",
-        "magistrate_view": "Crucial requirement. 'Soon before' is strictly construed."
-      }
-    },
-    "IPC_120B": {
-      "name": "Lack of Meeting of Minds (S.120B IPC)",
-      "severity": "HIGH",
-      "why_applied": "Criminal conspiracy charged based on mere association.",
-      "risk": "Conspiracy requires an agreement to do an illegal act. Mere presence or association with main accused is insufficient.",
-      "evidence_needed": "Absence of call records, money trail, or prior planning.",
-      "precedent": "Kehar Singh vs. State (Delhi Administration)",
-      "chain": [
-        "1. Defence shows accused had no knowledge of the main crime.",
-        "2. Highlights lack of communication (CDRs).",
-        "3. Discharged from conspiracy charge."
-      ],
-      "probability_collapse": 0.85,
-      "rebuttal_tree": {
-        "defence_evidence": "Alibi, lack of CDR linkage.",
-        "prosecution_counter": "Conspiracy is hatched in secrecy; rely on circumstantial chain.",
-        "burden_shift_effect": "Extremely effective at the discharge stage.",
-        "magistrate_view": "Will look for a definite 'meeting of minds'."
-      }
-    },
-    "IPC_506": {
-      "name": "Empty Threats (S.506 IPC)",
-      "severity": "MEDIUM",
-      "why_applied": "Criminal intimidation alleged without real intent to cause alarm.",
-      "risk": "Mere outburst in anger without intention to cause alarm does not amount to criminal intimidation.",
-      "evidence_needed": "Context of the quarrel showing it was a heat-of-the-moment exchange.",
-      "precedent": "Manik Taneja vs. State of Karnataka",
-      "chain": [
-        "1. Defence argues words were uttered in sudden anger.",
-        "2. Shows complainant was not actually alarmed (e.g., filed FIR days later).",
-        "3. Charge quashed/acquitted."
-      ],
-      "probability_collapse": 0.70,
-      "rebuttal_tree": {
-        "defence_evidence": "Delay in FIR, presence of other people who didn't take it seriously.",
-        "prosecution_counter": "Argue the threat caused severe mental distress.",
-        "burden_shift_effect": "Often seen as a filler charge; easy to dismantle.",
-        "magistrate_view": "Will ignore S.506 if isolated from other major offences."
-      }
-    },
-    "IPC_379": {
-      "name": "Absence of Dishonest Intent / Title Dispute (S.379 IPC)",
-      "severity": "HIGH",
-      "why_applied": "Theft charged, but the accused claims a bona fide claim of right over the property.",
-      "risk": "Theft requires 'dishonest intention' to take property. A genuine civil dispute over ownership negates S.379.",
-      "evidence_needed": "Civil court injunctions, partnership deeds, or prior correspondence showing claim of right.",
-      "precedent": "Chandi Kumar Das Karmakar vs. Abanidhar Roy",
-      "chain": [
-        "1. Defence establishes a pre-existing dispute over the property.",
-        "2. Argues possession was taken under a bona fide belief of right.",
-        "3. Court quashes FIR as purely a civil dispute."
-      ],
-      "probability_collapse": 0.85,
-      "rebuttal_tree": {
-        "defence_evidence": "Title deeds or ongoing civil litigation.",
-        "prosecution_counter": "Argue the claim of right is a sham and the taking was clandestine.",
-        "burden_shift_effect": "Extremely effective for quashing if supported by civil documents.",
-        "magistrate_view": "Will convert to civil suit if title is genuinely contested."
-      }
-    },
-    "IPC_392": {
-      "name": "Lack of Extortion/Fear for Robbery (S.392 IPC)",
-      "severity": "FATAL",
-      "why_applied": "Robbery charged, but theft did not involve violence or fear of instant death/hurt.",
-      "risk": "Theft is 'robbery' only if, in order to commit theft, the offender voluntarily causes or attempts to cause death, hurt, or wrongful restraint.",
-      "evidence_needed": "Medical records showing no injuries, CCTV footage showing stealth rather than force.",
-      "precedent": "State of Maharashtra vs. Joseph Mingel",
-      "chain": [
-        "1. Defence proves property was taken without any threat or force.",
-        "2. Highlights absence of injuries or weapons.",
-        "3. Charge downgraded from Robbery (S.392) to Theft (S.379/380)."
-      ],
-      "probability_collapse": 0.75,
-      "rebuttal_tree": {
-        "defence_evidence": "MLC showing no injuries, cross-exam on exact sequence of events.",
-        "prosecution_counter": "Argue that even fear of wrongful restraint is sufficient.",
-        "burden_shift_effect": "Significantly reduces minimum mandatory sentences.",
-        "magistrate_view": "Scrutinizes the immediate prelude to the taking of property."
-      }
-    },
-    "IPC_395": {
-      "name": "Identification Failure / Less than 5 Persons (S.395 IPC)",
-      "severity": "CRITICAL",
-      "why_applied": "Dacoity charged, but Test Identification Parade (TIP) failed or fewer than 5 persons proven.",
-      "risk": "Dacoity strictly requires 5 or more persons. If some are acquitted bringing the number below 5, the charge fails.",
-      "evidence_needed": "Defective TIP proceedings, alibi for co-accused.",
-      "precedent": "Ram Shankar vs. State of UP",
-      "chain": [
-        "1. Defence attacks the TIP (delayed or accused shown to witnesses prior).",
-        "2. Co-accused acquitted, dropping the total participants below 5.",
-        "3. Conviction under S.395 is legally unsustainable; drops to S.392."
-      ],
-      "probability_collapse": 0.80,
-      "rebuttal_tree": {
-        "defence_evidence": "Cross-examination of Investigating Officer on TIP protocols.",
-        "prosecution_counter": "Argue that unknown/absconding persons made up the number to 5+.",
-        "burden_shift_effect": "Massive reduction in severity if Dacoity charge is dismantled.",
-        "magistrate_view": "TIP is crucial. Delay in holding TIP is fatal to prosecution."
-      }
-    },
-    "IPC_406": {
-      "name": "No Entrustment of Property (S.406 IPC)",
-      "severity": "FATAL",
-      "why_applied": "Criminal Breach of Trust charged without proof of 'entrustment'.",
-      "risk": "Without clear entrustment (fiduciary duty) and subsequent misappropriation, a mere failure to return money/goods is a civil breach.",
-      "evidence_needed": "Absence of a trust deed or specific agreement outlining the holding of property in trust.",
-      "precedent": "Velji Raghavji Patel vs. State of Maharashtra",
-      "chain": [
-        "1. Defence proves the transaction was a standard commercial sale/loan.",
-        "2. Highlights that property transferred absolutely, not 'entrusted'.",
-        "3. Quashing of S.406 charge."
-      ],
-      "probability_collapse": 0.90,
-      "rebuttal_tree": {
-        "defence_evidence": "Invoices showing absolute sale.",
-        "prosecution_counter": "Show emails establishing that goods were only for job-work/safe-keeping.",
-        "burden_shift_effect": "Prosecution must prove the exact nature of the fiduciary relationship.",
-        "magistrate_view": "Will distinguish strictly between a debtor and a trustee."
-      }
-    },
-    "IPC_499": {
-      "name": "Exception 8 or 9 / Good Faith (S.499/500 IPC)",
-      "severity": "HIGH",
-      "why_applied": "Defamation charged for statements made to authorities or in public interest.",
-      "risk": "Accusations made in good faith to authorized persons (Exception 8) or for protection of interest (Exception 9) are protected.",
-      "evidence_needed": "Proof that the statement was a formal complaint to police/authorities.",
-      "precedent": "Kishore Balkrishna vs. State of Maharashtra",
-      "chain": [
-        "1. Defence admits making the statement.",
-        "2. Proves it was part of a lawful complaint/litigation.",
-        "3. Argues absolute/qualified privilege."
-      ],
-      "probability_collapse": 0.85,
-      "rebuttal_tree": {
-        "defence_evidence": "Copies of FIRs or legal notices containing the alleged defamatory statements.",
-        "prosecution_counter": "Prove malice and that the statements were broadcast to unrelated third parties (e.g., social media).",
-        "burden_shift_effect": "Defence burden to prove good faith under S.105 Evidence Act.",
-        "magistrate_view": "Reluctant to entertain defamation for pleadings in court."
-      }
-    },
-    "IPC_147": {
-      "name": "No Common Object (S.147/149 IPC)",
-      "severity": "MEDIUM",
-      "why_applied": "Rioting/Unlawful Assembly charged without proving a shared illegal goal.",
-      "risk": "Mere presence at the scene without sharing the 'common object' of the unlawful assembly does not attract S.149 vicarious liability.",
-      "evidence_needed": "Evidence that the accused was a curious bystander or tried to pacify the crowd.",
-      "precedent": "Muthu Naicker vs. State of Tamil Nadu",
-      "chain": [
-        "1. Defence admits presence but denies participation.",
-        "2. Highlights lack of overt act or weapon.",
-        "3. Avoids vicarious liability for the main offence (e.g., murder by the mob)."
-      ],
-      "probability_collapse": 0.70,
-      "rebuttal_tree": {
-        "defence_evidence": "Video footage showing inaction or distancing from the mob.",
-        "prosecution_counter": "Argue that joining the assembly with knowledge of its object is enough.",
-        "burden_shift_effect": "Splits the accused from the main perpetrators.",
-        "magistrate_view": "Will look for active participation or shouting of slogans."
-      }
-    },
-    "IPC_304A": {
-      "name": "Contributory Negligence / Error of Judgment (S.304A IPC)",
-      "severity": "HIGH",
-      "why_applied": "Death by rash/negligent act (usually traffic accidents), but victim was at fault.",
-      "risk": "Criminal negligence requires 'gross' or 'culpable' negligence. A mere error of judgment or the victim's sudden dashing into the road is a defense.",
-      "evidence_needed": "Brake marks, mechanical inspection report, eyewitnesses to the victim's movement.",
-      "precedent": "Mahadeo Hari Lokre vs. State of Maharashtra",
-      "chain": [
-        "1. Defence proves the vehicle was at a moderate speed.",
-        "2. Shows the victim created a sudden, unavoidable emergency.",
-        "3. Act deemed an accident, not gross negligence."
-      ],
-      "probability_collapse": 0.75,
-      "rebuttal_tree": {
-        "defence_evidence": "Skid marks analysis, mechanical clearance.",
-        "prosecution_counter": "Argue that the driver should have anticipated pedestrian movement in that zone.",
-        "burden_shift_effect": "Raises reasonable doubt on the 'rash' element.",
-        "magistrate_view": "Will rely heavily on the site map (panchnama) and mechanical inspector's report."
-      }
-    }
-  }
+    "vulnerability_models":  {
+                                 "IPC_420":  {
+                                                 "name":  "Cheating (S.420 IPC / S.318 BNS)",
+                                                 "severity":  "CRITICAL",
+                                                 "why_applied":  "Civil dispute disguised as criminal.",
+                                                 "risk":  "Quashed under S.482.",
+                                                 "evidence_needed":  "Deception at inception.",
+                                                 "precedent":  "Hridaya Ranjan Prasad Verma vs. State of Bihar",
+                                                 "chain":  [
+                                                               "1. Defence shows civil breach.",
+                                                               "2. No initial fraud.",
+                                                               "3. Quashed."
+                                                           ],
+                                                 "probability_collapse":  0.85,
+                                                 "rebuttal_tree":  {
+                                                                       "defence_evidence":  "Partial performance.",
+                                                                       "prosecution_counter":  "Forged documents at start."
+                                                                   }
+                                             },
+                                 "IPC_498A":  {
+                                                  "name":  "Omnibus Allegations (S.498A IPC / S.85 BNS)",
+                                                  "severity":  "HIGH",
+                                                  "why_applied":  "Distant relatives of the husband have been impleaded with vague, non-specific allegations.",
+                                                  "risk":  "Supreme Court strictly deprecates the practice of roping in entire families without specific attribution of overt acts.",
+                                                  "evidence_needed":  "Specific dates, times, and exact words/actions of cruelty by each relative.",
+                                                  "precedent":  "Geeta Mehrotra vs. State of UP \u0026 Kahkashan Kausar vs. State of Bihar",
+                                                  "chain":  [
+                                                                "1. Defence highlights vague, general, and omnibus allegations against relatives.",
+                                                                "2. Files for Quashing u/s 482 CrPC.",
+                                                                "3. High Court strikes down proceedings against extended family."
+                                                            ],
+                                                  "probability_collapse":  0.75,
+                                                  "rebuttal_tree":  {
+                                                                        "defence_evidence":  "Proof of separate residence or lack of specific incidents.",
+                                                                        "prosecution_counter":  "Provide specific instances of demand of dowry linked directly to the relatives.",
+                                                                        "burden_shift_effect":  "Relatives highly likely to be discharged.",
+                                                                        "magistrate_view":  "Will scrutinize FIR for specific acts; intolerant of omnibus claims."
+                                                                    }
+                                              },
+                                 "IPC_302":  {
+                                                 "name":  "Murder (S.302 IPC / S.103 BNS)",
+                                                 "severity":  "FATAL",
+                                                 "why_applied":  "Sudden fight or lack of premeditation.",
+                                                 "risk":  "Charge may be reduced to S.304 Part I or II.",
+                                                 "evidence_needed":  "Clear intention or knowledge.",
+                                                 "precedent":  "K.M. Nanavati vs. State of Maharashtra",
+                                                 "chain":  [
+                                                               "1. Defence claims grave provocation.",
+                                                               "2. No premeditation shown.",
+                                                               "3. Downgraded conviction."
+                                                           ],
+                                                 "probability_collapse":  0.55,
+                                                 "rebuttal_tree":  {
+                                                                       "defence_evidence":  "Sudden quarrel.",
+                                                                       "prosecution_counter":  "Prior enmity or weapon preparation."
+                                                                   }
+                                             },
+                                 "IPC_376":  {
+                                                 "name":  "Rape (S.376 IPC / S.64 BNS)",
+                                                 "severity":  "CRITICAL",
+                                                 "why_applied":  "Consensual relationship / false promise.",
+                                                 "risk":  "Not rape if promise was genuine.",
+                                                 "evidence_needed":  "Proof of coercion.",
+                                                 "precedent":  "Pramod Suryabhan Pawar vs. State of Maharashtra",
+                                                 "chain":  [
+                                                               "1. Long relationship shown.",
+                                                               "2. Promise broken later.",
+                                                               "3. Acquittal."
+                                                           ],
+                                                 "probability_collapse":  0.82,
+                                                 "rebuttal_tree":  {
+                                                                       "defence_evidence":  "Chats, travel records.",
+                                                                       "prosecution_counter":  "Already married / fraudulent intent."
+                                                                   }
+                                             },
+                                 "NDPS_S50":  {
+                                                  "name":  "Procedural Violation of Search (S.50 NDPS)",
+                                                  "severity":  "FATAL",
+                                                  "why_applied":  "Personal search conducted without offering presence of a Gazetted Officer/Magistrate.",
+                                                  "risk":  "Section 50 is mandatory. Any personal recovery made in violation vitiates the trial.",
+                                                  "evidence_needed":  "Notice under S.50 and consent memo.",
+                                                  "precedent":  "Vijaysinh Chandubha Jadeja vs. State of Gujarat",
+                                                  "chain":  [
+                                                                "1. Defence establishes personal search was done.",
+                                                                "2. Shows S.50 notice was defective or not given.",
+                                                                "3. Entire recovery becomes inadmissible."
+                                                            ],
+                                                  "probability_collapse":  0.95,
+                                                  "rebuttal_tree":  {
+                                                                        "defence_evidence":  "Cross-exam of seizing officer.",
+                                                                        "prosecution_counter":  "Argue recovery was from a bag/vehicle (S.43) and not personal body search.",
+                                                                        "burden_shift_effect":  "Automatic acquittal if S.50 is violated on personal search.",
+                                                                        "magistrate_view":  "Zero tolerance for NDPS procedural lapses."
+                                                                    }
+                                              },
+                                 "NDPS_S37":  {
+                                                  "name":  "Twin Conditions for Bail (S.37 NDPS)",
+                                                  "severity":  "CRITICAL",
+                                                  "why_applied":  "Recovery involves commercial quantity.",
+                                                  "risk":  "Bail is nearly impossible unless the court is satisfied there are reasonable grounds to believe the accused is not guilty.",
+                                                  "evidence_needed":  "Proof of tampering, planted evidence, or massive procedural flaw.",
+                                                  "precedent":  "Narcotics Control Bureau vs. Mohit Aggarwal",
+                                                  "chain":  [
+                                                                "1. Prosecution invokes S.37 based on commercial quantity.",
+                                                                "2. Court mandates satisfaction of twin conditions.",
+                                                                "3. Bail is rejected routinely."
+                                                            ],
+                                                  "probability_collapse":  0.10,
+                                                  "rebuttal_tree":  {
+                                                                        "defence_evidence":  "Establish S.50/S.42 violation to break prima facie case.",
+                                                                        "prosecution_counter":  "Rely on FSL report and huge quantity.",
+                                                                        "burden_shift_effect":  "Burden solely on accused to prove innocence at bail stage.",
+                                                                        "magistrate_view":  "Will not grant bail without glaring procedural errors."
+                                                                    }
+                                              },
+                                 "CRPC_197":  {
+                                                  "name":  "Lack of Sanction (S.197 CrPC)",
+                                                  "severity":  "FATAL",
+                                                  "why_applied":  "Accused is a public servant acting in discharge of official duty.",
+                                                  "risk":  "Cognizance cannot be taken without prior sanction from the competent government authority.",
+                                                  "evidence_needed":  "Proof of official duty nexus.",
+                                                  "precedent":  "D. Devaraja vs. Owais Sabeer Hussain",
+                                                  "chain":  [
+                                                                "1. Defence files application for discharge/quashing citing S.197.",
+                                                                "2. Proves the act was reasonably connected to official duties.",
+                                                                "3. Court drops proceedings for want of sanction."
+                                                            ],
+                                                  "probability_collapse":  0.90,
+                                                  "rebuttal_tree":  {
+                                                                        "defence_evidence":  "Official orders, duty roster.",
+                                                                        "prosecution_counter":  "Argue the act (e.g., bribery, fake encounter) was completely outside the scope of duty.",
+                                                                        "burden_shift_effect":  "Proceedings halt immediately upon S.197 applicability.",
+                                                                        "magistrate_view":  "Bound by law to reject cognizance without sanction."
+                                                                    }
+                                              },
+                                 "MEDICAL_OCULAR":  {
+                                                        "name":  "Medical vs Ocular Contradiction",
+                                                        "severity":  "HIGH",
+                                                        "why_applied":  "Eyewitness account contradicts the Post-Mortem or Medico-Legal Certificate (MLC).",
+                                                        "risk":  "If eyewitness says \u0027shot from front\u0027 but PM report shows \u0027entry wound in back\u0027, the eyewitness credibility collapses.",
+                                                        "evidence_needed":  "Cross-examination comparing witness statement (S.161) with Doctor\u0027s testimony.",
+                                                        "precedent":  "Thaman Kumar vs. State of UT of Chandigarh",
+                                                        "chain":  [
+                                                                      "1. Defence cross-examines eyewitness on weapon and angle of attack.",
+                                                                      "2. Confronts medical expert with the impossibility of the ocular account.",
+                                                                      "3. Court rejects eyewitness testimony."
+                                                                  ],
+                                                        "probability_collapse":  0.80,
+                                                        "rebuttal_tree":  {
+                                                                              "defence_evidence":  "Medical treatises (Modi\u0027s Jurisprudence).",
+                                                                              "prosecution_counter":  "Argue minor discrepancies do not vitiate the core truth of the testimony.",
+                                                                              "burden_shift_effect":  "Creates strong reasonable doubt.",
+                                                                              "magistrate_view":  "Medical evidence usually trumps ocular if contradiction is absolute."
+                                                                          }
+                                                    },
+                                 "IPC_307":  {
+                                                 "name":  "Attempt to Murder (S.307 IPC / S.109 BNS)",
+                                                 "severity":  "HIGH",
+                                                 "why_applied":  "Injuries are simple or non-vital.",
+                                                 "risk":  "Charge reduced to S.324/323.",
+                                                 "evidence_needed":  "Clear intention to cause death.",
+                                                 "precedent":  "State of MP vs. Kashiram",
+                                                 "chain":  [
+                                                               "1. Defence highlights simple injuries.",
+                                                               "2. No lethal intent.",
+                                                               "3. Downgraded."
+                                                           ],
+                                                 "probability_collapse":  0.70,
+                                                 "rebuttal_tree":  {
+                                                                       "defence_evidence":  "Medical report.",
+                                                                       "prosecution_counter":  "Weapon and target."
+                                                                   }
+                                             },
+                                 "IPC_326":  {
+                                                 "name":  "Weapon Not Dangerous (S.326 IPC / S.118(1) BNS)",
+                                                 "severity":  "MEDIUM",
+                                                 "why_applied":  "Grievous hurt alleged with a dangerous weapon, but weapon is blunt or ordinary.",
+                                                 "risk":  "If the weapon is not an \u0027instrument for shooting, stabbing or cutting\u0027, S.326 drops to S.325 (bailable/compoundable with permission).",
+                                                 "evidence_needed":  "Seizure memo showing weapon type (e.g., lathi).",
+                                                 "precedent":  "Prabhu vs. State of MP",
+                                                 "chain":  [
+                                                               "1. Defence examines the recovered weapon.",
+                                                               "2. Proves it is not \u0027deadly\u0027 under S.326.",
+                                                               "3. Charge modified to S.325."
+                                                           ],
+                                                 "probability_collapse":  0.65,
+                                                 "rebuttal_tree":  {
+                                                                       "defence_evidence":  "Cross-examination of recovery witness.",
+                                                                       "prosecution_counter":  "Argue that the manner of use makes even an ordinary object deadly.",
+                                                                       "burden_shift_effect":  "Lowers maximum sentence significantly.",
+                                                                       "magistrate_view":  "Strictly interprets \u0027dangerous weapon\u0027."
+                                                                   }
+                                             },
+                                 "IPC_354":  {
+                                                 "name":  "Assault on Woman (S.354 IPC / S.74 BNS)",
+                                                 "severity":  "HIGH",
+                                                 "why_applied":  "Unexplained delay or lack of sexual intent.",
+                                                 "risk":  "Viewed as counter-blast.",
+                                                 "evidence_needed":  "Immediate complaint + corroboration.",
+                                                 "precedent":  "Rupan Deol Bajaj vs. KPS Gill",
+                                                 "chain":  [
+                                                               "1. Delay in FIR.",
+                                                               "2. Prior dispute shown.",
+                                                               "3. Acquittal."
+                                                           ],
+                                                 "probability_collapse":  0.75,
+                                                 "rebuttal_tree":  {
+                                                                       "defence_evidence":  "Delay + enmity.",
+                                                                       "prosecution_counter":  "Social stigma explanation."
+                                                                   }
+                                             },
+                                 "IPC_468":  {
+                                                 "name":  "Forgery for Cheating (S.468 IPC / S.336(3) BNS)",
+                                                 "severity":  "CRITICAL",
+                                                 "why_applied":  "No benefit derived from forgery.",
+                                                 "risk":  "Reduced to S.465.",
+                                                 "evidence_needed":  "Actual use for cheating.",
+                                                 "precedent":  "Sheila Sebastian vs. R. Jawaharaj",
+                                                 "chain":  [
+                                                               "1. Defence shows no financial gain.",
+                                                               "2. Mere creation without use.",
+                                                               "3. Downgraded."
+                                                           ],
+                                                 "probability_collapse":  0.80,
+                                                 "rebuttal_tree":  {
+                                                                       "defence_evidence":  "No loss caused.",
+                                                                       "prosecution_counter":  "Attempt itself is offence."
+                                                                   }
+                                             },
+                                 "IPC_304B":  {
+                                                  "name":  "No Proximate Demand (S.304B IPC / S.80 BNS)",
+                                                  "severity":  "FATAL",
+                                                  "why_applied":  "Dowry death alleged, but no dowry demand \u0027soon before\u0027 death.",
+                                                  "risk":  "The presumption under S.113B Evidence Act only triggers if cruelty/demand occurred *soon before* the unnatural death.",
+                                                  "evidence_needed":  "Proof of cordial relations immediately preceding the death.",
+                                                  "precedent":  "Bansi Lal vs. State of Haryana",
+                                                  "chain":  [
+                                                                "1. Defence proves last demand was years ago.",
+                                                                "2. Argues no live link between demand and death.",
+                                                                "3. Court refuses to draw S.113B presumption."
+                                                            ],
+                                                  "probability_collapse":  0.90,
+                                                  "rebuttal_tree":  {
+                                                                        "defence_evidence":  "Recent WhatsApp chats, happy photographs.",
+                                                                        "prosecution_counter":  "Rely on witness testimony of recent, unrecorded verbal demands.",
+                                                                        "burden_shift_effect":  "Prevents the reverse burden of proof from activating.",
+                                                                        "magistrate_view":  "Crucial requirement. \u0027Soon before\u0027 is strictly construed."
+                                                                    }
+                                              },
+                                 "IPC_120B":  {
+                                                  "name":  "Criminal Conspiracy (S.120B IPC / S.61(2) BNS)",
+                                                  "severity":  "HIGH",
+                                                  "why_applied":  "Multiple accused charged with conspiracy without direct evidence of agreement.",
+                                                  "risk":  "Mere association or presence is not enough. Prosecution must prove meeting of minds.",
+                                                  "evidence_needed":  "Call records, money trail, prior meetings, or overt acts.",
+                                                  "precedent":  "Kehar Singh vs. State (Delhi Administration)",
+                                                  "chain":  [
+                                                                "1. Defence shows no direct communication.",
+                                                                "2. Argues association is coincidental.",
+                                                                "3. Seeks discharge at framing stage."
+                                                            ],
+                                                  "probability_collapse":  0.78,
+                                                  "rebuttal_tree":  {
+                                                                        "defence_evidence":  "Lack of CDR linkage or documentary proof.",
+                                                                        "prosecution_counter":  "Circumstantial chain of events.",
+                                                                        "burden_shift_effect":  "High chance of discharge.",
+                                                                        "magistrate_view":  "Strict requirement of agreement."
+                                                                    }
+                                              },
+                                 "IPC_506":  {
+                                                 "name":  "Empty Threats (S.506 IPC / S.351(2) BNS)",
+                                                 "severity":  "MEDIUM",
+                                                 "why_applied":  "Criminal intimidation alleged without real intent to cause alarm.",
+                                                 "risk":  "Mere outburst in anger without intention to cause alarm does not amount to criminal intimidation.",
+                                                 "evidence_needed":  "Context of the quarrel showing it was a heat-of-the-moment exchange.",
+                                                 "precedent":  "Manik Taneja vs. State of Karnataka",
+                                                 "chain":  [
+                                                               "1. Defence argues words were uttered in sudden anger.",
+                                                               "2. Shows complainant was not actually alarmed (e.g., filed FIR days later).",
+                                                               "3. Charge quashed/acquitted."
+                                                           ],
+                                                 "probability_collapse":  0.70,
+                                                 "rebuttal_tree":  {
+                                                                       "defence_evidence":  "Delay in FIR, presence of other people who didn\u0027t take it seriously.",
+                                                                       "prosecution_counter":  "Argue the threat caused severe mental distress.",
+                                                                       "burden_shift_effect":  "Often seen as a filler charge; easy to dismantle.",
+                                                                       "magistrate_view":  "Will ignore S.506 if isolated from other major offences."
+                                                                   }
+                                             },
+                                 "IPC_379":  {
+                                                 "name":  "Absence of Dishonest Intent / Title Dispute (S.379 IPC / S.303(2) BNS)",
+                                                 "severity":  "HIGH",
+                                                 "why_applied":  "Theft charged, but the accused claims a bona fide claim of right over the property.",
+                                                 "risk":  "Theft requires \u0027dishonest intention\u0027 to take property. A genuine civil dispute over ownership negates S.379.",
+                                                 "evidence_needed":  "Civil court injunctions, partnership deeds, or prior correspondence showing claim of right.",
+                                                 "precedent":  "Chandi Kumar Das Karmakar vs. Abanidhar Roy",
+                                                 "chain":  [
+                                                               "1. Defence establishes a pre-existing dispute over the property.",
+                                                               "2. Argues possession was taken under a bona fide belief of right.",
+                                                               "3. Court quashes FIR as purely a civil dispute."
+                                                           ],
+                                                 "probability_collapse":  0.85,
+                                                 "rebuttal_tree":  {
+                                                                       "defence_evidence":  "Title deeds or ongoing civil litigation.",
+                                                                       "prosecution_counter":  "Argue the claim of right is a sham and the taking was clandestine.",
+                                                                       "burden_shift_effect":  "Extremely effective for quashing if supported by civil documents.",
+                                                                       "magistrate_view":  "Will convert to civil suit if title is genuinely contested."
+                                                                   }
+                                             },
+                                 "IPC_392":  {
+                                                 "name":  "Lack of Extortion/Fear for Robbery (S.392 IPC / S.309 BNS)",
+                                                 "severity":  "FATAL",
+                                                 "why_applied":  "Robbery charged, but theft did not involve violence or fear of instant death/hurt.",
+                                                 "risk":  "Theft is \u0027robbery\u0027 only if, in order to commit theft, the offender voluntarily causes or attempts to cause death, hurt, or wrongful restraint.",
+                                                 "evidence_needed":  "Medical records showing no injuries, CCTV footage showing stealth rather than force.",
+                                                 "precedent":  "State of Maharashtra vs. Joseph Mingel",
+                                                 "chain":  [
+                                                               "1. Defence proves property was taken without any threat or force.",
+                                                               "2. Highlights absence of injuries or weapons.",
+                                                               "3. Charge downgraded from Robbery (S.392) to Theft (S.379/380)."
+                                                           ],
+                                                 "probability_collapse":  0.75,
+                                                 "rebuttal_tree":  {
+                                                                       "defence_evidence":  "MLC showing no injuries, cross-exam on exact sequence of events.",
+                                                                       "prosecution_counter":  "Argue that even fear of wrongful restraint is sufficient.",
+                                                                       "burden_shift_effect":  "Significantly reduces minimum mandatory sentences.",
+                                                                       "magistrate_view":  "Scrutinizes the immediate prelude to the taking of property."
+                                                                   }
+                                             },
+                                 "IPC_395":  {
+                                                 "name":  "Identification Failure / Less than 5 Persons (S.395 IPC / S.310(2) BNS)",
+                                                 "severity":  "CRITICAL",
+                                                 "why_applied":  "Dacoity charged, but Test Identification Parade (TIP) failed or fewer than 5 persons proven.",
+                                                 "risk":  "Dacoity strictly requires 5 or more persons. If some are acquitted bringing the number below 5, the charge fails.",
+                                                 "evidence_needed":  "Defective TIP proceedings, alibi for co-accused.",
+                                                 "precedent":  "Ram Shankar vs. State of UP",
+                                                 "chain":  [
+                                                               "1. Defence attacks the TIP (delayed or accused shown to witnesses prior).",
+                                                               "2. Co-accused acquitted, dropping the total participants below 5.",
+                                                               "3. Conviction under S.395 is legally unsustainable; drops to S.392."
+                                                           ],
+                                                 "probability_collapse":  0.80,
+                                                 "rebuttal_tree":  {
+                                                                       "defence_evidence":  "Cross-examination of Investigating Officer on TIP protocols.",
+                                                                       "prosecution_counter":  "Argue that unknown/absconding persons made up the number to 5+.",
+                                                                       "burden_shift_effect":  "Massive reduction in severity if Dacoity charge is dismantled.",
+                                                                       "magistrate_view":  "TIP is crucial. Delay in holding TIP is fatal to prosecution."
+                                                                   }
+                                             },
+                                 "IPC_406":  {
+                                                 "name":  "Criminal Breach of Trust (S.406 IPC / S.316 BNS)",
+                                                 "severity":  "HIGH",
+                                                 "why_applied":  "No entrustment proven.",
+                                                 "risk":  "Mere civil dispute.",
+                                                 "evidence_needed":  "Proof of entrustment.",
+                                                 "precedent":  "Rashmi Kumar vs. Mahesh Kumar Bhada",
+                                                 "chain":  [
+                                                               "1. Defence claims civil dispute.",
+                                                               "2. No entrustment shown.",
+                                                               "3. Quashed."
+                                                           ],
+                                                 "probability_collapse":  0.80,
+                                                 "rebuttal_tree":  {
+                                                                       "defence_evidence":  "No specific property handed over.",
+                                                                       "prosecution_counter":  "Documentary proof of trust."
+                                                                   }
+                                             },
+                                 "IPC_499":  {
+                                                 "name":  "Exception 8 or 9 / Good Faith (S.499/500 IPC / S.356 BNS)",
+                                                 "severity":  "HIGH",
+                                                 "why_applied":  "Defamation charged for statements made to authorities or in public interest.",
+                                                 "risk":  "Accusations made in good faith to authorized persons (Exception 8) or for protection of interest (Exception 9) are protected.",
+                                                 "evidence_needed":  "Proof that the statement was a formal complaint to police/authorities.",
+                                                 "precedent":  "Kishore Balkrishna vs. State of Maharashtra",
+                                                 "chain":  [
+                                                               "1. Defence admits making the statement.",
+                                                               "2. Proves it was part of a lawful complaint/litigation.",
+                                                               "3. Argues absolute/qualified privilege."
+                                                           ],
+                                                 "probability_collapse":  0.85,
+                                                 "rebuttal_tree":  {
+                                                                       "defence_evidence":  "Copies of FIRs or legal notices containing the alleged defamatory statements.",
+                                                                       "prosecution_counter":  "Prove malice and that the statements were broadcast to unrelated third parties (e.g., social media).",
+                                                                       "burden_shift_effect":  "Defence burden to prove good faith under S.105 Evidence Act.",
+                                                                       "magistrate_view":  "Reluctant to entertain defamation for pleadings in court."
+                                                                   }
+                                             },
+                                 "IPC_147":  {
+                                                 "name":  "No Common Object (S.147/149 IPC / S.189/191 BNS)",
+                                                 "severity":  "MEDIUM",
+                                                 "why_applied":  "Rioting/Unlawful Assembly charged without proving a shared illegal goal.",
+                                                 "risk":  "Mere presence at the scene without sharing the \u0027common object\u0027 of the unlawful assembly does not attract S.149 vicarious liability.",
+                                                 "evidence_needed":  "Evidence that the accused was a curious bystander or tried to pacify the crowd.",
+                                                 "precedent":  "Muthu Naicker vs. State of Tamil Nadu",
+                                                 "chain":  [
+                                                               "1. Defence admits presence but denies participation.",
+                                                               "2. Highlights lack of overt act or weapon.",
+                                                               "3. Avoids vicarious liability for the main offence (e.g., murder by the mob)."
+                                                           ],
+                                                 "probability_collapse":  0.70,
+                                                 "rebuttal_tree":  {
+                                                                       "defence_evidence":  "Video footage showing inaction or distancing from the mob.",
+                                                                       "prosecution_counter":  "Argue that joining the assembly with knowledge of its object is enough.",
+                                                                       "burden_shift_effect":  "Splits the accused from the main perpetrators.",
+                                                                       "magistrate_view":  "Will look for active participation or shouting of slogans."
+                                                                   }
+                                             },
+                                 "IPC_304A":  {
+                                                  "name":  "Contributory Negligence / Error of Judgment (S.304A IPC / S.106 BNS)",
+                                                  "severity":  "HIGH",
+                                                  "why_applied":  "Death by rash/negligent act (usually traffic accidents), but victim was at fault.",
+                                                  "risk":  "Criminal negligence requires \u0027gross\u0027 or \u0027culpable\u0027 negligence. A mere error of judgment or the victim\u0027s sudden dashing into the road is a defense.",
+                                                  "evidence_needed":  "Brake marks, mechanical inspection report, eyewitnesses to the victim\u0027s movement.",
+                                                  "precedent":  "Mahadeo Hari Lokre vs. State of Maharashtra",
+                                                  "chain":  [
+                                                                "1. Defence proves the vehicle was at a moderate speed.",
+                                                                "2. Shows the victim created a sudden, unavoidable emergency.",
+                                                                "3. Act deemed an accident, not gross negligence."
+                                                            ],
+                                                  "probability_collapse":  0.75,
+                                                  "rebuttal_tree":  {
+                                                                        "defence_evidence":  "Skid marks analysis, mechanical clearance.",
+                                                                        "prosecution_counter":  "Argue that the driver should have anticipated pedestrian movement in that zone.",
+                                                                        "burden_shift_effect":  "Raises reasonable doubt on the \u0027rash\u0027 element.",
+                                                                        "magistrate_view":  "Will rely heavily on the site map (panchnama) and mechanical inspector\u0027s report."
+                                                                    }
+                                              }
+                             }
 }
