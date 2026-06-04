@@ -470,8 +470,10 @@
                                                            ],
                                                  "probability_collapse":  0.80,
                                                  "rebuttal_tree":  {
-                                                                       "defence_evidence":  "No specific property handed over.",
-                                                                       "prosecution_counter":  "Documentary proof of trust."
+                                                                       "defence_evidence":  "Produce commercial ledger showing simple buyer-seller relationship.",
+                                                                       "prosecution_counter":  "Establish fiduciary capacity via MoU or Board Resolution.",
+                                                                       "burden_shift_effect":  "High chance of quashing if shown as pure civil breach.",
+                                                                       "magistrate_view":  "Will scrutinize the initial agreement for specific trust clauses."
                                                                    },
                                                  "cross_exam_questions":  [
                                                                               "Can you establish the exact timeline?",

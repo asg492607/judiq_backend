@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 import uuid
 import sqlite3
 from datetime import datetime
@@ -70,7 +70,7 @@ class CaseroomManager:
             conn.commit()
             conn.close()
             return True
-        except Exception as e:
+        except sqlite3.Error as e:
             logger.error(f"Failed to add task: {e}")
             return False
 

@@ -226,6 +226,23 @@ class AdversarialEngine:
                 "penalty": -10
             })
 
+        # 4. Semantic NLP-based Combinations (New)
+        # Instead of strict hardcoding, dynamically detect semantic overlaps 
+        # where two concepts have high conflict confidence.
+        for i, c1 in enumerate(concepts):
+            for j, c2 in enumerate(concepts):
+                if i >= j: continue
+                # Example semantic rule: if concept 1 implies validity and concept 2 implies invalidity
+                # (This relies on NLP scoring from semantic_engine passing 'polarity' or 'conflict_weight')
+                if c1.get("polarity", 1) * c2.get("polarity", 1) < 0 and c1.get("confidence", 0) > 0.7 and c2.get("confidence", 0) > 0.7:
+                    contradictions.append({
+                        "severity": "Strategic contradiction",
+                        "issue": f"Semantic Conflict: {c1['concept']} vs {c2['concept']}",
+                        "detail": f"NLP engine detected a high-confidence semantic conflict between {c1['concept']} and {c2['concept']}.",
+                        "remediation": "Clarify the narrative to reconcile these opposing concepts.",
+                        "penalty": -20
+                    })
+
         # --- V3 ENHANCEMENT: CREDIBILITY COLLAPSE SIMULATION ---
         for c in contradictions:
             c["collapse_simulation"] = cls.simulate_credibility_collapse(c)

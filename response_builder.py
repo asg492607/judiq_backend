@@ -94,30 +94,28 @@ class ResponseBuilder:
         if case_data.get("notice_sent"):      strengths.append("Prerequisite: Statutory demand notice served (S.138b)")
         if case_data.get("debt_proven"):      strengths.append("Strength: Legally enforceable debt established via corroborative proof")
 
+        # We will populate structured weaknesses later using ranked_weaknesses
+        
         for c in concepts:
             concept_name = c.get("concept", "")
             conf = c.get("confidence", 0)
             label = concept_name.replace('_', ' ').title()
-
-            if concept_name in NEGATIVE_CONCEPTS and conf >= WEAKNESS_THRESHOLD:
-                severity = "CRITICAL" if conf >= 0.65 else ("HIGH" if conf >= 0.45 else "MEDIUM")
-                weaknesses.append(f"{label} [{severity}]")
-
-            elif concept_name in POSITIVE_CONCEPTS and conf >= STRENGTH_THRESHOLD:
+            if concept_name in POSITIVE_CONCEPTS and conf >= STRENGTH_THRESHOLD:
                 strengths.append(f"Strategic Asset: {label}")
-
+                
         # Extract limitation data safely
         limitation = engine_result.get("limitation") or {}
         if not limitation and case_data.get("notice_date") and case_data.get("dishonour_date"):
             limitation = {"is_premature": False, "notice_delay_days": 0}
 
+        structured_weaknesses = []
         if limitation.get("is_premature"):
-            weaknesses.append("FATAL PROCEDURAL DEFECT [CRITICAL]: Complaint is Premature. Non-curable defect under NI Act.")
+            structured_weaknesses.append({"risk": "Premature Complaint", "severity": "FATAL", "detail": "Non-curable defect under NI Act."})
         elif limitation.get("notice_delay_days", 0) > 0:
-             weaknesses.append(f"Jurisdictional Bar [HIGH]: Statutory notice delayed by {limitation['notice_delay_days']} days. Application for condonation mandatory.")
+             structured_weaknesses.append({"risk": "Notice Delayed", "severity": "HIGH", "detail": f"Statutory notice delayed by {limitation['notice_delay_days']} days. Application for condonation mandatory."})
         
         if not case_data.get("proof_present", True):
-             weaknesses.append("EVIDENTIARY GAP [HIGH]: Proof (Cheque/Memo/Notice) is missing. Results are indicative only.")
+             structured_weaknesses.append({"risk": "Missing Proof", "severity": "HIGH", "detail": "Proof (Cheque/Memo/Notice) is missing."})
 
         suggestions = []
         desc_lower = (case_data.get("description") or "").lower()
@@ -204,15 +202,16 @@ class ResponseBuilder:
             for c in concepts:
                 if c.get("concept") == priority_concept and c.get("confidence", 0) >= WEAKNESS_THRESHOLD and priority_concept not in seen_weak:
                     conf = c.get("confidence", 0)
-                    severity = "CRITICAL" if conf >= 0.65 else ("HIGH" if conf >= 0.45 else "MEDIUM")
+                    severity = "FATAL" if conf >= 0.8 else ("CRITICAL" if conf >= 0.65 else ("HIGH" if conf >= 0.45 else "MEDIUM"))
                     ranked_weaknesses.append({
                         "risk": priority_concept.replace("_", " ").title(),
                         "severity": severity,
                         "confidence": conf,
-                        "detail": c.get("legal_impact", "")
+                        "detail": c.get("legal_impact", "") or "No specific impact detailed."
                     })
                     seen_weak.add(priority_concept)
 
+        structured_weaknesses.extend(ranked_weaknesses)
         top_3_risks = ranked_weaknesses[:3]
         has_fatal = any(r["severity"] == "CRITICAL" for r in top_3_risks)
         has_high_risk = any(r["severity"] == "HIGH" for r in top_3_risks)
@@ -268,8 +267,8 @@ class ResponseBuilder:
         if not case_data.get("debt_proven"):
             alternative_evidence = ["WhatsApp correspondence", "Bank statements", "Ledger entries"]
 
-        final_weaknesses = [f"{r['risk']} [{r['severity']}]" for r in ranked_weaknesses if r['severity'] not in ['CRITICAL', 'HIGH']]
-        final_issues = [f"{r['risk']} ({r['severity']})" for r in ranked_weaknesses if r['severity'] in ['CRITICAL', 'HIGH']]
+        final_weaknesses = structured_weaknesses
+        final_issues = [r for r in structured_weaknesses if r['severity'] in ['FATAL', 'CRITICAL', 'HIGH']]
 
         # ── SENIOR ADVOCATE BRIEF (Standalone Object for Print/UI) ───────────
         senior_brief = {

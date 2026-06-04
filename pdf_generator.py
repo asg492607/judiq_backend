@@ -331,10 +331,8 @@ class PDFGenerator:
             
         except ImportError as e:
             logger.error(f"ReportLab not installed: {e}")
-            # Fallback: Return minimal PDF-like structure
-            return b"%PDF-1.4\nError: ReportLab library not installed\n%%EOF"
+            raise RuntimeError(f"PDF generation requires ReportLab: {e}")
             
         except Exception as e:
             logger.error(f"PDF generation error: {e}", exc_info=True)
-            # Return minimal valid PDF
-            return b"%PDF-1.4\nError generating PDF\n%%EOF"
+            raise RuntimeError(f"PDF generation error: {e}")

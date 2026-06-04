@@ -1,5 +1,6 @@
-﻿# pyrefly: ignore [missing-import]
+# pyrefly: ignore [missing-import]
 import logging
+import sqlite3
 from datetime import datetime
 from fastapi import APIRouter, Request, Response, Depends
 from fastapi.responses import JSONResponse
@@ -84,7 +85,7 @@ async def analyze(request_data: CaseAnalysisRequest, request: Request):
             "error_code": "VALIDATION_ERROR",
             "user_message": ve.message
         })
-    except Exception as e:
+    except RuntimeError as e:
         logger.error(f"[{request_id}] Engine error: {e}", exc_info=True)
         return JSONResponse(
             status_code=500, 
@@ -120,7 +121,7 @@ async def analyze(request_data: CaseAnalysisRequest, request: Request):
             existing_room_id = DatabaseManager.get_caseroom_by_case_id(cid)
             if not existing_room_id:
                 CaseroomManager.initialize_caseroom_for_case(cid, uid)
-    except Exception as e:
+    except sqlite3.Error as e:
         logger.warning(f"[{request_id}] DB/Caseroom persistence failed (non-fatal): {e}")
 
     # 7. Build response
@@ -136,7 +137,7 @@ async def analyze(request_data: CaseAnalysisRequest, request: Request):
     try:
         from jurisdiction_engine import map_jurisdiction
         response_body["jurisdiction"] = map_jurisdiction(raw_data)
-    except Exception as je:
+    except (KeyError, ValueError) as je:
         logger.warning(f"Jurisdiction mapping failed: {je}")
         response_body["jurisdiction"] = None
 

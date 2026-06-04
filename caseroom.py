@@ -91,6 +91,10 @@ async def upload_caseroom_document(
     doc_type: str = Form("EVIDENCE"),
     claimed_reason: str = Form("None")
 ):
+    ALLOWED_MIMES = {"application/pdf", "image/jpeg", "image/png"}
+    if file.content_type not in ALLOWED_MIMES:
+        raise HTTPException(status_code=400, detail="Invalid file type. Only PDF, JPEG, and PNG are allowed.")
+
     # Ensure uploads directory exists
     upload_dir = os.path.join(os.getcwd(), "uploads", room_id)
     os.makedirs(upload_dir, exist_ok=True)

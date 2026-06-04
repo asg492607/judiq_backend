@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, root_validator
 from typing import List, Dict, Optional, Any
 from datetime import date
+import re
 
 class CaseInput(BaseModel):
     """
@@ -57,6 +58,24 @@ class CaseInput(BaseModel):
     # Catch-all for any other dynamically added fields by frontend
     class Config:
         extra = "allow"
+
+    @root_validator(pre=True)
+    def sanitize_html(cls, values):
+        """Strip HTML tags from string inputs to prevent XSS"""
+        html_tag_re = re.compile(r'<[^>]+>')
+        sanitized = {}
+        for k, v in values.items():
+            if isinstance(v, str):
+                sanitized[k] = html_tag_re.sub('', v)
+            elif isinstance(v, dict):
+                # Basic shallow sanitization for dicts
+                sanitized[k] = {
+                    dk: html_tag_re.sub('', dv) if isinstance(dv, str) else dv 
+                    for dk, dv in v.items()
+                }
+            else:
+                sanitized[k] = v
+        return sanitized
 
 class EngineResponse(BaseModel):
     status: str = "success"

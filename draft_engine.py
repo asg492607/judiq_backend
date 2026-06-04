@@ -1,8 +1,14 @@
 import logging
 from datetime import datetime, date
 from typing import Dict, Any, List
+from jinja2 import Environment, FileSystemLoader
+import os
 
 logger = logging.getLogger(__name__)
+
+# Initialize Jinja2 Environment
+templates_dir = os.path.join(os.path.dirname(__file__), 'templates')
+env = Environment(loader=FileSystemLoader(templates_dir))
 
 
 def decide_draft_type(score: int, concepts: List[Dict], case_data: Dict) -> str:
@@ -131,46 +137,21 @@ def generate_legal_notice(case_data: Dict) -> str:
     # Strip trailing period to avoid double period in templates
     transaction_nature = transaction_nature.rstrip('.')
 
-    return f"""{_header("LEGAL NOTICE UNDER SECTION 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881")}
-
-Date: {today}
-
-To,
-{accused}
-{accused_addr}
-
-THROUGH REGISTERED POST (AD)
-
-Sub: LEGAL NOTICE FOR DISHONOUR OF CHEQUE — DEMAND FOR PAYMENT OF {amount_str}
-
-Sir/Madam,
-
-Under instructions from and on behalf of my client {complainant}, I hereby serve upon you the following legal notice:
-
-1. BACKGROUND OF TRANSACTION:
-   My client states that you are indebted to my client for a sum of {amount_str} in respect of {transaction_nature} made between you and my client.
-
-2. THE CHEQUE:
-   In discharge of the aforesaid legally enforceable liability, you issued a cheque bearing No. {cheque_no}, dated {cheque_date}, drawn on {bank_full}, in favour of my client for {amount_str}.
-
-3. DISHONOUR OF CHEQUE:
-   When my client presented the said cheque for encashment through banking channels, the same was returned/dishonoured on {dishonour_date} with the bank memo citing the reason "{dishonour_reason}".
-
-4. DEMAND FOR PAYMENT:
-   By this notice, my client hereby demands that you pay the said sum of {amount_str} together with interest thereon within FIFTEEN (15) DAYS from the date of receipt of this notice.
-
-5. LEGAL CONSEQUENCE:
-   You are hereby warned that in the event of your failure to make payment within the stipulated period, my client shall be constrained to initiate criminal proceedings against you under Section 138 of the Negotiable Instruments Act, 1881, and also civil proceedings for recovery of the said amount together with interest, costs, and damages, without any further notice to you.
-
-Yours faithfully,
-
-________ (Advocate Name)
-Advocate & Legal Advisor
-________ (Bar Reg. No.)
-________ (Contact/Chamber Address)
-
-On behalf of: {complainant}
-"""
+    template = env.get_template("legal_notice.jinja")
+    return template.render(
+        header=_header("LEGAL NOTICE UNDER SECTION 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881"),
+        today=today,
+        amount_str=amount_str,
+        complainant=complainant,
+        accused=accused,
+        accused_addr=accused_addr,
+        cheque_no=cheque_no,
+        cheque_date=cheque_date,
+        bank_full=bank_full,
+        dishonour_date=dishonour_date,
+        dishonour_reason=dishonour_reason,
+        transaction_nature=transaction_nature
+    )
 
 
 def generate_certificate_63_bsa(case_data: Dict) -> str:

@@ -1,5 +1,6 @@
 from typing import Dict, Any
 from datetime import datetime
+from utils import parse_date
 
 class CriminalTimelineEngine:
     """
@@ -13,19 +14,10 @@ class CriminalTimelineEngine:
         anomalies = []
         opportunities = []
         
-        # Helper to parse dates safely
-        def _parse(date_str):
-            if not date_str: return None
-            if isinstance(date_str, datetime): return date_str
-            for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"):
-                try: return datetime.strptime(str(date_str).strip(), fmt)
-                except ValueError: pass
-            return None
-
-        incident_date = _parse(case_data.get("incident_date"))
-        fir_date = _parse(case_data.get("fir_date"))
-        arrest_date = _parse(case_data.get("arrest_date"))
-        chargesheet_date = _parse(case_data.get("chargesheet_date"))
+        incident_date = parse_date(case_data.get("incident_date"))
+        fir_date = parse_date(case_data.get("fir_date"))
+        arrest_date = parse_date(case_data.get("arrest_date"))
+        chargesheet_date = parse_date(case_data.get("chargesheet_date"))
         today = datetime.now()
 
         # 1. FIR Delay Calculator

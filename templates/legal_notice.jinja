@@ -1,0 +1,39 @@
+{{ header }}
+
+Date: {{ today }}
+
+To,
+{{ accused }}
+{{ accused_addr }}
+
+THROUGH REGISTERED POST (AD)
+
+Sub: LEGAL NOTICE FOR DISHONOUR OF CHEQUE - DEMAND FOR PAYMENT OF {{ amount_str }}
+
+Sir/Madam,
+
+Under instructions from and on behalf of my client {{ complainant }}, I hereby serve upon you the following legal notice:
+
+1. BACKGROUND OF TRANSACTION:
+   My client states that you are indebted to my client for a sum of {{ amount_str }} in respect of {{ transaction_nature }} made between you and my client.
+
+2. THE CHEQUE:
+   In discharge of the aforesaid legally enforceable liability, you issued a cheque bearing No. {{ cheque_no }}, dated {{ cheque_date }}, drawn on {{ bank_full }}, in favour of my client for {{ amount_str }}.
+
+3. DISHONOUR OF CHEQUE:
+   When my client presented the said cheque for encashment through banking channels, the same was returned/dishonoured on {{ dishonour_date }} with the bank memo citing the reason "{{ dishonour_reason }}".
+
+4. DEMAND FOR PAYMENT:
+   By this notice, my client hereby demands that you pay the said sum of {{ amount_str }} together with interest thereon within FIFTEEN (15) DAYS from the date of receipt of this notice.
+
+5. LEGAL CONSEQUENCE:
+   You are hereby warned that in the event of your failure to make payment within the stipulated period, my client shall be constrained to initiate criminal proceedings against you under Section 138 of the Negotiable Instruments Act, 1881, and also civil proceedings for recovery of the said amount together with interest, costs, and damages, without any further notice to you.
+
+Yours faithfully,
+
+________ (Advocate Name)
+Advocate & Legal Advisor
+________ (Bar Reg. No.)
+________ (Contact/Chamber Address)
+
+On behalf of: {{ complainant }}

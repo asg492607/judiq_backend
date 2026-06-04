@@ -40,6 +40,34 @@ class SecurityManager:
             logger.warning("Invalid JWT Token.")
             return None
 
+    @staticmethod
+    def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
+        to_encode = data.copy()
+        if expires_delta:
+            expire = datetime.utcnow() + expires_delta
+        else:
+            expire = datetime.utcnow() + timedelta(days=7) # Default 7 days
+        to_encode.update({"exp": expire, "type": "refresh"})
+        return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+    @staticmethod
+    def refresh_access_token(refresh_token: str) -> Optional[str]:
+        try:
+            payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+            if payload.get("type") != "refresh":
+                logger.warning("Invalid token type for refresh.")
+                return None
+            
+            # Create new access token
+            user_data = {"sub": payload.get("sub")}
+            return SecurityManager.create_access_token(user_data)
+        except jwt.ExpiredSignatureError:
+            logger.warning("Refresh token expired. User must re-login.")
+            return None
+        except jwt.InvalidTokenError:
+            logger.warning("Invalid refresh token.")
+            return None
+
 class AuditLogger:
     """
     Captures every system interaction for institutional accountability.

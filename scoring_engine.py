@@ -247,14 +247,16 @@ class ScoringEngineV12:
             uncertainty_messages.append(f"â€œConfidence reduced because evidence reliability is weak for: {', '.join(low_reliability_evidence)}.â€")
 
         # Evidence Reliability Penalty Integration
+        max_score_cap = 99
         for name, data in evidence_reliability.items():
             if data.get("score", 1.0) < 0.5:
                 score += PENALTY_LOW_RELIABILITY_EVIDENCE
-                trace.append(f"{PENALTY_LOW_RELIABILITY_EVIDENCE} EVIDENTIARY: Low reliability on critical evidence ({name}).")
+                max_score_cap = min(max_score_cap, 65)
+                trace.append(f"{PENALTY_LOW_RELIABILITY_EVIDENCE} EVIDENTIARY: Low reliability on critical evidence ({name}). Score capped at 65.")
                 causality_map.append({"fact": f"Low Reliability: {name}", "impact": PENALTY_LOW_RELIABILITY_EVIDENCE, "type": "negative", "rationale": data.get("reason", "Evidence format is vulnerable to challenge.")})
 
         # Final Score Cap
-        final_score = max(0, min(99, score))
+        final_score = max(0, min(max_score_cap, score))
         if not cheque or not notice:
             final_score = min(final_score, 30)
             trace.append("! SCORE CAPPED: Fatal statutory defect identified.")
