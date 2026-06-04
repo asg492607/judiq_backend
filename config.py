@@ -24,8 +24,8 @@ class Settings(BaseSettings):
         "http://localhost:8000",
     ]
     
-    # Encryption
-    ENCRYPTION_KEY: str = os.getenv("ENCRYPTION_KEY", "changeme_encryption_key_dev_only")
+    # Encryption (Fernet key must be 32 url-safe base64-encoded bytes)
+    ENCRYPTION_KEY: str = os.getenv("ENCRYPTION_KEY", "c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnl0ZXM=")
     
     # Feature Flags
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
