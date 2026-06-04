@@ -1,4 +1,4 @@
-﻿# pyrefly: ignore [missing-import]
+# pyrefly: ignore [missing-import]
 import logging
 from fastapi import APIRouter, UploadFile, File
 from ocr_engine import OCREngine
@@ -37,8 +37,23 @@ async def verify_memo(
     claimed_reason: str = "Insufficient Funds"
 ):
     content = await file.read()
-    # Simplified extraction
-    extracted_text = "[Memo text extracted]"
+    
+    try:
+        import pytesseract
+        from PIL import Image
+        import io
+        
+        # Load image from bytes
+        image = Image.open(io.BytesIO(content))
+        # Extract text using pytesseract
+        extracted_text = pytesseract.image_to_string(image)
+    except ImportError:
+        logger.error("pytesseract or PIL not installed. Falling back to placeholder.")
+        extracted_text = "[Memo text extracted fallback]"
+    except Exception as e:
+        logger.error(f"OCR Extraction failed: {e}")
+        extracted_text = "[Memo text extraction failed]"
+        
     verification_result = OCREngine.analyze_document(extracted_text, "MEMO", claimed_reason)
     return {
         "success": True,

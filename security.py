@@ -1,4 +1,4 @@
-﻿# pyrefly: ignore [missing-import]
+# pyrefly: ignore [missing-import]
 import jwt
 import logging
 from datetime import datetime, timedelta
@@ -53,12 +53,20 @@ class AuditLogger:
             "action": action,
             "metadata": metadata or {}
         }
-        # In a real system, this writes to a dedicated Audit table or ELK stack
-        logger.info(f"[AUDIT] {log_entry}")
-        from session import DatabaseManager
+        # Write to Firebase Firestore for audit tracking
         try:
-            # Simple persistence for audit
-            DatabaseManager.save_interaction(log_entry)
+            import firebase_admin
+            from firebase_admin import credentials, firestore
+            
+            if not firebase_admin._apps:
+                # Assumes GOOGLE_APPLICATION_CREDENTIALS is set
+                firebase_admin.initialize_app()
+                
+            db = firestore.client()
+            db.collection("audit_logs").add(log_entry)
+            logger.info(f"[AUDIT] Successfully logged to Firebase: {log_entry}")
+        except ImportError:
+            logger.error("firebase_admin not installed. Audit persistence failed.")
         except Exception as e:
-            logger.error(f"Audit persistence failed: {e}")
+            logger.error(f"Audit persistence to Firebase failed: {e}")
 

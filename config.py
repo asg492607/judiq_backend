@@ -1,5 +1,6 @@
 # pyrefly: ignore [missing-import]
 import os
+from functools import lru_cache
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
@@ -8,7 +9,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     
     # Security
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "7d9b9c9d9e9f90919293949596979899")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "changeme_secure_key_for_dev_only")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
     
@@ -24,9 +25,13 @@ class Settings(BaseSettings):
     ]
     
     # Encryption
-    ENCRYPTION_KEY: str = os.getenv("ENCRYPTION_KEY", "G-o6dGqzB2H7r7C4Uv6hM3_bT4-Y3PZ9N4e4Wv4Y-xY=")
+    ENCRYPTION_KEY: str = os.getenv("ENCRYPTION_KEY", "changeme_encryption_key_dev_only")
     
     # Feature Flags
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
 
-settings = Settings()
+@lru_cache()
+def get_settings():
+    return Settings()
+
+settings = get_settings()

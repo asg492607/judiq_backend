@@ -77,14 +77,20 @@ class JudiQEngine:
         from normalizer import normalize_input, validate_minimum_viability, ValidationError
         from response_builder import ResponseBuilder
 
+        from schemas import CaseInput
+        from pydantic import ValidationError as PydanticValidationError
+
         # -- 1. Normalization & Validation -----------------------------------
         try:
-            validate_minimum_viability(raw_data)
-        except ValidationError as e:
-            logger.error(f"Validation failed: {e.message}")
+            normalized_raw = normalize_input(raw_data)
+            validated_input = CaseInput(**normalized_raw)
+            case_data = validated_input.dict()
+        except PydanticValidationError as e:
+            logger.error(f"Schema Validation failed: {e}")
+            raise ValueError(f"Invalid case input schema: {e}")
+        except Exception as e:
+            logger.error(f"Normalization failed: {e}")
             raise
-
-        case_data = normalize_input(raw_data)
         case_data["analysis_mode"] = analysis_mode
         logger.info(f"[JUDIQ] Core analysis triggered for: {case_data.get('case_id', 'ANON')}")
 
@@ -103,19 +109,34 @@ class JudiQEngine:
         concepts = semantic_result.get("concepts_detected") or []
 
         # -- 2.5 Case Type Detection ------------------------------------------
-        is_criminal = case_data.get("case_type") == "criminal" or "criminal" in text.lower() or "fir" in text.lower()
-        adv_module = "criminal_adversarial" if is_criminal else "adversarial"
-        strat_module = "criminal_strategy" if is_criminal else "strategy"
-        scoring_module = "criminal_scoring" if is_criminal else "scoring"
+        text_lower = text.lower()
+        is_criminal = case_data.get("case_type") == "criminal" or "criminal" in text_lower or "fir" in text_lower or case_data.get("offense_type") is not None
+        is_cheque_bounce = case_data.get("case_type") == "cheque_bounce" or "cheque" in text_lower or case_data.get("cheque_present")
+
+        if is_criminal and is_cheque_bounce:
+            logger.info("Mixed case detected (Criminal + Cheque Bounce). Orchestrating combined analysis.")
+            adv_modules = ["adversarial", "criminal_adversarial"]
+            strat_modules = ["strategy", "criminal_strategy"]
+            scoring_modules = ["scoring", "criminal_scoring"]
+        elif is_criminal:
+            adv_modules = ["criminal_adversarial"]
+            strat_modules = ["criminal_strategy"]
+            scoring_modules = ["criminal_scoring"]
+        else:
+            adv_modules = ["adversarial"]
+            strat_modules = ["strategy"]
+            scoring_modules = ["scoring"]
 
         # -- 3. Adversarial Audit ---------------------------------------------
-        adversarial_engine = registry.get(adv_module)
-        adversarial_result = _safe_call(
-            adversarial_engine.audit_case, case_data, concepts,
-            fallback={"risks_and_rebuttals": [], "contradictions": []},
-            context="AdversarialEngine"
-        )
-        attack_chains = adversarial_result.get("risks_and_rebuttals", [])
+        attack_chains = []
+        for adv_module in adv_modules:
+            adversarial_engine = registry.get(adv_module)
+            adversarial_result = _safe_call(
+                adversarial_engine.audit_case, case_data, concepts,
+                fallback={"risks_and_rebuttals": [], "contradictions": []},
+                context=f"{adv_module}"
+            )
+            attack_chains.extend(adversarial_result.get("risks_and_rebuttals", []))
         
         # NEW: Contradiction Engine
         contradictions = _safe_call(
@@ -159,29 +180,49 @@ class JudiQEngine:
         )
 
         # -- 4. Scoring Engine ------------------------------------------------
-        scoring_engine = registry.get(scoring_module)
-        if is_criminal:
-            scoring_result = _safe_call(
-                scoring_engine.calculate_score, case_data, concepts, contradictions,
-                fallback={"score": 50, "final_score": 50, "reasoning_trace": ["Internal scoring error."]},
-                context="CriminalScoringEngine"
-            )
-        else:
-            scoring_result = _safe_call(
-                scoring_engine.calculate_score_with_trace, case_data, concepts, contradictions, {},
-                fallback={"score": 50, "final_score": 50, "reasoning_trace": ["Internal scoring error."]},
-                context="ScoringEngine"
-            )
+        scoring_results = []
+        for scoring_module in scoring_modules:
+            scoring_engine = registry.get(scoring_module)
+            if "criminal" in scoring_module:
+                res = _safe_call(
+                    scoring_engine.calculate_score, case_data, concepts, contradictions,
+                    fallback={"score": 50, "final_score": 50, "reasoning_trace": ["Internal scoring error."]},
+                    context="CriminalScoringEngine"
+                )
+            else:
+                res = _safe_call(
+                    scoring_engine.calculate_score_with_trace, case_data, concepts, contradictions, {},
+                    fallback={"score": 50, "final_score": 50, "reasoning_trace": ["Internal scoring error."]},
+                    context="ScoringEngine"
+                )
+            scoring_results.append(res)
+        
+        # Aggregate scores (average if multiple)
+        scoring_result = scoring_results[0]
+        if len(scoring_results) > 1:
+            avg_score = sum(float(r.get("final_score") or r.get("score") or 50) for r in scoring_results) / len(scoring_results)
+            scoring_result["final_score"] = avg_score
+            scoring_result["score"] = avg_score
+            scoring_result["reasoning_trace"] = scoring_results[0].get("reasoning_trace", []) + ["Mixed Case Adjustments applied."] + scoring_results[1].get("reasoning_trace", [])
+
         final_score = float(scoring_result.get("final_score") or scoring_result.get("score") or 50)
 
         # -- 5. Strategic Layer -----------------------------------------------
-        strategy_engine = registry.get(strat_module)
-        strategy_result = _safe_call(
-            strategy_engine.generate_strategy if hasattr(strategy_engine, 'generate_strategy') else strategy_engine.generate_litigation_map, 
-            case_data, concepts, int(final_score), adversarial_risk,
-            fallback={"litigation_strategy": "Maintain standard procedural posture."},
-            context="StrategyEngine"
-        )
+        strategy_results = []
+        for strat_module in strat_modules:
+            strategy_engine = registry.get(strat_module)
+            strategy_result = _safe_call(
+                strategy_engine.generate_strategy if hasattr(strategy_engine, 'generate_strategy') else strategy_engine.generate_litigation_map, 
+                case_data, concepts, int(final_score), adversarial_risk,
+                fallback={"litigation_strategy": "Maintain standard procedural posture."},
+                context="StrategyEngine"
+            )
+            strategy_results.append(strategy_result)
+        
+        # Merge strategy results if multiple
+        strategy_result = strategy_results[0]
+        if len(strategy_results) > 1:
+            strategy_result["litigation_strategy"] = strategy_results[0].get("litigation_strategy", "") + "\n\nCRIMINAL OVERLAY:\n" + strategy_results[1].get("litigation_strategy", "")
 
         # -- 6. Reasoning & Traceability (Explainable AI) --------------------
         reasoning_engine = registry.get("reasoning")

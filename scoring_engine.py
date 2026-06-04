@@ -14,6 +14,28 @@ def ensure_number(x, default=0):
     try: return float(x)
     except: return default
 
+# Scoring Engine Constants (No Magic Numbers)
+PENALTY_COMPANY_DIRECTOR_NOT_NAMED = -40
+PENALTY_DIRECTOR_RESIGNED = -50
+PENALTY_BASALINGAPPA_FATAL = -40
+PENALTY_BASALINGAPPA_HIGH = -25
+PENALTY_LIMITATION = -30
+PENALTY_NOTICE_DEFECT = -25
+PENALTY_UNVERIFIED_SIGNATURE = -35
+PENALTY_MATERIAL_ALTERATION = -40
+PENALTY_LOW_RELIABILITY_EVIDENCE = -15
+PILLAR_CHEQUE_ORIGINAL = 24
+PILLAR_CHEQUE_PHOTOCOPY = 14
+PILLAR_CHEQUE_MISSING = -42
+PILLAR_MEMO_PRESENT = 13
+PILLAR_MEMO_MISSING = -22
+PILLAR_NOTICE_VALID = 27
+PILLAR_NOTICE_LATE = 6
+PILLAR_NOTICE_MISSING = -55
+PILLAR_DEBT_PROVEN = 19
+PILLAR_DEBT_MISSING = -18
+
+
 class ScoringEngineV12:
     @classmethod
     def resolve_conflicts(cls, concepts: List[Dict]) -> List[Dict]:
@@ -97,40 +119,39 @@ class ScoringEngineV12:
         # PILLAR 1: CHEQUE
         if cheque: 
             cheque_type = case_data.get("cheque_proof_type", "original").lower()
-            # Professional calibration: Original = 24, Photocopy = 14
-            cheque_points = 24 if cheque_type == "original" else 14
+            cheque_points = PILLAR_CHEQUE_ORIGINAL if cheque_type == "original" else PILLAR_CHEQUE_PHOTOCOPY
             score += cheque_points
             trace.append(f"Instrument Admissibility: {cheque_type.title()} instrument verified (+{cheque_points}).")
             causality_map.append({"fact": f"Cheque ({cheque_type})", "impact": cheque_points, "type": "positive", "rationale": "Possession of original instrument is 70% of the battle."})
         else:
-            score -= 42
-            trace.append("FATAL ERROR: Primary instrument missing (-42 impact).")
-            causality_map.append({"fact": "Missing Original Cheque", "impact": -42, "type": "negative", "rationale": "S.138 requires the instrument. Photocopies are inadmissible without Section 63(4) BSA."})
+            score += PILLAR_CHEQUE_MISSING
+            trace.append(f"FATAL ERROR: Primary instrument missing ({PILLAR_CHEQUE_MISSING} impact).")
+            causality_map.append({"fact": "Missing Original Cheque", "impact": PILLAR_CHEQUE_MISSING, "type": "negative", "rationale": "S.138 requires the instrument. Photocopies are inadmissible without Section 63(4) BSA."})
 
         # PILLAR 2: DISHONOUR MEMO
         if memo:
-            memo_points = 13
+            memo_points = PILLAR_MEMO_PRESENT
             score += memo_points
             trace.append(f"Procedural Proof: Bank return memo authenticated (+{memo_points}).")
             causality_map.append({"fact": "Bank Memo Presence", "impact": memo_points, "type": "positive", "rationale": "Formal proof of dishonour by the banking institution."})
         else:
-            score -= 22
-            trace.append("CRITICAL GAP: Bank return memo missing (-22 impact).")
-            causality_map.append({"fact": "Missing Bank Memo", "impact": -22, "type": "negative", "rationale": "Magistrate cannot take cognizance without a return memo/debit advice."})
+            score += PILLAR_MEMO_MISSING
+            trace.append(f"CRITICAL GAP: Bank return memo missing ({PILLAR_MEMO_MISSING} impact).")
+            causality_map.append({"fact": "Missing Bank Memo", "impact": PILLAR_MEMO_MISSING, "type": "negative", "rationale": "Magistrate cannot take cognizance without a return memo/debit advice."})
 
         # PILLAR 3: STATUTORY NOTICE
         if notice:
             within_30 = case_data.get("within_30_days", "Yes") == "Yes"
-            notice_points = 27 if within_30 else 6
+            notice_points = PILLAR_NOTICE_VALID if within_30 else PILLAR_NOTICE_LATE
             score += notice_points
             trace.append(f"Statutory Compliance: S.138(b) Demand Notice served (+{notice_points}).")
             causality_map.append({"fact": "S.138(b) Notice Compliance", "impact": notice_points, "type": "positive", "rationale": "Statutory notice window adhered to. Cause of action established."})
             if not within_30:
                 causality_map.append({"fact": "Notice Delay", "impact": -18, "type": "negative", "rationale": "Notice sent beyond 30 days of dishonour. Requires condonation application."})
         else:
-            score -= 55
-            trace.append("FATAL DEFECT: Mandatory demand notice not served (-55 impact).")
-            causality_map.append({"fact": "Notice Not Sent", "impact": -55, "type": "negative", "rationale": "Mandatory requirement. Complaint is non-maintainable without S.138 notice."})
+            score += PILLAR_NOTICE_MISSING
+            trace.append(f"FATAL DEFECT: Mandatory demand notice not served ({PILLAR_NOTICE_MISSING} impact).")
+            causality_map.append({"fact": "Notice Not Sent", "impact": PILLAR_NOTICE_MISSING, "type": "negative", "rationale": "Mandatory requirement. Complaint is non-maintainable without S.138 notice."})
 
         # PILLAR 4: DEBT
         compliance_pct = (sum([1 for p in [cheque, memo, notice, debt] if p]) / 4.0) * 100
@@ -157,9 +178,9 @@ class ScoringEngineV12:
         is_company = any(x in accused_name for x in ["pvt", "ltd", "corp", "inc", "co.", "company"])
         if is_company:
             if not case_data.get("directors_named"):
-                score -= 40
-                trace.append("-40 FATAL: S.141 defect - Directors not named.")
-                causality_map.append({"fact": "S.141 Defect", "impact": -40, "rationale": "Company prosecution fails without naming responsible officers."})
+                score += PENALTY_COMPANY_DIRECTOR_NOT_NAMED
+                trace.append(f"{PENALTY_COMPANY_DIRECTOR_NOT_NAMED} FATAL: S.141 defect - Directors not named.")
+                causality_map.append({"fact": "S.141 Defect", "impact": PENALTY_COMPANY_DIRECTOR_NOT_NAMED, "rationale": "Company prosecution fails without naming responsible officers."})
             
             resignation_date = case_data.get("director_resignation_date")
             cheque_date = case_data.get("cheque_date")
@@ -168,47 +189,47 @@ class ScoringEngineV12:
                     res_dt = datetime.fromisoformat(resignation_date) if isinstance(resignation_date, str) else resignation_date
                     chq_dt = datetime.fromisoformat(cheque_date) if isinstance(cheque_date, str) else cheque_date
                     if res_dt < chq_dt:
-                        score -= 50
-                        trace.append("-50 FATAL: Vicarious Liability Gap (Resignation).")
-                        causality_map.append({"fact": "Director Resignation", "impact": -50, "rationale": "Director resigned BEFORE instrument issuance. High Malicious Prosecution risk."})
+                        score += PENALTY_DIRECTOR_RESIGNED
+                        trace.append(f"{PENALTY_DIRECTOR_RESIGNED} FATAL: Vicarious Liability Gap (Resignation).")
+                        causality_map.append({"fact": "Director Resignation", "impact": PENALTY_DIRECTOR_RESIGNED, "rationale": "Director resigned BEFORE instrument issuance. High Malicious Prosecution risk."})
                 except: pass
 
         # Basalingappa & Sushil Kumar Check
         if amount > 2000000 and not case_data.get("loan_via_bank") and not case_data.get("complainant_itr_available"):
-            score -= 40
-            trace.append("-40 FATAL EVIDENTIARY GAP: ₹20L+ cash loan without ITR.")
-            causality_map.append({"fact": "Basalingappa Fatal", "impact": -40, "rationale": "High-value cash loans without source proof are fatal."})
+            score += PENALTY_BASALINGAPPA_FATAL
+            trace.append(f"{PENALTY_BASALINGAPPA_FATAL} FATAL EVIDENTIARY GAP: ₹20L+ cash loan without ITR.")
+            causality_map.append({"fact": "Basalingappa Fatal", "impact": PENALTY_BASALINGAPPA_FATAL, "rationale": "High-value cash loans without source proof are fatal."})
             if "unaccounted_cash_loans" not in concept_names:
                 concepts.append({"concept": "unaccounted_cash_loans", "confidence": 0.95, "legal_impact": "Fatal evidentiary gap for high-value cash loans per Basalingappa ruling."})
         elif amount > 500000 and not case_data.get("loan_via_bank") and not case_data.get("complainant_itr_available"):
-            score -= 25
-            trace.append("-25 REBUTTAL RISK: High-value cash loan without ITR.")
-            causality_map.append({"fact": "Basalingappa High Risk", "impact": -25, "rationale": "Lending capacity is a standard defence attack."})
+            score += PENALTY_BASALINGAPPA_HIGH
+            trace.append(f"{PENALTY_BASALINGAPPA_HIGH} REBUTTAL RISK: High-value cash loan without ITR.")
+            causality_map.append({"fact": "Basalingappa High Risk", "impact": PENALTY_BASALINGAPPA_HIGH, "rationale": "Lending capacity is a standard defence attack."})
             if "unaccounted_cash_loans" not in concept_names:
                 concepts.append({"concept": "unaccounted_cash_loans", "confidence": 0.85, "legal_impact": "High risk of acquittal on financial capacity grounds."})
 
         # Limitation & Notice Defects
         existing_concepts = [c["concept"] for c in concepts]
         if "limitation_issue" in existing_concepts:
-            score -= 30
-            trace.append("-30 CRITICAL: Limitation Period delay (S.142 violation)")
-            causality_map.append({"fact": "Limitation Delay", "impact": -30, "rationale": "S.142 is a jurisdictional bar."})
+            score += PENALTY_LIMITATION
+            trace.append(f"{PENALTY_LIMITATION} CRITICAL: Limitation Period delay (S.142 violation)")
+            causality_map.append({"fact": "Limitation Delay", "impact": PENALTY_LIMITATION, "rationale": "S.142 is a jurisdictional bar."})
         
         if "notice_defect" in existing_concepts:
-            score -= 25
-            trace.append("-25 CRITICAL: Defective statutory notice")
-            causality_map.append({"fact": "Notice Defect", "impact": -25, "rationale": "Statutory notice must be perfect."})
+            score += PENALTY_NOTICE_DEFECT
+            trace.append(f"{PENALTY_NOTICE_DEFECT} CRITICAL: Defective statutory notice")
+            causality_map.append({"fact": "Notice Defect", "impact": PENALTY_NOTICE_DEFECT, "rationale": "Statutory notice must be perfect."})
 
         # Signature & Alteration
         if "signature_dispute" in existing_concepts and not case_data.get("signature_verified_by_bank"):
-            score -= 35
-            trace.append("-35 CRITICAL: Signature Disputed and Unverified (Anti-Gaming Rule).")
-            causality_map.append({"fact": "Unverified Signature Dispute", "impact": -35, "type": "negative", "rationale": "Without bank verification or handwriting expert, a signature dispute is a massive vulnerability."})
+            score += PENALTY_UNVERIFIED_SIGNATURE
+            trace.append(f"{PENALTY_UNVERIFIED_SIGNATURE} CRITICAL: Signature Disputed and Unverified (Anti-Gaming Rule).")
+            causality_map.append({"fact": "Unverified Signature Dispute", "impact": PENALTY_UNVERIFIED_SIGNATURE, "type": "negative", "rationale": "Without bank verification or handwriting expert, a signature dispute is a massive vulnerability."})
 
         if case_data.get("handwriting_different") or "material_alteration" in existing_concepts:
-            score -= 40
-            trace.append("-40 FATAL: Material Alteration Trap (S.87).")
-            causality_map.append({"fact": "Material Alteration", "impact": -40, "type": "negative", "rationale": "Different inks/handwriting voids the instrument."})
+            score += PENALTY_MATERIAL_ALTERATION
+            trace.append(f"{PENALTY_MATERIAL_ALTERATION} FATAL: Material Alteration Trap (S.87).")
+            causality_map.append({"fact": "Material Alteration", "impact": PENALTY_MATERIAL_ALTERATION, "type": "negative", "rationale": "Different inks/handwriting voids the instrument."})
 
         # â”€â”€ CONTRADICTION PROPAGATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         for cont in contradictions:
@@ -228,9 +249,9 @@ class ScoringEngineV12:
         # Evidence Reliability Penalty Integration
         for name, data in evidence_reliability.items():
             if data.get("score", 1.0) < 0.5:
-                score -= 15
-                trace.append(f"-15 EVIDENTIARY: Low reliability on critical evidence ({name}).")
-                causality_map.append({"fact": f"Low Reliability: {name}", "impact": -15, "type": "negative", "rationale": data.get("reason", "Evidence format is vulnerable to challenge.")})
+                score += PENALTY_LOW_RELIABILITY_EVIDENCE
+                trace.append(f"{PENALTY_LOW_RELIABILITY_EVIDENCE} EVIDENTIARY: Low reliability on critical evidence ({name}).")
+                causality_map.append({"fact": f"Low Reliability: {name}", "impact": PENALTY_LOW_RELIABILITY_EVIDENCE, "type": "negative", "rationale": data.get("reason", "Evidence format is vulnerable to challenge.")})
 
         # Final Score Cap
         final_score = max(0, min(99, score))

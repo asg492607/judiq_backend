@@ -6,7 +6,20 @@ logger = logging.getLogger(__name__)
 
 from utils import parse_date, days_between
 
+# Hardcoded major court holidays for demonstration
+COURT_HOLIDAYS = [
+    "2026-01-26", # Republic Day
+    "2026-08-15", # Independence Day
+    "2026-10-02"  # Gandhi Jayanti
+]
+
 class TimelineEngine:
+    @staticmethod
+    def adjust_for_holidays(target_date: datetime) -> datetime:
+        """If limitation ends on a weekend or court holiday, it extends to the next working day."""
+        while target_date.weekday() >= 5 or target_date.strftime("%Y-%m-%d") in COURT_HOLIDAYS:
+            target_date += timedelta(days=1)
+        return target_date
     @staticmethod
     def generate_timeline_data(case_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Generate structured timeline milestones for visualization"""
@@ -79,7 +92,7 @@ class TimelineEngine:
         notice_dt = parse_date(notice_date)
         if notice_dt:
             cause_of_action = notice_dt + timedelta(days=15)
-            limitation_date = cause_of_action + timedelta(days=30)
+            limitation_date = TimelineEngine.adjust_for_holidays(cause_of_action + timedelta(days=30))
             today = datetime.now()
             
             if filing_date:
@@ -120,4 +133,49 @@ class TimelineEngine:
             "days_remaining": 30,
             "status": "ASSUMED_VALID",
             "message": "Assumed within limitation (verify dates)"
+        }
+
+    @staticmethod
+    def check_criminal_limitation(case_data: Dict[str, Any]) -> Dict[str, Any]:
+        """BNSS S.504 (formerly CrPC 468) limitation checks for criminal offenses"""
+        incident_date = case_data.get("transaction_date") or case_data.get("incident_date")
+        offense_type = str(case_data.get("offense_type", "")).upper()
+        
+        if not incident_date:
+            return {"status": "UNKNOWN", "message": "No incident date provided."}
+            
+        incident_dt = parse_date(incident_date)
+        if not incident_dt:
+            return {"status": "UNKNOWN", "message": "Invalid date format."}
+            
+        # Determine limitation based on punishment severity
+        # Crimes with >3 years punishment have no limitation period (e.g. 302, 376, 420/318 BNS)
+        no_limitation_crimes = ["420", "318", "302", "103", "376", "64", "392", "309"]
+        one_year_limit_crimes = ["506", "351", "323", "115"]
+        three_year_limit_crimes = ["498A", "85", "406", "316"]
+        
+        limit_years = 0
+        if offense_type in no_limitation_crimes:
+            return {"is_barred": False, "status": "NO_LIMITATION", "message": "Offense carries >3 years punishment. No limitation period applies."}
+        elif offense_type in one_year_limit_crimes:
+            limit_years = 1
+        elif offense_type in three_year_limit_crimes:
+            limit_years = 3
+        else:
+            limit_years = 3 # Default for others
+            
+        limitation_date = TimelineEngine.adjust_for_holidays(incident_dt.replace(year=incident_dt.year + limit_years))
+        today = datetime.now()
+        
+        if today > limitation_date:
+            return {
+                "is_barred": True,
+                "status": "TIME_BARRED",
+                "message": f"Barred by BNSS S.504. Limitation expired on {limitation_date.strftime('%Y-%m-%d')}."
+            }
+        
+        return {
+            "is_barred": False,
+            "status": "WITHIN_TIME",
+            "message": f"Within limitation period. Expires on {limitation_date.strftime('%Y-%m-%d')}."
         }

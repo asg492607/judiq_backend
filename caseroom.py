@@ -1,7 +1,7 @@
-﻿# pyrefly: ignore [missing-import]
+# pyrefly: ignore [missing-import]
 import os
 import logging
-from fastapi import APIRouter, Request, UploadFile, File, Form, Depends
+from fastapi import APIRouter, Request, UploadFile, File, Form, Depends, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, Response
 from caseroom_logic import CaseroomManager
 from session import DatabaseManager
@@ -11,6 +11,30 @@ from ocr_engine import OCREngine
 
 router = APIRouter()
 logger = logging.getLogger("JudiQ.Caseroom")
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections = {}
+
+    async def connect(self, websocket: WebSocket, room_id: str):
+        await websocket.accept()
+        if room_id not in self.active_connections:
+            self.active_connections[room_id] = []
+        self.active_connections[room_id].append(websocket)
+
+    def disconnect(self, websocket: WebSocket, room_id: str):
+        if room_id in self.active_connections and websocket in self.active_connections[room_id]:
+            self.active_connections[room_id].remove(websocket)
+
+    async def broadcast(self, message: dict, room_id: str):
+        if room_id in self.active_connections:
+            for connection in self.active_connections[room_id]:
+                try:
+                    await connection.send_json(message)
+                except:
+                    pass
+
+manager = ConnectionManager()
 
 # Encryption setup
 fernet = Fernet(settings.ENCRYPTION_KEY.encode() if isinstance(settings.ENCRYPTION_KEY, str) else settings.ENCRYPTION_KEY)
@@ -39,7 +63,19 @@ async def invite_to_caseroom(room_id: str, request: Request):
 async def send_caseroom_message(room_id: str, request: Request):
     data = await request.json()
     success = CaseroomManager.post_comment(room_id, data.get("user_id"), data.get("content"))
+    if success:
+        await manager.broadcast({"type": "NEW_MESSAGE", "user_id": data.get("user_id"), "content": data.get("content")}, room_id)
     return {"success": success}
+
+@router.websocket("/ws/{room_id}")
+async def websocket_endpoint(websocket: WebSocket, room_id: str):
+    await manager.connect(websocket, room_id)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # Handle incoming WS messages if needed
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, room_id)
 
 @router.post("/{room_id}/task")
 async def add_caseroom_task(room_id: str, request: Request):

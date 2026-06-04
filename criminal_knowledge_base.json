@@ -16,7 +16,13 @@
                                                  "rebuttal_tree":  {
                                                                        "defence_evidence":  "Partial performance.",
                                                                        "prosecution_counter":  "Forged documents at start."
-                                                                   }
+                                                                   },
+                                                 "cross_exam_questions":  [
+                                                                              "Can you establish the exact timeline?",
+                                                                              "Are there independent witnesses to corroborate this?"
+                                                                          ],
+                                                 "quashing_ground":  "Frivolous and vexatious litigation",
+                                                 "weighting_score":  7
                                              },
                                  "IPC_498A":  {
                                                   "name":  "Omnibus Allegations (S.498A IPC / S.85 BNS)",
@@ -36,7 +42,13 @@
                                                                         "prosecution_counter":  "Provide specific instances of demand of dowry linked directly to the relatives.",
                                                                         "burden_shift_effect":  "Relatives highly likely to be discharged.",
                                                                         "magistrate_view":  "Will scrutinize FIR for specific acts; intolerant of omnibus claims."
-                                                                    }
+                                                                    },
+                                                  "cross_exam_questions":  [
+                                                                               "Can you establish the exact timeline?",
+                                                                               "Are there independent witnesses to corroborate this?"
+                                                                           ],
+                                                  "quashing_ground":  "Frivolous and vexatious litigation",
+                                                  "weighting_score":  5
                                               },
                                  "IPC_302":  {
                                                  "name":  "Murder (S.302 IPC / S.103 BNS)",
@@ -54,7 +66,13 @@
                                                  "rebuttal_tree":  {
                                                                        "defence_evidence":  "Sudden quarrel.",
                                                                        "prosecution_counter":  "Prior enmity or weapon preparation."
-                                                                   }
+                                                                   },
+                                                 "cross_exam_questions":  [
+                                                                              "Can you establish the exact timeline?",
+                                                                              "Are there independent witnesses to corroborate this?"
+                                                                          ],
+                                                 "quashing_ground":  "Frivolous and vexatious litigation",
+                                                 "weighting_score":  10
                                              },
                                  "IPC_376":  {
                                                  "name":  "Rape (S.376 IPC / S.64 BNS)",
@@ -72,7 +90,13 @@
                                                  "rebuttal_tree":  {
                                                                        "defence_evidence":  "Chats, travel records.",
                                                                        "prosecution_counter":  "Already married / fraudulent intent."
-                                                                   }
+                                                                   },
+                                                 "cross_exam_questions":  [
+                                                                              "Can you establish the exact timeline?",
+                                                                              "Are there independent witnesses to corroborate this?"
+                                                                          ],
+                                                 "quashing_ground":  "Frivolous and vexatious litigation",
+                                                 "weighting_score":  7
                                              },
                                  "NDPS_S50":  {
                                                   "name":  "Procedural Violation of Search (S.50 NDPS)",
@@ -92,7 +116,13 @@
                                                                         "prosecution_counter":  "Argue recovery was from a bag/vehicle (S.43) and not personal body search.",
                                                                         "burden_shift_effect":  "Automatic acquittal if S.50 is violated on personal search.",
                                                                         "magistrate_view":  "Zero tolerance for NDPS procedural lapses."
-                                                                    }
+                                                                    },
+                                                  "cross_exam_questions":  [
+                                                                               "Can you establish the exact timeline?",
+                                                                               "Are there independent witnesses to corroborate this?"
+                                                                           ],
+                                                  "quashing_ground":  "Frivolous and vexatious litigation",
+                                                  "weighting_score":  10
                                               },
                                  "NDPS_S37":  {
                                                   "name":  "Twin Conditions for Bail (S.37 NDPS)",
@@ -112,7 +142,13 @@
                                                                         "prosecution_counter":  "Rely on FSL report and huge quantity.",
                                                                         "burden_shift_effect":  "Burden solely on accused to prove innocence at bail stage.",
                                                                         "magistrate_view":  "Will not grant bail without glaring procedural errors."
-                                                                    }
+                                                                    },
+                                                  "cross_exam_questions":  [
+                                                                               "Can you establish the exact timeline?",
+                                                                               "Are there independent witnesses to corroborate this?"
+                                                                           ],
+                                                  "quashing_ground":  "Frivolous and vexatious litigation",
+                                                  "weighting_score":  7
                                               },
                                  "CRPC_197":  {
                                                   "name":  "Lack of Sanction (S.197 CrPC)",
@@ -132,7 +168,13 @@
                                                                         "prosecution_counter":  "Argue the act (e.g., bribery, fake encounter) was completely outside the scope of duty.",
                                                                         "burden_shift_effect":  "Proceedings halt immediately upon S.197 applicability.",
                                                                         "magistrate_view":  "Bound by law to reject cognizance without sanction."
-                                                                    }
+                                                                    },
+                                                  "cross_exam_questions":  [
+                                                                               "Can you establish the exact timeline?",
+                                                                               "Are there independent witnesses to corroborate this?"
+                                                                           ],
+                                                  "quashing_ground":  "Frivolous and vexatious litigation",
+                                                  "weighting_score":  10
                                               },
                                  "MEDICAL_OCULAR":  {
                                                         "name":  "Medical vs Ocular Contradiction",
@@ -152,7 +194,13 @@
                                                                               "prosecution_counter":  "Argue minor discrepancies do not vitiate the core truth of the testimony.",
                                                                               "burden_shift_effect":  "Creates strong reasonable doubt.",
                                                                               "magistrate_view":  "Medical evidence usually trumps ocular if contradiction is absolute."
-                                                                          }
+                                                                          },
+                                                        "cross_exam_questions":  [
+                                                                                     "Can you establish the exact timeline?",
+                                                                                     "Are there independent witnesses to corroborate this?"
+                                                                                 ],
+                                                        "quashing_ground":  "Frivolous and vexatious litigation",
+                                                        "weighting_score":  5
                                                     },
                                  "IPC_307":  {
                                                  "name":  "Attempt to Murder (S.307 IPC / S.109 BNS)",
@@ -170,7 +218,13 @@
                                                  "rebuttal_tree":  {
                                                                        "defence_evidence":  "Medical report.",
                                                                        "prosecution_counter":  "Weapon and target."
-                                                                   }
+                                                                   },
+                                                 "cross_exam_questions":  [
+                                                                              "Can you establish the exact timeline?",
+                                                                              "Are there independent witnesses to corroborate this?"
+                                                                          ],
+                                                 "quashing_ground":  "Frivolous and vexatious litigation",
+                                                 "weighting_score":  5
                                              },
                                  "IPC_326":  {
                                                  "name":  "Weapon Not Dangerous (S.326 IPC / S.118(1) BNS)",
@@ -190,7 +244,13 @@
                                                                        "prosecution_counter":  "Argue that the manner of use makes even an ordinary object deadly.",
                                                                        "burden_shift_effect":  "Lowers maximum sentence significantly.",
                                                                        "magistrate_view":  "Strictly interprets \u0027dangerous weapon\u0027."
-                                                                   }
+                                                                   },
+                                                 "cross_exam_questions":  [
+                                                                              "Can you establish the exact timeline?",
+                                                                              "Are there independent witnesses to corroborate this?"
+                                                                          ],
+                                                 "quashing_ground":  "Frivolous and vexatious litigation",
+                                                 "weighting_score":  5
                                              },
                                  "IPC_354":  {
                                                  "name":  "Assault on Woman (S.354 IPC / S.74 BNS)",
@@ -208,7 +268,13 @@
                                                  "rebuttal_tree":  {
                                                                        "defence_evidence":  "Delay + enmity.",
                                                                        "prosecution_counter":  "Social stigma explanation."
-                                                                   }
+                                                                   },
+                                                 "cross_exam_questions":  [
+                                                                              "Can you establish the exact timeline?",
+                                                                              "Are there independent witnesses to corroborate this?"
+                                                                          ],
+                                                 "quashing_ground":  "Frivolous and vexatious litigation",
+                                                 "weighting_score":  5
                                              },
                                  "IPC_468":  {
                                                  "name":  "Forgery for Cheating (S.468 IPC / S.336(3) BNS)",
@@ -226,7 +292,13 @@
                                                  "rebuttal_tree":  {
                                                                        "defence_evidence":  "No loss caused.",
                                                                        "prosecution_counter":  "Attempt itself is offence."
-                                                                   }
+                                                                   },
+                                                 "cross_exam_questions":  [
+                                                                              "Can you establish the exact timeline?",
+                                                                              "Are there independent witnesses to corroborate this?"
+                                                                          ],
+                                                 "quashing_ground":  "Frivolous and vexatious litigation",
+                                                 "weighting_score":  7
                                              },
                                  "IPC_304B":  {
                                                   "name":  "No Proximate Demand (S.304B IPC / S.80 BNS)",
@@ -246,7 +318,13 @@
                                                                         "prosecution_counter":  "Rely on witness testimony of recent, unrecorded verbal demands.",
                                                                         "burden_shift_effect":  "Prevents the reverse burden of proof from activating.",
                                                                         "magistrate_view":  "Crucial requirement. \u0027Soon before\u0027 is strictly construed."
-                                                                    }
+                                                                    },
+                                                  "cross_exam_questions":  [
+                                                                               "Can you establish the exact timeline?",
+                                                                               "Are there independent witnesses to corroborate this?"
+                                                                           ],
+                                                  "quashing_ground":  "Frivolous and vexatious litigation",
+                                                  "weighting_score":  10
                                               },
                                  "IPC_120B":  {
                                                   "name":  "Criminal Conspiracy (S.120B IPC / S.61(2) BNS)",
@@ -266,7 +344,13 @@
                                                                         "prosecution_counter":  "Circumstantial chain of events.",
                                                                         "burden_shift_effect":  "High chance of discharge.",
                                                                         "magistrate_view":  "Strict requirement of agreement."
-                                                                    }
+                                                                    },
+                                                  "cross_exam_questions":  [
+                                                                               "Can you establish the exact timeline?",
+                                                                               "Are there independent witnesses to corroborate this?"
+                                                                           ],
+                                                  "quashing_ground":  "Frivolous and vexatious litigation",
+                                                  "weighting_score":  5
                                               },
                                  "IPC_506":  {
                                                  "name":  "Empty Threats (S.506 IPC / S.351(2) BNS)",
@@ -286,7 +370,13 @@
                                                                        "prosecution_counter":  "Argue the threat caused severe mental distress.",
                                                                        "burden_shift_effect":  "Often seen as a filler charge; easy to dismantle.",
                                                                        "magistrate_view":  "Will ignore S.506 if isolated from other major offences."
-                                                                   }
+                                                                   },
+                                                 "cross_exam_questions":  [
+                                                                              "Can you establish the exact timeline?",
+                                                                              "Are there independent witnesses to corroborate this?"
+                                                                          ],
+                                                 "quashing_ground":  "Frivolous and vexatious litigation",
+                                                 "weighting_score":  5
                                              },
                                  "IPC_379":  {
                                                  "name":  "Absence of Dishonest Intent / Title Dispute (S.379 IPC / S.303(2) BNS)",
@@ -306,7 +396,13 @@
                                                                        "prosecution_counter":  "Argue the claim of right is a sham and the taking was clandestine.",
                                                                        "burden_shift_effect":  "Extremely effective for quashing if supported by civil documents.",
                                                                        "magistrate_view":  "Will convert to civil suit if title is genuinely contested."
-                                                                   }
+                                                                   },
+                                                 "cross_exam_questions":  [
+                                                                              "Can you establish the exact timeline?",
+                                                                              "Are there independent witnesses to corroborate this?"
+                                                                          ],
+                                                 "quashing_ground":  "Frivolous and vexatious litigation",
+                                                 "weighting_score":  5
                                              },
                                  "IPC_392":  {
                                                  "name":  "Lack of Extortion/Fear for Robbery (S.392 IPC / S.309 BNS)",
@@ -326,7 +422,13 @@
                                                                        "prosecution_counter":  "Argue that even fear of wrongful restraint is sufficient.",
                                                                        "burden_shift_effect":  "Significantly reduces minimum mandatory sentences.",
                                                                        "magistrate_view":  "Scrutinizes the immediate prelude to the taking of property."
-                                                                   }
+                                                                   },
+                                                 "cross_exam_questions":  [
+                                                                              "Can you establish the exact timeline?",
+                                                                              "Are there independent witnesses to corroborate this?"
+                                                                          ],
+                                                 "quashing_ground":  "Frivolous and vexatious litigation",
+                                                 "weighting_score":  10
                                              },
                                  "IPC_395":  {
                                                  "name":  "Identification Failure / Less than 5 Persons (S.395 IPC / S.310(2) BNS)",
@@ -346,7 +448,13 @@
                                                                        "prosecution_counter":  "Argue that unknown/absconding persons made up the number to 5+.",
                                                                        "burden_shift_effect":  "Massive reduction in severity if Dacoity charge is dismantled.",
                                                                        "magistrate_view":  "TIP is crucial. Delay in holding TIP is fatal to prosecution."
-                                                                   }
+                                                                   },
+                                                 "cross_exam_questions":  [
+                                                                              "Can you establish the exact timeline?",
+                                                                              "Are there independent witnesses to corroborate this?"
+                                                                          ],
+                                                 "quashing_ground":  "Frivolous and vexatious litigation",
+                                                 "weighting_score":  7
                                              },
                                  "IPC_406":  {
                                                  "name":  "Criminal Breach of Trust (S.406 IPC / S.316 BNS)",
@@ -364,7 +472,13 @@
                                                  "rebuttal_tree":  {
                                                                        "defence_evidence":  "No specific property handed over.",
                                                                        "prosecution_counter":  "Documentary proof of trust."
-                                                                   }
+                                                                   },
+                                                 "cross_exam_questions":  [
+                                                                              "Can you establish the exact timeline?",
+                                                                              "Are there independent witnesses to corroborate this?"
+                                                                          ],
+                                                 "quashing_ground":  "Frivolous and vexatious litigation",
+                                                 "weighting_score":  5
                                              },
                                  "IPC_499":  {
                                                  "name":  "Exception 8 or 9 / Good Faith (S.499/500 IPC / S.356 BNS)",
@@ -384,7 +498,13 @@
                                                                        "prosecution_counter":  "Prove malice and that the statements were broadcast to unrelated third parties (e.g., social media).",
                                                                        "burden_shift_effect":  "Defence burden to prove good faith under S.105 Evidence Act.",
                                                                        "magistrate_view":  "Reluctant to entertain defamation for pleadings in court."
-                                                                   }
+                                                                   },
+                                                 "cross_exam_questions":  [
+                                                                              "Can you establish the exact timeline?",
+                                                                              "Are there independent witnesses to corroborate this?"
+                                                                          ],
+                                                 "quashing_ground":  "Frivolous and vexatious litigation",
+                                                 "weighting_score":  5
                                              },
                                  "IPC_147":  {
                                                  "name":  "No Common Object (S.147/149 IPC / S.189/191 BNS)",
@@ -404,7 +524,13 @@
                                                                        "prosecution_counter":  "Argue that joining the assembly with knowledge of its object is enough.",
                                                                        "burden_shift_effect":  "Splits the accused from the main perpetrators.",
                                                                        "magistrate_view":  "Will look for active participation or shouting of slogans."
-                                                                   }
+                                                                   },
+                                                 "cross_exam_questions":  [
+                                                                              "Can you establish the exact timeline?",
+                                                                              "Are there independent witnesses to corroborate this?"
+                                                                          ],
+                                                 "quashing_ground":  "Frivolous and vexatious litigation",
+                                                 "weighting_score":  5
                                              },
                                  "IPC_304A":  {
                                                   "name":  "Contributory Negligence / Error of Judgment (S.304A IPC / S.106 BNS)",
@@ -424,7 +550,13 @@
                                                                         "prosecution_counter":  "Argue that the driver should have anticipated pedestrian movement in that zone.",
                                                                         "burden_shift_effect":  "Raises reasonable doubt on the \u0027rash\u0027 element.",
                                                                         "magistrate_view":  "Will rely heavily on the site map (panchnama) and mechanical inspector\u0027s report."
-                                                                    }
+                                                                    },
+                                                  "cross_exam_questions":  [
+                                                                               "Can you establish the exact timeline?",
+                                                                               "Are there independent witnesses to corroborate this?"
+                                                                           ],
+                                                  "quashing_ground":  "Frivolous and vexatious litigation",
+                                                  "weighting_score":  5
                                               }
                              }
 }
