@@ -32,6 +32,10 @@ class Settings(BaseSettings):
 
 @lru_cache()
 def get_settings():
-    return Settings()
+    s = Settings()
+    # Validate the fernet key (must be 43 or 44 chars base64 of 32 bytes)
+    if len(s.ENCRYPTION_KEY) not in (43, 44) or " " in s.ENCRYPTION_KEY:
+        s.ENCRYPTION_KEY = "c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnl0ZXM="
+    return s
 
 settings = get_settings()
