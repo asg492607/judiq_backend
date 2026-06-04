@@ -369,4 +369,15 @@ class ResponseBuilder:
             "strategic_audit": engine_result.get("strategic_audit", []),
             "senior_brief": senior_brief,
             "question_bank": engine_result.get("question_bank", []),
+            # New: Judicial Intelligence Layer
+            "judicial_report": engine_result.get("judicial_report", {}),
+            "theoretical_score": engine_result.get("theoretical_score", score),
+            "judicial_multiplier": engine_result.get("judicial_report", {}).get("judicial_multiplier", {}),
+            "judge_challenge_predictions": engine_result.get("judicial_report", {}).get("judge_challenge_predictions", []),
+            "court_stats": engine_result.get("judicial_report", {}).get("court_stats", {}),
+            # New: RAG Precedent Intelligence
+            "precedent_intelligence": engine_result.get("precedent_intelligence", {}),
+            "supporting_precedents": engine_result.get("precedent_intelligence", {}).get("supporting", []),
+            "opposing_precedents": engine_result.get("precedent_intelligence", {}).get("opposing", []),
+            "distinguishable_precedents": engine_result.get("precedent_intelligence", {}).get("distinguishable", []),
         }

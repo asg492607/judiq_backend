@@ -54,6 +54,19 @@ class EngineRegistry:
 # Global Registry Instance
 registry = EngineRegistry()
 
+# RAG + Judicial Engine (new engines, imported once at module level)
+try:
+    from rag_engine import rag_manager
+except Exception as _e:
+    logger.warning(f"[ENGINE] rag_engine import failed: {_e}")
+    rag_manager = None
+
+try:
+    from judicial_engine import judicial_engine as _judicial_engine
+except Exception as _e:
+    logger.warning(f"[ENGINE] judicial_engine import failed: {_e}")
+    _judicial_engine = None
+
 # â”€â”€ Synthetic Text Mapping (For Quick/Ghost Analysis) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 SYNTHETIC_TEXT_MAP = {
     "cheque_present":  "cheque dishonoured and bounced by bank",
@@ -265,6 +278,30 @@ class JudiQEngine:
             context="ReasoningEngine.summary"
         )
 
+        # -- 6.5 RAG Precedent Intelligence -----------------------------------
+        if rag_manager is not None:
+            precedent_intelligence = _safe_call(
+                rag_manager.get_precedent_intelligence, case_data,
+                fallback={"supporting": [], "opposing": [], "distinguishable": [], "all_relevant": []},
+                context="RAGManager"
+            )
+        else:
+            precedent_intelligence = {"supporting": [], "opposing": [], "distinguishable": [], "all_relevant": []}
+
+        # -- 6.6 Judicial Intelligence ----------------------------------------
+        if _judicial_engine is not None:
+            judicial_report = _safe_call(
+                _judicial_engine.generate_judicial_intelligence_report,
+                case_data, final_score,
+                fallback={"court_stats": {}, "judicial_multiplier": {}, "judge_challenge_predictions": []},
+                context="JudicialEngine"
+            )
+            # Use the judicially-adjusted score as the actual displayed score
+            judicially_adjusted_score = judicial_report.get("adjusted_survivability_score", final_score)
+        else:
+            judicial_report = {}
+            judicially_adjusted_score = final_score
+
         # -- 7. Draft Generation ----------------------------------------------
         draft_engine = registry.get("draft")
         from draft_engine import decide_draft_type
@@ -355,7 +392,10 @@ class JudiQEngine:
         # -- 11. Response Assembly ---------------------------------------------
         # Prepare the flat dict for ResponseBuilder
         engine_output = {
-            "final_score": final_score,
+            "final_score": judicially_adjusted_score,
+            "theoretical_score": final_score,
+            "judicial_report": judicial_report,
+            "precedent_intelligence": precedent_intelligence,
             "tldr": tldr,
             "reasoning_trace": scoring_result.get("reasoning_trace", []),
             "reasoning_trail": reasoning_trail,

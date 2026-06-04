@@ -168,10 +168,10 @@ class ScoringEngineV12:
             trace.append("Rebuttal Risk: Presumption u/s 139 is vulnerable due to lack of debt proof (-18 impact).")
             causality_map.append({"fact": "No Liability Proof", "impact": -18, "rationale": "S.139 presumption is rebuttable."})
 
-        # --- V3 ENHANCEMENT: JITTER INJECTION ---
+        # --- V3 ENHANCEMENT: JITTER INJECTION (disabled per strict calibration) ---
+        jitter = 0  # Strict calibration mode — no random jitter applied
         score += jitter
-        if jitter != 0:
-            trace.append(f"Statistical calibration applied ({'+' if jitter > 0 else ''}{jitter} impact).")
+        # jitter is 0, no trace entry needed
 
         # EXPERT AUDITS
         accused_name = str(case_data.get("accused_name", "")).lower()
