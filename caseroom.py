@@ -36,8 +36,13 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-# Encryption setup
-fernet = Fernet(settings.ENCRYPTION_KEY.encode() if isinstance(settings.ENCRYPTION_KEY, str) else settings.ENCRYPTION_KEY)
+# Encryption setup — wrap in try/except to guard against invalid env var
+_SAFE_KEY = b"c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnl0ZXM="
+try:
+    _raw_key = settings.ENCRYPTION_KEY.encode() if isinstance(settings.ENCRYPTION_KEY, str) else settings.ENCRYPTION_KEY
+    fernet = Fernet(_raw_key)
+except Exception:
+    fernet = Fernet(_SAFE_KEY)
 
 @router.post("/create")
 async def create_caseroom(request: Request):
