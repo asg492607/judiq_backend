@@ -1,5 +1,5 @@
-﻿from fastapi import APIRouter
-from endpoints import analysis, caseroom, verification, documents
+from fastapi import APIRouter
+import analysis, caseroom, verification, documents
 
 api_router = APIRouter()
 
