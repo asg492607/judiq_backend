@@ -1,4 +1,4 @@
-﻿import re
+import re
 import logging
 from typing import List, Dict, Any, Tuple
 from kb_manager import kb_manager
@@ -112,7 +112,8 @@ class SemanticEngineV12:
                         "concept": concept,
                         "confidence": round(final_confidence, 2),
                         "matched_phrases": list(set(matched_phrases))[:5],
-                        "legal_impact": config.get('legal_impact', "N/A")
+                        "legal_impact": config.get('legal_impact', "N/A"),
+                        "polarity": config.get('polarity', 1) if not is_negated else config.get('polarity', 1) * -1
                     })
 
         detected.sort(key=lambda x: x.get('confidence', 0), reverse=True)

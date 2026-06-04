@@ -559,6 +559,84 @@
                                                                            ],
                                                   "quashing_ground":  "Frivolous and vexatious litigation",
                                                   "weighting_score":  5
+                                              },
+                                  "POCSO_S4":  {
+                                                  "name":  "Penetrative Sexual Assault (POCSO S.4)",
+                                                  "severity":  "FATAL",
+                                                  "why_applied":  "Strict liability under POCSO, presumption against accused.",
+                                                  "risk":  "Bail extremely difficult; reversal of burden of proof.",
+                                                  "evidence_needed":  "Medical report, age proof of victim.",
+                                                  "precedent":  "Jarnail Singh vs State of Haryana",
+                                                  "chain":  [
+                                                                "1. Defence disputes age of victim.",
+                                                                "2. Challenges medical evidence.",
+                                                                "3. Claims false implication."
+                                                            ],
+                                                  "probability_collapse":  0.95,
+                                                  "rebuttal_tree":  {
+                                                                        "defence_evidence":  "Ossification test showing majority.",
+                                                                        "prosecution_counter":  "School first attended certificate prevails over medical test.",
+                                                                        "burden_shift_effect":  "Accused must prove absence of culpable mental state.",
+                                                                        "magistrate_view":  "Highly protective of victim; presumption of guilt."
+                                                                    },
+                                                  "cross_exam_questions":  [
+                                                                               "Is there any documented enmity between the families?",
+                                                                               "Why was there a delay in filing the FIR?"
+                                                                           ],
+                                                  "quashing_ground":  "Rarely applicable",
+                                                  "weighting_score":  10
+                                              },
+                                  "NDPS_S21":  {
+                                                  "name":  "Possession of Commercial Quantity (NDPS S.21)",
+                                                  "severity":  "FATAL",
+                                                  "why_applied":  "Draconian bail provisions under S.37 NDPS Act.",
+                                                  "risk":  "Long pre-trial incarceration.",
+                                                  "evidence_needed":  "Seizure memo, FSL report, S.50 compliance.",
+                                                  "precedent":  "State of HP vs Pawan Kumar",
+                                                  "chain":  [
+                                                                "1. Defence attacks S.50 search procedure.",
+                                                                "2. Claims planted evidence.",
+                                                                "3. Highlights missing link in sample chain of custody."
+                                                            ],
+                                                  "probability_collapse":  0.90,
+                                                  "rebuttal_tree":  {
+                                                                        "defence_evidence":  "S.50 non-compliance in personal search.",
+                                                                        "prosecution_counter":  "S.50 does not apply to bag/vehicle search.",
+                                                                        "burden_shift_effect":  "Reverse burden on accused if conscious possession established.",
+                                                                        "magistrate_view":  "Strict adherence to procedure required from IO."
+                                                                    },
+                                                  "cross_exam_questions":  [
+                                                                               "Were independent witnesses present during seizure?",
+                                                                               "Was the Malkhana register entry properly maintained?"
+                                                                           ],
+                                                  "quashing_ground":  "Procedural violation of mandatory provisions",
+                                                  "weighting_score":  10
+                                              },
+                                  "IPC_304B":  {
+                                                  "name":  "Dowry Death (IPC 304B / BNS 80)",
+                                                  "severity":  "FATAL",
+                                                  "why_applied":  "Unnatural death within 7 years of marriage with dowry cruelty.",
+                                                  "risk":  "Presumption of dowry death under Evidence Act.",
+                                                  "evidence_needed":  "Proof of cruelty 'soon before' death, PM report.",
+                                                  "precedent":  "Kans Raj vs State of Punjab",
+                                                  "chain":  [
+                                                                "1. Defence claims natural death or suicide unrelated to dowry.",
+                                                                "2. Argues no proximate link to dowry demand.",
+                                                                "3. Claims general omnibus allegations."
+                                                            ],
+                                                  "probability_collapse":  0.88,
+                                                  "rebuttal_tree":  {
+                                                                        "defence_evidence":  "Lack of recent complaints or demands.",
+                                                                        "prosecution_counter":  "Establish 'soon before' is a relative term showing proximate link.",
+                                                                        "burden_shift_effect":  "Presumption against husband/relatives.",
+                                                                        "magistrate_view":  "Serious view; strict scrutiny of 'soon before' element."
+                                                                    },
+                                                  "cross_exam_questions":  [
+                                                                               "When was the last documented dowry demand?",
+                                                                               "What was the exact cause of unnatural death?"
+                                                                           ],
+                                                  "quashing_ground":  "Lack of proximate link / natural death",
+                                                  "weighting_score":  9
                                               }
                              }
 }

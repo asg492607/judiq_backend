@@ -109,6 +109,8 @@ class CriminalAdversarialEngine:
                 "description": tree.get("risk", ""),
                 "strategic_chain": tree.get("chain", []),
                 "rebuttal_tree": tree.get("rebuttal_tree", {}),
+                "cross_exam_questions": tree.get("cross_exam_questions", []),
+                "quashing_ground": tree.get("quashing_ground", ""),
                 "survival_probability": f"{int((1.0 - tree.get('probability_collapse', 0.5)) * 100)}%",
                 "collapse_risk": f"{int(tree.get('probability_collapse', 0.5) * 100)}%"
             }
@@ -304,6 +306,11 @@ class CriminalAdversarialEngine:
         if case_data.get("uapa_case") and case_data.get("seek_bail"):
             node = _build_node("UAPA_43D")
             if node: analysis_nodes.append(node)
+            
+        # Harden Discharge / Quashing Simulation
+        for node in analysis_nodes:
+            if node.get("quashing_ground"):
+                node["discharge_quashing_strategy"] = f"File S.482 CrPC / S.528 BNSS petition citing: {node['quashing_ground']}."
 
         return analysis_nodes
 

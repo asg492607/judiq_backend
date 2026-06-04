@@ -667,6 +667,10 @@ def generate_fir_draft(case_data: Dict, concepts: List[Dict]) -> str:
     complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Informant Name)"
     accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name / Unknown)"
     offense = case_data.get("offense_type", "General Criminal Offence")
+    incident_date = case_data.get("incident_date", "[Date of Occurrence]")
+    description = case_data.get("description", "[Detailed Narrative of Offence]")
+    police_station = case_data.get("police_station", "________ (Police Station)")
+    district = case_data.get("district", "________ (District)")
     
     return f"""{_header("FIRST INFORMATION REPORT (FIR) DRAFT — SECTION 154 CrPC / 173 BNSS")}
 
@@ -674,8 +678,8 @@ Date: {today}
 
 To,
 The Station House Officer (SHO),
-Police Station: ________ (Police Station),
-District: ________ (District)
+Police Station: {police_station},
+District: {district}
 
 Subject: Information regarding commission of cognizable offence(s) under Section(s) {offense} of the IPC/BNS by {accused}.
 
@@ -685,8 +689,9 @@ Respected Sir/Madam,
    I, {complainant}, residing at ________ (Informant Address), contact number ________ (Contact Number), state as follows:
 
 2. DETAILS OF INCIDENT:
-   [DESCRIBE THE EXACT INCIDENT — Date, Time, Place of Occurrence].
-   The accused {accused} committed the following acts: ________ (Detailed Narrative of Offence).
+   The incident occurred on or around {incident_date}.
+   The accused {accused} committed the following acts:
+   {description}
 
 3. WEAPONS / INJURIES / LOSS (If Applicable):
    [Specify if any weapons were used, injuries sustained, or property lost/stolen].
@@ -712,6 +717,10 @@ def generate_regular_bail(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
     accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
     offense = case_data.get("offense_type", "General")
+    fir_no = case_data.get("fir_no", "________")
+    police_station = case_data.get("police_station", "________ (Police Station)")
+    court_name = case_data.get("court_name", "________ (Sessions Judge / Magistrate), ________ (Location)")
+    state_name = case_data.get("state_name", "________ (State Name)")
     
     # Inject Antil Guidelines if applicable
     antil_clause = ""
@@ -720,15 +729,15 @@ def generate_regular_bail(case_data: Dict) -> str:
         
     return f"""{_header("REGULAR BAIL APPLICATION — SECTION 437/439 CrPC / 480 BNSS")}
 
-IN THE COURT OF ________ (Sessions Judge / Magistrate), ________ (Location)
+IN THE COURT OF {court_name}
 CRIMINAL MISC. BAIL APPLICATION NO. ______ OF {datetime.now().year}
-ARISING OUT OF FIR NO. ________ (FIR No.)
-U/S {offense} IPC/BNS, P.S. ________ (Police Station)
+ARISING OUT OF FIR NO. {fir_no}
+U/S {offense} IPC/BNS, P.S. {police_station}
 
 IN THE MATTER OF:
 {accused}                                                  ... APPLICANT/ACCUSED
 VERSUS
-STATE OF ________ (State Name)                                      ... PROSECUTION
+STATE OF {state_name}                                      ... PROSECUTION
 
 APPLICATION FOR GRANT OF REGULAR BAIL
 
@@ -829,18 +838,22 @@ def generate_quashing_petition(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
     accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
     offense = case_data.get("offense_type", "General")
+    fir_no = case_data.get("fir_no", "________")
+    fir_date = case_data.get("fir_date", "________ (Date)")
+    police_station = case_data.get("police_station", "________ (Police Station)")
+    state_name = case_data.get("state_name", "________ (State Name)")
     
     return f"""{_header("QUASHING PETITION — SECTION 482 CrPC / 528 BNSS")}
 
-IN THE HON'BLE HIGH COURT OF ________ (State / Jurisdiction)
+IN THE HON'BLE HIGH COURT OF {state_name}
 CRIMINAL MISC. PETITION NO. ______ OF {datetime.now().year}
 
 IN THE MATTER OF:
 {accused}                                                  ... PETITIONER
 VERSUS
-STATE OF ________ (State Name) & ANR.                               ... RESPONDENTS
+STATE OF {state_name} & ANR.                               ... RESPONDENTS
 
-PETITION UNDER SECTION 482 OF THE CODE OF CRIMINAL PROCEDURE FOR QUASHING OF FIR NO. ________ (FIR No.) DATED ________ (Date) U/S {offense} P.S. ________ (Police Station) AND ALL CONSEQUENTIAL PROCEEDINGS
+PETITION UNDER SECTION 482 OF THE CODE OF CRIMINAL PROCEDURE FOR QUASHING OF FIR NO. {fir_no} DATED {fir_date} U/S {offense} P.S. {police_station} AND ALL CONSEQUENTIAL PROCEEDINGS
 
 MOST RESPECTFULLY SHOWETH:
 

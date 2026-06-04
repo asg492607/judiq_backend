@@ -45,7 +45,7 @@ class CriminalTimelineEngine:
                     "type": "S167_DEFAULT_BAIL",
                     "severity": "CRITICAL_OPPORTUNITY",
                     "description": f"Accused in custody for {days_in_custody} days (> {threshold} limit) without charge sheet.",
-                    "tactical_move": "IMMEDIATELY file S.167(2) CrPC application for indefeasible Default Bail before charge sheet is filed."
+                    "tactical_move": "IMMEDIATELY file S.167(2) CrPC / S.187 BNSS application for indefeasible Default Bail before charge sheet is filed."
                 })
             else:
                 anomalies.append({
@@ -54,7 +54,7 @@ class CriminalTimelineEngine:
                     "description": f"In custody for {days_in_custody} days. Default bail eligible on day {threshold + 1}."
                 })
 
-        # 3. S.468 CrPC Limitation Bar
+        # 3. S.468 CrPC / S.504 BNSS Limitation Bar
         if incident_date and fir_date:
             punishment_years = case_data.get("punishment_years", 3)
             limit_years = 0
@@ -69,10 +69,10 @@ class CriminalTimelineEngine:
                 elapsed_years = (fir_date - incident_date).days / 365.25
                 if elapsed_years > limit_years:
                     opportunities.append({
-                        "type": "S468_LIMITATION_BAR",
+                        "type": "S504_LIMITATION_BAR",
                         "severity": "FATAL_TO_PROSECUTION",
-                        "description": f"Cognizance barred u/s 468 CrPC. Complaint filed {elapsed_years:.1f} years post incident (Limit: {limit_years} years).",
-                        "tactical_move": "File S.482 Quashing or object at Cognizance stage."
+                        "description": f"Cognizance barred u/s 468 CrPC / S.504 BNSS. Complaint filed {elapsed_years:.1f} years post incident (Limit: {limit_years} years).",
+                        "tactical_move": "File Quashing or object at Cognizance stage."
                     })
 
         return {

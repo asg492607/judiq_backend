@@ -61,6 +61,15 @@ class CriminalScoringEngine:
                 "rationale": cont["detail"]
             })
 
+        # 4. EVIDENCE RELIABILITY MATRIX
+        evidence_reliability = cls.calculate_evidence_reliability(case_data)
+        for name, data in evidence_reliability.items():
+            if data.get("score", 1.0) < 0.5:
+                penalty = -15
+                score += penalty
+                trace.append(f"{penalty} EVIDENTIARY: Low reliability on critical evidence ({name}).")
+                causality_map.append({"fact": f"Low Reliability: {name}", "impact": penalty, "type": "negative", "rationale": data.get("reason", "Evidence is vulnerable to challenge.")})
+
         # Cap score
         final_score = max(0, min(99, score))
 
@@ -79,6 +88,50 @@ class CriminalScoringEngine:
             "accused_acquittal_probability": 100 - int(final_score),
             "verdict": verdict,
             "causality_map": causality_map,
+            "evidence_reliability": evidence_reliability,
             "reasoning_trace": trace,
             "score_breakdown": trace
         }
+
+    @classmethod
+    def calculate_evidence_reliability(cls, case_data: Dict) -> Dict:
+        """
+        Grades criminal evidence survival based on format/custody and procedural rules.
+        """
+        reliability = {}
+        
+        # Ocular Evidence
+        has_eyewitness = case_data.get("has_eyewitness", False)
+        if has_eyewitness:
+            if case_data.get("eyewitness_related", False):
+                reliability["Eyewitness Testimony"] = {"score": 0.60, "status": "INTERESTED_WITNESS", "attack_risk": "HIGH", "reason": "Witness is related/interested; requires strict corroboration."}
+            else:
+                reliability["Eyewitness Testimony"] = {"score": 0.90, "status": "INDEPENDENT_WITNESS", "attack_risk": "LOW"}
+        else:
+            reliability["Eyewitness Testimony"] = {"score": 0.0, "status": "MISSING", "attack_risk": "TERMINAL", "reason": "No direct ocular evidence; case rests entirely on circumstantial evidence."}
+            
+        # Recovery/Seizure (Panchnama)
+        has_recovery = case_data.get("weapon_recovered", False) or case_data.get("contraband_recovered", False)
+        if has_recovery:
+            if case_data.get("independent_panch_witness", False):
+                reliability["Seizure/Recovery"] = {"score": 0.95, "status": "VERIFIED", "attack_risk": "LOW"}
+            else:
+                reliability["Seizure/Recovery"] = {"score": 0.40, "status": "VULNERABLE", "attack_risk": "CRITICAL", "reason": "No independent public witness to recovery; easily challenged under S.100 CrPC / S.105 BNSS."}
+                
+        # Medical Evidence
+        if case_data.get("injury_report_available", False):
+            if case_data.get("medical_contradicts_ocular", False):
+                reliability["Medical Report (MLC)"] = {"score": 0.20, "status": "CONTRADICTORY", "attack_risk": "TERMINAL", "reason": "Ocular testimony is completely negated by medical findings."}
+            else:
+                reliability["Medical Report (MLC)"] = {"score": 0.95, "status": "CORROBORATIVE", "attack_risk": "MINIMAL"}
+
+        # Digital Evidence
+        has_digital = case_data.get("electronic_evidence", False)
+        if has_digital:
+            has_65b = case_data.get("s65b_certificate", False)
+            if has_65b:
+                reliability["Digital Evidence"] = {"score": 0.85, "status": "AUTHENTICATED", "attack_risk": "LOW"}
+            else:
+                reliability["Digital Evidence"] = {"score": 0.10, "status": "INADMISSIBLE", "attack_risk": "HIGH", "reason": "Mandatory S.65B Evidence Act / S.63 BSA Certificate missing."}
+
+        return reliability
