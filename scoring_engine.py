@@ -25,7 +25,7 @@ PENALTY_UNVERIFIED_SIGNATURE = -35
 PENALTY_MATERIAL_ALTERATION = -40
 PENALTY_LOW_RELIABILITY_EVIDENCE = -15
 PILLAR_CHEQUE_ORIGINAL = 24
-PILLAR_CHEQUE_PHOTOCOPY = 14
+PILLAR_CHEQUE_PHOTOCOPY = -15
 PILLAR_CHEQUE_MISSING = -42
 PILLAR_MEMO_PRESENT = 13
 PILLAR_MEMO_MISSING = -22
@@ -398,9 +398,16 @@ class ScoringEngineV12:
         if cheque_type == "original":
             reliability["Original Cheque"] = {"score": 0.98, "status": "SURVIVABLE", "attack_risk": "MINIMAL"}
         elif cheque_type == "photocopy":
-            reliability["Cheque Photocopy"] = {"score": 0.35, "status": "VULNERABLE", "attack_risk": "CRITICAL", "reason": "Lacks primary admissibility; secondary evidence requirements high."}
+            reliability["Cheque Photocopy"] = {"score": 0.15, "status": "VULNERABLE", "attack_risk": "CRITICAL", "reason": "Lacks primary admissibility; secondary evidence requirements high."}
         else:
-            reliability["Cheque Fragment"] = {"score": 0.15, "status": "FATAL_RISK", "attack_risk": "TERMINAL"}
+            reliability["Cheque Fragment"] = {"score": 0.05, "status": "FATAL_RISK", "attack_risk": "TERMINAL"}
+            
+        # Financial Capacity (Basalingappa)
+        amount = ensure_number(case_data.get("amount", 0))
+        is_cash = case_data.get("payment_mode", "").lower() == "cash"
+        itr_avail = case_data.get("complainant_itr_available", False)
+        if is_cash and amount > 20000 and not itr_avail:
+            reliability["Financial Capacity"] = {"score": 0.20, "status": "FATAL_RISK", "attack_risk": "TERMINAL", "reason": "S.269SS violation with no ITR proof of source of funds."}
 
         # Digital Proofs
         has_digital = case_data.get("communication_records", False)

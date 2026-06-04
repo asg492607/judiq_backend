@@ -1,16 +1,23 @@
 from datetime import datetime
 
+import dateutil.parser
+
 def parse_date(date_str):
-    """Parse date string in various formats"""
+    """Parse date string robustly using dateutil"""
     if not date_str:
         return None
     
-    formats = ["%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%Y/%m/%d", "%d %B %Y", "%B %d, %Y"]
-    for fmt in formats:
-        try:
-            return datetime.strptime(str(date_str), fmt)
-        except:
-            continue
+    try:
+        # fuzzy=True allows it to ignore unknown tokens around the date
+        return dateutil.parser.parse(str(date_str), fuzzy=True)
+    except (ValueError, OverflowError):
+        # Fallback to strict format list if dateutil fails for some reason
+        formats = ["%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%Y/%m/%d", "%d %B %Y", "%B %d, %Y"]
+        for fmt in formats:
+            try:
+                return datetime.strptime(str(date_str), fmt)
+            except:
+                continue
     return None
 
 def days_between(date1_str, date2_str):

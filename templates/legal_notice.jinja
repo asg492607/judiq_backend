@@ -24,7 +24,11 @@ Under instructions from and on behalf of my client {{ complainant }}, I hereby s
    When my client presented the said cheque for encashment through banking channels, the same was returned/dishonoured on {{ dishonour_date }} with the bank memo citing the reason "{{ dishonour_reason }}".
 
 4. DEMAND FOR PAYMENT:
+{% if is_aggressive %}
+   By this notice, my client demands that you immediately pay the said sum of {{ amount_str }} along with applicable interest, within FIFTEEN (15) DAYS from the date of receipt of this notice, failing which strict legal action shall follow without further warning.
+{% else %}
    By this notice, my client hereby demands that you pay the said sum of {{ amount_str }} together with interest thereon within FIFTEEN (15) DAYS from the date of receipt of this notice.
+{% endif %}
 
 5. LEGAL CONSEQUENCE:
    You are hereby warned that in the event of your failure to make payment within the stipulated period, my client shall be constrained to initiate criminal proceedings against you under Section 138 of the Negotiable Instruments Act, 1881, and also civil proceedings for recovery of the said amount together with interest, costs, and damages, without any further notice to you.

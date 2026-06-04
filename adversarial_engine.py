@@ -142,13 +142,22 @@ class AdversarialEngine:
         if amount > 150000 and not case_data.get("complainant_itr_available"):
             analysis_nodes.append(cls._build_node(cls.VULNERABILITY_MODELS["financial_capacity"], "Financial Capacity Challenge"))
 
-        # 3. Material Alteration Logic
-        if case_data.get("handwriting_different") or "material_alteration" in concept_names:
-            analysis_nodes.append(cls._build_node(cls.VULNERABILITY_MODELS["material_alteration"], "S.87 Material Alteration Risk"))
+        # 3. Material Alteration & Signature Logic
+        signature_mismatch = case_data.get("signature_mismatch", False)
+        handwriting_different = case_data.get("handwriting_different", False)
+        has_alteration_concept = "material_alteration" in concept_names or "signature_dispute" in concept_names
+        
+        if handwriting_different or signature_mismatch or has_alteration_concept:
+            analysis_nodes.append(cls._build_node(cls.VULNERABILITY_MODELS["material_alteration"], "S.87 Material Alteration / Signature Risk"))
 
-        # 4. Vicarious Liability Logic
-        if is_company and not case_data.get("directors_named"):
-            analysis_nodes.append(cls._build_node(cls.VULNERABILITY_MODELS["vicarious_liability"], "S.141 Procedural Defect"))
+        # 4. Vicarious Liability Logic (S.141)
+        # S.141 requires strict averments like "in charge of and responsible for the conduct of the business"
+        has_directors = case_data.get("directors_named", False)
+        has_s141_averments = case_data.get("s141_averments_present", False)
+        
+        if is_company:
+            if not has_directors or not has_s141_averments:
+                analysis_nodes.append(cls._build_node(cls.VULNERABILITY_MODELS["vicarious_liability"], "S.141 Procedural Defect (Missing Averments)"))
 
         return analysis_nodes
 

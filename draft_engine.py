@@ -105,8 +105,9 @@ def _num_to_words(n: int) -> str:
     return _num_to_words(n // 10000000) + " Crore" + (" " + _num_to_words(n % 10000000) if n % 10000000 else "")
 
 
-def generate_legal_notice(case_data: Dict) -> str:
+def generate_legal_notice(case_data: Dict, tone: str = "standard") -> str:
     today, amount_str = _case_meta(case_data)
+    is_aggressive = tone.lower() == "aggressive"
 
     complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
     accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
@@ -150,7 +151,8 @@ def generate_legal_notice(case_data: Dict) -> str:
         bank_full=bank_full,
         dishonour_date=dishonour_date,
         dishonour_reason=dishonour_reason,
-        transaction_nature=transaction_nature
+        transaction_nature=transaction_nature,
+        is_aggressive=is_aggressive
     )
 
 
@@ -1141,7 +1143,7 @@ class DraftEngine:
             
         # Cheque Bounce Routing
         if draft_type == "LEGAL_NOTICE":
-            return generate_legal_notice(case_data)
+            return generate_legal_notice(case_data, tone=tone)
         elif draft_type == "COMPLAINT":
             return generate_complaint(case_data, concepts, tone=tone)
         elif draft_type in ("CERTIFICATE_BSA", "CERTIFICATE_65B"):

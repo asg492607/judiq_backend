@@ -91,7 +91,19 @@ class TimelineEngine:
         # Calculate limitation
         notice_dt = parse_date(notice_date)
         if notice_dt:
-            cause_of_action = notice_dt + timedelta(days=15)
+            # Handle Delivery Status & Deemed Service
+            delivery_date = case_data.get("notice_delivery_date")
+            delivery_status = str(case_data.get("notice_delivery_status", "delivered")).lower()
+            
+            if delivery_status in ['returned', 'unserved', 'refused'] or not delivery_date:
+                # Deemed service after 30 days of dispatch (C.C. Alavi Haji precedent)
+                service_dt = notice_dt + timedelta(days=30)
+                deemed_service = True
+            else:
+                service_dt = parse_date(delivery_date) or (notice_dt + timedelta(days=30))
+                deemed_service = False
+                
+            cause_of_action = service_dt + timedelta(days=15)
             limitation_date = TimelineEngine.adjust_for_holidays(cause_of_action + timedelta(days=30))
             today = datetime.now()
             
