@@ -1,4 +1,4 @@
-import re
+import re
 import logging
 from typing import Dict, Any, Optional
 
@@ -6,27 +6,43 @@ logger = logging.getLogger(__name__)
 
 class VisionProvider:
     """
-    Priority: OCR Integration Foundation (Decoupled Architecture)
-    Abstracts the document-to-text ingestion layer.
+    STRICT REALITY ENFORCEMENT: True OCR Integration.
+    Removes all mock/simulated providers. Requires actual file bytes for processing.
     """
     @staticmethod
-    def ingest_document(file_bytes, provider="MOCK"):
-        if provider == "MOCK":
-            return "Sample OCR Text: Cheque #882104, Reason Code 1, HDFC Bank."
-        elif provider == "TESSERACT":
-            # import pytesseract; return pytesseract.image_to_string(file_bytes)
-            # Simulated forensic metadata for demo
-            return {
-                "text": "Sample OCR Text: Cheque #882104, Reason Code 1, HDFC Bank.",
-                "forensic_flags": {
-                    "ink_age_mismatch": True,
-                    "signature_velocity_anomalous": False
+    def ingest_document(file_bytes, provider="TESSERACT"):
+        if not file_bytes:
+            raise ValueError("[!] STRICT ENFORCEMENT: No document provided for OCR. Cannot proceed with validation.")
+            
+        if provider == "TESSERACT":
+            try:
+                import pytesseract
+                from PIL import Image
+                import io
+                image = Image.open(io.BytesIO(file_bytes))
+                text = pytesseract.image_to_string(image)
+                return {
+                    "text": text,
+                    "forensic_flags": {} # Would require separate ML model for ink age in production
                 }
-            }
+            except ImportError:
+                logger.error("[!] STRICT ENFORCEMENT: pytesseract/PIL not installed. Failing OCR extraction.")
+                return {"text": "", "error": "OCR dependencies missing"}
+            except Exception as e:
+                logger.error(f"[!] STRICT ENFORCEMENT: OCR failed: {str(e)}")
+                return {"text": "", "error": str(e)}
         elif provider == "GOOGLE_VISION":
-            # return cloud_vision.detect_text(file_bytes)
-            pass
-        return ""
+            try:
+                from google.cloud import vision
+                client = vision.ImageAnnotatorClient()
+                image = vision.Image(content=file_bytes)
+                response = client.text_detection(image=image)
+                return {"text": response.text_annotations[0].description if response.text_annotations else ""}
+            except Exception as e:
+                logger.error(f"[!] STRICT ENFORCEMENT: Google Vision failed: {str(e)}")
+                return {"text": "", "error": str(e)}
+        else:
+            raise ValueError(f"[!] STRICT ENFORCEMENT: Unsupported OCR provider '{provider}'. Mocking is strictly prohibited.")
 
 class DocumentIntelligence:
     """
@@ -119,8 +135,8 @@ class DocumentIntelligence:
     @classmethod
     def validate_claims(cls, case_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Cross-checks user frontend inputs against Document Engine metadata.
-        Returns a verification flags object used to override user honesty.
+        STRICT REALITY ENFORCEMENT: Cross-checks user frontend inputs against actual Document Engine metadata.
+        Returns a verification flags object used to ruthlessly override user claims lacking evidentiary backing.
         """
         verification_flags = {
             "fraudulent_input_detected": False,
@@ -128,31 +144,50 @@ class DocumentIntelligence:
             "overrides": {}
         }
         
-        # 1. ITR Claim vs OCR Validation
+        # We expect actual extracted text payload from the OCR pipeline
+        evidence_texts = case_data.get("evidence_texts", {})
+        
+        # 1. ITR Claim vs Reality
         if case_data.get("complainant_itr_available"):
-            # Mock OCR check: if user claims ITR but we didn't receive an ITR doc or it's unreadable
-            itr_ocr_valid = case_data.get("_debug_itr_ocr_valid", True) # Default true for tests, but mock hook here
-            if not itr_ocr_valid:
+            itr_text = str(evidence_texts.get("itr", "")).lower()
+            # Must contain actual tax keywords to be validated as an ITR
+            if not itr_text or not any(k in itr_text for k in ["income tax", "assessment year", "return of income", "pan", "acknowledgement"]):
+                verification_flags["fraudulent_input_detected"] = True
+                verification_flags["verification_penalties"] -= 30
+                verification_flags["overrides"]["complainant_itr_available"] = False
+                logger.error("[!] STRICT ENFORCEMENT: User claimed ITR, but OCR found no valid tax document.")
+
+        # 2. Notice Delivery Tracking vs Reality
+        if case_data.get("notice_sent"):
+            tracking_text = str(evidence_texts.get("tracking_report", "")).lower()
+            user_tracking_status = str(case_data.get("notice_delivery_status", "")).lower()
+            
+            # If user claims it was delivered/refused but provided no tracking report, penalize
+            if ("delivered" in user_tracking_status or "refused" in user_tracking_status) and not tracking_text:
+                verification_flags["verification_penalties"] -= 15
+                logger.warning("[!] STRICT ENFORCEMENT: User claims delivery, but provided no tracking report OCR.")
+            elif tracking_text:
+                if "not found" in tracking_text or "returned to sender" in tracking_text or "insufficient address" in tracking_text:
+                    verification_flags["overrides"]["notice_delivery_status"] = "Not Found"
+                    verification_flags["verification_penalties"] -= 20
+
+        # 3. Handwriting/Signature Forensic Enforcement
+        if not case_data.get("handwriting_different"):
+            cheque_text = str(evidence_texts.get("cheque", "")).lower()
+            # Look for anomaly keywords injected by the OCR/Forensic engine
+            if "ink mismatch" in cheque_text or "signature differs" in cheque_text or "anomaly detected" in cheque_text:
+                verification_flags["overrides"]["handwriting_different"] = True
                 verification_flags["fraudulent_input_detected"] = True
                 verification_flags["verification_penalties"] -= 25
-                verification_flags["overrides"]["complainant_itr_available"] = False
-                logger.warning("Document Engine Override: User claimed ITR available, but OCR found no valid ITR.")
-
-        # 2. Notice Delivery vs Postal API
-        if case_data.get("notice_sent"):
-            tracking_status = str(case_data.get("notice_delivery_status", "delivered")).lower()
-            if "not found" in tracking_status or "returned to sender" in tracking_status:
-                verification_flags["overrides"]["notice_received"] = "No"
-            elif "refused" in tracking_status or "unclaimed" in tracking_status:
-                verification_flags["overrides"]["notice_received"] = "Deemed Served (S.27 General Clauses Act)"
+                logger.error("[!] STRICT ENFORCEMENT: Forensic mismatch detected despite user denial.")
                 
-        # 3. Handwriting Forensic Override
-        # If user claims 'handwriting_different = False' but Tesseract/Forensic detects anomaly
-        forensic_mock_anomaly = case_data.get("_debug_forensic_anomaly", False)
-        if forensic_mock_anomaly and not case_data.get("handwriting_different"):
-            verification_flags["overrides"]["handwriting_different"] = True
-            verification_flags["verification_penalties"] -= 15
-            logger.warning("Forensic Override: Detected different ink age despite user claim.")
+        # 4. Bank Memo Reason vs Claimed Reason
+        if case_data.get("dishonour_reason"):
+            memo_text = str(evidence_texts.get("memo", "")).lower()
+            user_reason = str(case_data.get("dishonour_reason", "")).lower()
+            if memo_text and user_reason not in memo_text and "insufficient" not in memo_text: # Loose match
+                verification_flags["verification_penalties"] -= 20
+                logger.error(f"[!] STRICT ENFORCEMENT: Memo OCR does not support claimed reason '{user_reason}'.")
 
         return verification_flags
 
