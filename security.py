@@ -96,7 +96,7 @@ class AuditLogger:
         except ImportError:
             logger.error("firebase_admin not installed. Audit persistence failed.")
         except Exception as e:
-            logger.error(f"Audit persistence to Firebase failed: {e}")
+            logger.warning(f"Audit persistence to Firebase skipped/failed: {e}")
 
 class SecurityTelemetry:
     """
