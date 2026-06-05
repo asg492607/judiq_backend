@@ -117,6 +117,17 @@ class ResponseBuilder:
         if not case_data.get("proof_present", True):
              structured_weaknesses.append({"risk": "Missing Proof", "severity": "HIGH", "detail": "Proof (Cheque/Memo/Notice) is missing."})
 
+        # Inject logical contradictions from adversarial engine directly into weaknesses
+        contradictions = engine_result.get("contradictions", [])
+        for contra in contradictions:
+            penalty = contra.get("penalty", 0)
+            severity_mapped = "FATAL" if penalty <= -85 else ("CRITICAL" if penalty <= -50 else "HIGH")
+            structured_weaknesses.append({
+                "risk": contra.get("issue", "Logical Contradiction"),
+                "severity": severity_mapped,
+                "detail": contra.get("detail", "")
+            })
+
         suggestions = []
         desc_lower = (case_data.get("description") or "").lower()
 
@@ -212,8 +223,13 @@ class ResponseBuilder:
                     seen_weak.add(priority_concept)
 
         structured_weaknesses.extend(ranked_weaknesses)
-        top_3_risks = ranked_weaknesses[:3]
-        has_fatal = any(r["severity"] == "CRITICAL" for r in top_3_risks)
+        
+        # Sort structured_weaknesses by severity (FATAL > CRITICAL > HIGH > MEDIUM)
+        severity_order = {"FATAL": 4, "CRITICAL": 3, "HIGH": 2, "MEDIUM": 1}
+        structured_weaknesses.sort(key=lambda x: severity_order.get(x["severity"], 0), reverse=True)
+        
+        top_3_risks = structured_weaknesses[:3]
+        has_fatal = any(r["severity"] in ["FATAL", "CRITICAL"] for r in top_3_risks)
         has_high_risk = any(r["severity"] == "HIGH" for r in top_3_risks)
 
         if not case_data.get("notice_sent"):
@@ -368,9 +384,11 @@ class ResponseBuilder:
             "tldr": tldr,
             "strategic_audit": engine_result.get("strategic_audit", []),
             "senior_brief": senior_brief,
+            "failure_point": engine_result.get("failure_point", ""),
             "question_bank": engine_result.get("question_bank", []),
             # New: Judicial Intelligence Layer
             "judicial_report": engine_result.get("judicial_report", {}),
+            "jurisdiction_info": engine_result.get("jurisdiction_info", {}),
             "theoretical_score": engine_result.get("theoretical_score", score),
             "judicial_multiplier": engine_result.get("judicial_report", {}).get("judicial_multiplier", {}),
             "judge_challenge_predictions": engine_result.get("judicial_report", {}).get("judge_challenge_predictions", []),

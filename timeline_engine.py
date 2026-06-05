@@ -99,8 +99,17 @@ class TimelineEngine:
                 # Deemed service under S.27 General Clauses Act takes effect on the exact date of refusal/return
                 service_dt = parse_date(delivery_date)
                 deemed_service = True
-            elif delivery_status in ['returned', 'unserved', 'not found'] or not delivery_date:
-                # Deemed service after 30 days of dispatch (C.C. Alavi Haji precedent)
+            elif 'not found' in delivery_status or 'no such person' in delivery_status or 'returned to sender' in delivery_status:
+                # FATAL: Deemed service cannot apply if address is incorrect or person not found
+                return {
+                    "is_barred": True,
+                    "days_remaining": 0,
+                    "status": "NOTICE_INVALID",
+                    "message": "Notice returned as 'Address Not Found' or 'No Such Person'. Deemed service under S.27 is void.",
+                    "fatal_defect": "Address Not Found / Returned to Sender invalidates statutory notice."
+                }
+            elif delivery_status in ['returned', 'unserved'] or not delivery_date:
+                # Deemed service after 30 days of dispatch (C.C. Alavi Haji precedent) assuming correct address
                 service_dt = notice_dt + timedelta(days=30)
                 deemed_service = True
             else:

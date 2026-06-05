@@ -312,19 +312,44 @@ class JudiQEngine:
         else:
             precedent_intelligence = {"supporting": [], "opposing": [], "distinguishable": [], "all_relevant": []}
 
-        # -- 6.6 Judicial Intelligence ----------------------------------------
-        if _judicial_engine is not None:
+        # -- 8. Judicial & Jurisdiction Analysis ------------------------------
+        try:
+            from jurisdiction_engine import map_jurisdiction
+            jurisdiction_info = map_jurisdiction(case_data)
+        except Exception as e:
+            logger.error(f"[ENGINE] Jurisdiction mapping failed: {e}")
+            jurisdiction_info = {"status": "ERROR"}
+
+        judicial_report = {}
+        if _judicial_engine:
             judicial_report = _safe_call(
-                _judicial_engine.generate_judicial_intelligence_report,
-                case_data, final_score,
-                fallback={"court_stats": {}, "judicial_multiplier": {}, "judge_challenge_predictions": []},
+                _judicial_engine.generate_judicial_report, case_data, final_score,
+                fallback={},
                 context="JudicialEngine"
             )
-            # Use the judicially-adjusted score as the actual displayed score
-            judicially_adjusted_score = judicial_report.get("adjusted_survivability_score", final_score)
+
+        # Apply Jurisdiction Fatal Defect Check
+        if jurisdiction_info.get("status") == "INVALID" or jurisdiction_info.get("confidence") == "NONE":
+            # Just add an uncertainty penalty, jurisdiction is curable (transferable) but delays trial
+            judicially_adjusted_score = max(0, final_score - 10)
+            if "jurisdictional_defect" not in {c.get("concept") for c in concepts}:
+                concepts.append({"concept": "jurisdictional_defect", "confidence": 0.85, "legal_impact": "Wrong territorial jurisdiction. Complaint will be returned."})
         else:
-            judicial_report = {}
             judicially_adjusted_score = final_score
+
+        # -- 6.7 Fatal Defect Hard Override -----------------------------------
+        # -- 6.6 Timeline Engine (Moved up for Fatal Check) -------------------
+        timeline_engine = registry.get("timeline")
+        timeline = _safe_call(
+            timeline_engine.generate_timeline, case_data,
+            fallback=[],
+            context="TimelineEngine.generate"
+        )
+        limitation = _safe_call(
+            timeline_engine.check_limitation, case_data,
+            fallback={"is_barred": False, "status": "CALCULATION_ERROR"},
+            context="TimelineEngine.limitation"
+        )
 
         # -- 6.7 Fatal Defect Hard Override -----------------------------------
         is_fatal = False
@@ -350,6 +375,11 @@ class JudiQEngine:
         if case_data.get("verification_penalties", 0) <= -25:
             is_fatal = True
             fatal_reason = "Evidentiary Fraud / Verification Failure"
+            
+        # Check Timeline / Notice Service Fatalities
+        if limitation.get("fatal_defect") or limitation.get("is_premature") or limitation.get("status") == "NOTICE_INVALID":
+            is_fatal = True
+            fatal_reason = limitation.get("fatal_defect", "Invalid Timeline/Notice Issue")
 
         if is_fatal:
             final_score = min(final_score, 25.0)
@@ -428,18 +458,7 @@ class JudiQEngine:
                 })
 
         # -- 9. Timeline & Simulation -----------------------------------------
-        timeline_engine = registry.get("timeline")
-        timeline = _safe_call(
-            timeline_engine.generate_timeline, case_data,
-            fallback=[],
-            context="TimelineEngine.generate"
-        )
-        limitation = _safe_call(
-            timeline_engine.check_limitation, case_data,
-            fallback={"is_barred": False, "status": "CALCULATION_ERROR"},
-            context="TimelineEngine.limitation"
-        )
-
+        # (Timeline generated earlier at step 6.6 for fatal checks)
         # -- 10. Executive TL;DR Layer (New) ----------------------------------
         # Fulfills User Request: Executive-first UX for busy lawyers
         tldr = {
@@ -456,6 +475,7 @@ class JudiQEngine:
             "final_score": judicially_adjusted_score,
             "theoretical_score": final_score,
             "judicial_report": judicial_report,
+            "jurisdiction_info": jurisdiction_info,
             "precedent_intelligence": precedent_intelligence,
             "tldr": tldr,
             "reasoning_trace": scoring_result.get("reasoning_trace", []),
@@ -471,6 +491,8 @@ class JudiQEngine:
             "self_challenge": scoring_result.get("self_challenge", {}),
             "reliability_matrix": scoring_result.get("reliability_matrix", {}),
             "case_similarity": scoring_result.get("case_similarity", {}),
+            "failure_point": scoring_result.get("failure_point", ""),
+            "senior_brief": scoring_result.get("senior_brief", {}),
             "score_breakdown": scoring_result.get("breakdown", {}),
             "concepts": concepts,
             "adversarial_result": adversarial_result,

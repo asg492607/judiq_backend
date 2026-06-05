@@ -377,6 +377,8 @@ class ScoringEngineV12:
             "reliability_matrix": reliability_matrix,
             "self_challenge": self_challenge,
             "case_similarity": similarity_metrics,
+            "failure_point": failure_point,
+            "senior_brief": senior_brief,
             "explicit_risk_propagation": explicit_risk_propagation,
             "uncertainty_intelligence": uncertainty_messages,
             "judicial_mode": judicial_mode,
@@ -568,9 +570,15 @@ class ScoringEngineV12:
         questions = []
         
         # 1. Financial Capacity (Basalingappa)
+        amount = case_data.get("amount") or case_data.get("cheque_amount") or 0
+        is_cash = str(case_data.get("loan_via_bank", "Yes")).lower() != "yes"
         if "unaccounted_cash_loans" in concept_names or not case_data.get("complainant_itr_available"):
-            questions.append("Can you demonstrate the specific source of funds used for this high-value cash loan?")
-            questions.append("Why is this alleged loan amount not reflected in your Income Tax Returns for the relevant year?")
+            if float(amount) > 500000 and is_cash:
+                questions.append(f"Given that lending ₹{amount} in cash violates Section 269SS of the Income Tax Act, how can you claim this is a legally enforceable debt?")
+                questions.append("Since you have not produced an Income Tax Return or audited balance sheet, isn't it true you did not have the financial capacity to advance such a massive sum?")
+            else:
+                questions.append("Can you produce documentary evidence (bank statement, ITR, or ledger) proving your source of funds for this alleged cash transaction?")
+                questions.append("Why is this alleged loan amount not reflected in your Income Tax Returns for the relevant year?")
             
         # 2. Security Cheque Defence
         if "security_cheque" in concept_names:
