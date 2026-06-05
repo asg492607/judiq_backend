@@ -331,7 +331,7 @@ class JudiQEngine:
         # Apply Jurisdiction Fatal Defect Check
         if jurisdiction_info.get("status") == "INVALID" or jurisdiction_info.get("confidence") == "NONE":
             # Jurisdiction is territorial and critical under S.142(2) NI Act. Applying severe penalty.
-            judicially_adjusted_score = max(0, final_score - 25)
+            judicially_adjusted_score = max(0, final_score - 35)
             if "jurisdictional_defect" not in {c.get("concept") for c in concepts}:
                 concepts.append({"concept": "jurisdictional_defect", "confidence": 0.95, "legal_impact": "FATAL: Wrong territorial jurisdiction. Complaint will be returned under Dashrath Rupsingh Rathod precedent."})
         else:
@@ -355,7 +355,7 @@ class JudiQEngine:
         is_fatal = False
         fatal_reason = ""
         for contra in contradictions:
-            if contra.get("penalty", 0) <= -85 or "Fatal" in contra.get("remediation", "") or "DO NOT FILE" in contra.get("remediation", ""):
+            if contra.get("penalty", 0) <= -50 or "Fatal" in contra.get("remediation", "") or "DO NOT FILE" in contra.get("remediation", ""):
                 is_fatal = True
                 fatal_reason = contra.get("issue", "Critical Defect")
                 break
@@ -372,9 +372,9 @@ class JudiQEngine:
                     break
 
         # Check OCR/Evidentiary fraud override directly
-        if case_data.get("verification_penalties", 0) <= -25:
+        if case_data.get("verification_penalties", 0) < 0:
             is_fatal = True
-            fatal_reason = "Evidentiary Fraud / Verification Failure"
+            fatal_reason = "Evidentiary Fraud / Document Intelligence Override"
             
         # Check Timeline / Notice Service Fatalities
         if limitation.get("fatal_defect") or limitation.get("is_premature") or limitation.get("status") == "NOTICE_INVALID":

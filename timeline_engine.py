@@ -105,8 +105,8 @@ class TimelineEngine:
                     "is_barred": True,
                     "days_remaining": 0,
                     "status": "NOTICE_INVALID",
-                    "message": "Notice returned as 'Address Not Found' or 'No Such Person'. Deemed service under S.27 is void.",
-                    "fatal_defect": "Address Not Found / Returned to Sender invalidates statutory notice."
+                    "message": f"Notice returned with status '{delivery_status}'. Deemed service under S.27 is void.",
+                    "fatal_defect": f"Delivery failure ('{delivery_status}') invalidates statutory notice. Deemed service cannot apply."
                 }
             elif delivery_status in ['returned', 'unserved'] or not delivery_date:
                 # Deemed service after 30 days of dispatch (C.C. Alavi Haji precedent) assuming correct address

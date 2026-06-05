@@ -293,11 +293,14 @@ class ResponseBuilder:
         # ── SENIOR ADVOCATE BRIEF (Standalone Object for Print/UI) ───────────
         senior_brief = {
             "verdict": verdict,
-            "biggest_risk": tldr.get("core_risk", "Evidentiary Gaps"),
+            "biggest_risk": tldr.get("core_risk", "Evidentiary Gaps") if verdict != "DO NOT FILE" else "[!] FATAL: " + tldr.get("core_risk", "Statutorily Dead Case"),
             "strongest_defence": tldr.get("top_threat", "Standard Rebuttal"),
             "predicted_posture": "Defensive" if score < 50 else "Prosecution-Ready",
             "top_actions": [s["title"] for s in suggestions[:3]] if suggestions else ["Review Case File"]
         }
+        if verdict == "DO NOT FILE":
+            senior_brief["predicted_posture"] = "WITHDRAW OR ABANDON (High Perjury/Cost Risk)"
+            senior_brief["biggest_risk"] = engine_result.get("failure_point", senior_brief["biggest_risk"])
 
         return {
             "score":              score,

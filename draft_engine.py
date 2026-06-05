@@ -48,6 +48,10 @@ def decide_draft_type(score: int, concepts: List[Dict], case_data: Dict) -> str:
                 return "DISCHARGE_APPLICATION"
 
     # ── CHEQUE BOUNCE ROUTING ──
+    # If the case is functionally dead or highly risky for Complainant
+    if score < 40 and role != "Accused":
+        return "LEGAL_OPINION"
+
     # 1. Statutory Notice missing? -> MUST send notice first
     if not case_data.get("notice_sent"):
         return "LEGAL_NOTICE"
@@ -60,11 +64,13 @@ def decide_draft_type(score: int, concepts: List[Dict], case_data: Dict) -> str:
     if "limitation_issue" in concept_names:
         return "DELAY_CONDONATION"
         
-    # 4. Weak Case? -> DEFENCE
+    # 4. Weak Case (Accused or Borderline)? -> DEFENCE/OPINION
     if score < 45:
-        if concept_names & {"security_cheque", "cheque_misuse", "signature_dispute", "no_agreement"}:
-            return "DEFENCE_STRATEGY"
-        return "DEFENCE_REPLY"
+        if role == "Accused":
+            if concept_names & {"security_cheque", "cheque_misuse", "signature_dispute", "no_agreement"}:
+                return "DEFENCE_STRATEGY"
+            return "DEFENCE_REPLY"
+        return "LEGAL_OPINION"
         
     # 5. Middling Case? -> SETTLEMENT
     if 45 <= score < 65:
@@ -317,6 +323,8 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
         dynamic_rebuttal = f"\n\n    9A. PRE-EMPTIVE REBUTTAL (PROCEDURAL): That the Complainant has meticulously followed the statutory timeline matrix under Section 138/142 of the NI Act. Any alleged procedural irregularity is either curable or a hyper-technicality that does not defeat the substantive cause of justice."
     elif "debt" in failure_point or "capacity" in failure_point:
         dynamic_rebuttal = f"\n\n    9A. PRE-EMPTIVE REBUTTAL (EVIDENTIARY): That the underlying debt is crystallised and legally enforceable. The statutory presumption under Section 139 is firmly in favour of the Complainant, and the Accused cannot evade liability merely by raising bald denials without discharging the reverse onus of proof (Rangappa v. Mohan)."
+    elif is_aggressive and score < 50:
+        dynamic_rebuttal = f"\n\n    9A. PRE-EMPTIVE REBUTTAL (GENERAL EVASION): The Complainant submits that any defence raised by the Accused is a mere afterthought designed to derail the summary procedure of Section 138. The Accused's silence during the statutory notice period operates as an implied admission of liability, precluding them from springing surprise defences at trial."
     if case_data.get("communication_records"):
         if is_aggressive:
             debt_pleading += f" The Accused's liability is further cemented by a clear digital trail (including WhatsApp/Email exchanges) wherein the debt stands unequivocally admitted. This electronic evidence, supported by a mandatory Section 63(4) BSA Certificate, renders any defense by the Accused legally untenable."
