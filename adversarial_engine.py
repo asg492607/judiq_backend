@@ -85,21 +85,21 @@ class AdversarialEngine:
         "vicarious_liability": {
             "name": "Vicarious Liability Defect (S.141)",
             "severity": "FATAL",
-            "why_applied": "Corporate entity involved but mandatory S.141 averments are missing.",
-            "risk": "Complaint may be quashed against individual directors if the Company is not impleaded or roles aren't specified.",
-            "evidence_needed": "MCA Master Data, Board Resolution, or Signatory Proof.",
-            "precedent": "Aneeta Hada vs. Godfather Travels & Tours (P) Ltd.",
+            "why_applied": "Corporate entity involved but mandatory S.141 averments are missing, or a director resigned prior to the cheque date.",
+            "risk": "Complaint may be quashed against individual directors under S.482 CrPC if their active role isn't pleaded or if they validly resigned.",
+            "evidence_needed": "MCA Master Data (DIR-12), Board Resolution, or proof of signature.",
+            "precedent": "Aneeta Hada vs. Godfather Travels & Tours / Pooja Ravinder Devidasani",
             "chain": [
-                "1. Defence argues Company was not impleaded or directors had no role.",
-                "2. Seeks quashing under S.482 CrPC for lack of specific averments.",
-                "3. Argues 'Director' is not 'in charge of and responsible to' the company."
+                "1. Defence argues Company was not impleaded or directors had no active role.",
+                "2. Produces certified MCA DIR-12 showing resignation before the cheque was issued.",
+                "3. Seeks immediate quashing under S.482 CrPC for lack of specific averments."
             ],
             "probability_collapse": 0.90,
             "rebuttal_tree": {
-                "defence_evidence": "Resignation letters / MCA records.",
-                "complainant_counter": "Show 'Director' signature on the cheque or active role in debt.",
-                "burden_shift_effect": "Fatal defect if Company is not a party.",
-                "magistrate_view": "Strict adherence to statutory mandatory impleadment.",
+                "defence_evidence": "Resignation letters & certified MCA Master Data (Form DIR-12).",
+                "complainant_counter": "Show 'Director' signature on the cheque, active email chains, or prove DIR-12 was filed retrospectively.",
+                "burden_shift_effect": "Fatal defect. Unless Complainant proves active management despite resignation, S.138 fails against that director.",
+                "magistrate_view": "Strict adherence to statutory mandatory impleadment and MCA records.",
                 "conviction_impact": -50
             }
         }
@@ -176,10 +176,39 @@ class AdversarialEngine:
         # S.141 requires strict averments like "in charge of and responsible for the conduct of the business"
         has_directors = case_data.get("directors_named", False)
         has_s141_averments = case_data.get("s141_averments_present", False)
+        resignation_date_str = case_data.get("director_resignation_date")
+        cheque_date_str = case_data.get("cheque_date")
+        director_signed = case_data.get("director_signed_cheque", False)
         
         if is_company:
             if not has_directors or not has_s141_averments:
                 analysis_nodes.append(cls._build_node(cls.VULNERABILITY_MODELS["vicarious_liability"], "S.141 Procedural Defect (Missing Averments)"))
+                
+            if resignation_date_str and cheque_date_str:
+                from datetime import datetime
+                def parse_date(d):
+                    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"):
+                        try: return datetime.strptime(str(d).strip(), fmt)
+                        except: pass
+                    return None
+                
+                r_date = parse_date(resignation_date_str)
+                c_date = parse_date(cheque_date_str)
+                
+                if r_date and c_date and r_date < c_date:
+                    node = cls._build_node(cls.VULNERABILITY_MODELS["vicarious_liability"], "S.141 Resignation Trap (MCA Data)")
+                    node["severity"] = "FATAL"
+                    node["collapse_risk"] = "95%"
+                    
+                    if director_signed:
+                        node["adversarial_vector"] = "S.420 Fraud Conversion (Resigned but Signed)"
+                        node["risk_explained"] = "Director resigned before cheque date but still signed the cheque. S.138 might fail, but S.420 IPC (Cheating) is highly viable."
+                        node["rebuttal_tree"]["complainant_counter"] = "Amend pleadings to include S.420 IPC and invoke criminal fraud jurisdiction."
+                        node["rebuttal_tree"]["conviction_impact"] = -20 # Fraud charge keeps pressure high
+                    else:
+                        node["risk_explained"] = "Director resigned prior to cheque issuance. High risk of S.482 CrPC quashing for this specific director."
+                    
+                    analysis_nodes.append(node)
 
         return analysis_nodes
 
@@ -218,22 +247,49 @@ class AdversarialEngine:
         concept_names = [c["concept"] for c in concepts]
         
         # 1. Notice/Service Contradiction
-        if "notice_not_served" in concept_names and case_data.get("reply_received"):
+        notice_received_raw = str(case_data.get("notice_received", "")).lower()
+        reply_received_raw = str(case_data.get("reply_received", "")).lower()
+        
+        notice_unserved = "not_served" in concept_names or "returned unserved" in notice_received_raw
+        admitted_reply = "yes" in reply_received_raw or case_data.get("reply_received") == True
+        
+        if notice_unserved and admitted_reply:
             contradictions.append({
                 "severity": "Material credibility risk",
-                "issue": "Notice Service Inconsistency",
-                "detail": "Claiming non-service while admitting a reply notice creates a logical impossibility that may lead to summary dismissal.",
-                "remediation": "Amend pleadings to acknowledge the reply notice and its contents.",
-                "penalty": -45
+                "issue": "Notice Service Perjury Risk",
+                "detail": "Claiming the demand notice was 'returned unserved' while simultaneously admitting to receiving a 'reply notice' creates a logical impossibility. This exposes the Complainant to perjury risks during cross-examination.",
+                "remediation": "Amend pleadings to acknowledge the reply notice and its contents, or clarify if the reply was to a different notice.",
+                "penalty": -55
             })
             
-        # 2. Debt/Payment Contradiction
-        if "no_debt_proof" in concept_names and case_data.get("partial_payment_admitted"):
+        # 2. Debt/Payment Contradiction (Dashrathbhai Trap)
+        partial_payment_amount = float(case_data.get("partial_payment_amount") or 0)
+        cheque_amount = float(case_data.get("cheque_amount") or 0)
+        
+        # safely parse notice amount
+        notice_amount_raw = case_data.get("notice_content")
+        try:
+            notice_amount = float(notice_amount_raw) if notice_amount_raw else cheque_amount
+        except ValueError:
+            notice_amount = cheque_amount
+            
+        is_partial_payment = str(case_data.get("partial_payment", "")).lower().startswith("yes") or case_data.get("partial_payment_admitted")
+        
+        if is_partial_payment and partial_payment_amount > 0:
+            if notice_amount >= cheque_amount:
+                contradictions.append({
+                    "severity": "Material credibility risk",
+                    "issue": "Dashrathbhai Trap (Invalid Notice Amount)",
+                    "detail": f"Partial payment of ₹{partial_payment_amount} was received, but the notice demanded the full cheque amount (₹{notice_amount}). Per Dashrathbhai Trikambhai Patel ruling, the S.138 complaint is NOT maintainable.",
+                    "remediation": "This is a fatal defect. The complaint must be withdrawn and filed as a civil recovery suit.",
+                    "penalty": -85 # Almost complete collapse
+                })
+        elif "no_debt_proof" in concept_names and case_data.get("partial_payment_admitted"):
             contradictions.append({
-                "severity": "Material credibility risk",
+                "severity": "Strategic contradiction",
                 "issue": "Liability/Payment Conflict",
-                "detail": "Admitting to receiving partial payment while failing to prove the remaining debt balance is fatal. If the cheque amount is larger than the actual due amount post-payment, S.138 is not maintainable (Dashrathbhai Trikambhai Patel ruling).",
-                "remediation": "Amend pleadings to show the cheque was issued explicitly for the remaining balance, or withdraw and file a civil recovery suit.",
+                "detail": "Admitting to receiving partial payment while failing to prove the remaining debt balance.",
+                "remediation": "Amend pleadings to show the cheque was issued explicitly for the remaining balance.",
                 "penalty": -40
             })
 
