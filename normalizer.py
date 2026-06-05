@@ -186,6 +186,7 @@ def normalize_input(data: dict) -> dict:
         # Identifiers
         "case_id":  _safe_str(data.get("case_id",  data.get("caseId",  id_obj.get("case_id",  "API_CASE"))), 100, "case_id"),
         "user_id":  _safe_str(data.get("user_id",  data.get("userId",  meta_obj.get("user_id", "ANONYMOUS"))), 100, "user_id"),
+        "court_name": _safe_str(data.get("court_name", id_obj.get("court_name", "")), 200, "court_name"),
 
         # Core four pillars
         "cheque_present": cheque_present,
@@ -216,6 +217,9 @@ def normalize_input(data: dict) -> dict:
         "complainant_address": _safe_str(data.get("complainant_address", comp_obj.get("address", "")), 500, "complainant_address"),
         "complainant_phone":   _safe_str(data.get("complainant_phone",   comp_obj.get("phone",   "")), 20,  "complainant_phone"),
         "accused_name":        _safe_str(data.get("accused_name",        accu_obj.get("name",    "")), 200, "accused_name"),
+        "names_directors_roles": _safe_str(data.get("names_directors_roles", 
+                                           f"{data.get('director_names', accu_obj.get('director_names', ''))} - {data.get('director_roles', accu_obj.get('director_roles', ''))}".strip(" -")), 
+                                           500, "names_directors_roles"),
         "accused_address":     _safe_str(data.get("accused_address",     accu_obj.get("address", "")), 500, "accused_address"),
 
         # Cheque details

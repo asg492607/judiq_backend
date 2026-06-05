@@ -104,6 +104,13 @@ class JudiQEngine:
         except Exception as e:
             logger.error(f"Normalization failed: {e}")
             raise
+            
+        # WhatsApp Paradox Fix: Map frontend bsa_certificate string to expected boolean
+        if "has_65b_certificate" not in case_data:
+            case_data["has_65b_certificate"] = str(case_data.get("bsa_certificate", "")).lower() == "yes"
+        if "has_bsa_certificate" not in case_data:
+            case_data["has_bsa_certificate"] = case_data["has_65b_certificate"]
+            
         case_data["analysis_mode"] = analysis_mode
         logger.info(f"[JUDIQ] Core analysis triggered for: {case_data.get('case_id', 'ANON')}")
 
