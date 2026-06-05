@@ -308,6 +308,15 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     if amount_val > 150000 and is_cash:
         debt_pleading += f" It is specifically averred that the Complainant possessed sufficient source of funds to the tune of {amount_str} at the time of the transaction, which was advanced from accumulated personal savings/agricultural income, and the Complainant has the requisite financial capacity, fully satisfying the legal mandate of 'Basalingappa v. Mudibasappa'."
     
+    # Pre-emptive Rebuttals based on Failure Points
+    dynamic_rebuttal = ""
+    failure_point = str(case_data.get("failure_point_injected", "")).lower()
+    if "signature" in failure_point or "handwriting" in failure_point:
+        dynamic_rebuttal = f"\n\n    9A. PRE-EMPTIVE REBUTTAL (SIGNATURE): That any anticipated defence regarding variation in handwriting or ink is completely frivolous and legally untenable. Under Section 20 of the NI Act, the Accused had granted implied authority to the Complainant to fill the inchoate instrument, and the signature is explicitly admitted, barring any forensic delay tactics (Bir Singh v. Mukesh Kumar)."
+    elif "limitation" in failure_point or "premature" in failure_point or "notice" in failure_point:
+        dynamic_rebuttal = f"\n\n    9A. PRE-EMPTIVE REBUTTAL (PROCEDURAL): That the Complainant has meticulously followed the statutory timeline matrix under Section 138/142 of the NI Act. Any alleged procedural irregularity is either curable or a hyper-technicality that does not defeat the substantive cause of justice."
+    elif "debt" in failure_point or "capacity" in failure_point:
+        dynamic_rebuttal = f"\n\n    9A. PRE-EMPTIVE REBUTTAL (EVIDENTIARY): That the underlying debt is crystallised and legally enforceable. The statutory presumption under Section 139 is firmly in favour of the Complainant, and the Accused cannot evade liability merely by raising bald denials without discharging the reverse onus of proof (Rangappa v. Mohan)."
     if case_data.get("communication_records"):
         if is_aggressive:
             debt_pleading += f" The Accused's liability is further cemented by a clear digital trail (including WhatsApp/Email exchanges) wherein the debt stands unequivocally admitted. This electronic evidence, supported by a mandatory Section 63(4) BSA Certificate, renders any defense by the Accused legally untenable."
@@ -376,8 +385,8 @@ RESPECTFULLY SHOWETH:
 7. STATUTORY DEMAND NOTICE:
    As mandated under Section 138(b) of the NI Act, the Complainant caused a legal demand notice to be served upon the Accused on {notice_date} through Registered Post (AD)/Speed Post, demanding payment of {amount_str} within 15 days of receipt of the notice. {delay_para}
 
-8. FAILURE TO PAY:
-   Despite receipt of the aforesaid notice, the Accused has wilfully and deliberately failed, neglected, and refused to make payment of the said amount within the statutory period, thereby committing an offence punishable under Section 138 of the Negotiable Instruments Act, 1881.
+8. STATUTORY NOTICE:
+   That upon the dishonour of the said cheque, the Complainant sent a legal demand notice dated {notice_date} via registered post/speed post to the Accused at their correct and known address. Despite receipt/deemed receipt of the notice, the Accused has failed to make the payment of the cheque amount within the statutory period of 15 days, thereby committing an offence punishable under Section 138 of the NI Act.{dynamic_rebuttal}
 
 9. JURISDICTION:
    This Hon'ble Court has territorial jurisdiction to entertain and try this Complaint as the cheque in question was presented for encashment at {bank_full}, which is situated within the territorial limits of this Court, as per the law laid down by the Hon'ble Supreme Court in Dashrath Rupsingh Rathod vs. State of Maharashtra.
@@ -652,22 +661,29 @@ Advocate for Complainant
 def generate_legal_opinion(score: int, concepts: List[Dict], case_data: Dict) -> str:
     today, amount_str = _case_meta(case_data)
     
+    fatal_warning = ""
+    if score <= 25:
+        fatal_warning = """
+[!] CRITICAL WARNING: DO NOT FILE [!]
+This case contains FATAL statutory or evidentiary defects. Filing a criminal complaint under these circumstances exposes the Complainant to severe risks including dismissal with costs, perjury charges, or malicious prosecution counter-suits.
+"""
+
     return f"""{_header("PROFESSIONAL LEGAL OPINION — ADVERSARIAL ASSESSMENT")}
 
 Date: {today}
 Case Viability Score: {score}/100
 Subject: Strategic Assessment of Cheque Dishonour Case involving {amount_str}
-
+{fatal_warning}
 1. EXECUTIVE SUMMARY:
    Based on the current evidentiary configuration, this case has a viability score of {score}%. 
-   { "The case is structurally sound but requires procedural precision." if score > 70 else "The case exhibits significant structural vulnerabilities that may impede successful prosecution." }
+   { "The case is structurally sound but requires procedural precision." if score > 70 else ("The case exhibits significant structural vulnerabilities that may impede successful prosecution." if score > 25 else "The case is statutorily dead and non-maintainable.") }
 
 2. KEY RISK VECTORS:
    The following legal concepts were detected which directly impact the litigation posture:
    { "\n".join([f"   - {c['concept'].replace('_', ' ').upper()} (Impact: High)" for c in concepts if c.get('confidence', 0) > 0.7]) or "   - No high-confidence risks detected." }
 
 3. STRATEGIC RECOMMENDATION:
-   { "Proceed with the filing of a Criminal Complaint under Section 138 NI Act whilst ensuring all statutory timelines are strictly met." if score > 60 else "Immediate litigation is not recommended. Focus on evidentiary remediation or explore a mediated settlement (Section 147 NI Act) to mitigate costs." }
+   { "Proceed with the filing of a Criminal Complaint under Section 138 NI Act whilst ensuring all statutory timelines are strictly met." if score > 60 else ("Immediate litigation is not recommended. Focus on evidentiary remediation or explore a mediated settlement." if score > 25 else "WITHDRAW OR ABANDON CRIMINAL PROCEEDINGS IMMEDIATELY. Explore civil recovery if limitation permits.") }
 
 4. LITIGATION DIRECTIVE:
    - Verify the original cheque and dishonour memo against the physical evidence.

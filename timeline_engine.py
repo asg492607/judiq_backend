@@ -99,8 +99,8 @@ class TimelineEngine:
                 # Deemed service under S.27 General Clauses Act takes effect on the exact date of refusal/return
                 service_dt = parse_date(delivery_date)
                 deemed_service = True
-            elif 'not found' in delivery_status or 'no such person' in delivery_status or 'returned to sender' in delivery_status:
-                # FATAL: Deemed service cannot apply if address is incorrect or person not found
+            elif 'not found' in delivery_status or 'no such person' in delivery_status or 'returned to sender' in delivery_status or 'incomplete address' in delivery_status or 'partially delivered' in delivery_status or 'refused by security' in delivery_status:
+                # FATAL: Deemed service cannot apply if address is incorrect, person not found, or delivery is ambiguous/incomplete
                 return {
                     "is_barred": True,
                     "days_remaining": 0,

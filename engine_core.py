@@ -330,10 +330,10 @@ class JudiQEngine:
 
         # Apply Jurisdiction Fatal Defect Check
         if jurisdiction_info.get("status") == "INVALID" or jurisdiction_info.get("confidence") == "NONE":
-            # Just add an uncertainty penalty, jurisdiction is curable (transferable) but delays trial
-            judicially_adjusted_score = max(0, final_score - 10)
+            # Jurisdiction is territorial and critical under S.142(2) NI Act. Applying severe penalty.
+            judicially_adjusted_score = max(0, final_score - 25)
             if "jurisdictional_defect" not in {c.get("concept") for c in concepts}:
-                concepts.append({"concept": "jurisdictional_defect", "confidence": 0.85, "legal_impact": "Wrong territorial jurisdiction. Complaint will be returned."})
+                concepts.append({"concept": "jurisdictional_defect", "confidence": 0.95, "legal_impact": "FATAL: Wrong territorial jurisdiction. Complaint will be returned under Dashrath Rupsingh Rathod precedent."})
         else:
             judicially_adjusted_score = final_score
 
@@ -395,6 +395,8 @@ class JudiQEngine:
             logger.warning(f"GLOBAL FATAL OVERRIDE: Forcing draft_type to LEGAL_OPINION due to {fatal_reason}")
         else:
             draft_type = raw_data.get("force_draft_type") or decide_draft_type(int(final_score), concepts, case_data)
+        
+        case_data["failure_point_injected"] = fatal_reason if is_fatal else scoring_result.get("failure_point", "")
         
         draft_content = _safe_call(
             draft_engine.generate_draft, draft_type, int(final_score), concepts, case_data,

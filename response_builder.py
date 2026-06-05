@@ -79,8 +79,12 @@ class ResponseBuilder:
         adversarial_result = engine_result.get("adversarial_result", {})
 
         verdict = "STRONG CASE"
-        if score < 40: verdict = "WEAK CASE / HIGH RISK"
-        elif score < 70: verdict = "MODERATE CASE"
+        if score <= 25 or engine_result.get("verdict") == "DO NOT FILE":
+            verdict = "DO NOT FILE"
+        elif score < 40: 
+            verdict = "WEAK CASE / HIGH RISK"
+        elif score < 70: 
+            verdict = "MODERATE CASE"
 
         risk_level = "LOW"
         if score < 50: risk_level = "CRITICAL"
@@ -123,7 +127,7 @@ class ResponseBuilder:
             penalty = contra.get("penalty", 0)
             severity_mapped = "FATAL" if penalty <= -85 else ("CRITICAL" if penalty <= -50 else "HIGH")
             structured_weaknesses.append({
-                "risk": contra.get("issue", "Logical Contradiction"),
+                "risk": f"[CONTRADICTION] {contra.get('issue', 'Logical Contradiction')}",
                 "severity": severity_mapped,
                 "detail": contra.get("detail", "")
             })
