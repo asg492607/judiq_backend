@@ -39,44 +39,46 @@ class AdversarialEngine:
             }
         },
         "financial_capacity": {
-            "name": "Financial Capacity Challenge",
+            "name": "Financial Capacity Challenge (Basalingappa Trap)",
             "severity": "HIGH",
-            "why_applied": "High-value transaction (>₹2L) detected without ITR or source proof.",
-            "risk": "Accused may challenge the Complainant's 'source of funds', leading to adverse inference under Basalingappa.",
-            "evidence_needed": "Income Tax Returns, Bank Statements, or proof of liquid savings.",
+            "why_applied": "High-value cash transaction detected without supporting tax/ledger documentation.",
+            "risk": "Adverse inference drawn under Basalingappa ruling; presumption of debt collapses if source of funds is not proven.",
+            "evidence_needed": "Income Tax Returns, Bank Account ledgers, or audited balance sheets correlating to the loan date.",
             "precedent": "Basalingappa vs. Mudibasappa (2019) 5 SCC 418",
             "chain": [
-                "1. Defence challenges Complainant's 'source of funds'.",
-                "2. Questions how such a large amount was available in cash.",
-                "3. Adverse inference drawn due to non-production of ITR."
+                "1. Defence challenges Complainant's 'source of funds' under cross-examination.",
+                "2. Highlights absence of ITR declarations or corresponding bank withdrawals.",
+                "3. Shifts burden to Complainant to conclusively prove financial standing.",
+                "4. Presumption under S.139 is rebutted upon standard of 'preponderance of probabilities'."
             ],
-            "probability_collapse": 0.68,
+            "probability_collapse": 0.75,
             "rebuttal_tree": {
-                "defence_evidence": "ITR history / Bank balance of Complainant.",
-                "complainant_counter": "Argue 'friendly loan' from savings; cite 'Rangappa v. Mohan'.",
-                "burden_shift_effect": "Shifts to Complainant to prove financial standing.",
-                "magistrate_view": "Highly skeptical of high-value cash transactions without ITR.",
+                "defence_evidence": "Cross-examination extracting admission of undocumented cash flow.",
+                "complainant_counter": "Produce pre-dated bank statements showing cash withdrawal, or independent witnesses confirming the handover.",
+                "burden_shift_effect": "Immediate shift. If Complainant fails to produce ITR/ledgers, acquittal is highly probable.",
+                "magistrate_view": "Highly skeptical of high-value cash transactions violating S.269SS of Income Tax Act.",
                 "conviction_impact": -35
             }
         },
         "material_alteration": {
-            "name": "Material Alteration (S.87)",
+            "name": "Material Alteration (S.87) & Forensic Trap",
             "severity": "FATAL",
-            "why_applied": "Different ink or handwriting patterns detected in cheque metadata.",
-            "risk": "Instrument may be rendered void under Section 87 of NI Act if 'consent' for completion is not proven.",
-            "evidence_needed": "Authorized signatory declaration or witness to cheque completion.",
-            "precedent": "Bir Singh vs. Mukesh Kumar (2019) 4 SCC 197",
+            "why_applied": "Visible alteration in date/amount or signature dispute rendering instrument suspect.",
+            "risk": "Cheque rendered void under S.87 NI Act. High likelihood of Trial Delay due to Forensic (FSL) evaluation.",
+            "evidence_needed": "Witness to the execution of the cheque or reliance on S.20 NI Act for inchoate instruments.",
+            "precedent": "Bir Singh vs. Mukesh Kumar (2019) 4 SCC 197 & T. Vasanthakumar vs. Vijayakumari",
             "chain": [
-                "1. Defence alleges cheque was 'completed' by Complainant without consent.",
-                "2. Points to different ink/handwriting in date/amount fields.",
-                "3. Requests Forensic (FSL) examination of handwriting."
+                "1. Defence alleges cheque was blank or materially altered without consent.",
+                "2. Points to distinct ink/handwriting in date, payee, or amount fields.",
+                "3. Files application u/s 45 Indian Evidence Act for FSL handwriting expert.",
+                "4. Trial is stayed/delayed by 18-24 months awaiting forensic report."
             ],
-            "probability_collapse": 0.82,
+            "probability_collapse": 0.85,
             "rebuttal_tree": {
-                "defence_evidence": "Visual inspection of ink/handwriting variation.",
-                "complainant_counter": "Cite 'Bir Singh v. Mukesh Kumar' - authority to fill blank cheque.",
-                "burden_shift_effect": "High risk of trial stay for FSL report.",
-                "magistrate_view": "Extreme caution if alteration is visible to naked eye.",
+                "defence_evidence": "FSL report showing distinct ink age/stroke velocity, or apparent overwriting.",
+                "complainant_counter": "Cite S.20 NI Act: Handing over a signed blank cheque grants implied authority to fill it.",
+                "burden_shift_effect": "Trial heavily delayed. If FSL proves forgery of signature, case collapses instantly.",
+                "magistrate_view": "Will allow FSL if alteration is blatant; otherwise may rely on presumption.",
                 "conviction_impact": -45
             }
         },
@@ -139,8 +141,19 @@ class AdversarialEngine:
             analysis_nodes.append(cls._build_node(cls.VULNERABILITY_MODELS["security_cheque"], "Security Cheque Defence Theory"))
 
         # 2. Financial Capacity Logic
-        if amount > 150000 and not case_data.get("complainant_itr_available"):
-            analysis_nodes.append(cls._build_node(cls.VULNERABILITY_MODELS["financial_capacity"], "Financial Capacity Challenge"))
+        itr_missing = not case_data.get("complainant_itr_available")
+        is_cash_loan = not case_data.get("loan_via_bank", True)
+        capacity_threshold = 50000 if is_cash_loan else 200000
+        
+        if amount >= capacity_threshold and itr_missing:
+            node = cls._build_node(cls.VULNERABILITY_MODELS["financial_capacity"], "Financial Capacity Challenge")
+            # Dynamic Escalation for Cash traps
+            if is_cash_loan and amount > 500000:
+                node["severity"] = "FATAL"
+                node["collapse_risk"] = "90%"
+                node["risk_explained"] = "Massive cash transaction without ITR triggers severe Basalingappa adverse inference and S.269SS IT Act violation."
+                node["rebuttal_tree"]["conviction_impact"] = -60
+            analysis_nodes.append(node)
 
         # 3. Material Alteration & Signature Logic
         signature_mismatch = case_data.get("signature_mismatch", False)
@@ -148,7 +161,16 @@ class AdversarialEngine:
         has_alteration_concept = "material_alteration" in concept_names or "signature_dispute" in concept_names
         
         if handwriting_different or signature_mismatch or has_alteration_concept:
-            analysis_nodes.append(cls._build_node(cls.VULNERABILITY_MODELS["material_alteration"], "S.87 Material Alteration / Signature Risk"))
+            node = cls._build_node(cls.VULNERABILITY_MODELS["material_alteration"], "S.87 Material Alteration / FSL Risk")
+            if signature_mismatch:
+                node["severity"] = "FATAL"
+                node["risk_explained"] = "Signature forgery allegation is fatal if proven by FSL."
+            elif handwriting_different and not signature_mismatch:
+                node["severity"] = "MODERATE"
+                node["collapse_risk"] = "45%"
+                node["risk_explained"] = "Different handwriting alone doesn't void cheque (S.20 NI Act implied authority), but invites FSL delay tactics."
+                node["rebuttal_tree"]["conviction_impact"] = -25
+            analysis_nodes.append(node)
 
         # 4. Vicarious Liability Logic (S.141)
         # S.141 requires strict averments like "in charge of and responsible for the conduct of the business"
