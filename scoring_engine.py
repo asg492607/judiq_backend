@@ -271,6 +271,14 @@ class ScoringEngineV12:
             trace.append(f"{verification_penalties} VERIFICATION: Document Intelligence overridden user claims.")
             causality_map.append({"fact": "Document Verification Failure", "impact": verification_penalties, "type": "negative", "rationale": "OCR layer determined user inputs were unsupported by actual document evidence."})
 
+        # Witness Support Penalty
+        witness_status = str(case_data.get("witness_available", "No")).lower()
+        if witness_status == "no" or "no" in witness_status:
+            witness_penalty = -5
+            score += witness_penalty
+            trace.append(f"{witness_penalty} EVIDENTIARY: Missing corroborative witness support.")
+            causality_map.append({"fact": "No Witness Support", "impact": witness_penalty, "type": "negative", "rationale": "Without independent or corroborating witnesses, the case relies entirely on documentary evidence."})
+
         # BSA S.63(4) Strict Enforcement
         if case_data.get("communication_records") and not case_data.get("has_bsa_certificate"):
             bsa_penalty = -15
@@ -436,11 +444,20 @@ class ScoringEngineV12:
         # Digital Proofs
         has_digital = case_data.get("communication_records", False)
         if has_digital:
-            has_65b = case_data.get("has_65b_certificate", False)
+            has_65b = case_data.get("has_bsa_certificate", False)
             if has_65b:
                 reliability["WhatsApp/Email"] = {"score": 0.85, "status": "AUTHENTICATED", "attack_risk": "LOW"}
             else:
                 reliability["WhatsApp Screenshot"] = {"score": 0.30, "status": "VULNERABLE", "attack_risk": "HIGH", "reason": "Mandatory S.63(4) BSA Certificate missing (Replacing old 65B)."}
+
+        # Witness Support
+        witness_status = str(case_data.get("witness_available", "No")).lower()
+        if "multiple" in witness_status:
+            reliability["Witness"] = {"score": 0.85, "status": "STRONG", "attack_risk": "LOW", "reason": "Multiple witnesses provide robust corroboration."}
+        elif "one" in witness_status:
+            reliability["Witness"] = {"score": 0.60, "status": "ADEQUATE", "attack_risk": "MEDIUM", "reason": "Single witness; susceptible to targeted cross-examination."}
+        else:
+            reliability["Witness"] = {"score": 0.25, "status": "MISSING", "attack_risk": "HIGH", "reason": "No independent corroboration; heavy reliance on documentary evidence."}
 
         # Bank Memo
         reliability["Bank Return Memo"] = {"score": 0.95, "status": "VERIFIED", "attack_risk": "MINIMAL"}
