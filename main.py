@@ -74,6 +74,16 @@ async def health_check():
 # Include API Router
 app.include_router(api_router, prefix="/api/v1")
 
+# ═══════════════════════════════════════════════════════════════
+# LEGACY FALLBACK ROUTES (For cached frontend clients)
+# ═══════════════════════════════════════════════════════════════
+import analysis, verification, documents
+
+app.include_router(analysis.router, prefix="/analyze", tags=["Legacy Analysis"])
+app.include_router(verification.router, prefix="/verify-memo", tags=["Legacy Verification"])
+app.include_router(verification.router, prefix="/upload-doc", tags=["Legacy Upload"])
+app.include_router(documents.router, prefix="/generate-pdf", tags=["Legacy Documents"])
+
 if __name__ == "__main__":
     # pyrefly: ignore [missing-import]
     import uvicorn
