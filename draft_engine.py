@@ -138,6 +138,12 @@ def generate_legal_notice(case_data: Dict, tone: str = "standard") -> str:
     # Strip trailing period to avoid double period in templates
     transaction_nature = transaction_nature.rstrip('.')
 
+    # Dynamic Financial Capacity Defense (Basalingappa Rebuttal)
+    amount_val = float(case_data.get("cheque_amount") or case_data.get("amount") or 0)
+    is_cash = str(case_data.get("loan_via_bank", "Yes")).lower() != "yes"
+    if amount_val > 150000 and is_cash:
+        transaction_nature += f". My client specifically asserts possessing sufficient source of funds to the tune of {amount_str} at the time of the transaction, advanced from accumulated personal savings/agricultural income, fully satisfying their financial capacity"
+
     template = env.get_template("legal_notice.jinja")
     return template.render(
         header=_header("LEGAL NOTICE UNDER SECTION 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881"),
@@ -289,6 +295,12 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     This liability is securely established by contemporaneous commercial records. The issuance of the subject cheque by the Accused was an explicit acknowledgment of this debt. Its subsequent dishonour is a clear demonstration of the Accused's mala fide intent to evade lawful obligations, compelling the Complainant to invoke the strict provisions of Section 138 of the NI Act."""
     else:
         debt_pleading = f"The Complainant states that the Accused is indebted to the Complainant for a sum of {amount_str} arising from {transaction_nature}. The said debt is legally enforceable and constitutes a valid liability under law."
+        
+    # Dynamic Financial Capacity Defense (Basalingappa Rebuttal)
+    amount_val = float(case_data.get("cheque_amount") or case_data.get("amount") or 0)
+    is_cash = str(case_data.get("loan_via_bank", "Yes")).lower() != "yes"
+    if amount_val > 150000 and is_cash:
+        debt_pleading += f" It is specifically averred that the Complainant possessed sufficient source of funds to the tune of {amount_str} at the time of the transaction, which was advanced from accumulated personal savings/agricultural income, and the Complainant has the requisite financial capacity, fully satisfying the legal mandate of 'Basalingappa v. Mudibasappa'."
     
     if case_data.get("communication_records"):
         if is_aggressive:

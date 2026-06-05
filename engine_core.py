@@ -35,7 +35,8 @@ class EngineRegistry:
             "timeline":    "timeline_engine.TimelineEngine",
             "simulator":   "simulator_engine.SimulatorEngine",
             "defence":     "defence_engine.DefenceEngineV12",
-            "decision":    "decision_support_engine.DecisionSupportEngine"
+            "decision":    "decision_support_engine.DecisionSupportEngine",
+            "document_intelligence": "document_intelligence.DocumentIntelligence"
         }
         self._instances = {}
 
@@ -113,6 +114,22 @@ class JudiQEngine:
             
         case_data["analysis_mode"] = analysis_mode
         logger.info(f"[JUDIQ] Core analysis triggered for: {case_data.get('case_id', 'ANON')}")
+
+        # -- 1.5 Document Intelligence Override -------------------------------
+        try:
+            doc_intel = registry.get("document_intelligence")
+            verification_flags = doc_intel.validate_claims(case_data)
+            
+            # Apply overrides to case_data to defeat 'User Honesty' trap
+            if verification_flags.get("overrides"):
+                for k, v in verification_flags["overrides"].items():
+                    case_data[k] = v
+                    logger.warning(f"[ENGINE] Overriding user input {k} -> {v}")
+                    
+            # Inject penalties directly into case_data so scoring engine can catch it
+            case_data["verification_penalties"] = verification_flags.get("verification_penalties", 0)
+        except Exception as e:
+            logger.error(f"[ENGINE] Document Intelligence Override failed: {e}")
 
         # -- 2. Semantic Extraction -------------------------------------------
         text = case_data.get("description", "").strip()

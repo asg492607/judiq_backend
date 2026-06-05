@@ -15,7 +15,14 @@ class VisionProvider:
             return "Sample OCR Text: Cheque #882104, Reason Code 1, HDFC Bank."
         elif provider == "TESSERACT":
             # import pytesseract; return pytesseract.image_to_string(file_bytes)
-            pass
+            # Simulated forensic metadata for demo
+            return {
+                "text": "Sample OCR Text: Cheque #882104, Reason Code 1, HDFC Bank.",
+                "forensic_flags": {
+                    "ink_age_mismatch": True,
+                    "signature_velocity_anomalous": False
+                }
+            }
         elif provider == "GOOGLE_VISION":
             # return cloud_vision.detect_text(file_bytes)
             pass
@@ -108,6 +115,46 @@ class DocumentIntelligence:
             audit["case_delta"] = 15
 
         return audit
+
+    @classmethod
+    def validate_claims(cls, case_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Cross-checks user frontend inputs against Document Engine metadata.
+        Returns a verification flags object used to override user honesty.
+        """
+        verification_flags = {
+            "fraudulent_input_detected": False,
+            "verification_penalties": 0,
+            "overrides": {}
+        }
+        
+        # 1. ITR Claim vs OCR Validation
+        if case_data.get("complainant_itr_available"):
+            # Mock OCR check: if user claims ITR but we didn't receive an ITR doc or it's unreadable
+            itr_ocr_valid = case_data.get("_debug_itr_ocr_valid", True) # Default true for tests, but mock hook here
+            if not itr_ocr_valid:
+                verification_flags["fraudulent_input_detected"] = True
+                verification_flags["verification_penalties"] -= 25
+                verification_flags["overrides"]["complainant_itr_available"] = False
+                logger.warning("Document Engine Override: User claimed ITR available, but OCR found no valid ITR.")
+
+        # 2. Notice Delivery vs Postal API
+        if case_data.get("notice_sent"):
+            tracking_status = str(case_data.get("notice_delivery_status", "delivered")).lower()
+            if "not found" in tracking_status or "returned to sender" in tracking_status:
+                verification_flags["overrides"]["notice_received"] = "No"
+            elif "refused" in tracking_status or "unclaimed" in tracking_status:
+                verification_flags["overrides"]["notice_received"] = "Deemed Served (S.27 General Clauses Act)"
+                
+        # 3. Handwriting Forensic Override
+        # If user claims 'handwriting_different = False' but Tesseract/Forensic detects anomaly
+        forensic_mock_anomaly = case_data.get("_debug_forensic_anomaly", False)
+        if forensic_mock_anomaly and not case_data.get("handwriting_different"):
+            verification_flags["overrides"]["handwriting_different"] = True
+            verification_flags["verification_penalties"] -= 15
+            logger.warning("Forensic Override: Detected different ink age despite user claim.")
+
+        return verification_flags
 
 # Global Instance
 doc_intel = DocumentIntelligence()

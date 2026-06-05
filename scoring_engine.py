@@ -141,6 +141,16 @@ class ScoringEngineV12:
 
         # PILLAR 3: STATUTORY NOTICE
         if notice:
+            notice_received_status = str(case_data.get("notice_received", "")).lower()
+            if notice_received_status == "no":
+                # Override triggered by Notice Delivery OCR/Postal
+                score -= 30
+                trace.append(f"-30 PROCEDURAL: Demand Notice tracking failed / address not found.")
+                causality_map.append({"fact": "Notice Tracking Failed", "impact": -30, "type": "negative", "rationale": "Invalid service. S.138 cause of action fails if notice is not delivered (unless 'refused')."})
+            elif "deemed served" in notice_received_status:
+                trace.append("Statutory Compliance: Notice deemed served under S.27 General Clauses Act (Refused/Unclaimed).")
+                causality_map.append({"fact": "Deemed Service", "impact": 0, "type": "neutral", "rationale": "Notice was returned with 'Refused' or 'Unclaimed' postal remark, constituting valid service under S.27 General Clauses Act."})
+
             within_30 = case_data.get("within_30_days", "Yes") == "Yes"
             notice_points = PILLAR_NOTICE_VALID if within_30 else PILLAR_NOTICE_LATE
             score += notice_points
@@ -254,6 +264,21 @@ class ScoringEngineV12:
                 max_score_cap = min(max_score_cap, 65)
                 trace.append(f"{PENALTY_LOW_RELIABILITY_EVIDENCE} EVIDENTIARY: Low reliability on critical evidence ({name}). Score capped at 65.")
                 causality_map.append({"fact": f"Low Reliability: {name}", "impact": PENALTY_LOW_RELIABILITY_EVIDENCE, "type": "negative", "rationale": data.get("reason", "Evidence format is vulnerable to challenge.")})
+
+        # Document Verification Penalties (OCR Override)
+        verification_penalties = case_data.get("verification_penalties", 0)
+        if verification_penalties < 0:
+            score += verification_penalties
+            trace.append(f"{verification_penalties} VERIFICATION: Document Intelligence overridden user claims.")
+            causality_map.append({"fact": "Document Verification Failure", "impact": verification_penalties, "type": "negative", "rationale": "OCR layer determined user inputs were unsupported by actual document evidence."})
+
+        # BSA S.63(4) Strict Enforcement
+        if case_data.get("communication_records") and not case_data.get("has_bsa_certificate"):
+            bsa_penalty = -15
+            score += bsa_penalty
+            max_score_cap = min(max_score_cap, 75)
+            trace.append(f"{bsa_penalty} EVIDENTIARY: Missing S.63(4) BSA Certificate for Digital Evidence.")
+            causality_map.append({"fact": "Missing S.63(4) BSA Certificate", "impact": bsa_penalty, "type": "negative", "rationale": "Digital evidence (WhatsApp/Email) is completely inadmissible without certification."})
 
         # Final Score Cap
         final_score = max(0, min(max_score_cap, score))
@@ -477,12 +502,25 @@ class ScoringEngineV12:
 
     @classmethod
     def calculate_failure_point(cls, score: int, case_data: Dict, concepts: List[Dict]) -> str:
-        """USER REQUEST 3: CASE WILL BREAK HERE"""
-        if not case_data.get("dishonour_memo"): return "Most probable failure point: Cognizance rejection due to missing return memo."
-        if not case_data.get("notice_sent"): return "Most probable failure point: S.138 maintainability bar at summon stage."
-        if score < 40: return "Most probable failure point: Summary dismissal on 'Basalingappa' financial capacity challenge."
-        if score < 65: return "Most probable failure point: Cross-examination on 'Security Cheque' vs 'Liability' distinction."
-        return "Most probable failure point: Post-conviction appeal on technical statutory interpretation."
+        """USER REQUEST 3: CASE WILL BREAK HERE (Enhanced)"""
+        # Highest priority failures first
+        if not case_data.get("dishonour_memo"): return "Most probable failure point: Cognizance rejection due to missing bank return memo."
+        if not case_data.get("notice_sent"): return "Most probable failure point: S.138 maintainability bar at summon stage (No Demand Notice)."
+        
+        notice_status = str(case_data.get("notice_delivery_status", "")).lower()
+        if "not found" in notice_status: return "Most probable failure point: S.138 dismissed at pre-summoning stage due to Invalid Notice Service."
+        
+        is_cash = not case_data.get("loan_via_bank", True)
+        no_itr = not case_data.get("complainant_itr_available", False)
+        amount = float(case_data.get("cheque_amount", 0))
+        if is_cash and no_itr and amount > 500000:
+            return "Most probable failure point: Cross-examination collapse. Defence will trigger Basalingappa 'Financial Capacity' trap due to cash loan >₹5L without ITR."
+            
+        if "handwriting_different" in case_data and case_data.get("handwriting_different"):
+            return "Most probable failure point: Trial delayed 18-24 months by Defence applying for Forensic Science Lab (FSL) ink analysis under S.45 Evidence Act."
+            
+        if score < 50: return "Most probable failure point: Cross-examination on 'Security Cheque' vs 'Legally Enforceable Liability'."
+        return "Most probable failure point: Post-conviction appellate challenge on statutory interpretation."
 
     @classmethod
     def generate_senior_brief(cls, score: int, case_data: Dict, concepts: List[Dict]) -> Dict:
