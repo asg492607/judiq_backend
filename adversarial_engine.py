@@ -162,14 +162,15 @@ class AdversarialEngine:
         
         if handwriting_different or signature_mismatch or has_alteration_concept:
             node = cls._build_node(cls.VULNERABILITY_MODELS["material_alteration"], "S.87 Material Alteration / FSL Risk")
+            node["severity"] = "FATAL"
+            node["collapse_risk"] = "85%"
+            
             if signature_mismatch:
-                node["severity"] = "FATAL"
-                node["risk_explained"] = "Signature forgery allegation is fatal if proven by FSL."
+                node["risk_explained"] = "Signature forgery allegation is fatal if proven by FSL. High risk of malicious prosecution counter-suit."
+                node["rebuttal_tree"]["conviction_impact"] = -90
             elif handwriting_different and not signature_mismatch:
-                node["severity"] = "MODERATE"
-                node["collapse_risk"] = "45%"
-                node["risk_explained"] = "Different handwriting alone doesn't void cheque (S.20 NI Act implied authority), but invites FSL delay tactics."
-                node["rebuttal_tree"]["conviction_impact"] = -25
+                node["risk_explained"] = "Different handwriting invites immediate FSL delay tactics (18-24 months) and S.87 Material Alteration risks."
+                node["rebuttal_tree"]["conviction_impact"] = -85
             analysis_nodes.append(node)
 
         # 4. Vicarious Liability Logic (S.141)

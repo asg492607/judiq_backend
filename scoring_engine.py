@@ -210,7 +210,8 @@ class ScoringEngineV12:
         # Basalingappa & Sushil Kumar Check
         if amount > 500000 and not case_data.get("loan_via_bank") and not case_data.get("complainant_itr_available"):
             score += PENALTY_BASALINGAPPA_FATAL
-            max_score_cap = min(max_score_cap, 40)
+            max_score_cap = min(max_score_cap, 25)  # Hard cap at 25 for S.269SS fatal violation
+            case_data["fatal_defect"] = "Basalingappa Trap: Unaccounted Cash > ₹5L without ITR"
             trace.append(f"{PENALTY_BASALINGAPPA_FATAL} FATAL EVIDENTIARY GAP: ₹5L+ cash loan without ITR.")
             causality_map.append({"fact": "Basalingappa Fatal", "impact": PENALTY_BASALINGAPPA_FATAL, "rationale": "High-value cash loans without source proof trigger immediate presumption collapse."})
             if "unaccounted_cash_loans" not in concept_names:
@@ -227,6 +228,12 @@ class ScoringEngineV12:
             score += PENALTY_NOTICE_DEFECT
             trace.append(f"{PENALTY_NOTICE_DEFECT} CRITICAL: Defective statutory notice")
             causality_map.append({"fact": "Notice Defect", "impact": PENALTY_NOTICE_DEFECT, "rationale": "Statutory notice must be perfect."})
+            
+        tracking_status = str(case_data.get("notice_delivery_status", "delivered")).lower()
+        if "not found" in tracking_status or "returned to sender" in tracking_status:
+            score -= 45
+            trace.append("-45 CRITICAL: Address Not Found destroys S.27 presumption of service.")
+            causality_map.append({"fact": "Invalid Service Address", "impact": -45, "rationale": "Without valid address, deemed service under S.27 General Clauses Act is voided. Highly likely to be dismissed at summoning stage."})
 
         # Signature & Alteration
         if "signature_dispute" in existing_concepts and not case_data.get("signature_verified_by_bank"):

@@ -319,6 +319,10 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
         else:
             debt_pleading += " The said transaction was entered into based on mutual trust, and the Accused had verbally promised to repay the amount within the stipulated time."
 
+    # Dynamic FSL/Alteration Pre-emptive Rebuttal
+    if case_data.get("handwriting_different") or case_data.get("signature_mismatch") or "material_alteration" in {c.get("concept", "") for c in concepts}:
+        debt_pleading += "\n\nFurthermore, the Complainant categorically asserts that the cheque in question was issued by the Accused in discharge of a legally enforceable debt. Any subsequent claim by the Accused regarding differences in handwriting or ink age is entirely frivolous and a mere afterthought. The signature on the cheque is admitted, and under Section 20 of the Negotiable Instruments Act, the Complainant possessed the implied prima facie authority to fill the inchoate instrument. Any attempt to seek an FSL examination under Section 45 of the Indian Evidence Act is a dilatory tactic intended solely to derail the trial, and the Complainant prays that such requests be rejected."
+
     prayer_compensation = ""
     if is_aggressive:
         prayer_compensation = "(c) Direct the Accused to pay MAXIMUM INTERIM COMPENSATION of 20% under Section 143A of the NI Act, as the defense is ex-facie frivolous and dilatory;"

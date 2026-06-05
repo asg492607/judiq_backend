@@ -339,6 +339,13 @@ class JudiQEngine:
             is_fatal = True
             fatal_reason = str(case_data.get("fatal_defect"))
 
+        if not is_fatal and "analysis_nodes" in adversarial_result:
+            for node in adversarial_result["analysis_nodes"]:
+                if node.get("severity") == "FATAL":
+                    is_fatal = True
+                    fatal_reason = node.get("risk_explained", "Fatal Adversarial Risk")
+                    break
+
         # Check OCR/Evidentiary fraud override directly
         if case_data.get("verification_penalties", 0) <= -25:
             is_fatal = True
@@ -353,7 +360,11 @@ class JudiQEngine:
         from draft_engine import decide_draft_type
         
         # Priority: Forced Draft Type > Decision Logic
-        draft_type = raw_data.get("force_draft_type") or decide_draft_type(int(final_score), concepts, case_data)
+        if is_fatal:
+            draft_type = "LEGAL_OPINION"
+            logger.warning(f"GLOBAL FATAL OVERRIDE: Forcing draft_type to LEGAL_OPINION due to {fatal_reason}")
+        else:
+            draft_type = raw_data.get("force_draft_type") or decide_draft_type(int(final_score), concepts, case_data)
         
         draft_content = _safe_call(
             draft_engine.generate_draft, draft_type, int(final_score), concepts, case_data,
