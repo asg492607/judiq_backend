@@ -326,6 +326,28 @@ class JudiQEngine:
             judicial_report = {}
             judicially_adjusted_score = final_score
 
+        # -- 6.7 Fatal Defect Hard Override -----------------------------------
+        is_fatal = False
+        fatal_reason = ""
+        for contra in contradictions:
+            if contra.get("penalty", 0) <= -85 or "Fatal" in contra.get("remediation", "") or "DO NOT FILE" in contra.get("remediation", ""):
+                is_fatal = True
+                fatal_reason = contra.get("issue", "Critical Defect")
+                break
+        
+        if not is_fatal and case_data.get("fatal_defect"):
+            is_fatal = True
+            fatal_reason = str(case_data.get("fatal_defect"))
+
+        # Check OCR/Evidentiary fraud override directly
+        if case_data.get("verification_penalties", 0) <= -25:
+            is_fatal = True
+            fatal_reason = "Evidentiary Fraud / Verification Failure"
+
+        if is_fatal:
+            final_score = min(final_score, 25.0)
+            judicially_adjusted_score = min(judicially_adjusted_score, 25.0)
+
         # -- 7. Draft Generation ----------------------------------------------
         draft_engine = registry.get("draft")
         from draft_engine import decide_draft_type
@@ -348,6 +370,10 @@ class JudiQEngine:
             fallback={"prediction": "Unknown", "probability": "0%"},
             context="DecisionSupportEngine.outcome"
         )
+        
+        if is_fatal:
+            outcome_prediction = {"prediction": f"DO NOT FILE - {fatal_reason}", "probability": "0%"}
+            scoring_result["verdict"] = "DO NOT FILE"
         translated_verdict = _safe_call(
             decision_engine.translate_verdict, scoring_result.get("verdict", "MODERATE"), case_data.get("target_lang", "hindi"),
             fallback="à¤®à¤œà¤¬à¥‚à¤¤ à¤®à¤¾à¤®à¤²à¤¾",

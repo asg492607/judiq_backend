@@ -95,7 +95,11 @@ class TimelineEngine:
             delivery_date = case_data.get("notice_delivery_date")
             delivery_status = str(case_data.get("notice_delivery_status", "delivered")).lower()
             
-            if delivery_status in ['returned', 'unserved', 'refused'] or not delivery_date:
+            if delivery_status in ['refused', 'unclaimed'] and delivery_date:
+                # Deemed service under S.27 General Clauses Act takes effect on the exact date of refusal/return
+                service_dt = parse_date(delivery_date)
+                deemed_service = True
+            elif delivery_status in ['returned', 'unserved', 'not found'] or not delivery_date:
                 # Deemed service after 30 days of dispatch (C.C. Alavi Haji precedent)
                 service_dt = notice_dt + timedelta(days=30)
                 deemed_service = True

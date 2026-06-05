@@ -272,11 +272,17 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
         director_names = case_data.get("director_names", "")
         director_roles = case_data.get("director_roles", "________ (Specify Exact Roles)")
         
+        resignation_date = case_data.get("director_resignation_date")
+        cheque_date_val = case_data.get("cheque_date")
+        resignation_averment = ""
+        if resignation_date and cheque_date_val:
+            resignation_averment = " The Complainant categorically asserts that at the time of the issuance of the subject cheque, the Accused Nos. 2 onwards were fully active Directors and had NOT resigned from the company, thereby attracting unmitigated liability."
+        
         if has_directors and director_names:
             liability_clause = f"""3. THE VICARIOUS LIABILITY (SEC. 141):
     That the Accused No. 1 is a {accused_type}, and Accused Nos. 2 onwards, namely {director_names}, are the Directors/Partners/Officers of the said Accused No. 1.
     That at the time the offence was committed, the said Accused Nos. 2 onwards were in charge of, and were responsible to the Accused No. 1 for the conduct of its business. 
-    Specifically, their exact roles are as follows: {director_roles}. They were actively involved in the day-to-day management and decision-making processes of the Accused No. 1, and the dishonoured cheque in question was issued with their full knowledge, consent, and connivance.
+    Specifically, their exact roles are as follows: {director_roles}. They were actively involved in the day-to-day management and decision-making processes of the Accused No. 1, and the dishonoured cheque in question was issued with their full knowledge, consent, and connivance.{resignation_averment}
     The Accused Nos. 2 onwards are thus vicariously liable for the acts of the Accused No. 1 as per the mandatory provisions of Section 141 of the Negotiable Instruments Act, 1881 and the law laid down by the Hon'ble Supreme Court in 'Aneeta Hada v. Godfather Travels'."""
         elif has_directors:
             liability_clause = f"3. THE VICARIOUS LIABILITY (SEC. 141): That the Accused No. 1 is a {accused_type} and the other Accused persons are its Directors/Officers who were in charge of and responsible for the conduct of the business (Exact roles: ________ (Specify Roles)) as per Section 141 of the NI Act."

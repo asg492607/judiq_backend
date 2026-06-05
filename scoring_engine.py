@@ -136,6 +136,7 @@ class ScoringEngineV12:
             causality_map.append({"fact": "Bank Memo Presence", "impact": memo_points, "type": "positive", "rationale": "Formal proof of dishonour by the banking institution."})
         else:
             score += PILLAR_MEMO_MISSING
+            case_data["fatal_defect"] = "Missing Bank Return Memo"
             trace.append(f"CRITICAL GAP: Bank return memo missing ({PILLAR_MEMO_MISSING} impact).")
             causality_map.append({"fact": "Missing Bank Memo", "impact": PILLAR_MEMO_MISSING, "type": "negative", "rationale": "Magistrate cannot take cognizance without a return memo/debit advice."})
 
@@ -145,6 +146,7 @@ class ScoringEngineV12:
             if notice_received_status == "no":
                 # Override triggered by Notice Delivery OCR/Postal
                 score -= 30
+                case_data["fatal_defect"] = "Invalid Notice Service (Address Not Found)"
                 trace.append(f"-30 PROCEDURAL: Demand Notice tracking failed / address not found.")
                 causality_map.append({"fact": "Notice Tracking Failed", "impact": -30, "type": "negative", "rationale": "Invalid service. S.138 cause of action fails if notice is not delivered (unless 'refused')."})
             elif "deemed served" in notice_received_status:
@@ -160,6 +162,7 @@ class ScoringEngineV12:
                 causality_map.append({"fact": "Notice Delay", "impact": -18, "type": "negative", "rationale": "Notice sent beyond 30 days of dishonour. Requires condonation application."})
         else:
             score += PILLAR_NOTICE_MISSING
+            case_data["fatal_defect"] = "Mandatory Demand Notice Not Served"
             trace.append(f"FATAL DEFECT: Mandatory demand notice not served ({PILLAR_NOTICE_MISSING} impact).")
             causality_map.append({"fact": "Notice Not Sent", "impact": PILLAR_NOTICE_MISSING, "type": "negative", "rationale": "Mandatory requirement. Complaint is non-maintainable without S.138 notice."})
 
@@ -205,18 +208,13 @@ class ScoringEngineV12:
                 except: pass
 
         # Basalingappa & Sushil Kumar Check
-        if amount > 2000000 and not case_data.get("loan_via_bank") and not case_data.get("complainant_itr_available"):
+        if amount > 500000 and not case_data.get("loan_via_bank") and not case_data.get("complainant_itr_available"):
             score += PENALTY_BASALINGAPPA_FATAL
-            trace.append(f"{PENALTY_BASALINGAPPA_FATAL} FATAL EVIDENTIARY GAP: ₹20L+ cash loan without ITR.")
-            causality_map.append({"fact": "Basalingappa Fatal", "impact": PENALTY_BASALINGAPPA_FATAL, "rationale": "High-value cash loans without source proof are fatal."})
+            max_score_cap = min(max_score_cap, 40)
+            trace.append(f"{PENALTY_BASALINGAPPA_FATAL} FATAL EVIDENTIARY GAP: ₹5L+ cash loan without ITR.")
+            causality_map.append({"fact": "Basalingappa Fatal", "impact": PENALTY_BASALINGAPPA_FATAL, "rationale": "High-value cash loans without source proof trigger immediate presumption collapse."})
             if "unaccounted_cash_loans" not in concept_names:
                 concepts.append({"concept": "unaccounted_cash_loans", "confidence": 0.95, "legal_impact": "Fatal evidentiary gap for high-value cash loans per Basalingappa ruling."})
-        elif amount > 500000 and not case_data.get("loan_via_bank") and not case_data.get("complainant_itr_available"):
-            score += PENALTY_BASALINGAPPA_HIGH
-            trace.append(f"{PENALTY_BASALINGAPPA_HIGH} REBUTTAL RISK: High-value cash loan without ITR.")
-            causality_map.append({"fact": "Basalingappa High Risk", "impact": PENALTY_BASALINGAPPA_HIGH, "rationale": "Lending capacity is a standard defence attack."})
-            if "unaccounted_cash_loans" not in concept_names:
-                concepts.append({"concept": "unaccounted_cash_loans", "confidence": 0.85, "legal_impact": "High risk of acquittal on financial capacity grounds."})
 
         # Limitation & Notice Defects
         existing_concepts = [c["concept"] for c in concepts]
@@ -238,8 +236,9 @@ class ScoringEngineV12:
 
         if case_data.get("handwriting_different") or "material_alteration" in existing_concepts:
             score += PENALTY_MATERIAL_ALTERATION
-            trace.append(f"{PENALTY_MATERIAL_ALTERATION} FATAL: Material Alteration Trap (S.87).")
-            causality_map.append({"fact": "Material Alteration", "impact": PENALTY_MATERIAL_ALTERATION, "type": "negative", "rationale": "Different inks/handwriting voids the instrument."})
+            case_data["fatal_defect"] = "FSL Stay (18-24 months) on Handwriting Trap" # Trigger engine_core hard cap
+            trace.append(f"{PENALTY_MATERIAL_ALTERATION} FATAL: Material Alteration Trap (S.87) - FSL Stay.")
+            causality_map.append({"fact": "Material Alteration (FSL Risk)", "impact": PENALTY_MATERIAL_ALTERATION, "type": "negative", "rationale": "Different inks/handwriting voids the instrument. Triggers S.45 Evidence Act FSL analysis stay."})
 
         # â”€â”€ CONTRADICTION PROPAGATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         for cont in contradictions:

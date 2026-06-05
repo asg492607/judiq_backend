@@ -313,6 +313,47 @@ class AdversarialEngine:
                 "penalty": -10
             })
 
+        # 5. Impossible Timeline (Cheque before Loan)
+        cheque_dt = case_data.get("cheque_date")
+        loan_dt = case_data.get("transaction_date") or case_data.get("loan_date")
+        if cheque_dt and loan_dt:
+            from utils import parse_date
+            c_date = parse_date(cheque_dt)
+            l_date = parse_date(loan_dt)
+            if c_date and l_date and c_date < l_date:
+                contradictions.append({
+                    "severity": "Material credibility risk",
+                    "issue": "Impossible Timeline (Cheque Predates Loan)",
+                    "detail": f"The cheque is dated {cheque_dt}, but the loan/transaction occurred on {loan_dt}. A cheque cannot be issued in discharge of a debt that did not yet exist.",
+                    "remediation": "This is a fatal defect. DO NOT FILE.",
+                    "penalty": -95
+                })
+
+        # 6. S.141 Resignation Trap
+        resignation_date = case_data.get("director_resignation_date")
+        if case_data.get("director_signed_cheque") and resignation_date and cheque_dt:
+            from utils import parse_date
+            r_date = parse_date(resignation_date)
+            c_date = parse_date(cheque_dt)
+            if r_date and c_date and c_date > r_date:
+                contradictions.append({
+                    "severity": "Material credibility risk",
+                    "issue": "S.141 Resignation Trap (Director Signed After Resigning)",
+                    "detail": "The director signed the cheque after their official resignation date. They cannot bind the company, and charging them under S.141 is malicious prosecution.",
+                    "remediation": "Fatal defect. DO NOT FILE.",
+                    "penalty": -90
+                })
+
+        # 7. Multiple Conflicting Notices
+        if str(case_data.get("multiple_notices_sent", "")).lower() == "yes":
+            contradictions.append({
+                "severity": "Material credibility risk",
+                "issue": "Multiple Conflicting Statutory Notices",
+                "detail": "Sending a second demand notice after the cause of action has crystallized on the first notice voids the S.138 proceedings per Sadanandan Bhadran v. Madhavan Sunil Kumar.",
+                "remediation": "Fatal defect. Ensure the complaint is strictly based on the first valid notice.",
+                "penalty": -85
+            })
+
         # 4. Semantic NLP-based Combinations (New)
         # Instead of strict hardcoding, dynamically detect semantic overlaps 
         # where two concepts have high conflict confidence.
