@@ -1,5 +1,5 @@
 from typing import Dict, List, Any
-from .criminal_adversarial_engine import CriminalAdversarialEngine
+from criminal_adversarial_engine import CriminalAdversarialEngine
 
 class CriminalEngine:
     """
@@ -10,10 +10,10 @@ class CriminalEngine:
     @staticmethod
     def generate_strategy(case_data: Dict, concepts: List[Dict], severity_score: int, adversarial_risk: float = 0.5) -> Dict[str, Any]:
         """Orchestrates all strategy components for the criminal core engine."""
-        from .criminal_timeline_engine import CriminalTimelineEngine
-        from .criminal_economics_engine import CriminalEconomicsEngine
-        from .criminal_rules_engine import CriminalRulesEngine
-        from .criminal_scoring_engine import CriminalScoringEngine
+        from criminal_timeline_engine import CriminalTimelineEngine
+        from criminal_economics_engine import CriminalEconomicsEngine
+        from criminal_rules_engine import CriminalRulesEngine
+        from criminal_scoring_engine import CriminalScoringEngine
         
         contradictions = CriminalAdversarialEngine.detect_contradictions(case_data, concepts)
         scoring_data = CriminalScoringEngine.calculate_score(case_data, concepts, contradictions)
