@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 from typing import Dict, Any, List
 from groq import Groq
@@ -92,3 +93,115 @@ def enhance_legal_draft(base_draft: str, draft_type: str, case_data: Dict[str, A
     except Exception as e:
         logger.error(f"Groq API Error in draft enhancement: {str(e)}")
         return base_draft
+
+def extract_fact_graph(text: str) -> Dict[str, Any]:
+    """
+    Uses the LLM to extract entities, relationships, and contradictions,
+    building a structured Fact Graph from the raw text.
+    Returns None if LLM fails, triggering the deterministic fallback.
+    """
+    if not GROQ_API_KEY or GROQ_API_KEY == "gsk_6dIjjHfYhnzWb8CLHe8FWGdyb3FYzO2pnwJxEs69BYTawWTV1rL6_placeholder":
+        return None
+
+    prompt = f"""
+    You are an expert legal AI capable of mapping facts.
+    Extract a structured Fact Graph from the following case description:
+    
+    "{text}"
+    
+    Return a JSON object strictly following this structure:
+    {{
+        "entities": ["entity1", "entity2"],
+        "relationships": [
+            {{"source": "entity1", "target": "entity2", "relation": "description"}}
+        ],
+        "contradictions": [
+            "description of contradiction 1"
+        ],
+        "timeline_complexity": "High/Medium/Low"
+    }}
+    Do not output any markdown formatting, just raw JSON.
+    """
+
+    try:
+        response = client.chat.completions.create(
+            messages=[{"role": "system", "content": prompt}],
+            model=MODEL,
+            temperature=0.1,
+            max_tokens=1000,
+        )
+        content = response.choices[0].message.content.strip()
+        if content.startswith("```json"):
+            content = content[7:-3]
+        return json.loads(content)
+    except Exception as e:
+        logger.error(f"Groq API Error in fact graph extraction: {str(e)}")
+        return None
+
+
+def analyze_precedent_relationships(case_data: Dict[str, Any], precedents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Analyzes the relationship between the case facts and the retrieved precedents.
+    Returns the enriched precedents with 'relationship' and 'reasoning' fields.
+    Returns None if LLM fails.
+    """
+    if not GROQ_API_KEY or GROQ_API_KEY == "gsk_6dIjjHfYhnzWb8CLHe8FWGdyb3FYzO2pnwJxEs69BYTawWTV1rL6_placeholder":
+        return None
+        
+    if not precedents:
+        return []
+
+    prec_context = ""
+    for idx, p in enumerate(precedents):
+        prec_context += f"Precedent {idx+1}: {p.get('title', 'Unknown')} - {p.get('summary', 'No summary')}\n"
+
+    prompt = f"""
+    Analyze the relationship between the following case facts and the precedents.
+    
+    Case Facts:
+    Role: {case_data.get('client_role', 'Unknown')}
+    Details: {case_data.get('case_description', 'No description')}
+    
+    Precedents:
+    {prec_context}
+    
+    For each precedent, determine if it is:
+    - BINDING: Directly applicable and supports the case.
+    - DISTINGUISHABLE: Facts are different enough that opposing counsel will distinguish it.
+    - OVERRULED/DANGEROUS: High risk of relying on this.
+    
+    Return a JSON array of objects strictly following this structure:
+    [
+        {{
+            "id": "index_of_precedent_starting_from_1",
+            "relationship": "BINDING|DISTINGUISHABLE|OVERRULED",
+            "reasoning": "1 sentence explanation"
+        }}
+    ]
+    Do not output any markdown formatting, just raw JSON.
+    """
+
+    try:
+        response = client.chat.completions.create(
+            messages=[{"role": "system", "content": prompt}],
+            model=MODEL,
+            temperature=0.2,
+            max_tokens=1000,
+        )
+        content = response.choices[0].message.content.strip()
+        if content.startswith("```json"):
+            content = content[7:-3]
+        analysis = json.loads(content)
+        
+        # Merge back
+        for item in analysis:
+            idx = int(item["id"]) - 1
+            if 0 <= idx < len(precedents):
+                precedents[idx]["relationship"] = item["relationship"]
+                precedents[idx]["llm_reasoning"] = item["reasoning"]
+                
+        return precedents
+    except Exception as e:
+        logger.error(f"Groq API Error in precedent analysis: {str(e)}")
+        return None
+

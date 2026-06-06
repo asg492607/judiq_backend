@@ -357,6 +357,7 @@ class ResponseBuilder:
             "precedents":                engine_result.get("precedents", []),
             "statutory_interpretation":  engine_result.get("statutory_interpretation", []),
             "reasoning_trail":           engine_result.get("reasoning_trail", []),
+            "fact_graph":                engine_result.get("fact_graph", {}),
             "risks_and_rebuttals":       engine_result.get("risks_and_rebuttals", []),
             "outcome_prediction":        engine_result.get("outcome_prediction", {}),
             "translated_verdict":        engine_result.get("translated_verdict", ""),

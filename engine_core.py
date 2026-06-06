@@ -131,11 +131,24 @@ class JudiQEngine:
         except Exception as e:
             logger.error(f"[ENGINE] Document Intelligence Override failed: {e}")
 
-        # -- 2. Semantic Extraction -------------------------------------------
+        # -- 2. Semantic Extraction & Fact Graph (Hybrid Architecture) --------
         text = case_data.get("description", "").strip()
         if not text:
             parts = [phrase for key, phrase in SYNTHETIC_TEXT_MAP.items() if case_data.get(key)]
             text = ". ".join(parts)
+            
+        try:
+            from llm_engine import extract_fact_graph
+            fact_graph = _safe_call(
+                extract_fact_graph, text,
+                fallback=None,
+                context="LLM_FactGraph"
+            )
+        except Exception as e:
+            logger.error(f"Failed to load LLM fact graph: {e}")
+            fact_graph = None
+            
+        case_data["fact_graph"] = fact_graph
 
         semantic_engine = registry.get("semantic")
         semantic_result = _safe_call(
@@ -286,8 +299,20 @@ class JudiQEngine:
         precedents = _safe_call(
             reasoning_engine.match_precedents, case_data, concepts,
             fallback=[],
-            context="Precedents"
+            context="ReasoningEngine.precedents"
         )
+        
+        # LLM Precedent Relationship Analysis
+        try:
+            from llm_engine import analyze_precedent_relationships
+            enriched_precedents = _safe_call(
+                analyze_precedent_relationships, case_data, precedents,
+                fallback=precedents,
+                context="LLM_PrecedentRelationships"
+            )
+            precedents = enriched_precedents or precedents
+        except Exception as e:
+            logger.error(f"Failed to load LLM precedent relationships: {e}")
         
         # NEW: Statutory Interpretation
         statutory_interpretation = _safe_call(
@@ -504,6 +529,7 @@ class JudiQEngine:
             "case_summary": case_summary,
             "precedents": precedents,
             "statutory_interpretation": statutory_interpretation,
+            "fact_graph": case_data.get("fact_graph", {}),
             "draft": draft_content,
             "draft_type": draft_type,
             "timeline": timeline,
