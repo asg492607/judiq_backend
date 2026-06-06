@@ -2,6 +2,7 @@ import re
 import logging
 from datetime import datetime
 from typing import List, Dict, Any
+from llm_engine import generate_executive_summary, enhance_legal_draft
 
 logger = logging.getLogger(__name__)
 
@@ -302,6 +303,14 @@ class ResponseBuilder:
             senior_brief["predicted_posture"] = "WITHDRAW OR ABANDON (High Perjury/Cost Risk)"
             senior_brief["biggest_risk"] = engine_result.get("failure_point", senior_brief["biggest_risk"])
 
+        # ── LLM COPILOT LAYER ───────────
+        weakness_strs = [w['risk'] for w in final_weaknesses]
+        executive_summary_text = generate_executive_summary(score, weakness_strs, strengths, case_data)
+        
+        base_draft = engine_result.get("draft", "")
+        draft_type = engine_result.get("draft_type", "LEGAL_OPINION")
+        enhanced_draft = enhance_legal_draft(base_draft, draft_type, case_data) if base_draft else ""
+
         return {
             "score":              score,
             "final_score":        score,
@@ -328,7 +337,8 @@ class ResponseBuilder:
                 "top_3_risks":        [r["risk"] for r in top_3_risks] or ["Standard risks"],
                 "top_strengths":      strengths[:3] or ["Pillar compliance"],
                 "next_steps":         next_steps,
-                "readiness_index":    engine_result.get("cri_score", 0)
+                "readiness_index":    engine_result.get("cri_score", 0),
+                "llm_summary":        executive_summary_text
             },
             "legal_analysis":    "\n".join(lawyer_reasoning) if lawyer_reasoning else "Standard analysis applied.",
             "analysis_details": {
@@ -338,7 +348,8 @@ class ResponseBuilder:
                 "breakdown": breakdown
             },
             "defence_strategy":          engine_result.get("defences", []),
-            "draft":                     engine_result.get("draft", ""),
+            "draft":                     enhanced_draft,
+            "draft_raw":                 base_draft,
             "draft_type":                engine_result.get("draft_type", "LEGAL_OPINION"),
             "timeline":                  engine_result.get("timeline", []),
             "limitation":                engine_result.get("limitation", {}),
