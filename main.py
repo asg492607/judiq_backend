@@ -71,6 +71,12 @@ async def startup_event():
 async def health_check():
     return {"status": "healthy", "version": settings.VERSION, "timestamp": time.time()}
 
+# Root Endpoint
+@app.get("/")
+@app.head("/")
+async def root_endpoint():
+    return {"status": "online", "service": settings.PROJECT_NAME, "version": settings.VERSION}
+
 # Include API Router
 app.include_router(api_router, prefix="/api/v1")
 
