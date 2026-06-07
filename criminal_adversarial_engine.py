@@ -1,6 +1,7 @@
 from typing import Dict, List, Any
+from adversarial_engine import AdversarialEngine
 
-class CriminalAdversarialEngine:
+class CriminalAdversarialEngine(AdversarialEngine):
     """
     Simulates courtroom dynamics, tactical rebuttal chains, and stage-wise 
     procedural survivability for general criminal law matters.

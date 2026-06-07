@@ -2,26 +2,32 @@ import os
 import json
 import logging
 from typing import Dict, Any, List
-from groq import Groq
 from config import settings
 
 logger = logging.getLogger(__name__)
 
-# Initialize Groq client
-# Fallback to empty string if not set, but config sets it from os.getenv
-GROQ_API_KEY = settings.GROQ_API_KEY
-client = Groq(api_key=GROQ_API_KEY)
+# llm_engine.py - LLM-less Safe Version
+GROQ_API_KEY = getattr(settings, 'GROQ_API_KEY', None)
+LLM_AVAILABLE = bool(GROQ_API_KEY and GROQ_API_KEY.strip() and "placeholder" not in GROQ_API_KEY.lower())
 
-# Use Llama 3 70B as the default model for complex legal reasoning
+client = None
 MODEL = "llama3-70b-8192"
 
+if LLM_AVAILABLE:
+    try:
+        from groq import Groq
+        client = Groq(api_key=GROQ_API_KEY)
+        logger.info("✅ LLM (Groq) initialized successfully.")
+    except Exception as e:
+        logger.error(f"Groq init failed: {e}")
+        LLM_AVAILABLE = False
+else:
+    logger.info("⚠️ Running in LLM-less (Rule-Based) mode.")
+
 def generate_executive_summary(score: int, weaknesses: List[str], strengths: List[str], case_data: Dict[str, Any]) -> str:
-    """
-    Takes deterministic outputs from the rule engines and generates a premium, 
-    natural-language executive summary.
-    """
-    if not GROQ_API_KEY or GROQ_API_KEY == "gsk_6dIjjHfYhnzWb8CLHe8FWGdyb3FYzO2pnwJxEs69BYTawWTV1rL6_placeholder":
-        return "LLM Copilot is currently disconnected. Please configure GROQ_API_KEY."
+    """Takes deterministic outputs from the rule engines and generates a summary."""
+    if not LLM_AVAILABLE:
+        return f"Case Score: {score}/100. {'Strong case.' if score >= 70 else 'Moderate risk.' if score >= 45 else 'High risk - review defects.'}"
 
     prompt = f"""
     You are a Senior Litigation Partner at a top-tier law firm.
@@ -53,15 +59,11 @@ def generate_executive_summary(score: int, weaknesses: List[str], strengths: Lis
         return response.choices[0].message.content.strip()
     except Exception as e:
         logger.error(f"Groq API Error in summary generation: {str(e)}")
-        return "Error generating AI summary. The case metrics above remain accurate."
+        return f"Case Score: {score}/100. {'Strong case.' if score >= 70 else 'Moderate risk.' if score >= 45 else 'High risk - review defects.'}"
 
 
 def enhance_legal_draft(base_draft: str, draft_type: str, case_data: Dict[str, Any], tone: str = "Standard") -> str:
-    """
-    Takes the structural draft from the rule engines and uses the LLM to refine the language,
-    add persuasive legal arguments, and apply the specific requested tone.
-    """
-    if not GROQ_API_KEY or GROQ_API_KEY == "gsk_6dIjjHfYhnzWb8CLHe8FWGdyb3FYzO2pnwJxEs69BYTawWTV1rL6_placeholder":
+    if not LLM_AVAILABLE:
         return base_draft
 
     prompt = f"""
@@ -95,12 +97,7 @@ def enhance_legal_draft(base_draft: str, draft_type: str, case_data: Dict[str, A
         return base_draft
 
 def extract_fact_graph(text: str) -> Dict[str, Any]:
-    """
-    Uses the LLM to extract entities, relationships, and contradictions,
-    building a structured Fact Graph from the raw text.
-    Returns None if LLM fails, triggering the deterministic fallback.
-    """
-    if not GROQ_API_KEY or GROQ_API_KEY == "gsk_6dIjjHfYhnzWb8CLHe8FWGdyb3FYzO2pnwJxEs69BYTawWTV1rL6_placeholder":
+    if not LLM_AVAILABLE:
         return None
 
     prompt = f"""
@@ -140,12 +137,7 @@ def extract_fact_graph(text: str) -> Dict[str, Any]:
 
 
 def analyze_precedent_relationships(case_data: Dict[str, Any], precedents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Analyzes the relationship between the case facts and the retrieved precedents.
-    Returns the enriched precedents with 'relationship' and 'reasoning' fields.
-    Returns None if LLM fails.
-    """
-    if not GROQ_API_KEY or GROQ_API_KEY == "gsk_6dIjjHfYhnzWb8CLHe8FWGdyb3FYzO2pnwJxEs69BYTawWTV1rL6_placeholder":
+    if not LLM_AVAILABLE:
         return None
         
     if not precedents:
@@ -204,4 +196,3 @@ def analyze_precedent_relationships(case_data: Dict[str, Any], precedents: List[
     except Exception as e:
         logger.error(f"Groq API Error in precedent analysis: {str(e)}")
         return None
-

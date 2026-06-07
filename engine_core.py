@@ -55,6 +55,9 @@ class EngineRegistry:
 # Global Registry Instance
 registry = EngineRegistry()
 
+# LLM Availability Flag
+from llm_engine import LLM_AVAILABLE
+
 # RAG + Judicial Engine (new engines, imported once at module level)
 try:
     from rag_engine import rag_manager
@@ -137,16 +140,17 @@ class JudiQEngine:
             parts = [phrase for key, phrase in SYNTHETIC_TEXT_MAP.items() if case_data.get(key)]
             text = ". ".join(parts)
             
-        try:
-            from llm_engine import extract_fact_graph
-            fact_graph = _safe_call(
-                extract_fact_graph, text,
-                fallback=None,
-                context="LLM_FactGraph"
-            )
-        except Exception as e:
-            logger.error(f"Failed to load LLM fact graph: {e}")
-            fact_graph = None
+        fact_graph = None
+        if LLM_AVAILABLE:
+            try:
+                from llm_engine import extract_fact_graph
+                fact_graph = _safe_call(
+                    extract_fact_graph, text,
+                    fallback=None,
+                    context="LLM_FactGraph"
+                )
+            except Exception as e:
+                logger.error(f"Failed to load LLM fact graph: {e}")
             
         case_data["fact_graph"] = fact_graph
 
