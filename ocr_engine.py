@@ -1,8 +1,20 @@
 import logging
 import re
+import json
 from typing import Dict, List, Any
+from config import settings
+from groq import Groq
 
 logger = logging.getLogger(__name__)
+
+GROQ_API_KEY = settings.GROQ_API_KEY
+try:
+    client = Groq(api_key=GROQ_API_KEY)
+except Exception as e:
+    logger.error(f"Failed to initialize Groq client for OCR: {e}")
+    client = None
+
+MODEL = "llama-3.1-8b-instant"
 
 class OCREngine:
     """
@@ -39,209 +51,141 @@ class OCREngine:
         ]
     }
 
-    @classmethod
-    def extract_dishonour_reason(cls, text: str) -> List[str]:
-        """
-        Scans extracted text for legal dishonour reasons.
-        """
-        text_lower = text.lower()
-        found = []
-        for reason, keywords in cls.REASON_MAP.items():
-            for kw in keywords:
-                if kw in text_lower:
-                    found.append(reason)
-                    break
-        return found
 
-    @classmethod
-    def extract_dates(cls, text: str) -> List[str]:
-        # Basic regex to catch DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY
-        date_pattern = r'\b(\d{1,2}[-./]\d{1,2}[-./]\d{2,4})\b'
-        dates = re.findall(date_pattern, text)
-        return list(set(dates))
-
-    @classmethod
-    def extract_amounts(cls, text: str) -> List[str]:
-        # Regex to catch amounts with Rs, INR, ₹
-        amount_pattern = r'(?i)(?:rs\.?|inr|₹|rupees)\s*([\d,]+(?:\.\d{1,2})?)'
-        amounts = re.findall(amount_pattern, text)
-        return list(set([a.replace(',', '') for a in amounts]))
-
-    @classmethod
-    def extract_cheque_numbers(cls, text: str) -> List[str]:
-        # Standard Indian Cheque Numbers are 6 digits at the bottom
-        chq_pattern = r'\b(?:cheque\s*no\.?|chq\s*no\.?|no\.?)\s*(\d{6})\b|\b0*(\d{6})\b'
-        matches = re.findall(chq_pattern, text.lower())
-        found = []
-        for m in matches:
-            found.extend([x for x in m if x and len(x) == 6])
-        return list(set(found))
-
-    @classmethod
-    def extract_postal_tracking(cls, text: str) -> List[str]:
-        # Indian Speed/Registered Post tracking pattern: e.g., RM123456789IN
-        tracking_pattern = r'\b([A-Z]{2}\d{9}IN)\b'
-        return list(set(re.findall(tracking_pattern, text.upper())))
-
-    @classmethod
-    def verify_delivery_status(cls, text: str) -> Dict[str, Any]:
-        """Extracts delivery status from India Post tracking reports/AD cards."""
-        text_lower = text.lower()
-        is_delivered = "item delivery confirmed" in text_lower or "item delivered" in text_lower or "delivered" in text_lower
-        is_returned = "unclaimed" in text_lower or "refused" in text_lower or "door locked" in text_lower or "addressee left" in text_lower
-        
-        status = "UNKNOWN"
-        if is_delivered: status = "DELIVERED"
-        elif is_returned: status = "RETURNED_UNSERVED"
-        
-        return {
-            "is_delivered": is_delivered,
-            "is_returned": is_returned,
-            "status": status,
-            "has_signature": "signature" in text_lower or "received by" in text_lower
-        }
-
-    @classmethod
-    def classify_debt_proof(cls, text: str) -> str:
-        """Classifies the strength of a debt proof document."""
-        text_lower = text.lower()
-        if any(w in text_lower for w in ["loan agreement", "promissory note", "memorandum of understanding", "mou"]):
-            return "FORMAL_AGREEMENT"
-        elif any(w in text_lower for w in ["invoice", "purchase order", "tax invoice", "bill of supply", "challan"]):
-            return "COMMERCIAL_INVOICE"
-        elif any(w in text_lower for w in ["ledger", "statement of account", "balance sheet"]):
-            return "ACCOUNT_LEDGER"
-        elif any(w in text_lower for w in ["whatsapp", "email", "chat"]):
-            return "ELECTRONIC_COMMUNICATION"
-        return "UNCLASSIFIED_RECORD"
-
-    @classmethod
-    def verify_notice_statutory_compliance(cls, text: str) -> Dict[str, bool]:
-        """Checks if a Legal Notice contains the mandatory 15-day statutory demand under Section 138(b)."""
-        text_lower = text.lower()
-        has_15_days = "15 days" in text_lower or "fifteen days" in text_lower
-        has_demand = any(w in text_lower for w in ["demand", "pay", "remit", "transfer"])
-        return {
-            "has_15_day_clause": has_15_days,
-            "has_payment_demand": has_demand,
-            "is_statutorily_valid": has_15_days and has_demand
-        }
-
-    @classmethod
-    def verify_stamp_duty(cls, text: str) -> bool:
-        """Checks if a formal agreement contains references to stamp duty, e-stamp, or notary."""
-        text_lower = text.lower()
-        return any(w in text_lower for w in ["stamp duty", "e-stamp", "notary", "registration", "stamp paper", "rupees one hundred"])
-
-    @classmethod
-    def extract_jurisdiction_pins(cls, text: str) -> List[str]:
-        """Extracts Indian postal pin codes to verify jurisdiction alignment."""
-        # 6 digit Indian pin codes
-        return list(set(re.findall(r'\b[1-9][0-9]{5}\b', text)))
 
     @classmethod
     def analyze_document(cls, extracted_text: str, doc_type: str, user_claimed_reason: str = "") -> Dict[str, Any]:
         """
-        Extracts key evidence metrics (Dates, Amounts, Reasons, Tracking, Jurisdiction) based on document type.
+        Uses Groq LLM to intelligently extract key evidence metrics (Dates, Amounts, Reasons, Tracking, Jurisdiction)
+        from raw OCR text, replacing the legacy naive Regex system.
         """
         result = {
             "is_verified": False,
             "detected_reasons": [],
-            "extracted_dates": cls.extract_dates(extracted_text),
-            "extracted_amounts": cls.extract_amounts(extracted_text),
-            "extracted_cheque_numbers": cls.extract_cheque_numbers(extracted_text),
-            "postal_tracking_numbers": cls.extract_postal_tracking(extracted_text),
-            "extracted_pin_codes": cls.extract_jurisdiction_pins(extracted_text),
-            "has_stamp_duty": cls.verify_stamp_duty(extracted_text) if doc_type.upper() == "DEBT_PROOF" else False,
-            "debt_proof_class": cls.classify_debt_proof(extracted_text) if doc_type.upper() == "DEBT_PROOF" else None,
-            "notice_compliance": cls.verify_notice_statutory_compliance(extracted_text) if doc_type.upper() == "NOTICE" else None,
-            "delivery_report": cls.verify_delivery_status(extracted_text) if doc_type.upper() == "TRACKING_REPORT" else None,
+            "extracted_dates": [],
+            "extracted_amounts": [],
+            "extracted_cheque_numbers": [],
+            "postal_tracking_numbers": [],
+            "extracted_pin_codes": [],
+            "has_stamp_duty": False,
+            "debt_proof_class": None,
+            "notice_compliance": None,
+            "delivery_report": None,
             "warning": None,
             "verification_confidence": 0.0,
             "extracted_snippet": extracted_text[:200] + "..." if len(extracted_text) > 200 else extracted_text
         }
 
-        if doc_type.upper() == "MEMO":
-            detected = cls.extract_dishonour_reason(extracted_text)
-            result["detected_reasons"] = detected
-            
-            if not detected:
-                result["warning"] = "EVIDENCE GAP: No recognizable bank return code found in the uploaded document."
-                result["verification_confidence"] = 0.20
-            elif user_claimed_reason and user_claimed_reason in detected:
-                result["is_verified"] = True
-                result["verification_confidence"] = 0.95
-            elif user_claimed_reason:
-                result["warning"] = f"DISCREPANCY: The uploaded memo suggests '{detected[0]}', but you selected '{user_claimed_reason}'."
-                result["verification_confidence"] = 0.40
-            else:
-                result["is_verified"] = True
-                result["verification_confidence"] = 0.80
+        if not client or not GROQ_API_KEY or GROQ_API_KEY == "gsk_6dIjjHfYhnzWb8CLHe8FWGdyb3FYzO2pnwJxEs69BYTawWTV1rL6_placeholder":
+            logger.warning("LLM OCR unavailable. Falling back to simple heuristic verification.")
+            result["is_verified"] = len(extracted_text.strip()) > 10
+            result["verification_confidence"] = 0.50
+            return result
 
-        elif doc_type.upper() == "CHEQUE":
-            # Signature Verification Logic (Basic string heuristics for cheque bounding boxes)
-            has_signature_indicators = any(w in extracted_text.lower() for w in ["authorized signatory", "for ", "director", "proprietor", "signature"])
+        prompt = f"""
+        You are a Document Intelligence AI for Indian Legal Tech.
+        Analyze the following raw OCR text extracted from a {doc_type} document.
+        
+        OCR Text:
+        \"\"\"{extracted_text[:1500]}\"\"\"
+        
+        Extract the following information into a strict JSON format:
+        {{
+            "dates": ["list of dates found"],
+            "amounts": ["list of currency amounts found"],
+            "cheque_numbers": ["list of 6-digit cheque numbers found"],
+            "tracking_numbers": ["list of Indian postal tracking numbers like RM...IN"],
+            "pin_codes": ["list of 6-digit postal codes"],
+            "dishonour_reasons": ["list of reasons like 'Insufficient Funds', 'Account Closed' - ONLY IF it's a Bank Memo"],
+            "has_stamp_duty_or_notary": true/false (ONLY IF it's a Debt Proof agreement),
+            "notice_compliance": {{ "has_15_day_clause": true/false, "has_payment_demand": true/false }} (ONLY IF it's a Legal Notice),
+            "delivery_status": "DELIVERED" or "RETURNED" or "UNKNOWN" (ONLY IF it's a Tracking Report),
+            "has_signature": true/false
+        }}
+        Output ONLY the raw JSON without markdown formatting.
+        """
+
+        try:
+            response = client.chat.completions.create(
+                messages=[{"role": "system", "content": prompt}],
+                model=MODEL,
+                temperature=0.1,
+                max_tokens=500,
+            )
+            content = response.choices[0].message.content.strip()
+            if content.startswith("```json"):
+                content = content[7:-3]
+            data = json.loads(content)
             
-            if result["extracted_amounts"] and result["extracted_cheque_numbers"]:
-                result["is_verified"] = True
-                result["verification_confidence"] = 0.95
-                if not has_signature_indicators:
-                    result["warning"] = "WARNING: Cheque details extracted, but no signature/signatory block detected. Ensure cheque is signed."
-            elif result["extracted_amounts"]:
-                result["is_verified"] = True
-                result["verification_confidence"] = 0.85
-                result["warning"] = "WARNING: Could not securely read the 6-digit cheque number."
-            else:
-                result["warning"] = "EVIDENCE GAP: Could not extract cheque amount from the uploaded document."
-                result["verification_confidence"] = 0.30
-                
-        elif doc_type.upper() == "NOTICE":
-            compliance = result["notice_compliance"]
-            if result["extracted_dates"] and result["postal_tracking_numbers"]:
-                if compliance and compliance["is_statutorily_valid"]:
+            result["extracted_dates"] = data.get("dates", [])
+            result["extracted_amounts"] = data.get("amounts", [])
+            result["extracted_cheque_numbers"] = data.get("cheque_numbers", [])
+            result["postal_tracking_numbers"] = data.get("tracking_numbers", [])
+            result["extracted_pin_codes"] = data.get("pin_codes", [])
+            
+            # Memo logic
+            if doc_type.upper() == "MEMO":
+                result["detected_reasons"] = data.get("dishonour_reasons", [])
+                if not result["detected_reasons"]:
+                    result["warning"] = "EVIDENCE GAP: No recognizable bank return code found."
+                    result["verification_confidence"] = 0.20
+                elif user_claimed_reason and any(user_claimed_reason.lower() in r.lower() for r in result["detected_reasons"]):
+                    result["is_verified"] = True
+                    result["verification_confidence"] = 0.95
+                elif user_claimed_reason:
+                    result["warning"] = f"DISCREPANCY: Uploaded memo suggests {result['detected_reasons']}, but you selected '{user_claimed_reason}'."
+                    result["verification_confidence"] = 0.40
+                else:
+                    result["is_verified"] = True
+                    result["verification_confidence"] = 0.80
+
+            # Cheque logic
+            elif doc_type.upper() == "CHEQUE":
+                if result["extracted_amounts"] and result["extracted_cheque_numbers"]:
+                    result["is_verified"] = True
+                    result["verification_confidence"] = 0.95
+                elif result["extracted_amounts"]:
+                    result["is_verified"] = True
+                    result["verification_confidence"] = 0.85
+                    result["warning"] = "WARNING: Could not securely read the 6-digit cheque number."
+                else:
+                    result["warning"] = "EVIDENCE GAP: Could not extract cheque amount."
+                    result["verification_confidence"] = 0.30
+
+            # Notice logic
+            elif doc_type.upper() == "NOTICE":
+                nc = data.get("notice_compliance", {})
+                result["notice_compliance"] = nc
+                if nc.get("has_15_day_clause") and nc.get("has_payment_demand"):
                     result["is_verified"] = True
                     result["verification_confidence"] = 0.99
                 else:
-                    result["is_verified"] = False
+                    result["warning"] = "FATAL DEFECT: Notice missing mandatory 15-day demand."
                     result["verification_confidence"] = 0.20
-                    result["warning"] = "FATAL DEFECT: The notice is missing the mandatory '15-day' demand clause required under Section 138(b)."
-            elif result["extracted_dates"]:
-                result["is_verified"] = True
-                result["verification_confidence"] = 0.85
-                result["warning"] = "WARNING: Notice found, but missing standard Speed Post/Regd. Tracking Number."
-            else:
-                result["warning"] = "EVIDENCE GAP: Could not extract dispatch dates from the legal notice."
-                result["verification_confidence"] = 0.30
 
-        elif doc_type.upper() == "DEBT_PROOF":
-            dp_class = result["debt_proof_class"]
-            if dp_class == "FORMAL_AGREEMENT":
+            # Debt logic
+            elif doc_type.upper() == "DEBT_PROOF":
+                result["has_stamp_duty"] = data.get("has_stamp_duty_or_notary", False)
                 result["is_verified"] = True
-                result["verification_confidence"] = 0.95
-            elif dp_class == "COMMERCIAL_INVOICE":
-                result["is_verified"] = True
-                result["verification_confidence"] = 0.85
-            else:
-                result["is_verified"] = True
-                result["verification_confidence"] = 0.60
-                result["warning"] = "WEAK EVIDENCE: Debt proof appears informal. High risk of rebuttal."
-
-        elif doc_type.upper() == "TRACKING_REPORT":
-            report = result["delivery_report"]
-            if report["is_delivered"]:
-                result["is_verified"] = True
-                result["verification_confidence"] = 0.98
-                if not report["has_signature"]:
-                    result["warning"] = "WARNING: Delivery confirmed, but document lacks a visible recipient signature. May be challenged as 'Vague Tracking'."
-            elif report["is_returned"]:
-                result["is_verified"] = True
-                result["verification_confidence"] = 0.90
-                result["warning"] = "NOTE: Notice returned unserved. Deemed service u/s 27 General Clauses Act can be invoked if address is correct."
-            else:
-                result["warning"] = "EVIDENCE GAP: Could not verify delivery status from the uploaded tracking report."
-                result["verification_confidence"] = 0.30
-
-        else:
+                result["verification_confidence"] = 0.90 if result["has_stamp_duty"] else 0.60
+                
+            # Tracking logic
+            elif doc_type.upper() == "TRACKING_REPORT":
+                status = data.get("delivery_status", "UNKNOWN")
+                result["delivery_report"] = {"status": status}
+                if status == "DELIVERED":
+                    result["is_verified"] = True
+                    result["verification_confidence"] = 0.98
+                elif status == "RETURNED":
+                    result["is_verified"] = True
+                    result["verification_confidence"] = 0.90
+                    result["warning"] = "Notice returned unserved."
+                else:
+                    result["warning"] = "Could not verify delivery status."
+                    result["verification_confidence"] = 0.30
+                    
+        except Exception as e:
+            logger.error(f"Groq API Error in Document Intelligence: {str(e)}")
             result["is_verified"] = len(extracted_text.strip()) > 10
             result["verification_confidence"] = 0.50
 

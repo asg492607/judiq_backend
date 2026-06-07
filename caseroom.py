@@ -8,6 +8,8 @@ from session import DatabaseManager
 from config import settings
 from cryptography.fernet import Fernet
 from ocr_engine import OCREngine
+from llm_engine import LLMEngine
+import json
 
 router = APIRouter()
 logger = logging.getLogger("JudiQ.Caseroom")
@@ -67,9 +69,26 @@ async def invite_to_caseroom(room_id: str, request: Request):
 @router.post("/{room_id}/message")
 async def send_caseroom_message(room_id: str, request: Request):
     data = await request.json()
-    success = CaseroomManager.post_comment(room_id, data.get("user_id"), data.get("content"))
+    user_id = data.get("user_id")
+    content = data.get("content", "")
+    
+    success = CaseroomManager.post_comment(room_id, user_id, content)
     if success:
-        await manager.broadcast({"type": "NEW_MESSAGE", "user_id": data.get("user_id"), "content": data.get("content")}, room_id)
+        await manager.broadcast({"type": "NEW_MESSAGE", "user_id": user_id, "content": content}, room_id)
+        
+        # AI Simulator Logic
+        if "@JudiQ" in content:
+            prompt = f"You are an adversarial opposing counsel in an Indian courtroom. The defense lawyer just said: '{content}'. Cross-examine them aggressively but professionally to find logical gaps. Keep it to 2-3 sentences."
+            try:
+                llm_response = LLMEngine.generate_reasoning_trail(prompt, [])
+                ai_text = llm_response if llm_response else "Objection, your honor. The statement lacks merit."
+            except Exception as e:
+                logger.error(f"Simulator LLM Error: {e}")
+                ai_text = "I am currently unable to process your argument."
+                
+            CaseroomManager.post_comment(room_id, "JudiQ_AI", ai_text)
+            await manager.broadcast({"type": "NEW_MESSAGE", "user_id": "JudiQ_AI", "content": ai_text}, room_id)
+            
     return {"success": success}
 
 @router.websocket("/ws/{room_id}")
@@ -77,8 +96,8 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str):
     await manager.connect(websocket, room_id)
     try:
         while True:
+            # We just keep connection open, messages come via POST
             data = await websocket.receive_text()
-            # Handle incoming WS messages if needed
     except WebSocketDisconnect:
         manager.disconnect(websocket, room_id)
 

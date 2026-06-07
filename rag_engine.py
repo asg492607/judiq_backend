@@ -10,7 +10,15 @@ import logging
 import os
 import json
 import re
+import numpy as np
 from typing import List, Dict, Any
+
+try:
+    import faiss
+    from sentence_transformers import SentenceTransformer
+    HAS_VECTOR_DB = True
+except ImportError:
+    HAS_VECTOR_DB = False
 
 logger = logging.getLogger(__name__)
 
@@ -160,16 +168,61 @@ class RAGManager:
 
     def __init__(self):
         self._corpus = PRECEDENT_CORPUS
-        logger.info(f"[RAGManager] Loaded {len(self._corpus)} precedents into corpus.")
+        self._use_vector = HAS_VECTOR_DB
+        self.model = None
+        self.index = None
+        
+        if self._use_vector:
+            try:
+                logger.info("[RAGManager] Initializing SentenceTransformer (all-MiniLM-L6-v2)...")
+                self.model = SentenceTransformer('all-MiniLM-L6-v2')
+                self._build_index()
+                logger.info(f"[RAGManager] Loaded {len(self._corpus)} precedents into FAISS vector index.")
+            except Exception as e:
+                logger.error(f"[RAGManager] Failed to load Vector DB: {e}. Falling back to Keyword RAG.")
+                self._use_vector = False
+        
+        if not self._use_vector:
+            logger.info(f"[RAGManager] Loaded {len(self._corpus)} precedents into Keyword corpus (Fallback).")
+
+    def _build_index(self):
+        """Builds the FAISS index by embedding the summaries of all precedents."""
+        texts = [p.get("summary", "") + " " + " ".join(p.get("keywords", [])) for p in self._corpus]
+        embeddings = self.model.encode(texts)
+        dimension = embeddings.shape[1]
+        
+        # L2 Distance metric
+        self.index = faiss.IndexFlatL2(dimension)
+        self.index.add(np.array(embeddings).astype('float32'))
 
     def semantic_search(self, query: str, top_k: int = 5, stance_filter: str = None) -> List[Dict]:
         """
         Main search API. Returns top_k most relevant precedents for query.
+        Uses FAISS vector search if available, otherwise falls back to keywords.
         stance_filter: 'complainant_favourable' | 'defence_favourable' | 'neutral' | None
         """
         if not query:
             return self._corpus[:top_k]
 
+        if self._use_vector and self.model and self.index:
+            try:
+                query_vector = self.model.encode([query])
+                distances, indices = self.index.search(np.array(query_vector).astype('float32'), len(self._corpus))
+                
+                scored = []
+                for i, idx in enumerate(indices[0]):
+                    prec = self._corpus[idx]
+                    if stance_filter and prec.get("stance") != stance_filter:
+                        continue
+                    # distance is L2, so smaller is better. Let's invert it for score (arbitrary scaling)
+                    score = 1.0 / (1.0 + distances[0][i])
+                    scored.append((score, prec))
+                
+                return [p for _, p in scored[:top_k]]
+            except Exception as e:
+                logger.error(f"Vector search failed: {e}. Falling back.")
+
+        # Fallback Keyword Logic
         query_words = set(re.sub(r'[^\w\s]', '', query.lower()).split())
         scored = []
 
