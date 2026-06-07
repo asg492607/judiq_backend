@@ -307,6 +307,12 @@ class ResponseBuilder:
         weakness_strs = [w['risk'] for w in final_weaknesses]
         executive_summary_text = generate_executive_summary(score, weakness_strs, strengths, case_data)
         
+        from llm_engine import LLM_AVAILABLE
+        if LLM_AVAILABLE and "Case Score" not in executive_summary_text:
+            executive_summary_text = f"**AI-Generated Strategic Summary:**\n{executive_summary_text}"
+        else:
+            executive_summary_text = f"**Rule-Based Deterministic Summary:**\n{executive_summary_text}"
+        
         base_draft = engine_result.get("draft", "")
         draft_type = engine_result.get("draft_type", "LEGAL_OPINION")
         enhanced_draft = enhance_legal_draft(base_draft, draft_type, case_data) if base_draft else ""

@@ -79,6 +79,35 @@ SYNTHETIC_TEXT_MAP = {
     "debt_proven":     "loan agreement executed and legally enforceable debt established",
 }
 
+def scan_fatal_defects(case_data, contradictions, adversarial_result, limitation, verification_penalties):
+    is_fatal = False
+    fatal_reason = ""
+    
+    # 1. Check Contradictions
+    for contra in contradictions:
+        if contra.get("penalty", 0) <= -50 or "Fatal" in contra.get("remediation", "") or "DO NOT FILE" in contra.get("remediation", ""):
+            return True, contra.get("issue", "Critical Defect")
+            
+    # 2. Hardcoded fatal_defect in case_data
+    if case_data.get("fatal_defect"):
+        return True, str(case_data.get("fatal_defect"))
+        
+    # 3. Adversarial Fatalities
+    if "analysis_nodes" in adversarial_result:
+        for node in adversarial_result["analysis_nodes"]:
+            if node.get("severity") == "FATAL":
+                return True, node.get("risk_explained", "Fatal Adversarial Risk")
+                
+    # 4. OCR / Evidentiary Fraud
+    if verification_penalties < 0:
+        return True, "Evidentiary Fraud / Document Intelligence Override"
+        
+    # 5. Timeline / Notice Service Fatalities
+    if limitation.get("fatal_defect") or limitation.get("is_premature") or limitation.get("status") == "NOTICE_INVALID":
+        return True, limitation.get("fatal_defect", "Invalid Timeline/Notice Issue")
+        
+    return False, ""
+
 class JudiQEngine:
     """
     Central orchestrator -- fully fault-tolerant.
@@ -381,34 +410,13 @@ class JudiQEngine:
         )
 
         # -- 6.7 Fatal Defect Hard Override -----------------------------------
-        is_fatal = False
-        fatal_reason = ""
-        for contra in contradictions:
-            if contra.get("penalty", 0) <= -50 or "Fatal" in contra.get("remediation", "") or "DO NOT FILE" in contra.get("remediation", ""):
-                is_fatal = True
-                fatal_reason = contra.get("issue", "Critical Defect")
-                break
-        
-        if not is_fatal and case_data.get("fatal_defect"):
-            is_fatal = True
-            fatal_reason = str(case_data.get("fatal_defect"))
-
-        if not is_fatal and "analysis_nodes" in adversarial_result:
-            for node in adversarial_result["analysis_nodes"]:
-                if node.get("severity") == "FATAL":
-                    is_fatal = True
-                    fatal_reason = node.get("risk_explained", "Fatal Adversarial Risk")
-                    break
-
-        # Check OCR/Evidentiary fraud override directly
-        if case_data.get("verification_penalties", 0) < 0:
-            is_fatal = True
-            fatal_reason = "Evidentiary Fraud / Document Intelligence Override"
-            
-        # Check Timeline / Notice Service Fatalities
-        if limitation.get("fatal_defect") or limitation.get("is_premature") or limitation.get("status") == "NOTICE_INVALID":
-            is_fatal = True
-            fatal_reason = limitation.get("fatal_defect", "Invalid Timeline/Notice Issue")
+        is_fatal, fatal_reason = scan_fatal_defects(
+            case_data, 
+            contradictions, 
+            adversarial_result, 
+            limitation, 
+            case_data.get("verification_penalties", 0)
+        )
 
         if is_fatal:
             final_score = min(final_score, 25.0)

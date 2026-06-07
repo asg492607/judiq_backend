@@ -1171,6 +1171,15 @@ class DraftEngine:
 
     @staticmethod
     def generate_draft(draft_type: str, score: int, concepts: List[Dict], case_data: Dict) -> str:
+        # Strict Gating for Offensive Drafts
+        offensive_drafts = ["LEGAL_NOTICE", "COMPLAINT", "FIR_DRAFT"]
+        is_offensive = draft_type in offensive_drafts
+        has_fatal_defect = case_data.get("fatal_defect") or case_data.get("failure_point_injected")
+        
+        if is_offensive and (score < 40 or has_fatal_defect):
+            reason = has_fatal_defect if has_fatal_defect else "Survivability score below 40."
+            return f"DRAFT GENERATION BLOCKED.\n\nReason: {reason}\n\nJudiQ refuses to generate {draft_type} due to critical strategic or procedural defects that make the filing legally untenable or frivolous. Please review the Executive Summary."
+
         # Get tone from case_data or default to standard
         tone = case_data.get("draft_tone", "standard")
         

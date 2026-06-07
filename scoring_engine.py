@@ -14,31 +14,17 @@ def ensure_number(x, default=0):
     try: return float(x)
     except: return default
 
-# Scoring Engine Constants (No Magic Numbers)
-PENALTY_COMPANY_DIRECTOR_NOT_NAMED = -40
-PENALTY_DIRECTOR_RESIGNED = -50
-PENALTY_BASALINGAPPA_FATAL = -40
-PENALTY_BASALINGAPPA_HIGH = -25
-PENALTY_LIMITATION = -30
-PENALTY_NOTICE_DEFECT = -25
-PENALTY_UNVERIFIED_SIGNATURE = -35
-PENALTY_MATERIAL_ALTERATION = -40
-PENALTY_LOW_RELIABILITY_EVIDENCE = -15
-PILLAR_CHEQUE_ORIGINAL = 24
-PILLAR_CHEQUE_PHOTOCOPY = -15
-PILLAR_CHEQUE_MISSING = -42
-PILLAR_MEMO_PRESENT = 13
-PILLAR_MEMO_MISSING = -22
-PILLAR_NOTICE_VALID = 27
-PILLAR_NOTICE_LATE = 6
-PILLAR_NOTICE_MISSING = -55
-PILLAR_DEBT_PROVEN = 19
-PILLAR_DEBT_MISSING = -18
-STRATEGIC_PRO_COMPLAINANT = 7
-STRATEGIC_PRO_ACCUSED = -11
-PENALTY_NOTICE_DELIVERY_FAILED = -30
+from base_scoring_engine import (
+    BaseScoringEngine, PENALTY_COMPANY_DIRECTOR_NOT_NAMED, PENALTY_DIRECTOR_RESIGNED,
+    PENALTY_BASALINGAPPA_FATAL, PENALTY_BASALINGAPPA_HIGH, PENALTY_LIMITATION,
+    PENALTY_NOTICE_DEFECT, PENALTY_UNVERIFIED_SIGNATURE, PENALTY_MATERIAL_ALTERATION,
+    PENALTY_LOW_RELIABILITY_EVIDENCE, PILLAR_CHEQUE_ORIGINAL, PILLAR_CHEQUE_PHOTOCOPY,
+    PILLAR_CHEQUE_MISSING, PILLAR_MEMO_PRESENT, PILLAR_MEMO_MISSING, PILLAR_NOTICE_VALID,
+    PILLAR_NOTICE_LATE, PILLAR_NOTICE_MISSING, PILLAR_DEBT_PROVEN, PILLAR_DEBT_MISSING,
+    STRATEGIC_PRO_COMPLAINANT, STRATEGIC_PRO_ACCUSED, PENALTY_NOTICE_DELIVERY_FAILED
+)
 
-class ScoringEngineV12:
+class ScoringEngineV12(BaseScoringEngine):
     @classmethod
     def resolve_conflicts(cls, concepts: List[Dict]) -> List[Dict]:
         """Resolve conflicting concepts - keep higher confidence one"""
@@ -410,108 +396,6 @@ class ScoringEngineV12:
                 "trial_target_3yr": f"â‚¹{int(amount * 1.5):,}",
                 "cost_of_delay_per_month": f"â‚¹{int(amount * 0.015):,}",
                 "settlement_posture": "AGGRESSIVE" if final_score > 75 else "CONCILIATORY"
-            },
-            "checkpoints": [
-                {"task": "Verify Notice Receipt/AD Card", "status": "PENDING", "priority": "HIGH"},
-                {"task": "S.63(4) BSA Certificate Readiness", "status": "REQUIRED" if case_data.get("communication_records") else "N/A", "priority": "CRITICAL"},
-                {"task": "S.141 MCA Master Data Audit", "status": "REQUIRED" if is_company else "N/A", "priority": "CRITICAL"},
-                {"task": "Ledger Statement Procurement", "status": "PENDING" if not debt else "DONE", "priority": "HIGH"}
-            ],
-            "evidence_reliability": evidence_reliability,
-            "reliability_matrix": reliability_matrix,
-            "self_challenge": self_challenge,
-            "case_similarity": similarity_metrics,
-            "failure_point": failure_point,
-            "senior_brief": senior_brief,
-            "question_bank": question_bank,
-            "remediation_sim": remediation_sim,
-            "uncertainty_intelligence": uncertainty_messages
-        }
-
-    @classmethod
-    def calculate_evidence_reliability(cls, case_data: Dict) -> Dict:
-        """
-        USER REQUEST 2: Evidence Chain of Custody Intelligence.
-        Grades evidence survival based on format/custody.
-        """
-        reliability = {}
-        
-        # Cheque Reliability
-        cheque_type = case_data.get("cheque_proof_type", "original").lower()
-        if cheque_type == "original":
-            reliability["Original Cheque"] = {"score": 0.98, "status": "SURVIVABLE", "attack_risk": "MINIMAL"}
-        elif cheque_type == "photocopy":
-            reliability["Cheque Photocopy"] = {"score": 0.15, "status": "VULNERABLE", "attack_risk": "CRITICAL", "reason": "Lacks primary admissibility; secondary evidence requirements high."}
-        else:
-            reliability["Cheque Fragment"] = {"score": 0.05, "status": "FATAL_RISK", "attack_risk": "TERMINAL"}
-            
-        # Financial Capacity (Basalingappa)
-        amount = ensure_number(case_data.get("amount", 0))
-        is_cash = case_data.get("payment_mode", "").lower() == "cash"
-        itr_avail = case_data.get("complainant_itr_available", False)
-        if is_cash and amount > 20000 and not itr_avail:
-            reliability["Financial Capacity"] = {"score": 0.20, "status": "FATAL_RISK", "attack_risk": "TERMINAL", "reason": "S.269SS violation with no ITR proof of source of funds."}
-
-        # Digital Proofs
-        has_digital = case_data.get("communication_records", False)
-        if has_digital:
-            has_65b = case_data.get("has_bsa_certificate", False)
-            if has_65b:
-                reliability["WhatsApp/Email"] = {"score": 0.85, "status": "AUTHENTICATED", "attack_risk": "LOW"}
-            else:
-                reliability["WhatsApp Screenshot"] = {"score": 0.30, "status": "VULNERABLE", "attack_risk": "HIGH", "reason": "Mandatory S.63(4) BSA Certificate missing (Replacing old 65B)."}
-
-        # Witness Support
-        witness_status = str(case_data.get("witness_available", "No")).lower()
-        if "multiple" in witness_status:
-            reliability["Witness"] = {"score": 0.85, "status": "STRONG", "attack_risk": "LOW", "reason": "Multiple witnesses provide robust corroboration."}
-        elif "one" in witness_status:
-            reliability["Witness"] = {"score": 0.60, "status": "ADEQUATE", "attack_risk": "MEDIUM", "reason": "Single witness; susceptible to targeted cross-examination."}
-        else:
-            reliability["Witness"] = {"score": 0.25, "status": "MISSING", "attack_risk": "HIGH", "reason": "No independent corroboration; heavy reliance on documentary evidence."}
-
-        # Bank Memo
-        reliability["Bank Return Memo"] = {"score": 0.95, "status": "VERIFIED", "attack_risk": "MINIMAL"}
-        
-        return reliability
-
-    @classmethod
-    def calculate_reliability_matrix(cls, score: int, concepts: List[Dict], case_data: Dict) -> Dict:
-        """USER REQUEST 9: Reliability Confidence Matrix."""
-        return {
-            "factual_confidence": f"{int(min(95, score * 1.1))}%",
-            "evidentiary_confidence": f"{int(min(98, score * 0.9))}%",
-            "procedural_confidence": "95%" if case_data.get("notice_sent") and case_data.get("within_30_days") else "25%",
-            "strategic_confidence": f"{int(score)}%"
-        }
-
-    @classmethod
-    def calculate_self_challenge(cls, score: int, case_data: Dict, concepts: List[Dict]) -> Dict:
-        """
-        USER REQUEST 3: AI Self-Challenge Layer.
-        â€œHow could my own conclusion be wrong?â€
-        """
-        if score > 70:
-            challenge = "If the Accused produces a 'Stop Payment' letter issued PRIOR to the cheque date for non-debt reasons, the S.139 presumption may be rebutted."
-            alt_interpretation = "The case might be viewed as a 'Commercial Dispute' rather than a 'Criminal Liability' if the underlying agreement is found to be for investment, not debt."
-        elif score > 40:
-            challenge = "Current weakness in 'Financial Capacity' could be neutralized if the Complainant produces 3 years of audited balance sheets."
-            alt_interpretation = "The Magistrate might treat the 'Security Cheque' defense as a matter of trial rather than a reason for acquittal if interest payments are proven."
-        else:
-            challenge = "Despite fatal defects, if the Accused admits the signature and the debt in the reply notice, the Complainant might still survive a discharge application."
-            alt_interpretation = "Technical acquittal risk is 90%, but a settlement is still possible as the Accused may fear long-term litigation costs."
-
-        return {
-            "challenge_question": "How could this analysis be wrong?",
-            "counter_argument": challenge,
-            "alternative_perspective": alt_interpretation,
-            "trust_indicator": "This analysis considers the best-case defense scenario."
-        }
-
-    @classmethod
-    def calculate_case_similarity(cls, score: int, case_data: Dict, concepts: List[Dict]) -> Dict:
-        """USER REQUEST 5: Comparative Case Similarity."""
-        if score < 40:
             pattern = "Acquittal-Risk (Financial Capacity)"
             match_pct = 81
         elif score < 60:

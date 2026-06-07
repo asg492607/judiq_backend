@@ -276,5 +276,47 @@ def normalize_input(data: dict) -> dict:
         "debt_acknowledged":     _safe_bool(data.get("debt_acknowledged", tx_obj.get("debt_acknowledged", False))),
     }
 
+    normalized = resolve_logical_contradictions(normalized)
     return normalized
+
+
+def resolve_logical_contradictions(data: dict) -> dict:
+    """
+    Implements a conflict resolution matrix for contradictory inputs.
+    """
+    from datetime import datetime
+    
+    # Notice Delivery Logic
+    # Handle partial/invalid notice delivery statuses
+    notice_status = str(data.get("notice_received_type", "")).lower()
+    if notice_status in ["refused", "door locked", "unclaimed", "addressee moved"]:
+        # Legally, 'refused' or 'door locked' with valid address is considered deemed service under General Clauses Act.
+        data["notice_received_type"] = "Deemed Service"
+        data["notice_served_proof"] = True
+    elif notice_status in ["incorrect address", "no such person"]:
+        data["notice_received_type"] = "Failed Service"
+        data["notice_served_proof"] = False
+        data["fatal_defect"] = "Notice sent to incorrect address. Not a valid service."
+
+    # Date Contradiction Logic
+    try:
+        if data.get("notice_date") and data.get("filing_date"):
+            n_date = datetime.strptime(data["notice_date"], "%Y-%m-%d").date()
+            f_date = datetime.strptime(data["filing_date"], "%Y-%m-%d").date()
+            if n_date > f_date:
+                data["fatal_defect"] = "Contradiction: Filing date is before the Notice was even sent."
+                data["notice_sent"] = False  # Logically impossible
+    except Exception:
+        pass
+        
+    try:
+        if data.get("dishonour_date") and data.get("notice_date"):
+            d_date = datetime.strptime(data["dishonour_date"], "%Y-%m-%d").date()
+            n_date = datetime.strptime(data["notice_date"], "%Y-%m-%d").date()
+            if d_date > n_date:
+                data["fatal_defect"] = "Contradiction: Notice sent before the cheque was dishonoured."
+    except Exception:
+        pass
+        
+    return data
 

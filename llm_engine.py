@@ -24,6 +24,33 @@ if LLM_AVAILABLE:
 else:
     logger.info("⚠️ Running in LLM-less (Rule-Based) mode.")
 
+def _invoke_llm(prompt: str, max_tokens: int = 1000, temperature: float = 0.2, expect_json: bool = False, fallback_value=None):
+    """Central router for all LLM calls to guarantee safe execution."""
+    if not LLM_AVAILABLE or not client:
+        return fallback_value
+
+    try:
+        response = client.chat.completions.create(
+            messages=[{"role": "system", "content": prompt}],
+            model=MODEL,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        content = response.choices[0].message.content.strip()
+        
+        if expect_json:
+            if content.startswith("```json"):
+                content = content[7:-3]
+            elif content.startswith("```"):
+                content = content[3:-3]
+            return json.loads(content)
+            
+        return content
+    except Exception as e:
+        logger.error(f"LLM Invocation Error: {str(e)}")
+        return fallback_value
+
+
 def generate_executive_summary(score: int, weaknesses: List[str], strengths: List[str], case_data: Dict[str, Any]) -> str:
     """Takes deterministic outputs from the rule engines and generates a summary."""
     if not LLM_AVAILABLE:
@@ -49,17 +76,8 @@ def generate_executive_summary(score: int, weaknesses: List[str], strengths: Lis
     Use a professional, objective legal tone.
     """
 
-    try:
-        response = client.chat.completions.create(
-            messages=[{"role": "system", "content": prompt}],
-            model=MODEL,
-            temperature=0.3,
-            max_tokens=300,
-        )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        logger.error(f"Groq API Error in summary generation: {str(e)}")
-        return f"Case Score: {score}/100. {'Strong case.' if score >= 70 else 'Moderate risk.' if score >= 45 else 'High risk - review defects.'}"
+    fallback = f"Case Score: {score}/100. {'Strong case.' if score >= 70 else 'Moderate risk.' if score >= 45 else 'High risk - review defects.'}"
+    return _invoke_llm(prompt, max_tokens=300, temperature=0.3, fallback_value=fallback)
 
 
 def enhance_legal_draft(base_draft: str, draft_type: str, case_data: Dict[str, Any], tone: str = "Standard") -> str:
@@ -84,17 +102,7 @@ def enhance_legal_draft(base_draft: str, draft_type: str, case_data: Dict[str, A
     Return ONLY the final text of the legal draft, without any preamble or explanation. Keep the formatting clean.
     """
 
-    try:
-        response = client.chat.completions.create(
-            messages=[{"role": "system", "content": prompt}],
-            model=MODEL,
-            temperature=0.4,
-            max_tokens=2000,
-        )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        logger.error(f"Groq API Error in draft enhancement: {str(e)}")
-        return base_draft
+    return _invoke_llm(prompt, max_tokens=2000, temperature=0.4, fallback_value=base_draft)
 
 def extract_fact_graph(text: str) -> Dict[str, Any]:
     if not LLM_AVAILABLE:
@@ -120,20 +128,7 @@ def extract_fact_graph(text: str) -> Dict[str, Any]:
     Do not output any markdown formatting, just raw JSON.
     """
 
-    try:
-        response = client.chat.completions.create(
-            messages=[{"role": "system", "content": prompt}],
-            model=MODEL,
-            temperature=0.1,
-            max_tokens=1000,
-        )
-        content = response.choices[0].message.content.strip()
-        if content.startswith("```json"):
-            content = content[7:-3]
-        return json.loads(content)
-    except Exception as e:
-        logger.error(f"Groq API Error in fact graph extraction: {str(e)}")
-        return None
+    return _invoke_llm(prompt, max_tokens=1000, temperature=0.1, expect_json=True, fallback_value=None)
 
 
 def analyze_precedent_relationships(case_data: Dict[str, Any], precedents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -173,26 +168,18 @@ def analyze_precedent_relationships(case_data: Dict[str, Any], precedents: List[
     Do not output any markdown formatting, just raw JSON.
     """
 
+    analysis = _invoke_llm(prompt, max_tokens=1000, temperature=0.2, expect_json=True, fallback_value=None)
+    if not analysis:
+        return precedents
+
+    # Merge back
     try:
-        response = client.chat.completions.create(
-            messages=[{"role": "system", "content": prompt}],
-            model=MODEL,
-            temperature=0.2,
-            max_tokens=1000,
-        )
-        content = response.choices[0].message.content.strip()
-        if content.startswith("```json"):
-            content = content[7:-3]
-        analysis = json.loads(content)
-        
-        # Merge back
         for item in analysis:
             idx = int(item["id"]) - 1
             if 0 <= idx < len(precedents):
-                precedents[idx]["relationship"] = item["relationship"]
-                precedents[idx]["llm_reasoning"] = item["reasoning"]
-                
-        return precedents
+                precedents[idx]["relationship"] = item.get("relationship", "UNKNOWN")
+                precedents[idx]["llm_reasoning"] = item.get("reasoning", "")
     except Exception as e:
-        logger.error(f"Groq API Error in precedent analysis: {str(e)}")
-        return None
+        logger.error(f"Error merging precedent LLM reasoning: {e}")
+        
+    return precedents
