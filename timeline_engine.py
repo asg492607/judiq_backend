@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Any
+from base_scoring_engine import BaseScoringEngine
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +15,45 @@ COURT_HOLIDAYS = [
 ]
 
 class TimelineEngine:
+    @staticmethod
+    def resolve_notice_service(case_data: Dict[str, Any], notice_dt: datetime) -> Dict[str, Any]:
+        """Maps notice delivery states to their legal service effect."""
+        delivery_date = case_data.get("notice_delivery_date")
+        normalized = BaseScoringEngine.normalize_notice_service_status(case_data)
+
+        if normalized["bucket"] == "DEEMED_SERVICE":
+            return {
+                "status": "DEEMED_SERVICE",
+                "service_dt": parse_date(delivery_date) or notice_dt,
+                "deemed_service": True,
+                "message": f"Notice treated as deemed service ({normalized['label']}).",
+            }
+        if normalized["bucket"] == "FAILED_SERVICE":
+            return {
+                "status": "NOTICE_INVALID",
+                "fatal_defect": f"Delivery failure ('{normalized['label']}') invalidates statutory notice.",
+                "message": f"Notice service failed: {normalized['label']}.",
+            }
+        if normalized["bucket"] == "UNCERTAIN_SERVICE":
+            return {
+                "status": "NOTICE_INVALID",
+                "fatal_defect": f"Ambiguous delivery ('{normalized['label']}') requires fresh service proof.",
+                "message": f"Notice delivery remains legally uncertain: {normalized['label']}.",
+            }
+        if normalized["bucket"] == "VALID_SERVICE":
+            return {
+                "status": "VALID_SERVICE",
+                "service_dt": parse_date(delivery_date) or notice_dt,
+                "deemed_service": False,
+                "message": "Notice shown as delivered.",
+            }
+        return {
+            "status": "ASSUMED_SERVICE",
+            "service_dt": parse_date(delivery_date) or (notice_dt + timedelta(days=30)),
+            "deemed_service": True,
+            "message": "Delivery proof incomplete; applying conservative deemed-service fallback.",
+        }
+
     @staticmethod
     def adjust_for_holidays(target_date: datetime) -> datetime:
         """If limitation ends on a weekend or court holiday, it extends to the next working day."""
@@ -91,31 +131,16 @@ class TimelineEngine:
         # Calculate limitation
         notice_dt = parse_date(notice_date)
         if notice_dt:
-            # Handle Delivery Status & Deemed Service
-            delivery_date = case_data.get("notice_delivery_date")
-            delivery_status = str(case_data.get("notice_delivery_status", "delivered")).lower()
-            
-            if delivery_status in ['refused', 'unclaimed'] and delivery_date:
-                # Deemed service under S.27 General Clauses Act takes effect on the exact date of refusal/return
-                service_dt = parse_date(delivery_date)
-                deemed_service = True
-            elif 'not found' in delivery_status or 'no such person' in delivery_status or 'returned to sender' in delivery_status or 'incomplete address' in delivery_status or 'partially delivered' in delivery_status or 'refused by security' in delivery_status:
-                # FATAL: Deemed service cannot apply if address is incorrect, person not found, or delivery is ambiguous/incomplete
+            service_resolution = TimelineEngine.resolve_notice_service(case_data, notice_dt)
+            if service_resolution["status"] == "NOTICE_INVALID":
                 return {
                     "is_barred": True,
                     "days_remaining": 0,
                     "status": "NOTICE_INVALID",
-                    "message": f"Notice returned with status '{delivery_status}'. Deemed service under S.27 is void.",
-                    "fatal_defect": f"Delivery failure ('{delivery_status}') invalidates statutory notice. Deemed service cannot apply."
+                    "message": service_resolution["message"],
+                    "fatal_defect": service_resolution["fatal_defect"],
                 }
-            elif delivery_status in ['returned', 'unserved'] or not delivery_date:
-                # Deemed service after 30 days of dispatch (C.C. Alavi Haji precedent) assuming correct address
-                service_dt = notice_dt + timedelta(days=30)
-                deemed_service = True
-            else:
-                service_dt = parse_date(delivery_date) or (notice_dt + timedelta(days=30))
-                deemed_service = False
-                
+            service_dt = service_resolution["service_dt"]
             cause_of_action = service_dt + timedelta(days=15)
             limitation_date = TimelineEngine.adjust_for_holidays(cause_of_action + timedelta(days=30))
             today = datetime.now()

@@ -71,7 +71,7 @@ except Exception as _e:
     logger.warning(f"[ENGINE] judicial_engine import failed: {_e}")
     _judicial_engine = None
 
-# â”€â”€ Synthetic Text Mapping (For Quick/Ghost Analysis) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
 SYNTHETIC_TEXT_MAP = {
     "cheque_present":  "cheque dishonoured and bounced by bank",
     "dishonour_memo":  "bank issued dishonour memo and return slip",
@@ -79,7 +79,7 @@ SYNTHETIC_TEXT_MAP = {
     "debt_proven":     "loan agreement executed and legally enforceable debt established",
 }
 
-def scan_fatal_defects(case_data, contradictions, adversarial_result, limitation, verification_penalties):
+def scan_fatal_defects(case_data, contradictions, adversarial_result, limitation, verification_penalties, jurisdiction_info=None):
     is_fatal = False
     fatal_reason = ""
     
@@ -103,8 +103,13 @@ def scan_fatal_defects(case_data, contradictions, adversarial_result, limitation
         return True, "Evidentiary Fraud / Document Intelligence Override"
         
     # 5. Timeline / Notice Service Fatalities
-    if limitation.get("fatal_defect") or limitation.get("is_premature") or limitation.get("status") == "NOTICE_INVALID":
+    if limitation.get("fatal_defect") or limitation.get("is_premature") or limitation.get("status") in {"NOTICE_INVALID", "TIME_BARRED", "EXPIRED"}:
         return True, limitation.get("fatal_defect", "Invalid Timeline/Notice Issue")
+        
+        
+    # 6. Territorial Jurisdiction (S.142(2) NI Act)
+    if jurisdiction_info and (jurisdiction_info.get("status") == "INVALID" or jurisdiction_info.get("confidence") == "NONE"):
+        return True, jurisdiction_info.get("reason") or "Wrong territorial jurisdiction. Court cannot take cognizance under Dashrath Rupsingh Rathod / S.142(2)."
         
     return False, ""
 
@@ -403,8 +408,9 @@ class JudiQEngine:
             fallback=[],
             context="TimelineEngine.generate"
         )
+        limitation_checker = timeline_engine.check_criminal_limitation if is_criminal and not is_cheque_bounce else timeline_engine.check_limitation
         limitation = _safe_call(
-            timeline_engine.check_limitation, case_data,
+            limitation_checker, case_data,
             fallback={"is_barred": False, "status": "CALCULATION_ERROR"},
             context="TimelineEngine.limitation"
         )
@@ -415,7 +421,8 @@ class JudiQEngine:
             contradictions, 
             adversarial_result, 
             limitation, 
-            case_data.get("verification_penalties", 0)
+            case_data.get("verification_penalties", 0),
+            jurisdiction_info
         )
 
         if is_fatal:
@@ -553,4 +560,7 @@ class JudiQEngine:
         full_result = {**engine_output, **scoring_result, **adversarial_result}
         
         return ResponseBuilder.build_final_response(full_result, case_data)
+
+
+analyze_case = JudiQEngine.analyze_case
 
