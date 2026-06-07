@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
     
     # LLM Configuration
-    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "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")
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
 
 @lru_cache()
 def get_settings():
