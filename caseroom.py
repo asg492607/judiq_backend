@@ -127,6 +127,11 @@ async def upload_caseroom_document(
     file_path = os.path.join(upload_dir, safe_filename)
     content = await file.read()
     
+    # Secure Magic Byte Validation
+    header = content[:4]
+    if not (header.startswith(b'%PDF') or header.startswith(b'\x89PNG') or header.startswith(b'\xff\xd8')):
+        raise HTTPException(status_code=400, detail="Invalid file signature. File contents do not match extension.")
+    
     # Encrypt file content
     encrypted_content = fernet.encrypt(content)
     

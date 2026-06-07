@@ -13,6 +13,7 @@ from normalizer import normalize_input, validate_minimum_viability, ValidationEr
 from session import DatabaseManager
 from security import AuditLogger, SecurityTelemetry
 from caseroom_logic import CaseroomManager
+from limiter import limiter
 
 router = APIRouter()
 logger = logging.getLogger("JudiQ.Analysis")
@@ -39,6 +40,7 @@ def get_cache_key(data: dict):
     return hashlib.md5(dump).hexdigest()
 
 @router.post("")
+@limiter.limit("5/minute")
 async def analyze(request_data: CaseAnalysisRequest, request: Request):
     request_id = datetime.now().strftime("%Y%m%d%H%M%S%f")
     raw_data = request_data.dict()

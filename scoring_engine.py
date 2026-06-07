@@ -34,7 +34,9 @@ PILLAR_NOTICE_LATE = 6
 PILLAR_NOTICE_MISSING = -55
 PILLAR_DEBT_PROVEN = 19
 PILLAR_DEBT_MISSING = -18
-
+STRATEGIC_PRO_COMPLAINANT = 7
+STRATEGIC_PRO_ACCUSED = -11
+PENALTY_NOTICE_DELIVERY_FAILED = -30
 
 class ScoringEngineV12:
     @classmethod
@@ -101,11 +103,11 @@ class ScoringEngineV12:
         judicial_mode = case_data.get("judicial_temperament", "Balanced")
         temperament_impact = 0
         if judicial_mode == "Pro-Complainant":
-            temperament_impact = 7
-            trace.append("Judicial Stance: Pro-Complainant/Strict Enforcement (+7 impact).")
+            temperament_impact = STRATEGIC_PRO_COMPLAINANT
+            trace.append(f"Judicial Stance: Pro-Complainant/Strict Enforcement (+{STRATEGIC_PRO_COMPLAINANT} impact).")
         elif judicial_mode == "Pro-Accused":
-            temperament_impact = -11
-            trace.append("Judicial Stance: Pro-Accused/High Scrutiny (-11 impact).")
+            temperament_impact = STRATEGIC_PRO_ACCUSED
+            trace.append(f"Judicial Stance: Pro-Accused/High Scrutiny ({STRATEGIC_PRO_ACCUSED} impact).")
         score += temperament_impact
         
         amount = ensure_number(case_data.get("amount", 0))
@@ -145,9 +147,9 @@ class ScoringEngineV12:
             notice_received_status = str(case_data.get("notice_received", "")).lower()
             if notice_received_status == "no":
                 # Override triggered by Notice Delivery OCR/Postal
-                score -= 30
+                score += PENALTY_NOTICE_DELIVERY_FAILED
                 case_data["fatal_defect"] = "Invalid Notice Service (Address Not Found)"
-                trace.append(f"-30 PROCEDURAL: Demand Notice tracking failed / address not found.")
+                trace.append(f"{PENALTY_NOTICE_DELIVERY_FAILED} PROCEDURAL: Demand Notice tracking failed / address not found.")
                 causality_map.append({"fact": "Notice Tracking Failed", "impact": -30, "type": "negative", "rationale": "Invalid service. S.138 cause of action fails if notice is not delivered (unless 'refused')."})
             elif "deemed served" in notice_received_status:
                 trace.append("Statutory Compliance: Notice deemed served under S.27 General Clauses Act (Refused/Unclaimed).")

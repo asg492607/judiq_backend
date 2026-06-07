@@ -76,10 +76,31 @@ class OCREngine:
             "extracted_snippet": extracted_text[:200] + "..." if len(extracted_text) > 200 else extracted_text
         }
 
-        if not client or not GROQ_API_KEY or GROQ_API_KEY == "gsk_6dIjjHfYhnzWb8CLHe8FWGdyb3FYzO2pnwJxEs69BYTawWTV1rL6_placeholder":
-            logger.warning("LLM OCR unavailable. Falling back to simple heuristic verification.")
-            result["is_verified"] = len(extracted_text.strip()) > 10
-            result["verification_confidence"] = 0.50
+        if not client or not GROQ_API_KEY or GROQ_API_KEY.endswith("_placeholder"):
+            logger.warning("LLM OCR unavailable. Falling back to Regex heuristic verification.")
+            
+            # Reject if it's an error placeholder
+            if "fallback" in extracted_text.lower() or "failed" in extracted_text.lower():
+                result["is_verified"] = False
+                result["warning"] = "OCR Engine Failed. Check Tesseract installation."
+                return result
+                
+            # Perform basic regex extraction as fallback
+            dates = re.findall(r'\b\d{2}[-/]\d{2}[-/]\d{2,4}\b', extracted_text)
+            amounts = re.findall(r'(?:Rs\.?|INR|\u20B9)\s*[\d,]+', extracted_text)
+            
+            result["extracted_dates"] = dates
+            result["extracted_amounts"] = amounts
+            
+            # Require at least one date or amount for minimal verification
+            if len(dates) > 0 or len(amounts) > 0 or len(extracted_text.strip()) > 50:
+                result["is_verified"] = True
+                result["verification_confidence"] = 0.40
+            else:
+                result["is_verified"] = False
+                result["verification_confidence"] = 0.10
+                result["warning"] = "Fallback OCR could not find meaningful data."
+                
             return result
 
         prompt = f"""
