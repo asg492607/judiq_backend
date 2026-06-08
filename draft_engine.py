@@ -2,6 +2,10 @@ import logging
 from datetime import datetime, date
 from typing import Dict, Any, List
 from jinja2 import Environment, FileSystemLoader
+import logging
+from datetime import datetime, date
+from typing import Dict, Any, List
+from jinja2 import Environment, FileSystemLoader
 import os
 
 logger = logging.getLogger(__name__)
@@ -9,6 +13,22 @@ logger = logging.getLogger(__name__)
 # Initialize Jinja2 Environment
 templates_dir = os.path.join(os.path.dirname(__file__), 'templates')
 env = Environment(loader=FileSystemLoader(templates_dir))
+
+def _get_criminal_precedent(offense_type: str) -> dict:
+    if not offense_type:
+        return {}
+    try:
+        import json
+        kb_path = os.path.join(os.path.dirname(__file__), 'criminal_knowledge_base.json')
+        with open(kb_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            kb_models = data.get("vulnerability_models", {})
+            for key, val in kb_models.items():
+                if offense_type.upper() in key or key in offense_type.upper():
+                    return val
+    except Exception:
+        pass
+    return {}
 
 
 def decide_draft_type(score: int, concepts: List[Dict], case_data: Dict) -> str:
@@ -464,388 +484,6 @@ def generate_defence_strategy(case_data: Dict, concepts: List[Dict], score: int)
         defences_identified.insert(0, synthesis)
 
     defences_text = "\n".join([f"   {i+1}. {d}" if not str(d).startswith("COMPOSITE") else f"   {d}" for i, d in enumerate(defences_identified)]) if defences_identified else "   (To be determined based on full case facts)"
-    arguments_text = "\n\n".join([f"   {i+1}. {a}" for i, a in enumerate(legal_arguments)]) if legal_arguments else "   (Legal arguments to be elaborated based on specific case documents)"
-
-    return f"""{_header("DEFENCE STRATEGY BRIEF — SECTION 138 NI ACT")}
-
-Date: {today}
-Case Strength Score: {score}/100
-Classification: DEFENCE-SIDED (ACCUSED STRATEGY)
-
-DEFENCES IDENTIFIED:
-{defences_text}
-
-DETAILED LEGAL ARGUMENTS:
-
-{arguments_text}
-
-EVIDENTIARY STRATEGY:
-   1. Dispute the genuineness and purpose of the cheque through sworn affidavit.
-   2. File application under Section 91 CrPC to call for original transaction documents.
-   3. Commission handwriting expert if signature is disputed.
-   4. Cross-examine Complainant on the nature, purpose, and quantum of alleged debt.
-   5. Produce all communications (WhatsApp, email, letters) showing the true purpose of the cheque.
-
-PROCEDURAL STEPS:
-   1. Appear before Court on date of first hearing; do NOT ignore summons.
-   2. File detailed reply to complaint on first or second date.
-   3. Apply for bail (if required) and obtain anticipatory bail preemptively.
-   4. File application under Section 145(2) NI Act to cross-examine the Complainant.
-   5. Consider filing complaint under Section 500 IPC (defamation) if allegations are false.
-
-SETTLEMENT ASSESSMENT:
-   Given the case strength score of {score}/100, a negotiated settlement may be advisable to avoid
-   prolonged litigation risk. The Accused should evaluate a commercial resolution.
-
-DISCLAIMER: This is an AI-generated preliminary strategy document. Consult a qualified advocate before taking any legal action. 
-WARNING: Do NOT file raw AI output. You MUST 'humanize' the draft to avoid 'Cookie-Cutter' objections from the Magistrate, and verify ALL citations to prevent 'Phantom Precedent' penalties (Professional Misconduct/₹50k fine).
-"""
-
-
-def generate_settlement_draft(case_data: Dict, score: int) -> str:
-    today, amount_str = _case_meta(case_data)
-    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
-    
-    # Calculate realistic settlement interest (capped at 12%)
-    interest_rate = 12 
-
-    return f"""{_header("SETTLEMENT / COMPOUNDING PROPOSAL — SECTION 138 NI ACT")}
-
-Date: {today}
-Case Strength Score: {score}/100
-
-WITHOUT PREJUDICE
-
-To,
-{accused} / Counsel for the Accused
-
-Re: Proposal for Compounding of Offence under Section 138 / 147 NI Act
-
-Dear Sir/Madam,
-
-We write on behalf of our client {complainant} in the matter of the dishonoured cheque for {amount_str}.
-
-Pursuant to Section 147 of the Negotiable Instruments Act, 1881, the offence under Section 138 is compoundable. Our client, whilst maintaining that the complaint is fully justified and legally tenable, is open to exploring an amicable resolution to avoid protracted litigation and ensure speedy recovery.
-
-TERMS PROPOSED FOR SETTLEMENT:
-
-1. PRINCIPAL AMOUNT: Full payment of the cheque amount {amount_str}.
-2. INTEREST: Interest @ {interest_rate}% per annum from the date of dishonour until the date of actual payment.
-3. LEGAL COSTS: Nominal contribution of Rs. 5,000/- towards legal and incidental costs incurred.
-4. TIMELINE: Total settlement amount to be paid within FIFTEEN (15) DAYS of the acceptance of this proposal.
-5. MODE OF PAYMENT: Payment to be made via Demand Draft (DD) or Bank Transfer (NEFT/RTGS) in favour of "{complainant}".
-6. PHASED PAYMENT (OPTIONAL): In the event of genuine hardship, the Complainant is open to considering a maximum of two equal monthly installments, provided the first installment is paid immediately.
-7. DEFAULT CLAUSE: In the event of failure to adhere to the payment timeline or default in any installment, this settlement shall stand cancelled, and the Complainant shall be at liberty to resume/continue criminal prosecution under Section 138 NI Act to the fullest extent of law.
-8. WITHDRAWAL: Upon receipt of the full and final settlement amount, the Complainant shall file a joint application for compounding before the Hon'ble Court and withdraw the complaint.
-
-This proposal is made "Without Prejudice" and shall not be produced in court except to prove the factum of settlement efforts.
-
-Kindly revert with your response within 7 working days.
-
-Yours faithfully,
-
-________ (Advocate Name)
-For and on behalf of {complainant}
-
-Note: Case Strength Score {score}/100 — Strategic Settlement Recommended. 
-Basis: Amicable resolution preferred over protracted litigation for moderate strength cases.
-"""
-
-
-def generate_delay_condonation(case_data: Dict) -> str:
-    today, amount_str = _case_meta(case_data)
-    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
-    delay_days = case_data.get("delay_days", "___")
-    
-    # Dynamic Reason Selection
-    delay_reason = case_data.get("delay_reason", "").lower()
-    reason_text = "[DESCRIBE GENUINE REASONS — e.g., Complainant was suffering from severe viral fever (attach medical certificate) / Counsel was unavailable due to personal exigency / Administrative error in calculating limitation date]."
-    
-    if "medical" in delay_reason or "illness" in delay_reason:
-        reason_text = "The Complainant was suffering from severe medical ailments (Details: __________) during the period of limitation, which prevented the timely filing of the complaint. Supporting medical certificates are annexed herewith."
-    elif "travel" in delay_reason:
-        reason_text = "The Complainant was required to travel urgently for unavoidable professional/personal reasons, leading to a slight delay in coordinating with the legal counsel."
-    elif "advocate" in delay_reason:
-        reason_text = "The delay occurred due to the sudden unavailability of the Complainant's counsel and the subsequent time taken to engage new legal representation."
-
-    return f"""{_header("APPLICATION FOR CONDONATION OF DELAY — SECTION 142(1)(b) NI ACT")}
-
-IN THE COURT OF THE LEARNED JUDICIAL MAGISTRATE / METROPOLITAN MAGISTRATE
-AT ________ (Court Location)
-
-COMPLAINT NO.: _____ / {datetime.now().year}
-
-IN THE MATTER OF:
-{complainant}                                              ... COMPLAINANT
-VERSUS
-{accused}                                                  ... ACCUSED
-
-APPLICATION UNDER SECTION 142(1)(b) OF THE NEGOTIABLE INSTRUMENTS ACT, 1881 READ WITH SECTION 5 OF THE LIMITATION ACT, 1963 FOR CONDONATION OF DELAY.
-
-RESPECTFULLY SHOWETH:
-
-1. THE COMPLAINT:
-   The Complainant has filed the accompanying Complaint under Section 138 of the NI Act against the Accused. The contents of the said Complaint may be read as part and parcel of this application.
-
-2. THE DELAY:
-   That there has been a technical delay of {delay_days} days in filing the present Complaint. The limitation period expired on ________ (Date), and the Complaint is being filed today.
-
-3. SUFFICIENT CAUSE:
-   That the said delay occurred due to the following bona fide reasons:
-   {reason_text}
-
-4. LEGAL POSITION:
-   That the proviso to Section 142(1)(b) of the NI Act specifically empowers this Hon'ble Court to take cognizance of a complaint after the prescribed period if the Complainant satisfies the Court that he had "sufficient cause" for not making a complaint within such period.
-
-5. PRECEDENTS:
-   The Complainant relies on the following landmark rulings:
-   (a) 'MSR Leathers v. S. Palaniappan' (2013): Wherein the Hon'ble Supreme Court held that the power to condone delay should be exercised liberally to ensure that the object of the Act is not defeated by technicalities.
-   (b) 'Saketh India Ltd. v. India Securities Ltd.' (1999): Reaffirming the liberal approach in condoning short delays where no negligence is found.
-
-6. ABSENCE OF MALA FIDE:
-   The Complainant submits that the delay was neither intentional nor deliberate. No prejudice will be caused to the Accused if the delay is condoned, whereas the Complainant will suffer irreparable loss if the Complaint is dismissed on technical grounds.
-
-PRAYER:
-It is, therefore, most respectfully prayed that this Hon'ble Court may be pleased to:
-(a) Condone the delay of {delay_days} days in filing the accompanying Complaint;
-(b) Admit the Complaint and proceed with the trial in the interest of justice.
-
-Place: ________ (Place)
-Date: {today}
-
-                                                        {complainant}
-                                                        (Complainant)
-Through:
-________ (Advocate Name)
-Advocate for Complainant
-"""
-
-
-def generate_application_143a(case_data: Dict) -> str:
-    today, amount_str = _case_meta(case_data)
-    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
-    
-    return f"""{_header("APPLICATION FOR INTERIM COMPENSATION — SECTION 143A NI ACT")}
-
-IN THE COURT OF THE LEARNED JUDICIAL MAGISTRATE / METROPOLITAN MAGISTRATE
-AT ________ (Court Location)
-
-COMPLAINT NO.: _____ / {datetime.now().year}
-
-IN THE MATTER OF:
-{complainant}                                              ... COMPLAINANT
-VERSUS
-{accused}                                                  ... ACCUSED
-
-APPLICATION UNDER SECTION 143A OF THE NEGOTIABLE INSTRUMENTS ACT, 1881 FOR GRANT OF INTERIM COMPENSATION.
-
-RESPECTFULLY SHOWETH:
-
-1. THE COMPLAINT:
-   The Complainant has filed the accompanying Complaint under Section 138 of the NI Act against the Accused. The contents of the said Complaint may be read as part and parcel of this application.
-
-2. PRIMA FACIE CASE:
-   The Accused has been summoned by this Hon'ble Court. The Complainant has established a strong prima facie case against the Accused supported by unassailable documentary evidence including the dishonoured cheque, bank return memo, and proof of legal demand notice.
-
-3. STATUTORY RIGHT TO INTERIM COMPENSATION:
-   Under Section 143A of the Negotiable Instruments Act, 1881, this Hon'ble Court is empowered to order the drawer of the cheque to pay interim compensation to the Complainant up to 20% of the amount of the cheque, where the Accused pleads not guilty to the accusation made in the complaint.
-
-4. DILATORY TACTICS & FINANCIAL HARDSHIP:
-   The Accused is adopting dilatory tactics and raising frivolous defenses merely to delay the proceedings and defeat the ends of justice. The Complainant is suffering immense and severe financial hardship due to the non-payment of the legally enforceable debt of {amount_str}. It is respectfully submitted that granting interim compensation is essential to prevent the Complainant from enduring further unjust financial ruin during the pendency of this trial.
-
-PRAYER:
-It is, therefore, most respectfully prayed that this Hon'ble Court may be pleased to:
-(a) Direct the Accused to pay 20% of the cheque amount as interim compensation to the Complainant in accordance with Section 143A of the Negotiable Instruments Act, 1881;
-(b) Pass such other order(s) as this Hon'ble Court may deem fit in the interest of justice.
-
-Place: ________ (Place)
-Date: {today}
-
-                                                        {complainant}
-                                                        (Complainant)
-Through:
-________ (Advocate Name)
-Advocate for Complainant
-"""
-
-def generate_legal_opinion(score: int, concepts: List[Dict], case_data: Dict) -> str:
-    today, amount_str = _case_meta(case_data)
-    
-    fatal_warning = ""
-    if score <= 25:
-        fatal_warning = """
-[!] CRITICAL WARNING: DO NOT FILE [!]
-This case contains FATAL statutory or evidentiary defects. Filing a criminal complaint under these circumstances exposes the Complainant to severe risks including dismissal with costs, perjury charges, or malicious prosecution counter-suits.
-"""
-
-    return f"""{_header("PROFESSIONAL LEGAL OPINION — ADVERSARIAL ASSESSMENT")}
-
-Date: {today}
-Case Viability Score: {score}/100
-Subject: Strategic Assessment of Cheque Dishonour Case involving {amount_str}
-{fatal_warning}
-1. EXECUTIVE SUMMARY:
-   Based on the current evidentiary configuration, this case has a viability score of {score}%. 
-   { "The case is structurally sound but requires procedural precision." if score > 70 else ("The case exhibits significant structural vulnerabilities that may impede successful prosecution." if score > 25 else "The case is statutorily dead and non-maintainable.") }
-
-2. KEY RISK VECTORS:
-   The following legal concepts were detected which directly impact the litigation posture:
-   { "\n".join([f"   - {c['concept'].replace('_', ' ').upper()} (Impact: High)" for c in concepts if c.get('confidence', 0) > 0.7]) or "   - No high-confidence risks detected." }
-
-3. STRATEGIC RECOMMENDATION:
-   { "Proceed with the filing of a Criminal Complaint under Section 138 NI Act whilst ensuring all statutory timelines are strictly met." if score > 60 else ("Immediate litigation is not recommended. Focus on evidentiary remediation or explore a mediated settlement." if score > 25 else "WITHDRAW OR ABANDON CRIMINAL PROCEEDINGS IMMEDIATELY. Explore civil recovery if limitation permits.") }
-
-4. LITIGATION DIRECTIVE:
-   - Verify the original cheque and dishonour memo against the physical evidence.
-   - Ensure the statutory demand was served at the correct address (AD Card verification).
-   - If proceeding, prepare for the 'Basalingappa' rebuttal regarding financial capacity.
-
-5. CONCLUSION:
-   This opinion is generated for strategic planning. The Complainant should coordinate with an advocate to finalize the court-ready pleadings.
-
-DISCLAIMER: AI-generated strategic assessment. Not a substitute for professional legal advice.
-"""
-
-# ═══════════════════════════════════════════════════════════════════════════
-# 🔥 NEW: GENERAL CRIMINAL DRAFTS (FIR, BAIL, DISCHARGE)
-# ═══════════════════════════════════════════════════════════════════════════
-
-def generate_fir_draft(case_data: Dict, concepts: List[Dict]) -> str:
-    today, _ = _case_meta(case_data)
-    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Informant Name)"
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name / Unknown)"
-    offense = case_data.get("offense_type", "General Criminal Offence")
-    incident_date = case_data.get("incident_date", "[Date of Occurrence]")
-    description = case_data.get("description", "[Detailed Narrative of Offence]")
-    police_station = case_data.get("police_station", "________ (Police Station)")
-    district = case_data.get("district", "________ (District)")
-    
-    return f"""{_header("FIRST INFORMATION REPORT (FIR) DRAFT — SECTION 154 CrPC / 173 BNSS")}
-
-Date: {today}
-
-To,
-The Station House Officer (SHO),
-Police Station: {police_station},
-District: {district}
-
-Subject: Information regarding commission of cognizable offence(s) under Section(s) {offense} of the IPC/BNS by {accused}.
-
-Respected Sir/Madam,
-
-1. INFORMANT DETAILS:
-   I, {complainant}, residing at ________ (Informant Address), contact number ________ (Contact Number), state as follows:
-
-2. DETAILS OF INCIDENT:
-   The incident occurred on or around {incident_date}.
-   The accused {accused} committed the following acts:
-   {description}
-
-3. WEAPONS / INJURIES / LOSS (If Applicable):
-   [Specify if any weapons were used, injuries sustained, or property lost/stolen].
-
-4. WITNESSES:
-   The incident was witnessed by: [NAME WITNESSES OR STATE 'Independent bystanders'].
-
-5. DELAY IN REPORTING (If any):
-   [If delayed, explain why: e.g., 'Due to medical treatment / fear of the accused'].
-
-6. PRAYER:
-   The acts of the Accused clearly constitute cognizable and non-bailable offences. I request you to immediately register an FIR under the relevant sections of the law and initiate an urgent investigation to secure justice and apprehend the culprit.
-
-Thanking you,
-
-Yours faithfully,
-
-(Signature)
-{complainant}
-"""
-
-def generate_regular_bail(case_data: Dict) -> str:
-    today, _ = _case_meta(case_data)
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
-    offense = case_data.get("offense_type", "General")
-    fir_no = case_data.get("fir_no", "________")
-    police_station = case_data.get("police_station", "________ (Police Station)")
-    court_name = case_data.get("court_name", "________ (Sessions Judge / Magistrate), ________ (Location)")
-    state_name = case_data.get("state_name", "________ (State Name)")
-    
-    # Inject Antil Guidelines if applicable
-    antil_clause = ""
-    if case_data.get("max_punishment_years") and int(case_data.get("max_punishment_years")) <= 7:
-        antil_clause = "\\n5. SATENDER KUMAR ANTIL GUIDELINES:\\n   The alleged offence carries a maximum punishment of less than 7 years. The Accused fully cooperated during the investigation and was not arrested. As per the mandatory directions of the Hon'ble Supreme Court in 'Satender Kumar Antil v. CBI', the Accused falls squarely under Category A and is entitled to bail on appearance."
-        
-    return f"""{_header("REGULAR BAIL APPLICATION — SECTION 437/439 CrPC / 480 BNSS")}
-
-IN THE COURT OF {court_name}
-CRIMINAL MISC. BAIL APPLICATION NO. ______ OF {datetime.now().year}
-ARISING OUT OF FIR NO. {fir_no}
-U/S {offense} IPC/BNS, P.S. {police_station}
-
-IN THE MATTER OF:
-{accused}                                                  ... APPLICANT/ACCUSED
-VERSUS
-STATE OF {state_name}                                      ... PROSECUTION
-
-APPLICATION FOR GRANT OF REGULAR BAIL
-
-MOST RESPECTFULLY SHOWETH:
-
-1. That the Applicant is a law-abiding citizen with deep roots in society and has been falsely implicated in the above-captioned FIR.
-
-2. FALSE IMPLICATION:
-   That the allegations in the FIR are purely concocted, motivated by vengeance, and mathematically impossible. The prosecution has suppressed the material genesis of the incident.
-
-3. NO FLIGHT RISK:
-   That the Applicant has movable and immovable property in the city and is the sole breadwinner of the family. There is absolutely no risk of flight.
-
-4. NO TAMPERING WITH EVIDENCE:
-   That the investigation is largely complete ________ (or documentary in nature). The Applicant undertakes not to tamper with prosecution witnesses or evidence. {antil_clause}
-
-PRAYER:
-It is respectfully prayed that this Hon'ble Court may be pleased to enlarge the Applicant on regular bail upon furnishing suitable sureties, to meet the ends of justice.
-
-Place: ________ (Place)
-Date: {today}
-
-Through Counsel
-"""
-
-def generate_anticipatory_bail(case_data: Dict) -> str:
-    today, _ = _case_meta(case_data)
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
-    offense = case_data.get("offense_type", "General")
-    
-    return f"""{_header("ANTICIPATORY BAIL APPLICATION — SECTION 438 CrPC / 482 BNSS")}
-
-IN THE COURT OF THE DISTRICT & SESSIONS JUDGE, ________ (Location)
-ANTICIPATORY BAIL APPLICATION NO. ______ OF {datetime.now().year}
-
-IN THE MATTER OF:
-{accused}                                                  ... APPLICANT
-VERSUS
-STATE OF ________ (State Name)                                      ... PROSECUTION
-
-APPLICATION FOR ENLARGEMENT ON BAIL IN THE EVENT OF ARREST
-
-MOST RESPECTFULLY SHOWETH:
-
-1. APPREHENSION OF ARREST:
-   That the Applicant has credible information and reasonable apprehension of being arrested by the police of P.S. ________ (Police Station) in connection with a false and frivolous complaint regarding offences u/s {offense}.
-
-2. MALA FIDE INTENT:
-   That the Complainant, with ulterior motives and to humiliate the Applicant in society, has lodged this completely fabricated complaint. The dispute, if any, is purely civil in nature.
-
-3. READINESS TO COOPERATE:
-   That the Applicant is ready and willing to join the investigation as and when directed by the Investigating Officer (IO). Custodial interrogation is absolutely unnecessary as nothing is to be recovered from the Applicant.
-
-PRAYER:
-It is prayed that in the event of arrest, the Applicant may be released on Anticipatory Bail subject to terms and conditions deemed fit by this Hon'ble Court.
-
-Place: ________ (Place)
 Date: {today}
 
 Through Counsel
@@ -914,7 +552,7 @@ MOST RESPECTFULLY SHOWETH:
    That the FIR has been instituted with an ulterior motive to wreak vengeance on the Petitioner due to a private and personal dispute. The allegations, even if taken on their face value and accepted in their entirety, do not prima facie constitute any offence or make out a case against the Petitioner, falling squarely within Parameters 1 and 7 laid down in 'State of Haryana v. Bhajan Lal'.
 
 3. PURELY CIVIL DISPUTE GIVEN CRIMINAL COLOR:
-   That the crux of the dispute between the parties is inherently civil/commercial in nature (e.g., breach of contract/partnership dispute). The Complainant is attempting to weaponize the criminal justice system to exert pressure for a civil recovery, which is strictly deprecated by the Hon'ble Supreme Court in 'Indian Oil Corp v. NEPC India'.
+   That the crux of the dispute between the parties is inherently civil/commercial in nature (e.g., breach of contract/partnership dispute). The Complainant is attempting to weaponize the criminal justice system to exert pressure for a civil recovery, which is strictly deprecated by the Hon'ble Supreme Court in 'Indian Oil Corp v. NEPC India'.{precedent_text}
 
 PRAYER:
 It is prayed that this Hon'ble Court may be pleased to quash the impugned FIR No. ________ (FIR No.) and all consequential proceedings emanating therefrom.
