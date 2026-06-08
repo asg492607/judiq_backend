@@ -86,20 +86,37 @@ class CriminalScoringEngine(BaseScoringEngine):
 
         # 3.5. KNOWLEDGE BASE PENALTIES (Deep Wiring)
         offense_type = str(case_data.get("offense_type", "")).upper()
+        matched_kb = False
         if offense_type and kb_models:
             for kb_key, kb_data in kb_models.items():
                 if offense_type in kb_key or kb_key in concept_names:
+                    matched_kb = True
                     # Determine if the vulnerability is actually triggered by the facts
                     trigger_risk = kb_data.get("probability_collapse", 0.5)
                     if trigger_risk > 0.6:
-                        score -= 15
-                        trace.append(f"-15 KB VULNERABILITY: {kb_data.get('name', kb_key)} risk triggered.")
+                        severity = kb_data.get("severity", "HIGH")
+                        penalties = {"FATAL": -30, "CRITICAL": -20, "HIGH": -15, "MEDIUM": -10}
+                        penalty_val = penalties.get(severity, -15)
+                        score += penalty_val
+                        trace.append(f"{penalty_val} KB VULNERABILITY: {kb_data.get('name', kb_key)} risk triggered.")
                         causality_map.append({
                             "fact": f"Systemic Risk: {kb_data.get('name', kb_key)}",
-                            "impact": -15,
+                            "impact": penalty_val,
                             "type": "negative",
                             "rationale": kb_data.get("risk", "High structural vulnerability.")
                         })
+        
+        # Generic Fallback for 100+ unmapped sections
+        if not matched_kb and ("IPC" in offense_type or "BNS" in offense_type or "CRPC" in offense_type):
+            penalty_val = -10
+            score += penalty_val
+            trace.append(f"{penalty_val} KB VULNERABILITY: Unmapped Offence ({offense_type}) Generic Procedural Risk.")
+            causality_map.append({
+                "fact": f"Procedural Risk: {offense_type}",
+                "impact": penalty_val,
+                "type": "negative",
+                "rationale": "Generic procedural or evidentiary vulnerabilities apply under standard criminal framework."
+            })
 
         # 4. EVIDENCE RELIABILITY MATRIX
         evidence_reliability = cls.calculate_evidence_reliability(case_data)
