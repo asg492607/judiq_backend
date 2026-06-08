@@ -102,10 +102,17 @@ class ResponseBuilder:
         strengths = []
         weaknesses = []
 
-        if case_data.get("cheque_present"):   strengths.append("Prerequisite: Negotiable instrument (cheque) secured")
-        if case_data.get("dishonour_memo"):   strengths.append("Prerequisite: Bank dishonour memo / return slip available")
-        if case_data.get("notice_sent"):      strengths.append("Prerequisite: Statutory demand notice served (S.138b)")
-        if case_data.get("debt_proven"):      strengths.append("Strength: Legally enforceable debt established via corroborative proof")
+        is_criminal = case_data.get("case_type") == "criminal" or "criminal" in str(case_data.get("description", "")).lower()
+        if is_criminal:
+            if case_data.get("fir_copy"): strengths.append("Prerequisite: FIR Copy secured")
+            if case_data.get("police_complaint_filed"): strengths.append("Strength: Formal police complaint initiated")
+            if case_data.get("witnesses_available"): strengths.append("Strength: Corroborative witness testimony available")
+            if case_data.get("debt_proven"): strengths.append("Strength: Documented evidence establishing transaction/intent")
+        else:
+            if case_data.get("cheque_present"):   strengths.append("Prerequisite: Negotiable instrument (cheque) secured")
+            if case_data.get("dishonour_memo"):   strengths.append("Prerequisite: Bank dishonour memo / return slip available")
+            if case_data.get("notice_sent"):      strengths.append("Prerequisite: Statutory demand notice served (S.138b)")
+            if case_data.get("debt_proven"):      strengths.append("Strength: Legally enforceable debt established via corroborative proof")
 
         # We will populate structured weaknesses later using ranked_weaknesses
         
@@ -245,7 +252,13 @@ class ResponseBuilder:
         has_fatal = any(r["severity"] in ["FATAL", "CRITICAL"] for r in top_3_risks)
         has_high_risk = any(r["severity"] == "HIGH" for r in top_3_risks)
 
-        if not case_data.get("notice_sent"):
+        is_criminal = case_data.get("case_type") == "criminal" or "criminal" in str(case_data.get("description", "")).lower()
+        if is_criminal and not case_data.get("police_complaint_filed"):
+            recommended_action = "FILE_COMPLAINT"
+            decision_label = "Initiate Formal Complaint"
+            decision_detail = "Formal complaint/FIR has not been registered. Required to set criminal law in motion."
+            next_steps = ["Draft Police Complaint", "Submit to jurisdictional police station"]
+        elif not is_criminal and not case_data.get("notice_sent"):
             recommended_action = "SEND_NOTICE"
             decision_label = "Send Legal Notice First"
             decision_detail = "Statutory demand notice (S.138b) has not been sent. Mandatory pre-condition."
