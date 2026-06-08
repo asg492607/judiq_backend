@@ -116,196 +116,54 @@ class CriminalAdversarialEngine(AdversarialEngine):
                 "collapse_risk": f"{int(tree.get('probability_collapse', 0.5) * 100)}%"
             }
 
-        if offense_type in ["420", "318"] and case_data.get("contract_exists"):
-            node = _build_node("IPC_420")
-            if node: analysis_nodes.append(node)
+        if offense_type:
+            # 1. Exact Match in Knowledge Base
+            matched = False
+            for model_key in cls.VULNERABILITY_MODELS.keys():
+                if offense_type in model_key or model_key in offense_type:
+                    node = _build_node(model_key)
+                    if node:
+                        analysis_nodes.append(node)
+                        matched = True
             
-        if offense_type in ["406", "316"] and not case_data.get("entrustment_proven"):
-            node = _build_node("IPC_406")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["498A", "85"] and case_data.get("relatives_implicated"):
-            node = _build_node("IPC_498A")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["302", "103"] and case_data.get("sudden_provocation"):
-            node = _build_node("IPC_302")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["376", "64"] and case_data.get("prior_relationship"):
-            node = _build_node("IPC_376")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("ndps_case") and case_data.get("personal_search_done"):
-            node = _build_node("NDPS_S50")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["307", "109"] and case_data.get("superficial_injuries"):
-            node = _build_node("IPC_307")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["326", "324", "118", "115"] and case_data.get("injury_dispute"):
-            node = _build_node("IPC_326")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["468", "471", "467", "336", "340", "338"] and not case_data.get("fsl_report_positive"):
-            node = _build_node("IPC_468")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("conspiracy_charged") and not case_data.get("direct_communication_proven"):
-            node = _build_node("IPC_120B")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["379", "380", "303", "305"] and case_data.get("title_dispute"):
-            node = _build_node("IPC_379")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["392", "309"] and not case_data.get("violence_used"):
-            node = _build_node("IPC_392")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["395", "310"] and case_data.get("tip_failed"):
-            node = _build_node("IPC_395")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["499", "500", "356"] and case_data.get("good_faith_complaint"):
-            node = _build_node("IPC_499")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["147", "148", "149", "189", "190", "191"] and not case_data.get("common_object_shared"):
-            node = _build_node("IPC_147")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["304A", "106"] and case_data.get("victim_contributory_negligence"):
-            node = _build_node("IPC_304A")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("pmla_case") and case_data.get("predicate_quashed"):
-            node = _build_node("PMLA_PREDICATE")
-            if node: analysis_nodes.append(node)
-
+            # 2. Dynamic Generic Fallback for unmapped 100+ sections
+            if not matched and ("IPC" in offense_type or "BNS" in offense_type):
+                node = {
+                    "adversarial_vector": f"Procedural Challenge ({offense_type})",
+                    "risk": f"Generic evidentiary and procedural vulnerabilities under {offense_type}",
+                    "severity": "HIGH",
+                    "description": "Standard rigorous cross-examination on factum of incident, ocular inconsistencies, and procedural delays.",
+                    "strategic_chain": ["Delay in FIR", "Absence of independent corroboration", "Contradictions in statement"],
+                    "rebuttal_tree": {
+                        "complainant_counter": "Rely on the consistency of the core narrative and unimpeachable witnesses.",
+                        "magistrate_view": "Scrutiny of evidence standard."
+                    },
+                    "cross_exam_questions": [
+                        "Can you explain the exact timeline of the alleged incident?",
+                        "Were there any independent witnesses present who were not your relatives?",
+                        "Is it not true that this complaint is an afterthought motivated by a civil dispute?"
+                    ],
+                    "quashing_ground": "No prima facie case made out from the bare reading of the FIR.",
+                    "survival_probability": "65%",
+                    "collapse_risk": "35%"
+                }
+                analysis_nodes.append(node)
+                
+        # Additional concept-based triggers
         if case_data.get("medical_contradicts_ocular"):
             node = _build_node("MEDICAL_OCULAR")
             if node: analysis_nodes.append(node)
-
-        if case_data.get("ndps_case") and case_data.get("commercial_quantity"):
-            node = _build_node("NDPS_S37")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("pc_act_case") and case_data.get("trap_witness_hostile"):
-            node = _build_node("PC_ACT_TRAP")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("pocso_case") and case_data.get("age_dispute"):
-            node = _build_node("POCSO_AGE")
-            if node: analysis_nodes.append(node)
-
+            
         if case_data.get("s161_s164_contradiction"):
             node = _build_node("CRPC_161_164")
             if node: analysis_nodes.append(node)
-
+            
         if case_data.get("fir_delay_unexplained"):
             node = _build_node("CRPC_154")
             if node: analysis_nodes.append(node)
-
+            
         if case_data.get("default_bail_window"):
             node = _build_node("CRPC_167")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["378", "379", "THEFT", "303"] and case_data.get("claim_of_right"):
-            node = _build_node("IPC_378")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["390", "392", "ROBBERY", "309"] and case_data.get("no_imminent_fear"):
-            node = _build_node("IPC_390")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["441", "448", "TRESPASS", "329", "333"] and case_data.get("civil_possession_dispute"):
-            node = _build_node("IPC_441")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("confession_to_police") and not case_data.get("discovery_of_fact"):
-            node = _build_node("IEA_25")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("dying_declaration") and case_data.get("unfit_state"):
-            node = _build_node("IEA_32")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("cyber_crime") and case_data.get("no_hash_value"):
-            node = _build_node("IT_66")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("arms_recovery") and not case_data.get("conscious_possession"):
-            node = _build_node("ARMS_25")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("framing_of_charge") and case_data.get("no_prima_facie_case"):
-            node = _build_node("CRPC_227")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("quashing_petition") and case_data.get("civil_dispute_cloak"):
-            node = _build_node("CRPC_482")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("accused_outside_jurisdiction") and not case_data.get("s202_inquiry_done"):
-            node = _build_node("CRPC_200")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("witness_recall") and case_data.get("filling_lacunae"):
-            node = _build_node("CRPC_311")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("incriminating_evidence_used") and not case_data.get("put_to_accused_in_313"):
-            node = _build_node("CRPC_313")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("summoning_additional_accused") and case_data.get("vague_evidence"):
-            node = _build_node("CRPC_319")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["191", "193", "PERJURY", "227", "229"] and case_data.get("private_complaint"):
-            node = _build_node("IPC_193")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["499", "500", "DEFAMATION", "356"] and case_data.get("good_faith_exception"):
-            node = _build_node("IPC_499")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("appeal_filed") and case_data.get("seek_suspension_sentence"):
-            node = _build_node("CRPC_389")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["304A", "106"] and case_data.get("no_proximate_cause"):
-            node = _build_node("IPC_304A")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["354", "74"] and case_data.get("no_sexual_intent"):
-            node = _build_node("IPC_354")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["304B", "80"] and not case_data.get("soon_before_death_nexus"):
-            node = _build_node("IPC_304B")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["494", "82"] and not case_data.get("essential_ceremonies_proven"):
-            node = _build_node("IPC_494")
-            if node: analysis_nodes.append(node)
-
-        if offense_type in ["149", "190"] and case_data.get("mere_bystander"):
-            node = _build_node("IPC_149")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("dowry_death_presumption_triggered") and case_data.get("rebuttal_evidence"):
-            node = _build_node("IEA_113B")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("evidence_withheld_by_prosecution"):
-            node = _build_node("IEA_114")
-            if node: analysis_nodes.append(node)
-
-        if case_data.get("uapa_case") and case_data.get("seek_bail"):
-            node = _build_node("UAPA_43D")
             if node: analysis_nodes.append(node)
             
         # Harden Discharge / Quashing Simulation
