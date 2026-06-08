@@ -121,26 +121,25 @@ class PDFGenerator:
             # ===== DECISION & NEXT STEPS =====
             decision = analysis_result.get('decision', {})
             if decision:
-                elements.append(Paragraph("Recommended Action", heading_style))
-                elements.append(Spacer(1, 0.1*inch))
-                
+                decision_block = [Paragraph("Recommended Action", heading_style), Spacer(1, 0.1*inch)]
+
                 decision_label = decision.get('decision_label', 'Review Case')
                 decision_detail = decision.get('detail', '')
-                
-                elements.append(Paragraph(f"<b>{decision_label}</b>", subheading_style))
+
+                decision_block.append(Paragraph(f"<b>{decision_label}</b>", subheading_style))
                 if decision_detail:
-                    elements.append(Paragraph(decision_detail, body_style))
-                elements.append(Spacer(1, 0.15*inch))
-                
-                # Next Steps
+                    decision_block.append(Paragraph(decision_detail, body_style))
+                decision_block.append(Spacer(1, 0.15*inch))
+
                 next_steps = decision.get('next_steps', [])
                 if next_steps:
-                    elements.append(Paragraph("<b>Next Steps:</b>", subheading_style))
+                    decision_block.append(Paragraph("<b>Next Steps:</b>", subheading_style))
                     for i, step in enumerate(next_steps, 1):
-                        elements.append(Paragraph(f"{i}. {step}", body_style))
-                        elements.append(Spacer(1, 0.05*inch))
-                
-                elements.append(Spacer(1, 0.2*inch))
+                        decision_block.append(Paragraph(f"{i}. {step}", body_style))
+                        decision_block.append(Spacer(1, 0.05*inch))
+
+                decision_block.append(Spacer(1, 0.2*inch))
+                elements.append(KeepTogether(decision_block))
             
             # ===== STRENGTHS =====
             strengths = analysis_result.get('strengths', [])
@@ -194,13 +193,15 @@ class PDFGenerator:
                 reasoning_lines = legal_analysis
 
             if reasoning_lines:
-                elements.append(Paragraph("Legal Reasoning", heading_style))
-                elements.append(Spacer(1, 0.1*inch))
+                reasoning_elements = []
+                reasoning_elements.append(Paragraph("Legal Reasoning", heading_style))
+                reasoning_elements.append(Spacer(1, 0.1*inch))
                 for reason in reasoning_lines:
                     reason_text = reason if isinstance(reason, str) else str(reason)
-                    elements.append(Paragraph(f"\u2192 {reason_text}", body_style))
-                    elements.append(Spacer(1, 0.05*inch))
-                elements.append(Spacer(1, 0.2*inch))
+                    reasoning_elements.append(Paragraph(f"\u2192 {reason_text}", body_style))
+                    reasoning_elements.append(Spacer(1, 0.05*inch))
+                reasoning_elements.append(Spacer(1, 0.2*inch))
+                elements.append(KeepTogether(reasoning_elements))
             
             # ===== DEFENCE STRATEGIES =====
             defences = analysis_result.get('defence_strategy', [])
@@ -240,8 +241,9 @@ class PDFGenerator:
             semantic = analysis_result.get('semantic_analysis', {})
             concepts = semantic.get('concepts_detected', [])
             if concepts:
-                elements.append(Paragraph("Legal Concepts Detected", heading_style))
-                elements.append(Spacer(1, 0.1*inch))
+                concept_elements = []
+                concept_elements.append(Paragraph("Legal Concepts Detected", heading_style))
+                concept_elements.append(Spacer(1, 0.1*inch))
                 
                 concept_data = []
                 concept_data.append(['Concept', 'Confidence', 'Impact'])
@@ -269,8 +271,9 @@ class PDFGenerator:
                     ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f9fa')])
                 ]))
                 
-                elements.append(concept_table)
-                elements.append(Spacer(1, 0.2*inch))
+                concept_elements.append(concept_table)
+                concept_elements.append(Spacer(1, 0.2*inch))
+                elements.append(KeepTogether(concept_elements))
             
             # ===== STATUTORY INTERPRETATION (NEW) =====
             statutes = analysis_result.get('statutory_interpretation', [])
