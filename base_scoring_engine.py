@@ -29,6 +29,171 @@ PENALTY_NOTICE_DELIVERY_FAILED = -30
 
 
 class BaseScoringEngine:
+    @staticmethod
+    def normalize_notice_service_status(case_data: Dict) -> Dict[str, Any]:
+        """Normalizes notice delivery labels into legally meaningful buckets."""
+        raw_status = str(
+            case_data.get("notice_delivery_status")
+            or case_data.get("notice_received")
+            or case_data.get("notice_received_type")
+            or "delivered"
+        ).strip().lower()
+
+        if any(token in raw_status for token in ["deemed served", "deemed service"]):
+            return {"bucket": "DEEMED_SERVICE", "label": "Deemed Service", "fatal": False}
+        if any(token in raw_status for token in ["refused", "unclaimed", "door locked", "addressee moved"]):
+            return {"bucket": "DEEMED_SERVICE", "label": "Deemed Service", "fatal": False}
+        if any(token in raw_status for token in ["delivered", "served", "received"]):
+            return {"bucket": "VALID_SERVICE", "label": "Delivered", "fatal": False}
+        if any(token in raw_status for token in ["returned to sender", "not found", "no such person", "incorrect address", "incomplete address", "failed service"]):
+            return {"bucket": "FAILED_SERVICE", "label": "Failed Service", "fatal": True}
+        if any(token in raw_status for token in ["returned", "unserved", "partially delivered", "refused by security"]):
+            return {"bucket": "UNCERTAIN_SERVICE", "label": "Uncertain Service", "fatal": True}
+        return {"bucket": "UNKNOWN", "label": raw_status or "Unknown", "fatal": False}
+
+    @classmethod
+    def apply_core_structural_pillars(cls, case_data: Dict) -> Dict[str, Any]:
+        """
+        Shared cheque-bounce pillar scoring so every NI workflow uses one source of truth.
+        """
+        score_delta = 0
+        trace = []
+        causality_map = []
+
+        cheque = bool(case_data.get("cheque_present"))
+        memo = bool(case_data.get("dishonour_memo"))
+        notice = bool(case_data.get("notice_sent"))
+        debt = bool(case_data.get("debt_proven"))
+        amount = cls._to_number(case_data.get("amount", case_data.get("cheque_amount", 0)))
+        notice_status = cls.normalize_notice_service_status(case_data)
+        within_30 = str(case_data.get("within_30_days", "Yes")).lower() == "yes"
+
+        if cheque:
+            cheque_type = str(case_data.get("cheque_proof_type") or case_data.get("cheque_type") or "original").lower()
+            cheque_points = PILLAR_CHEQUE_ORIGINAL if "original" in cheque_type else PILLAR_CHEQUE_PHOTOCOPY
+            score_delta += cheque_points
+            trace.append(f"Instrument Admissibility: {cheque_type.title()} instrument verified (+{cheque_points}).")
+            causality_map.append({"fact": f"Cheque ({cheque_type})", "impact": cheque_points, "type": "positive", "rationale": "Possession of the original instrument is foundational under S.138."})
+        else:
+            score_delta += PILLAR_CHEQUE_MISSING
+            case_data["fatal_defect"] = case_data.get("fatal_defect") or "Missing Original Cheque"
+            trace.append(f"FATAL ERROR: Primary instrument missing ({PILLAR_CHEQUE_MISSING} impact).")
+            causality_map.append({"fact": "Missing Original Cheque", "impact": PILLAR_CHEQUE_MISSING, "type": "negative", "rationale": "S.138 requires the instrument itself."})
+
+        if memo:
+            score_delta += PILLAR_MEMO_PRESENT
+            trace.append(f"Procedural Proof: Bank return memo authenticated (+{PILLAR_MEMO_PRESENT}).")
+            causality_map.append({"fact": "Bank Memo Presence", "impact": PILLAR_MEMO_PRESENT, "type": "positive", "rationale": "Formal proof of dishonour by the bank."})
+        else:
+            score_delta += PILLAR_MEMO_MISSING
+            case_data["fatal_defect"] = case_data.get("fatal_defect") or "Missing Bank Return Memo"
+            trace.append(f"CRITICAL GAP: Bank return memo missing ({PILLAR_MEMO_MISSING} impact).")
+            causality_map.append({"fact": "Missing Bank Memo", "impact": PILLAR_MEMO_MISSING, "type": "negative", "rationale": "Cognizance is vulnerable without a return memo."})
+
+        if notice:
+            if notice_status["bucket"] == "FAILED_SERVICE":
+                score_delta += PENALTY_NOTICE_DELIVERY_FAILED
+                case_data["fatal_defect"] = case_data.get("fatal_defect") or f"Invalid Notice Service ({notice_status['label']})"
+                trace.append(f"{PENALTY_NOTICE_DELIVERY_FAILED} PROCEDURAL: Notice service failed ({notice_status['label']}).")
+                causality_map.append({"fact": "Invalid Notice Service", "impact": PENALTY_NOTICE_DELIVERY_FAILED, "type": "negative", "rationale": "S.138 cause of action fails when service is not legally traceable."})
+            elif notice_status["bucket"] == "DEEMED_SERVICE":
+                trace.append("Statutory Compliance: Notice deemed served under S.27 General Clauses Act.")
+                causality_map.append({"fact": "Deemed Service", "impact": 0, "type": "neutral", "rationale": "Postal endorsement supports deemed service."})
+
+            notice_points = PILLAR_NOTICE_VALID if within_30 else PILLAR_NOTICE_LATE
+            score_delta += notice_points
+            trace.append(f"Statutory Compliance: S.138(b) Demand Notice served (+{notice_points}).")
+            causality_map.append({"fact": "S.138(b) Notice Compliance", "impact": notice_points, "type": "positive", "rationale": "Statutory notice window is a core maintainability pillar."})
+            if not within_30:
+                causality_map.append({"fact": "Notice Delay", "impact": -18, "type": "negative", "rationale": "Notice sent beyond 30 days of dishonour."})
+        else:
+            score_delta += PILLAR_NOTICE_MISSING
+            case_data["fatal_defect"] = case_data.get("fatal_defect") or "Mandatory Demand Notice Not Served"
+            trace.append(f"FATAL DEFECT: Mandatory demand notice not served ({PILLAR_NOTICE_MISSING} impact).")
+            causality_map.append({"fact": "Notice Not Sent", "impact": PILLAR_NOTICE_MISSING, "type": "negative", "rationale": "Complaint is non-maintainable without the statutory notice."})
+
+        compliance_pct = (sum([1 for p in [cheque, memo, notice, debt] if p]) / 4.0) * 100
+        if debt:
+            debt_points = PILLAR_DEBT_PROVEN
+            if amount > 100000 and not case_data.get("agreement_registered"):
+                debt_points -= 9
+                trace.append("Evidentiary Risk: High-value agreement lacks registration (-9 impact).")
+            score_delta += debt_points
+            trace.append(f"Liability Authentication: Enforceable debt proof established (+{debt_points}).")
+            causality_map.append({"fact": "Debt Liability Proof", "impact": debt_points, "type": "positive", "rationale": "S.139 presumption is stronger with corroborative debt proof."})
+        else:
+            score_delta += PILLAR_DEBT_MISSING
+            trace.append(f"Rebuttal Risk: Presumption under S.139 is vulnerable ({PILLAR_DEBT_MISSING} impact).")
+            causality_map.append({"fact": "No Liability Proof", "impact": PILLAR_DEBT_MISSING, "type": "negative", "rationale": "Lack of underlying debt proof weakens the complaint."})
+
+        return {
+            "score_delta": score_delta,
+            "trace": trace,
+            "causality_map": causality_map,
+            "compliance_pct": compliance_pct,
+            "pillars": {"cheque": cheque, "memo": memo, "notice": notice, "debt": debt},
+            "notice_status": notice_status,
+        }
+
+    @classmethod
+    def apply_s63_4_penalty(cls, case_data: Dict) -> Dict[str, Any]:
+        """Single shared BSA S.63(4) compliance check."""
+        has_electronic = cls._truthy(case_data.get("has_electronic_evidence")) or bool(case_data.get("communication_records"))
+        has_certificate = (
+            cls._truthy(case_data.get("has_bsa_certificate"))
+            or cls._truthy(case_data.get("has_65b_certificate"))
+            or cls._truthy(case_data.get("s65b_certificate"))
+            or str(case_data.get("bsa_certificate", "")).strip().lower() == "yes"
+        )
+        if not has_electronic or has_certificate:
+            return {"score_delta": 0, "trace": [], "causality_map": [], "cap": None}
+        penalty = -15
+        return {
+            "score_delta": penalty,
+            "trace": [f"{penalty} EVIDENTIARY: Missing S.63(4) BSA Certificate for Digital Evidence."],
+            "causality_map": [{"fact": "Missing S.63(4) BSA Certificate", "impact": penalty, "type": "negative", "rationale": "Digital records are vulnerable without the statutory certificate."}],
+            "cap": 75,
+        }
+
+    @classmethod
+    def apply_timeline_penalties(cls, case_data: Dict, concepts: List[Dict]) -> Dict[str, Any]:
+        concept_names = {c.get("concept") for c in concepts}
+        score_delta = 0
+        trace = []
+        causality_map = []
+
+        if "limitation_issue" in concept_names or case_data.get("limitation_barred"):
+            score_delta += PENALTY_LIMITATION
+            trace.append(f"{PENALTY_LIMITATION} CRITICAL: Limitation Period delay/jurisdictional bar.")
+            causality_map.append({"fact": "Limitation Delay", "impact": PENALTY_LIMITATION, "rationale": "Limitation is a jurisdictional bar."})
+
+        if "notice_defect" in concept_names:
+            score_delta += PENALTY_NOTICE_DEFECT
+            trace.append(f"{PENALTY_NOTICE_DEFECT} CRITICAL: Defective statutory notice.")
+            causality_map.append({"fact": "Notice Defect", "impact": PENALTY_NOTICE_DEFECT, "rationale": "Statutory notice must be legally compliant."})
+
+        notice_status = cls.normalize_notice_service_status(case_data)
+        if notice_status["bucket"] in {"FAILED_SERVICE", "UNCERTAIN_SERVICE"}:
+            penalty = -45 if notice_status["bucket"] == "FAILED_SERVICE" else -25
+            score_delta += penalty
+            trace.append(f"{penalty} CRITICAL: Notice delivery status '{notice_status['label']}' weakens service proof.")
+            causality_map.append({"fact": f"Notice Service: {notice_status['label']}", "impact": penalty, "rationale": "Service contradictions undermine S.27 presumptions."})
+
+        return {"score_delta": score_delta, "trace": trace, "causality_map": causality_map}
+
+    @staticmethod
+    def _truthy(value: Any) -> bool:
+        if isinstance(value, bool):
+            return value
+        return str(value).strip().lower() in {"yes", "true", "1"}
+
+    @staticmethod
+    def _to_number(value: Any, default: float = 0) -> float:
+        try:
+            return float(value)
+        except Exception:
+            return default
+
     @classmethod
     def calculate_evidence_reliability(cls, case_data: Dict) -> Dict:
         """
