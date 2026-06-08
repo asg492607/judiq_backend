@@ -66,6 +66,14 @@ def _convert_to_lawyer_language(raw_trace: list) -> list:
 
 class ResponseBuilder:
     @staticmethod
+    def _prefix_text(text: Any, label: str) -> Any:
+        if not isinstance(text, str) or not text.strip():
+            return text
+        if text.startswith("[AI Enhanced]") or text.startswith("[Rule-Based]"):
+            return text
+        return f"[{label}]\n{text}"
+
+    @staticmethod
     def build_final_response(engine_result: Dict[str, Any], case_data: Dict[str, Any]) -> Dict[str, Any]:
         score = engine_result.get("final_score", 0)
         trace = engine_result.get("reasoning_trace", [])
@@ -309,13 +317,16 @@ class ResponseBuilder:
         
         from llm_engine import LLM_AVAILABLE
         if LLM_AVAILABLE and "Case Score" not in executive_summary_text:
-            executive_summary_text = f"**AI-Generated Strategic Summary:**\n{executive_summary_text}"
+            executive_summary_text = ResponseBuilder._prefix_text(executive_summary_text, "AI Enhanced")
         else:
-            executive_summary_text = f"**Rule-Based Deterministic Summary:**\n{executive_summary_text}"
+            executive_summary_text = ResponseBuilder._prefix_text(executive_summary_text, "Rule-Based")
         
         base_draft = engine_result.get("draft", "")
         draft_type = engine_result.get("draft_type", "LEGAL_OPINION")
         enhanced_draft = enhance_legal_draft(base_draft, draft_type, case_data) if base_draft else ""
+        draft_label = "AI Enhanced" if LLM_AVAILABLE and enhanced_draft and enhanced_draft != base_draft else "Rule-Based"
+        enhanced_draft = ResponseBuilder._prefix_text(enhanced_draft, draft_label)
+        base_draft = ResponseBuilder._prefix_text(base_draft, "Rule-Based")
 
         return {
             "score":              score,
