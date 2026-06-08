@@ -283,15 +283,135 @@ class JudiQEngine:
                     context="ScoringEngine"
                 )
             scoring_results.append(res)
+        case_data["verification_penalties"] = verification_flags.get("verification_penalties", 0)
+
+        # -- 2. Semantic Extraction & Fact Graph (Hybrid Architecture) --------
+        text = case_data.get("description", "").strip()
+        if not text:
+            parts = [phrase for key, phrase in SYNTHETIC_TEXT_MAP.items() if case_data.get(key)]
+            text = ". ".join(parts)
+            
+        fact_graph = None
+        if LLM_AVAILABLE:
+            try:
+                from llm_engine import extract_fact_graph
+                fact_graph = _safe_call(
+                    extract_fact_graph, text,
+                    fallback=None,
+                    context="LLM_FactGraph"
+                )
+            except Exception as e:
+                logger.error(f"Failed to load LLM fact graph: {e}")
+            
+        case_data["fact_graph"] = fact_graph
+
+        semantic_engine = registry.get("semantic")
+        semantic_result = _safe_call(
+            semantic_engine.analyze_text, text,
+            fallback={"concepts_detected": [], "entities": []},
+            context="SemanticEngine"
+        )
+        concepts = semantic_result.get("concepts_detected") or []
+
+        # -- 2.5 Case Type Detection ------------------------------------------
+        text_lower = text.lower()
+        is_criminal = case_data.get("case_type") == "criminal" or "criminal" in text_lower or "fir" in text_lower or case_data.get("offense_type") is not None
+        is_cheque_bounce = case_data.get("case_type") == "cheque_bounce" or "cheque" in text_lower or case_data.get("cheque_present")
+
+        if is_criminal and is_cheque_bounce:
+            logger.info("Mixed case detected (Criminal + Cheque Bounce). Orchestrating combined analysis.")
+            adv_modules = ["adversarial", "criminal_adversarial"]
+            strat_modules = ["strategy", "criminal_strategy"]
+            scoring_modules = ["scoring", "criminal_scoring"]
+        elif is_criminal:
+            adv_modules = ["criminal_adversarial"]
+            strat_modules = ["criminal_strategy"]
+            scoring_modules = ["criminal_scoring"]
+        else:
+            adv_modules = ["adversarial"]
+            strat_modules = ["strategy"]
+            scoring_modules = ["scoring"]
+
+        # -- 3. Adversarial Audit ---------------------------------------------
+        attack_chains = []
+        for adv_module in adv_modules:
+            adversarial_engine = registry.get(adv_module)
+            adversarial_result = _safe_call(
+                adversarial_engine.audit_case, case_data, concepts,
+                fallback={"risks_and_rebuttals": [], "contradictions": []},
+                context=f"{adv_module}"
+            )
+            attack_chains.extend(adversarial_result.get("risks_and_rebuttals", []))
         
-        # Aggregate scores (average if multiple)
+        # NEW: Contradiction Engine
+        contradictions = _safe_call(
+            adversarial_engine.detect_contradictions, case_data, concepts,
+            fallback=[],
+            context="ContradictionEngine"
+        )
+        
+        # NEW: Timeline Anomaly Detector
+        timeline_anomalies = _safe_call(
+            adversarial_engine.detect_timeline_anomalies, case_data,
+            fallback=[],
+            context="TimelineAnomalyDetector"
+        )
+        
+        # Risk Metric
+        adversarial_risk = _safe_call(
+            adversarial_engine.calculate_adversarial_risk, attack_chains,
+            fallback=0.2,
+            context="AdversarialEngine.risk"
+        )
+
+        evidence_dependencies = _safe_call(
+            adversarial_engine.map_evidence_dependencies, case_data,
+            fallback=[],
+            context="EvidenceDependencyMapping"
+        )
+
+        # NEW: Strategic Audit
+        red_team_attacks = _safe_call(
+            adversarial_engine.run_strategic_audit, case_data, concepts,
+            fallback=[],
+            context="StrategicAudit"
+        )
+        
+        # NEW: Witness Pressure Simulation
+        witness_pressure = _safe_call(
+            adversarial_engine.simulate_witness_pressure, case_data, adversarial_risk,
+            fallback={},
+            context="WitnessPressure"
+        )
+
+        # -- 4. Scoring Engine ------------------------------------------------
+        scoring_results = []
+        for scoring_module in scoring_modules:
+            scoring_engine = registry.get(scoring_module)
+            if "criminal" in scoring_module:
+                res = _safe_call(
+                    scoring_engine.calculate_score, case_data, concepts, contradictions,
+                    fallback={"score": 50, "final_score": 50, "reasoning_trace": ["Internal scoring error."]},
+                    context="CriminalScoringEngine"
+                )
+            else:
+                res = _safe_call(
+                    scoring_engine.calculate_score_with_trace, case_data, concepts, contradictions, {},
+                    fallback={"score": 50, "final_score": 50, "reasoning_trace": ["Internal scoring error."]},
+                    context="ScoringEngine"
+                )
+            scoring_results.append(res)
+        
+        # Aggregate scores (minimum if multiple, since a fatal flaw sinks the whole hybrid case)
         scoring_result = scoring_results[0]
         if len(scoring_results) > 1:
-            avg_score = sum(float(r.get("final_score") or r.get("score") or 50) for r in scoring_results) / len(scoring_results)
-            scoring_result["final_score"] = avg_score
-            scoring_result["score"] = avg_score
-            scoring_result["reasoning_trace"] = scoring_results[0].get("reasoning_trace", []) + ["Mixed Case Adjustments applied."] + scoring_results[1].get("reasoning_trace", [])
-
+            min_score = min(float(r.get("final_score") or r.get("score") or 50) for r in scoring_results)
+            scoring_result["final_score"] = min_score
+            scoring_result["score"] = min_score
+            # Combine reasoning traces with explicit engine tags
+            trace_1 = [f"[Cheque Engine] {t}" for t in scoring_results[0].get("reasoning_trace", [])]
+            trace_2 = [f"[Criminal Engine] {t}" for t in scoring_results[1].get("reasoning_trace", [])]
+            scoring_result["reasoning_trace"] = trace_1 + ["---"] + trace_2
         final_score = float(scoring_result.get("final_score") or scoring_result.get("score") or 50)
 
         # -- 5. Strategic Layer -----------------------------------------------
