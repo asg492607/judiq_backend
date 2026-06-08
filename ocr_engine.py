@@ -3,16 +3,9 @@ import re
 import json
 from typing import Dict, List, Any
 from config import settings
-from groq import Groq
+from llm_engine import _invoke_llm, LLM_AVAILABLE
 
 logger = logging.getLogger(__name__)
-
-GROQ_API_KEY = settings.GROQ_API_KEY
-try:
-    client = Groq(api_key=GROQ_API_KEY)
-except Exception as e:
-    logger.error(f"Failed to initialize Groq client for OCR: {e}")
-    client = None
 
 MODEL = "llama-3.1-8b-instant"
 
@@ -76,7 +69,7 @@ class OCREngine:
             "extracted_snippet": extracted_text[:200] + "..." if len(extracted_text) > 200 else extracted_text
         }
 
-        if not client or not GROQ_API_KEY or GROQ_API_KEY.endswith("_placeholder"):
+        if not LLM_AVAILABLE:
             logger.warning("LLM OCR unavailable. Falling back to Regex heuristic verification.")
             
             # Reject if it's an error placeholder
@@ -127,16 +120,9 @@ class OCREngine:
         """
 
         try:
-            response = client.chat.completions.create(
-                messages=[{"role": "system", "content": prompt}],
-                model=MODEL,
-                temperature=0.1,
-                max_tokens=500,
-            )
-            content = response.choices[0].message.content.strip()
-            if content.startswith("```json"):
-                content = content[7:-3]
-            data = json.loads(content)
+            data = _invoke_llm(prompt, max_tokens=500, temperature=0.1, expect_json=True)
+            if not data:
+                raise Exception("LLM extraction failed to return valid JSON.")
             
             result["extracted_dates"] = data.get("dates", [])
             result["extracted_amounts"] = data.get("amounts", [])

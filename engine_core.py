@@ -153,20 +153,19 @@ class JudiQEngine:
         logger.info(f"[JUDIQ] Core analysis triggered for: {case_data.get('case_id', 'ANON')}")
 
         # -- 1.5 Document Intelligence Override -------------------------------
-        try:
-            doc_intel = registry.get("document_intelligence")
-            verification_flags = doc_intel.validate_claims(case_data)
-            
-            # Apply overrides to case_data to defeat 'User Honesty' trap
-            if verification_flags.get("overrides"):
-                for k, v in verification_flags["overrides"].items():
-                    case_data[k] = v
-                    logger.warning(f"[ENGINE] Overriding user input {k} -> {v}")
-                    
-            # Inject penalties directly into case_data so scoring engine can catch it
-            case_data["verification_penalties"] = verification_flags.get("verification_penalties", 0)
-        except Exception as e:
-            logger.error(f"[ENGINE] Document Intelligence Override failed: {e}")
+        doc_intel = registry.get("document_intelligence")
+        verification_flags = _safe_call(
+            doc_intel.validate_claims, case_data,
+            fallback={"overrides": {}, "verification_penalties": 0},
+            context="DocumentIntelligence"
+        )
+        
+        if verification_flags.get("overrides"):
+            for k, v in verification_flags["overrides"].items():
+                case_data[k] = v
+                logger.warning(f"[ENGINE] Overriding user input {k} -> {v}")
+                
+        case_data["verification_penalties"] = verification_flags.get("verification_penalties", 0)
 
         # -- 2. Semantic Extraction & Fact Graph (Hybrid Architecture) --------
         text = case_data.get("description", "").strip()
@@ -563,4 +562,5 @@ class JudiQEngine:
 
 
 analyze_case = JudiQEngine.analyze_case
+
 
