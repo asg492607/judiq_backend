@@ -74,7 +74,7 @@ class PDFGenerator:
                 parent=styles['Normal'],
                 fontSize=10,
                 leading=14,
-                alignment=TA_LEFT
+                alignment=TA_LEFT, wordWrap='CJK'
             )
             
             # ===== TITLE =====
