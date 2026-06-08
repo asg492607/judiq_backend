@@ -59,10 +59,18 @@ class CriminalScoringEngine(BaseScoringEngine):
             trace.append("-30 EVIDENTIARY: Ocular evidence contradicts medical evidence.")
             causality_map.append({"fact": "Medical Contradiction", "impact": -30, "rationale": "Independent medical evidence casts massive doubt on eyewitnesses."})
 
-        if "electronic_evidence" in case_data and not case_data.get("s65b_certificate"):
-            score -= 20
-            trace.append("-20 PROCEDURAL: Missing S.65B Certificate.")
-            causality_map.append({"fact": "Missing S.65B", "impact": -20, "rationale": "Digital evidence is inadmissible without certificate."})
+        if "electronic_evidence" in case_data:
+            case_data.setdefault("has_electronic_evidence", True)
+
+        timeline_penalties = cls.apply_timeline_penalties(case_data, concepts)
+        score += timeline_penalties["score_delta"]
+        trace.extend(timeline_penalties["trace"])
+        causality_map.extend(timeline_penalties["causality_map"])
+
+        bsa_result = cls.apply_s63_4_penalty(case_data)
+        score += bsa_result["score_delta"]
+        trace.extend(bsa_result["trace"])
+        causality_map.extend(bsa_result["causality_map"])
 
         # 3. CONTRADICTIONS
         for cont in contradictions:
