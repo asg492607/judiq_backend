@@ -141,6 +141,18 @@ def map_jurisdiction(case_data: Dict) -> Dict:
             "warnings": warnings + ["Territorial jurisdiction mismatch triggers a maintainability defect."],
         }
 
+    supplied_court = str(case_data.get("court_name") or "").strip().lower()
+    if supplied_court and primary_city and primary_city.lower() not in supplied_court:
+        return {
+            "status": "INVALID",
+            "recommended_court": f"{get_court_tier(primary_city)}, {primary_city.title()}",
+            "primary_city": primary_city.title(),
+            "confidence": confidence,
+            "legal_basis": basis,
+            "reason": f"Filed court '{case_data.get('court_name')}' does not align with S.142(2) territorial jurisdiction at {primary_city.title()}.",
+            "warnings": warnings + ["Territorial jurisdiction mismatch triggers a maintainability defect."],
+        }
+
     court_tier = get_court_tier(primary_city)
     court_name = f"{court_tier}, {primary_city.title()}"
 
