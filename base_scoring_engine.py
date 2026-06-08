@@ -147,12 +147,12 @@ class BaseScoringEngine:
         )
         if not has_electronic or has_certificate:
             return {"score_delta": 0, "trace": [], "causality_map": [], "cap": None}
-        penalty = -15
+        penalty = -30
         return {
             "score_delta": penalty,
-            "trace": [f"{penalty} EVIDENTIARY: Missing S.63(4) BSA Certificate for Digital Evidence."],
-            "causality_map": [{"fact": "Missing S.63(4) BSA Certificate", "impact": penalty, "type": "negative", "rationale": "Digital records are vulnerable without the statutory certificate."}],
-            "cap": 75,
+            "trace": [f"{penalty} FATAL EVIDENTIARY DEFECT: Mandatory S.63(4) BSA Certificate for Digital Evidence is missing."],
+            "causality_map": [{"fact": "Missing S.63(4) BSA Certificate", "impact": penalty, "type": "negative", "rationale": "Digital records are completely inadmissible and vulnerable without the statutory certificate."}],
+            "cap": 50,
         }
 
     @classmethod
@@ -219,7 +219,7 @@ class BaseScoringEngine:
             if has_63_4_cert:
                 reliability["WhatsApp/Email"] = {"score": 0.85, "status": "AUTHENTICATED", "attack_risk": "LOW"}
             else:
-                reliability["WhatsApp Screenshot"] = {"score": 0.30, "status": "VULNERABLE", "attack_risk": "HIGH", "reason": "Mandatory S.63(4) BSA Certificate missing (Replacing old 65B)."}
+                reliability["WhatsApp Screenshot"] = {"score": 0.0, "status": "INADMISSIBLE", "attack_risk": "CRITICAL", "reason": "Mandatory S.63(4) BSA Certificate missing (Replacing old 65B). Evidence is legally void."}
 
         # Witness Support
         witness_status = str(case_data.get("witness_available", "No")).lower()

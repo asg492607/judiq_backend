@@ -458,7 +458,12 @@ def generate_defence_strategy(case_data: Dict, concepts: List[Dict], score: int)
             "The cheque was issued for a specific, limited purpose and has been misused/misappropriated by the Complainant. The Accused submits that the cheque was not issued in discharge of the liability alleged. The Complainant's act of presenting the cheque for encashment beyond its intended purpose constitutes dishonest misuse."
         )
 
-    defences_text = "\n".join([f"   {i+1}. {d}" for i, d in enumerate(defences_identified)]) if defences_identified else "   (To be determined based on full case facts)"
+    # Inject synthesis for complex cases (multiple defences)
+    if len(defences_identified) > 1:
+        synthesis = "COMPOSITE DEFENCE STRATEGY:\nThe Accused has a multi-tiered defence. We will primarily challenge the existence of the legally enforceable debt, whilst simultaneously disputing the mechanics of the cheque's execution. This dual-pronged attack forces the Complainant to prove both the financial transaction and the instrument's integrity beyond reasonable doubt."
+        defences_identified.insert(0, synthesis)
+
+    defences_text = "\n".join([f"   {i+1}. {d}" if not str(d).startswith("COMPOSITE") else f"   {d}" for i, d in enumerate(defences_identified)]) if defences_identified else "   (To be determined based on full case facts)"
     arguments_text = "\n\n".join([f"   {i+1}. {a}" for i, a in enumerate(legal_arguments)]) if legal_arguments else "   (Legal arguments to be elaborated based on specific case documents)"
 
     return f"""{_header("DEFENCE STRATEGY BRIEF — SECTION 138 NI ACT")}
@@ -1226,5 +1231,6 @@ class DraftEngine:
             return generate_application_143a(case_data)
         else:
             return generate_legal_opinion(score, concepts, case_data)
+
 
 
