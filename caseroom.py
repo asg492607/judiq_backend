@@ -1,14 +1,14 @@
 # pyrefly: ignore [missing-import]
 import os
 import logging
-from fastapi import APIRouter, Request, UploadFile, File, Form, Depends, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Request, UploadFile, File, Form, Depends, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import JSONResponse, Response
 from caseroom_logic import CaseroomManager
 from session import DatabaseManager
 from config import settings
 from cryptography.fernet import Fernet
 from ocr_engine import OCREngine
-from llm_engine import LLMEngine
+from llm_engine import _invoke_llm
 import json
 
 router = APIRouter()
@@ -80,7 +80,7 @@ async def send_caseroom_message(room_id: str, request: Request):
         if "@JudiQ" in content:
             prompt = f"You are an adversarial opposing counsel in an Indian courtroom. The defense lawyer just said: '{content}'. Cross-examine them aggressively but professionally to find logical gaps. Keep it to 2-3 sentences."
             try:
-                llm_response = LLMEngine.generate_reasoning_trail(prompt, [])
+                llm_response = _invoke_llm(prompt, max_tokens=200, fallback_value=None)
                 ai_text = llm_response if llm_response else "Objection, your honor. The statement lacks merit."
             except Exception as e:
                 logger.error(f"Simulator LLM Error: {e}")
@@ -96,8 +96,13 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str):
     await manager.connect(websocket, room_id)
     try:
         while True:
-            # We just keep connection open, messages come via POST
             data = await websocket.receive_text()
+            try:
+                parsed = json.loads(data)
+            except Exception:
+                parsed = {"type": data}
+            if parsed.get("type") == "PING":
+                await websocket.send_json({"type": "PONG"})
     except WebSocketDisconnect:
         manager.disconnect(websocket, room_id)
 
