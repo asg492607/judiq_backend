@@ -31,3 +31,9 @@ async def jurisdiction_map(request: Request):
     result = map_jurisdiction(data)
     return {"success": True, "jurisdiction": result}
 
+@router.get("/draft/history/{case_id}/{draft_type}")
+async def get_draft_history(case_id: str, draft_type: str):
+    from session import DatabaseManager
+    history = DatabaseManager.get_draft_history(case_id, draft_type)
+    return {"success": True, "history": history}
+
