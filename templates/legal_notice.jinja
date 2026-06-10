@@ -24,14 +24,22 @@ Under instructions from and on behalf of my client {{ complainant }}, I hereby s
    When my client presented the said cheque for encashment through banking channels, the same was returned/dishonoured on {{ dishonour_date }} with the bank memo citing the reason "{{ dishonour_reason }}".
 
 4. DEMAND FOR PAYMENT:
-{% if is_aggressive %}
-   By this notice, my client demands that you immediately pay the said sum of {{ amount_str }} along with applicable interest, within FIFTEEN (15) DAYS from the date of receipt of this notice, failing which strict legal action shall follow without further warning.
+{% if tone == 'aggressive' %}
+   By this notice, my client demands that you immediately pay the said sum of {{ amount_str }} along with interest at the rate of 18% per annum, within FIFTEEN (15) DAYS from the date of receipt of this notice. Failing to comply will result in immediate prosecution, attachment of assets, and personal liability for all directors.
+{% elif tone == 'conciliatory' %}
+   By this notice, my client requests you to pay the said sum of {{ amount_str }} within FIFTEEN (15) DAYS from the date of receipt of this notice. My client remains open to an amicable out-of-court settlement or structured payment plan to resolve this matter without resorting to litigation, provided you communicate your proposal within this period.
 {% else %}
    By this notice, my client hereby demands that you pay the said sum of {{ amount_str }} together with interest thereon within FIFTEEN (15) DAYS from the date of receipt of this notice.
 {% endif %}
 
 5. LEGAL CONSEQUENCE:
+{% if tone == 'aggressive' %}
+   Take notice that in the event of your failure to make payment, my client has instructed me to launch criminal prosecution against you under Section 138 of the Negotiable Instruments Act, 1881, and initiate corporate insolvency or civil attachment proceedings without further delay. You will be held liable for all legal costs, damages, and consequences.
+{% elif tone == 'conciliatory' %}
+   Please note that if the payment is not made or a settlement plan is not agreed upon within the stipulated 15 days, my client will be forced, with extreme reluctance, to seek legal remedies by initiating proceedings under Section 138 of the Negotiable Instruments Act, 1881.
+{% else %}
    You are hereby warned that in the event of your failure to make payment within the stipulated period, my client shall be constrained to initiate criminal proceedings against you under Section 138 of the Negotiable Instruments Act, 1881, and also civil proceedings for recovery of the said amount together with interest, costs, and damages, without any further notice to you.
+{% endif %}
 
 Yours faithfully,
 
