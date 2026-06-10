@@ -18,7 +18,7 @@ def test_calculate_score_basic():
     
     # Check that score is high due to having all PILLARS
     assert result["score"] > 60
-    assert len(result["trace"]) > 0
+    assert len(result["reasoning_trace"]) > 0
     assert len(result["causality_map"]) > 0
 
 def test_calculate_score_fatal_missing_cheque():
@@ -34,5 +34,6 @@ def test_calculate_score_fatal_missing_cheque():
     
     # Missing cheque is a fatal error, should result in a low score
     assert result["score"] < 50
-    assert any("FATAL ERROR: Primary instrument missing" in t for t in result["trace"])
+    assert any("FATAL ERROR: Primary instrument missing" in t for t in result["reasoning_trace"])
+
 
