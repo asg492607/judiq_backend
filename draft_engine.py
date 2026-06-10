@@ -517,7 +517,7 @@ MOST RESPECTFULLY SHOWETH:
 1. That the police have filed a charge sheet against the Accused. However, a bare perusal of the charge sheet and accompanying documents under Section 207 CrPC reveals that no prima facie case is made out.
 
 2. GRAVE SUSPICION LACKING:
-   As per the Hon'ble Supreme Court in 'Union of India v. Prafulla Kumar Samal', the Court must evaluate if the materials create a "grave suspicion". Here, the evidence is entirely hearsay, legally inadmissible, and fundamentally flawed.
+   As per the Hon'ble Supreme Court in 'Union of India v. Prafulla Kumar Samal', the Court must evaluate if the materials create a 'grave suspicion'. Here, the evidence is entirely hearsay, legally inadmissible, and fundamentally flawed.
 
 3. ABSENCE OF MENS REA:
    Even if the allegations are taken at face value (without admitting them), the essential ingredients of the offence, particularly the requisite mens rea, are completely absent.
