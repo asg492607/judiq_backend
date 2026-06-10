@@ -492,9 +492,40 @@ def generate_defence_strategy(case_data: Dict, concepts: List[Dict], score: int)
         defences_identified.insert(0, synthesis)
 
     defences_text = "\n".join([f"   {i+1}. {d}" if not str(d).startswith("COMPOSITE") else f"   {d}" for i, d in enumerate(defences_identified)]) if defences_identified else "   (To be determined based on full case facts)"
-Date: {today}
+    arguments_text = "\n\n".join([f"   {i+1}. {a}" for i, a in enumerate(legal_arguments)]) if legal_arguments else "   (Legal arguments to be elaborated based on specific case documents)"
 
-Through Counsel
+    return f"""{_header("DEFENCE STRATEGY BRIEF — SECTION 138 NI ACT")}
+
+Date: {today}
+Case Strength Score: {score}/100
+Classification: DEFENCE-SIDED (ACCUSED STRATEGY)
+
+DEFENCES IDENTIFIED:
+{defences_text}
+
+DETAILED LEGAL ARGUMENTS:
+{arguments_text}
+
+EVIDENTIARY STRATEGY:
+   1. Dispute the genuineness and purpose of the cheque through sworn affidavit.
+   2. File application under Section 91 CrPC to call for original transaction documents.
+   3. Commission handwriting expert if signature is disputed.
+   4. Cross-examine Complainant on the nature, purpose, and quantum of alleged debt.
+   5. Produce all communications (WhatsApp, email, letters) showing the true purpose of the cheque.
+
+PROCEDURAL STEPS:
+   1. Appear before Court on date of first hearing; do NOT ignore summons.
+   2. File detailed reply to complaint on first or second date.
+   3. Apply for bail (if required) and obtain anticipatory bail preemptively.
+   4. File application under Section 145(2) NI Act to cross-examine the Complainant.
+   5. Consider filing complaint under Section 500 IPC (defamation) if allegations are false.
+
+SETTLEMENT ASSESSMENT:
+   Given the case strength score of {score}/100, a negotiated settlement may be advisable to avoid
+   prolonged litigation risk. The Accused should evaluate a commercial resolution.
+
+DISCLAIMER: This is an AI-generated preliminary strategy document. Consult a qualified advocate before taking any legal action.
+WARNING: Do NOT file raw AI output. You MUST 'humanize' the draft to avoid 'Cookie-Cutter' objections from the Magistrate, and verify ALL citations to prevent 'Phantom Precedent' penalties (Professional Misconduct/₹50k fine).
 """
 
 def generate_discharge_application(case_data: Dict) -> str:
@@ -877,6 +908,35 @@ class DraftEngine:
             return generate_application_143a(case_data)
         else:
             return generate_legal_opinion(score, concepts, case_data)
+
+
+def generate_legal_opinion(score: int, concepts: List[Dict], case_data: Dict) -> str:
+    today, amount_str = _case_meta(case_data)
+    
+    return f"""{_header("PROFESSIONAL LEGAL OPINION — ADVERSARIAL ASSESSMENT")}
+
+Date: {today}
+Case Viability Score: {score}/100
+Subject: Strategic Assessment of Cheque Dishonour Case involving {amount_str}
+
+1. EXECUTIVE SUMMARY:
+   Based on the current evidentiary configuration, this case has a viability score of {score}%. 
+   { "The case is structurally sound but requires procedural precision." if score > 70 else "The case exhibits significant structural vulnerabilities that may impede successful prosecution." }
+
+2. KEY RISK VECTORS:
+   The following legal concepts were detected which directly impact the litigation posture:
+   { "\n".join([f"   - {c['concept'].replace('_', ' ').upper()} (Impact: High)" for c in concepts if c.get('confidence', 0) > 0.7]) or "   - No high-confidence risks detected." }
+
+3. STRATEGIC RECOMMENDATION:
+   { "Proceed with the filing of a Criminal Complaint under Section 138 NI Act whilst ensuring all statutory timelines are strictly met." if score > 60 else "Immediate litigation is not recommended. Focus on evidentiary remediation or explore a mediated settlement (Section 147 NI Act) to mitigate costs." }
+
+4. LITIGATION DIRECTIVE:
+   { "1. Prepare and file the complaint within the 30-day limitation window from notice service.\\n   2. Confirm original documents are available for verification." if score > 60 else "1. Issue a remedial notice or seek compounding to avoid dismissal.\\n   2. Collect additional documentary evidence to verify transaction details." }
+
+DISCLAIMER: This is an AI-generated preliminary strategy document. Consult a qualified advocate before taking any legal action.
+WARNING: Do NOT file raw AI output. You MUST 'humanize' the draft to avoid 'Cookie-Cutter' objections from the Magistrate, and verify ALL citations to prevent 'Phantom Precedent' penalties (Professional Misconduct/₹50k fine).
+"""
+
 
 
 
