@@ -1,15 +1,14 @@
 import pytest
+import llm_engine
 from engine_core import JudiQEngine
 
 def test_engine_initialization():
-    engine = JudiQEngine()
-    assert engine.cheque_scorer is not None
-    assert engine.criminal_scorer is not None
-    assert engine.response_builder is not None
-    assert engine.legal_kb is not None
+    # Verify analyze_case classmethod exists on JudiQEngine
+    assert hasattr(JudiQEngine, 'analyze_case')
+    assert callable(JudiQEngine.analyze_case)
 
-def test_pure_cheque_case():
-    engine = JudiQEngine()
+def test_pure_cheque_case(monkeypatch):
+    monkeypatch.setattr(llm_engine, "LLM_AVAILABLE", False)
     case_data = {
         "case_type": "cheque_bounce",
         "description": "The cheque was dishonoured due to insufficient funds.",
@@ -20,13 +19,12 @@ def test_pure_cheque_case():
         "debt_proven": True,
         "timeline_within_limit": True
     }
-    # Test fallback mode to avoid LLM calls in unit tests
-    result = engine.analyze_case(case_data, fallback_mode=True)
+    result = JudiQEngine.analyze_case(case_data)
     assert result["score"] >= 80
     assert result["verdict"] == "FILE IMMEDIATELY"
 
-def test_pure_criminal_case():
-    engine = JudiQEngine()
+def test_pure_criminal_case(monkeypatch):
+    monkeypatch.setattr(llm_engine, "LLM_AVAILABLE", False)
     case_data = {
         "case_type": "criminal",
         "description": "FIR filed under Section 420 IPC for cheating.",
@@ -34,12 +32,12 @@ def test_pure_criminal_case():
         "police_complaint_filed": True,
         "witnesses_available": True
     }
-    result = engine.analyze_case(case_data, fallback_mode=True)
+    result = JudiQEngine.analyze_case(case_data)
     assert result["score"] >= 70
     assert "criminal" in result["draft_type"].lower() or "fir" in result.get("reasoning", [""])[0].lower() or True
 
-def test_hybrid_case_fatal_cheque():
-    engine = JudiQEngine()
+def test_hybrid_case_fatal_cheque(monkeypatch):
+    monkeypatch.setattr(llm_engine, "LLM_AVAILABLE", False)
     case_data = {
         "case_type": "hybrid",
         "description": "Criminal breach of trust and bounced cheque but limitation expired.",
@@ -49,7 +47,7 @@ def test_hybrid_case_fatal_cheque():
         "fir_copy": True,          # Strong criminal trait
         "police_complaint_filed": True
     }
-    result = engine.analyze_case(case_data, fallback_mode=True)
+    result = JudiQEngine.analyze_case(case_data)
     # Because min() is used, the score should drop drastically
     assert result["score"] < 50
     assert result["verdict"] in ["DO NOT FILE", "REPAIR BEFORE FILING"]
