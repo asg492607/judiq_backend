@@ -3,9 +3,9 @@ from scoring_engine import ScoringEngineV12
 def test_calculate_score_basic():
     case_data = {
         "amount": 100000,
-        "cheque_proof_available": True,
+        "cheque_present": True,
         "cheque_proof_type": "original",
-        "memo_available": True,
+        "dishonour_memo": True,
         "notice_sent": True,
         "within_30_days": "Yes",
         "debt_proven": True
@@ -24,8 +24,8 @@ def test_calculate_score_basic():
 def test_calculate_score_fatal_missing_cheque():
     case_data = {
         "amount": 100000,
-        "cheque_proof_available": False,
-        "memo_available": True,
+        "cheque_present": False,
+        "dishonour_memo": True,
         "notice_sent": True,
         "within_30_days": "Yes",
         "debt_proven": True
@@ -35,3 +35,4 @@ def test_calculate_score_fatal_missing_cheque():
     # Missing cheque is a fatal error, should result in a low score
     assert result["score"] < 50
     assert any("FATAL ERROR: Primary instrument missing" in t for t in result["trace"])
+
