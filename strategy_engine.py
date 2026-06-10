@@ -1,6 +1,4 @@
-from typing import Any
-from ast import List
-from ast import Dict
+from typing import Any, List, Dict
 class StrategyEngine:
     """
     Advanced Litigation Strategy Engine — generates actionable litigation maps,
