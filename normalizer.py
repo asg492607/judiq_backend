@@ -277,6 +277,12 @@ def normalize_input(data: dict) -> dict:
     }
 
     normalized = resolve_logical_contradictions(normalized)
+    
+    # Preserve any extra keys not explicitly normalized to prevent payload mismatch
+    for k, v in data.items():
+        if k not in normalized:
+            normalized[k] = v
+            
     return normalized
 
 
