@@ -505,7 +505,7 @@ class JudiQEngine:
         judicial_report = {}
         if _judicial_engine:
             judicial_report = _safe_call(
-                _judicial_engine.generate_judicial_report, case_data, final_score,
+                _judicial_engine.generate_judicial_intelligence_report, case_data, final_score,
                 fallback={},
                 context="JudicialEngine"
             )
