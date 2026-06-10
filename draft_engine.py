@@ -184,7 +184,7 @@ def generate_legal_notice(case_data: Dict, tone: str = "standard") -> str:
         dishonour_date=dishonour_date,
         dishonour_reason=dishonour_reason,
         transaction_nature=transaction_nature,
-        is_aggressive=is_aggressive
+        tone=tone.lower()
     )
 
 
@@ -237,6 +237,7 @@ Verified at ________ (Place) on this {today} that the contents of the above affi
 def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "standard") -> str:
     today, amount_str = _case_meta(case_data)
     is_aggressive = tone.lower() == "aggressive"
+    is_conciliatory = tone.lower() == "conciliatory"
 
     complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
     complainant_addr = case_data.get("complainant_address") or case_data.get("complainantAddress") or "________ (Complainant Address)"
@@ -345,14 +346,19 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
         dynamic_rebuttal = f"\n\n    9A. PRE-EMPTIVE REBUTTAL (EVIDENTIARY): That the underlying debt is crystallised and legally enforceable. The statutory presumption under Section 139 is firmly in favour of the Complainant, and the Accused cannot evade liability merely by raising bald denials without discharging the reverse onus of proof (Rangappa v. Mohan)."
     elif is_aggressive and score < 50:
         dynamic_rebuttal = f"\n\n    9A. PRE-EMPTIVE REBUTTAL (GENERAL EVASION): The Complainant submits that any defence raised by the Accused is a mere afterthought designed to derail the summary procedure of Section 138. The Accused's silence during the statutory notice period operates as an implied admission of liability, precluding them from springing surprise defences at trial."
+    
     if case_data.get("communication_records"):
         if is_aggressive:
             debt_pleading += f" The Accused's liability is further cemented by a clear digital trail (including WhatsApp/Email exchanges) wherein the debt stands unequivocally admitted. This electronic evidence, supported by a mandatory Section 63(4) BSA Certificate, renders any defense by the Accused legally untenable."
+        elif is_conciliatory:
+            debt_pleading += f" The Complainant states that the Accused has, in several WhatsApp and Email communications, recognized the outstanding liability. While the Complainant seeks legal recourse, they remain open to amicable resolution if the Accused is willing to perform their commitments."
         else:
             debt_pleading += f" The Accused has repeatedly acknowledged the said debt and liability via various communications, including WhatsApp messages and Emails, which are produced herewith along with the mandatory Certificate under Section 63(4) of the Bharatiya Sakshya Adhiniyam (BSA)."
     elif case_data.get("debt_proof_type") == "verbal_agreement" or case_data.get("agreement_type") == "Verbal Agreement":
         if is_aggressive:
             debt_pleading += " Despite the trust-based nature of the initial transaction, the Accused's subsequent conduct, the issuance of the cheque, and the resulting statutory presumption under Section 139 constitute an unequivocal admission of the debt, which the Accused is now dishonestly attempting to evade."
+        elif is_conciliatory:
+            debt_pleading += " The said transaction was entered into based on trust and a verbal agreement. The Complainant has repeatedly offered opportunities for repayment, which have unfortunately not materialized, leaving the Complainant no option but to seek judicial recourse."
         else:
             debt_pleading += " The said transaction was entered into based on mutual trust, and the Accused had verbally promised to repay the amount within the stipulated time."
 
@@ -363,6 +369,8 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     prayer_compensation = ""
     if is_aggressive:
         prayer_compensation = "(c) Direct the Accused to pay MAXIMUM INTERIM COMPENSATION of 20% under Section 143A of the NI Act, as the defense is ex-facie frivolous and dilatory;"
+    elif is_conciliatory:
+        prayer_compensation = "(c) Direct the Accused to pay INTERIM COMPENSATION under Section 143A of the NI Act, or encourage the parties to explore an amicable settlement / mediation under Section 89 of the CPC;"
     else:
         prayer_compensation = "(c) Direct the Accused to pay INTERIM COMPENSATION under Section 143A of the NI Act (20% of cheque amount);"
 
