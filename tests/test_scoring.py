@@ -1,5 +1,4 @@
-import pytest
-from backend.scoring_engine import ScoringEngineV12
+from scoring_engine import ScoringEngineV12
 
 def test_calculate_score_basic():
     case_data = {
