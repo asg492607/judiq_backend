@@ -59,6 +59,19 @@ class DatabaseManager:
                     tags TEXT
                 )
             """)
+
+            # Saved Drafts Version History
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS saved_drafts (
+                    id {serial_primary},
+                    case_id TEXT NOT NULL,
+                    draft_type TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    version INTEGER DEFAULT 1,
+                    created_at TEXT,
+                    UNIQUE(case_id, draft_type, version)
+                )
+            """)
             
             # --- CASEROOM TABLES ---
             cursor.execute(f"""
@@ -182,6 +195,22 @@ class DatabaseManager:
                 now,
                 ",".join(tags)
             ))
+            
+            # Save draft version to history
+            draft_content = analysis_result.get("draft") or analysis_result.get("draft_raw")
+            if draft_content:
+                draft_type = analysis_result.get("draft_type", "LEGAL_OPINION")
+                cursor.execute(f"SELECT MAX(version) FROM saved_drafts WHERE case_id = {p} AND draft_type = {p}", (case_id, draft_type))
+                row = cursor.fetchone()
+                next_version = (row[0] or 0) + 1
+                
+                cursor.execute(f"SELECT content FROM saved_drafts WHERE case_id = {p} AND draft_type = {p} AND version = {p}", (case_id, draft_type, next_version - 1))
+                prev_row = cursor.fetchone()
+                if not prev_row or prev_row[0] != draft_content:
+                    cursor.execute(f"""
+                        INSERT INTO saved_drafts (case_id, draft_type, content, version, created_at)
+                        VALUES ({p}, {p}, {p}, {p}, {p})
+                    """, (case_id, draft_type, draft_content, next_version, now))
             
             conn.commit()
             conn.close()
@@ -389,3 +418,22 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Failed to save audit log: {e}")
             return False
+
+    @staticmethod
+    def get_draft_history(case_id, draft_type):
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"""
+                SELECT version, content, created_at 
+                FROM saved_drafts 
+                WHERE case_id = {p} AND draft_type = {p}
+                ORDER BY version DESC
+            """, (case_id, draft_type))
+            rows = cursor.fetchall()
+            conn.close()
+            return [{"version": r[0], "content": r[1], "created_at": r[2]} for r in rows]
+        except Exception as e:
+            logger.error(f"Failed to fetch draft history: {e}")
+            return []
