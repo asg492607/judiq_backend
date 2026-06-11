@@ -8,24 +8,25 @@ class CaseInput(BaseModel):
     Standardized input schema for all JudiQ engines.
     Ensures that the raw case data dictionary is validated before processing.
     """
-    case_id: Optional[str] = Field(default="ANON", description="Unique identifier for the case")
-    case_type: Optional[str] = Field(default="unknown", description="Type of case (e.g., cheque_bounce, criminal)")
-    description: Optional[str] = Field(default="", description="Free-text narrative of the case")
+    case_id: Optional[str] = Field(default="ANON", max_length=100, description="Unique identifier for the case")
+    case_type: Optional[str] = Field(default="unknown", max_length=50, description="Type of case (e.g., cheque_bounce, criminal)")
+    description: Optional[str] = Field(default="", max_length=10000, description="Free-text narrative of the case")
     
     # Common variables used across engines
-    offense_type: Optional[str] = None
+    offense_type: Optional[str] = Field(None, max_length=200)
     
     # Cheque bounce specific
     cheque_present: bool = False
     dishonour_memo: bool = False
     notice_sent: bool = False
     debt_proven: bool = False
-    amount: float = 0.0
+    amount: float = Field(default=0.0, ge=0.0, le=1000000000.0) # Up to 100 crore max
+    cheque_amount: Optional[float] = Field(default=None, ge=0.0, le=1000000000.0)
     loan_via_bank: bool = False
     complainant_itr_available: bool = False
-    date_of_dishonour: Optional[str] = None
-    date_of_notice: Optional[str] = None
-    date_of_complaint: Optional[str] = None
+    date_of_dishonour: Optional[str] = Field(None, max_length=20)
+    date_of_notice: Optional[str] = Field(None, max_length=20)
+    date_of_complaint: Optional[str] = Field(None, max_length=20)
 
     # Criminal specific
     contract_exists: bool = False
@@ -57,6 +58,17 @@ class CaseInput(BaseModel):
     
     # Catch-all for any other dynamically added fields by frontend
     model_config = {"extra": "allow"}
+
+    @model_validator(mode='before')
+    @classmethod
+    def map_aliases(cls, values):
+        # Map cheque_amount to amount if amount is 0 or missing
+        if 'cheque_amount' in values and 'amount' not in values:
+            try:
+                values['amount'] = float(values['cheque_amount'])
+            except (ValueError, TypeError):
+                pass
+        return values
 
     @model_validator(mode='before')
     @classmethod
