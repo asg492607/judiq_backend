@@ -187,6 +187,39 @@ def map_jurisdiction(case_data: Dict) -> Dict:
         "filing_checklist": [
             f"✅ File complaint before: {court_name}",
             "✅ Attach bank's IFSC certificate confirming branch location falls within court's jurisdiction",
+    court_name = f"{court_tier}, {primary_city.title()}"
+
+    # ── Alternative Courts (For Awareness) ───────────────────────────────────
+    alternate_courts = []
+    if drawer_bank_city and drawer_bank_city.lower() != primary_city.lower():
+        alternate_courts.append({
+            "court": f"{get_court_tier(drawer_bank_city)}, {drawer_bank_city.title()}",
+            "basis": "Drawer's bank branch (applicable if cheque presented directly)",
+            "applicability": "CONDITIONAL"
+        })
+    if accused_city and accused_city.lower() != primary_city.lower():
+        alternate_courts.append({
+            "court": f"{get_court_tier(accused_city)}, {accused_city.title()}",
+            "basis": "Place of business/residence of drawer (pre-2015 fallback, now overruled)",
+            "applicability": "OVERRULED — Do NOT file here post-2015"
+        })
+
+    return {
+        "status": "RESOLVED",
+        "recommended_court": court_name,
+        "primary_city": primary_city.title(),
+        "court_tier": court_tier,
+        "confidence": confidence,
+        "legal_basis": basis,
+        "key_ruling": "Dashrath Rupsingh Rathod vs. State of Maharashtra (2014) 9 SCC 129 — "
+                      "Prospectively overruled by 2015 Amendment to Section 142(2) NI Act.",
+        "amendment_year": 2015,
+        "section": "Section 142(2), Negotiable Instruments Act, 1881",
+        "alternate_courts": alternate_courts,
+        "warnings": warnings,
+        "filing_checklist": [
+            f"✅ File complaint before: {court_name}",
+            "✅ Attach bank's IFSC certificate confirming branch location falls within court's jurisdiction",
             "✅ Ensure payee bank statement showing deposit at the above branch is annexed",
             "✅ If jurisdiction is challenged, cite: Nishant Aggarwal vs. Kailash Kumar Sharma (2016) SC"
         ]
@@ -201,3 +234,17 @@ def _extract_city(address: str) -> Optional[str]:
     # Skip PIN codes
     meaningful = [p for p in parts if not p.isdigit()]
     return meaningful[-1] if meaningful else None
+
+def apply_jurisdiction_guards(jurisdiction_info: Dict, concepts: list, final_score: float) -> float:
+    """Applies S.142(2) territorial jurisdiction fatal defect checks."""
+    if jurisdiction_info.get("status") == "INVALID" or jurisdiction_info.get("confidence") == "NONE":
+        # Jurisdiction is territorial and critical under S.142(2) NI Act. Applying severe penalty.
+        judicially_adjusted_score = max(0, final_score - 35)
+        if "jurisdictional_defect" not in {c.get("concept") for c in concepts}:
+            concepts.append({
+                "concept": "jurisdictional_defect", 
+                "confidence": 0.95, 
+                "legal_impact": "FATAL: Wrong territorial jurisdiction. Complaint will be returned under Dashrath Rupsingh Rathod precedent."
+            })
+        return judicially_adjusted_score
+    return final_score
