@@ -182,8 +182,9 @@ class ScoringEngineV12(BaseScoringEngine):
 
         final_score = max(0, min(max_score_cap, score))
         if not cheque or not notice:
-            final_score = min(final_score, 30)
-            trace.append("! SCORE CAPPED: Fatal statutory defect identified.")
+            # Soften harsh min() logic: apply a penalty multiplier instead of a strict cap of 30
+            final_score = int(final_score * 0.6)
+            trace.append("! PENALTY APPLIED: Fatal statutory defect identified (Score reduced by 40%).")
 
         reliability_matrix = cls.calculate_reliability_matrix(final_score, concepts, case_data)
         self_challenge = cls.calculate_self_challenge(final_score, case_data, concepts)
