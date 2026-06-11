@@ -98,6 +98,17 @@ async def analyze(request_data: CaseAnalysisRequest, request: Request):
                 "user_message": "The AI engine encountered an unexpected error."
             }
         )
+    except Exception as e:
+        logger.error(f"[{request_id}] Unhandled Engine Exception: {e}", exc_info=True)
+        return JSONResponse(
+            status_code=500, 
+            content={
+                "success": False,
+                "error": str(e),
+                "error_code": "INTERNAL_SERVER_ERROR",
+                "user_message": "An unexpected server error occurred during analysis."
+            }
+        )
 
     # 6. Persist
     try:
