@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator, root_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import List, Dict, Optional, Any
 from datetime import date
 import re
@@ -56,10 +56,10 @@ class CaseInput(BaseModel):
     mere_bystander: bool = False
     
     # Catch-all for any other dynamically added fields by frontend
-    class Config:
-        extra = "allow"
+    model_config = {"extra": "allow"}
 
-    @root_validator(pre=True)
+    @model_validator(mode='before')
+    @classmethod
     def sanitize_html(cls, values):
         """Strip HTML tags from string inputs to prevent XSS"""
         html_tag_re = re.compile(r'<[^>]+>')
