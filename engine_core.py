@@ -511,13 +511,8 @@ class JudiQEngine:
             )
 
         # Apply Jurisdiction Fatal Defect Check
-        if jurisdiction_info.get("status") == "INVALID" or jurisdiction_info.get("confidence") == "NONE":
-            # Jurisdiction is territorial and critical under S.142(2) NI Act. Applying severe penalty.
-            judicially_adjusted_score = max(0, final_score - 35)
-            if "jurisdictional_defect" not in {c.get("concept") for c in concepts}:
-                concepts.append({"concept": "jurisdictional_defect", "confidence": 0.95, "legal_impact": "FATAL: Wrong territorial jurisdiction. Complaint will be returned under Dashrath Rupsingh Rathod precedent."})
-        else:
-            judicially_adjusted_score = final_score
+        from jurisdiction_engine import apply_jurisdiction_guards
+        judicially_adjusted_score = apply_jurisdiction_guards(jurisdiction_info, concepts, final_score)
 
         # -- 6.7 Fatal Defect Hard Override -----------------------------------
         # -- 6.6 Timeline Engine (Moved up for Fatal Check) -------------------
