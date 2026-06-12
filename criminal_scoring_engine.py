@@ -12,7 +12,7 @@ class CriminalScoringEngine(BaseScoringEngine):
     """
 
     @classmethod
-    def calculate_score(cls, case_data: Dict, concepts: List[Dict], contradictions: List[Dict]) -> Dict:
+    def calculate_score(cls, case_data: Dict, concepts: List[Dict], contradictions: List[Dict], limitation: Dict) -> Dict:
         concept_names = {c["concept"] for c in concepts}
         trace = []
         causality_map = []
@@ -62,7 +62,7 @@ class CriminalScoringEngine(BaseScoringEngine):
         if "electronic_evidence" in case_data:
             case_data.setdefault("has_electronic_evidence", True)
 
-        timeline_penalties = cls.apply_timeline_penalties(case_data, concepts)
+        timeline_penalties = cls.apply_timeline_penalties(case_data, concepts, limitation)
         score += timeline_penalties["score_delta"]
         trace.extend(timeline_penalties["trace"])
         causality_map.extend(timeline_penalties["causality_map"])
