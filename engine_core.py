@@ -266,19 +266,33 @@ class JudiQEngine:
             context="WitnessPressure"
         )
 
+        # -- 3.5 Timeline Engine (Moved up before scoring) --------------------
+        timeline_engine = registry.get("timeline")
+        timeline = _safe_call(
+            timeline_engine.generate_timeline, case_data,
+            fallback=[],
+            context="TimelineEngine.generate"
+        )
+        limitation_checker = timeline_engine.check_criminal_limitation if is_criminal and not is_cheque_bounce else timeline_engine.check_limitation
+        limitation = _safe_call(
+            limitation_checker, case_data,
+            fallback={"is_barred": False, "status": "CALCULATION_ERROR"},
+            context="TimelineEngine.limitation"
+        )
+
         # -- 4. Scoring Engine ------------------------------------------------
         scoring_results = []
         for scoring_module in scoring_modules:
             scoring_engine = registry.get(scoring_module)
             if "criminal" in scoring_module:
                 res = _safe_call(
-                    scoring_engine.calculate_score, case_data, concepts, contradictions,
+                    scoring_engine.calculate_score, case_data, concepts, contradictions, limitation,
                     fallback={"score": 50, "final_score": 50, "reasoning_trace": ["Internal scoring error."]},
                     context="CriminalScoringEngine"
                 )
             else:
                 res = _safe_call(
-                    scoring_engine.calculate_score_with_trace, case_data, concepts, contradictions, {},
+                    scoring_engine.calculate_score_with_trace, case_data, concepts, contradictions, limitation, {},
                     fallback={"score": 50, "final_score": 50, "reasoning_trace": ["Internal scoring error."]},
                     context="ScoringEngine"
                 )
@@ -515,19 +529,7 @@ class JudiQEngine:
         judicially_adjusted_score = apply_jurisdiction_guards(jurisdiction_info, concepts, final_score)
 
         # -- 6.7 Fatal Defect Hard Override -----------------------------------
-        # -- 6.6 Timeline Engine (Moved up for Fatal Check) -------------------
-        timeline_engine = registry.get("timeline")
-        timeline = _safe_call(
-            timeline_engine.generate_timeline, case_data,
-            fallback=[],
-            context="TimelineEngine.generate"
-        )
-        limitation_checker = timeline_engine.check_criminal_limitation if is_criminal and not is_cheque_bounce else timeline_engine.check_limitation
-        limitation = _safe_call(
-            limitation_checker, case_data,
-            fallback={"is_barred": False, "status": "CALCULATION_ERROR"},
-            context="TimelineEngine.limitation"
-        )
+        # (Timeline Engine execution was moved up to step 3.5)
 
         # -- 6.7 Fatal Defect Hard Override -----------------------------------
         is_fatal, fatal_reason = scan_fatal_defects(
