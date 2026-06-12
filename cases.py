@@ -6,7 +6,7 @@ import json
 router = APIRouter()
 
 @router.get("/")
-async def get_recent_cases(user_id: str = Query(..., description="The ID of the user")):
+async def get_recent_cases(user_id: str = Query(..., description="The ID of the user")) -> List[Dict[str, Any]]:
     """Fetch recent cases for a specific user from the database."""
     try:
         conn = DatabaseManager.get_connection()
@@ -39,7 +39,7 @@ async def get_recent_cases(user_id: str = Query(..., description="The ID of the 
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/{case_id}")
-async def delete_case(case_id: str, user_id: str = Query(...)):
+async def delete_case(case_id: str, user_id: str = Query(...)) -> Dict[str, Any]:
     """Delete a specific case for a user."""
     try:
         conn = DatabaseManager.get_connection()
@@ -58,7 +58,7 @@ async def delete_case(case_id: str, user_id: str = Query(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{case_id}")
-async def get_case_details(case_id: str, user_id: str = Query(...)):
+async def get_case_details(case_id: str, user_id: str = Query(...)) -> Dict[str, Any]:
     """Fetch full case details."""
     try:
         conn = DatabaseManager.get_connection()
