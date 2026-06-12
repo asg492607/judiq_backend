@@ -39,7 +39,14 @@ def get_cache_key(data: dict):
     dump = json.dumps(data, sort_keys=True).encode('utf-8')
     return hashlib.md5(dump).hexdigest()
 
-@router.post("")
+from schemas import EngineResponse
+
+@router.post(
+    "", 
+    response_model=EngineResponse,
+    summary="Analyze Legal Case",
+    description="Processes raw case facts through the Timeline, Scoring, and Adversarial engines to generate a comprehensive litigation strategy."
+)
 @limiter.limit("5/minute")
 async def analyze(request_data: CaseAnalysisRequest, request: Request):
     request_id = datetime.now().strftime("%Y%m%d%H%M%S%f")

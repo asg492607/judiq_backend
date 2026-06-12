@@ -57,7 +57,23 @@ class CaseInput(BaseModel):
     mere_bystander: bool = False
     
     # Catch-all for any other dynamically added fields by frontend
-    model_config = {"extra": "allow"}
+    model_config = {
+        "extra": "allow",
+        "json_schema_extra": {
+            "example": {
+                "case_id": "CASE-2026-001",
+                "case_type": "cheque_bounce",
+                "description": "The accused issued a cheque of Rs. 5,00,000 which dishonoured due to insufficient funds. Notice sent within 30 days.",
+                "cheque_present": True,
+                "dishonour_memo": True,
+                "notice_sent": True,
+                "debt_proven": True,
+                "amount": 500000.0,
+                "date_of_dishonour": "2026-01-15",
+                "date_of_notice": "2026-02-05"
+            }
+        }
+    }
 
     @model_validator(mode='before')
     @classmethod
