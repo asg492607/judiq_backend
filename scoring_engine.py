@@ -63,8 +63,8 @@ class ScoringEngineV12(BaseScoringEngine):
         case_data: Dict,
         concepts: List[Dict],
         contradictions: List[Dict],
-        evidence_assessment: Dict,
-        raw_input: Dict = None,
+        limitation: Dict,
+        evidence_assessment: Dict = None,
     ) -> Dict:
         concepts = cls.resolve_conflicts(ensure_list(concepts))
         concept_names = {c["concept"] for c in concepts}
@@ -133,7 +133,7 @@ class ScoringEngineV12(BaseScoringEngine):
             if "unaccounted_cash_loans" not in concept_names:
                 concepts.append({"concept": "unaccounted_cash_loans", "confidence": 0.95, "legal_impact": "Fatal evidentiary gap for high-value cash loans per Basalingappa ruling."})
 
-        timeline_penalties = cls.apply_timeline_penalties(case_data, concepts)
+        timeline_penalties = cls.apply_timeline_penalties(case_data, concepts, limitation)
         score += timeline_penalties["score_delta"]
         trace.extend(timeline_penalties["trace"])
         causality_map.extend(timeline_penalties["causality_map"])
