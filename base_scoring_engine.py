@@ -156,13 +156,13 @@ class BaseScoringEngine:
         }
 
     @classmethod
-    def apply_timeline_penalties(cls, case_data: Dict, concepts: List[Dict]) -> Dict[str, Any]:
+    def apply_timeline_penalties(cls, case_data: Dict, concepts: List[Dict], limitation: Dict) -> Dict[str, Any]:
         concept_names = {c.get("concept") for c in concepts}
         score_delta = 0
         trace = []
         causality_map = []
 
-        if "limitation_issue" in concept_names or case_data.get("limitation_barred"):
+        if "limitation_issue" in concept_names or limitation.get("is_barred") or limitation.get("fatal_defect"):
             score_delta += PENALTY_LIMITATION
             trace.append(f"{PENALTY_LIMITATION} CRITICAL: Limitation Period delay/jurisdictional bar.")
             causality_map.append({"fact": "Limitation Delay", "impact": PENALTY_LIMITATION, "rationale": "Limitation is a jurisdictional bar."})
