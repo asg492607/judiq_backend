@@ -50,7 +50,7 @@ from schemas import EngineResponse
 @limiter.limit("5/minute")
 async def analyze(request_data: CaseAnalysisRequest, request: Request):
     request_id = datetime.now().strftime("%Y%m%d%H%M%S%f")
-    raw_data = request_data.dict()
+    raw_data = request_data.model_dump()
     user_id = raw_data.get("user_id", "ANONYMOUS")
     
     # 1. Audit Log

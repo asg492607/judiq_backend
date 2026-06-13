@@ -38,7 +38,13 @@ def get_settings():
     s = Settings()
     # Validate the fernet key (must be 43 or 44 chars base64 of 32 bytes)
     if len(s.ENCRYPTION_KEY) not in (43, 44) or " " in s.ENCRYPTION_KEY:
+        if not s.DEBUG:
+            raise ValueError("ENCRYPTION_KEY must be a valid 32-byte base64 string in production.")
         s.ENCRYPTION_KEY = "c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnl0ZXM="
+    
+    if not s.DEBUG and s.SECRET_KEY == "changeme_secure_key_for_dev_only":
+        raise ValueError("SECRET_KEY must be changed in production.")
+        
     return s
 
 settings = get_settings()

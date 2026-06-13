@@ -135,7 +135,7 @@ class JudiQEngine:
         try:
             normalized_raw = normalize_input(raw_data)
             validated_input = CaseInput(**normalized_raw)
-            case_data = validated_input.dict()
+            case_data = validated_input.model_dump()
         except PydanticValidationError as e:
             logger.error(f"Schema Validation failed: {e}")
             raise ValueError(f"Invalid case input schema: {e}")
