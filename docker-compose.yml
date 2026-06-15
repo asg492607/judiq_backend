@@ -10,7 +10,7 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=sqlite:///./judiq.db
-      - ENCRYPTION_KEY=N0Y4X1ZlcnlfU2VjcmV0X0tleV8xMjM0NQ== # Placeholder for dev
+      - ENCRYPTION_KEY=c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnk= # Placeholder for dev
     volumes:
       - ./backend/uploads:/app/uploads
       - ./backend/judiq.db:/app/judiq.db

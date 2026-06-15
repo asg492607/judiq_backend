@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     ]
     
     # Encryption (Fernet key must be 32 url-safe base64-encoded bytes)
-    ENCRYPTION_KEY: str = os.getenv("ENCRYPTION_KEY", "c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnl0ZXM=")
+    ENCRYPTION_KEY: str = os.getenv("ENCRYPTION_KEY", "c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnk=")
     
     # Feature Flags
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
@@ -40,7 +40,7 @@ def get_settings():
     if len(s.ENCRYPTION_KEY) not in (43, 44) or " " in s.ENCRYPTION_KEY:
         if not s.DEBUG:
             raise ValueError("ENCRYPTION_KEY must be a valid 32-byte base64 string in production.")
-        s.ENCRYPTION_KEY = "c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnl0ZXM="
+        s.ENCRYPTION_KEY = "c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnk="
     
     if not s.DEBUG and s.SECRET_KEY == "changeme_secure_key_for_dev_only":
         raise ValueError("SECRET_KEY must be changed in production.")
