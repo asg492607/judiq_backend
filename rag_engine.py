@@ -172,21 +172,27 @@ class RAGManager:
         self.model = None
         self.index = None
         
+        # Log status on init, but do not block by loading the model yet
         if self._use_vector:
+            logger.info("[RAGManager] Vector DB capabilities available. SentenceTransformer will load lazily on first search.")
+        else:
+            logger.info(f"[RAGManager] Loaded {len(self._corpus)} precedents into Keyword corpus (Fallback).")
+
+    def _lazy_init_vector(self):
+        if self._use_vector and self.model is None:
             try:
-                logger.info("[RAGManager] Initializing SentenceTransformer (all-MiniLM-L6-v2)...")
+                logger.info("[RAGManager] Initializing SentenceTransformer (all-MiniLM-L6-v2) lazily...")
                 self.model = SentenceTransformer('all-MiniLM-L6-v2')
                 self._build_index()
                 logger.info(f"[RAGManager] Loaded {len(self._corpus)} precedents into FAISS vector index.")
             except Exception as e:
-                logger.error(f"[RAGManager] Failed to load Vector DB: {e}. Falling back to Keyword RAG.")
+                logger.error(f"[RAGManager] Lazy vector initialization failed: {e}. Falling back to Keyword RAG.")
                 self._use_vector = False
-        
-        if not self._use_vector:
-            logger.info(f"[RAGManager] Loaded {len(self._corpus)} precedents into Keyword corpus (Fallback).")
 
     def _build_index(self):
         """Builds the FAISS index by embedding the summaries of all precedents."""
+        if not self.model:
+            return
         texts = [p.get("summary", "") + " " + " ".join(p.get("keywords", [])) for p in self._corpus]
         embeddings = self.model.encode(texts)
         dimension = embeddings.shape[1]
@@ -201,6 +207,9 @@ class RAGManager:
         Uses FAISS vector search if available, otherwise falls back to keywords.
         stance_filter: 'complainant_favourable' | 'defence_favourable' | 'neutral' | None
         """
+        if self._use_vector:
+            self._lazy_init_vector()
+
         if not query:
             return self._corpus[:top_k]
 
