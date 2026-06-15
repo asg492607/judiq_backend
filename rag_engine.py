@@ -12,13 +12,13 @@ import json
 import re
 import numpy as np
 from typing import List, Dict, Any
+import importlib.util
 
-try:
-    import faiss
-    from sentence_transformers import SentenceTransformer
-    HAS_VECTOR_DB = True
-except ImportError:
-    HAS_VECTOR_DB = False
+# Check package availability without importing them (saves memory at startup)
+HAS_VECTOR_DB = (
+    importlib.util.find_spec("faiss") is not None and 
+    importlib.util.find_spec("sentence_transformers") is not None
+)
 
 logger = logging.getLogger(__name__)
 
@@ -182,6 +182,7 @@ class RAGManager:
         if self._use_vector and self.model is None:
             try:
                 logger.info("[RAGManager] Initializing SentenceTransformer (all-MiniLM-L6-v2) lazily...")
+                from sentence_transformers import SentenceTransformer
                 self.model = SentenceTransformer('all-MiniLM-L6-v2')
                 self._build_index()
                 logger.info(f"[RAGManager] Loaded {len(self._corpus)} precedents into FAISS vector index.")
@@ -193,6 +194,7 @@ class RAGManager:
         """Builds the FAISS index by embedding the summaries of all precedents."""
         if not self.model:
             return
+        import faiss
         texts = [p.get("summary", "") + " " + " ".join(p.get("keywords", [])) for p in self._corpus]
         embeddings = self.model.encode(texts)
         dimension = embeddings.shape[1]
