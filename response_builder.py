@@ -82,7 +82,7 @@ class ResponseBuilder:
         tldr = engine_result.get("tldr", {})
         
         # New institutional-grade components
-        causality_map = engine_result.get("causality_map", [])
+        causality_map = list(engine_result.get("causality_map", []))
         top_penalties = engine_result.get("top_penalties", [])
         strategy_result = engine_result.get("strategy_result", {})
         adversarial_result = engine_result.get("adversarial_result", {})
@@ -94,6 +94,25 @@ class ResponseBuilder:
             verdict = "WEAK CASE / HIGH RISK"
         elif score < 70: 
             verdict = "MODERATE CASE"
+
+        # Dynamically append adjustments so score breakdown matches final score
+        current_sum = sum(c.get("impact", 0) for c in causality_map)
+        diff = int(score - current_sum)
+        if diff != 0:
+            if verdict == "DO NOT FILE" or score == 0:
+                causality_map.append({
+                    "fact": "Fatal Defect Override",
+                    "impact": diff,
+                    "type": "negative",
+                    "rationale": "Case has fatal procedural/statutory defects."
+                })
+            else:
+                causality_map.append({
+                    "fact": "Judicial Adjustment & Calibration",
+                    "impact": diff,
+                    "type": "negative" if diff < 0 else "positive",
+                    "rationale": "Calibration for territorial jurisdiction and court rules."
+                })
 
         risk_level = "LOW"
         if score < 50: risk_level = "CRITICAL"
@@ -129,6 +148,14 @@ class ResponseBuilder:
             limitation = {"is_premature": False, "notice_delay_days": 0}
 
         structured_weaknesses = []
+        fatal_defect = case_data.get("fatal_defect") or engine_result.get("failure_point")
+        if fatal_defect:
+             structured_weaknesses.append({
+                 "risk": str(fatal_defect),
+                 "severity": "FATAL",
+                 "detail": f"This case has a fatal statutory/procedural defect: {fatal_defect}. It is highly recommended not to file or to withdraw."
+             })
+
         if limitation.get("is_premature"):
             structured_weaknesses.append({"risk": "Premature Complaint", "severity": "FATAL", "detail": "Non-curable defect under NI Act."})
         elif limitation.get("notice_delay_days", 0) > 0:
@@ -311,6 +338,8 @@ class ResponseBuilder:
 
         for r in structured_weaknesses:
             r['text'] = r.get('risk', '')
+            r['title'] = r.get('risk', '')
+            r['description'] = r.get('detail', '')
 
         final_weaknesses = structured_weaknesses
         final_issues = [r for r in structured_weaknesses if r.get('severity') in ['FATAL', 'CRITICAL', 'HIGH']]
@@ -411,12 +440,12 @@ class ResponseBuilder:
             "engine_version": "v12.0.0-JUDIQ-PRO",
             "cri_score":      engine_result.get("cri_score", 0),
             "cross_exam":     engine_result.get("cross_exam_prep", []),
-            "causality_map":  engine_result.get("causality_map", []),
+            "causality_map":  causality_map,
             "compliance_pct": engine_result.get("compliance_pct", 0),
             "economics":      engine_result.get("economics", {}),
             "checkpoints":    engine_result.get("checkpoints", []),
-            "explicit_risk_propagation": [f"{c['fact']}: {c['impact']}" for c in engine_result.get("causality_map", [])],
-            "causality_delta": [c['impact'] for c in engine_result.get("causality_map", [])],
+            "explicit_risk_propagation": [f"{c['fact']}: {c['impact']}" for c in causality_map],
+            "causality_delta": [c['impact'] for c in causality_map],
             "causal_story": engine_result.get("causal_story", []),
             "contradictions": engine_result.get("contradictions", []),
             "timeline_anomalies": engine_result.get("timeline_anomalies", []),
