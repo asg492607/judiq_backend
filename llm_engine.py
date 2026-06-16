@@ -35,7 +35,7 @@ def generate_executive_summary(score: int, weaknesses: List[str], strengths: Lis
         verdict = "This case is legally unmaintainable in its current configuration."
         risk_profile = "A fatal defect (e.g., limitation expiry, invalid notice amount, or missing corporate officers) mandates immediate strategic reassessment to avoid penalties or malicious prosecution claims."
 
-    summary = f"As Counsel for the {role} in this {case_type} matter (Amount: ₹{amount}), our deterministic audit yields a Case Readiness Score of {score}/100. {verdict}\n\n"
+    summary = f"As Counsel for the {role} in this {case_type} matter (Amount: Rs. {amount}), our deterministic audit yields a Case Readiness Score of {score}/100. {verdict}\n\n"
     
     if strengths and score > 0:
         summary += f"Our primary strategic advantages include: {', '.join(strengths[:3])}. "
