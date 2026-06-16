@@ -20,11 +20,11 @@ logger = logging.getLogger("JudiQ.Analysis")
 
 class CaseAnalysisRequest(BaseModel):
     description: Optional[str] = Field(None, max_length=10000)
-    amount: Optional[float] = Field(0, ge=0)
-    cheque_present: Optional[bool] = False
-    dishonour_memo: Optional[bool] = False
-    notice_sent: Optional[bool] = False
-    debt_proven: Optional[bool] = False
+    amount: Optional[Any] = 0
+    cheque_present: Optional[Any] = False
+    dishonour_memo: Optional[Any] = False
+    notice_sent: Optional[Any] = False
+    debt_proven: Optional[Any] = False
     accused_type: Optional[str] = "Individual"
     analysis_mode: Optional[str] = "detailed"
     
