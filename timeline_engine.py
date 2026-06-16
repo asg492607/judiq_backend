@@ -11,7 +11,7 @@ from utils import parse_date, days_between
 COURT_HOLIDAYS = [
     "2026-01-26", # Republic Day
     "2026-08-15", # Independence Day
-    "2026-10-02"  # Gandhi Jayanti
+    "2026-10-02"  # Gandhi Jacob
 ]
 
 class TimelineEngine:
@@ -60,6 +60,7 @@ class TimelineEngine:
         while target_date.weekday() >= 5 or target_date.strftime("%Y-%m-%d") in COURT_HOLIDAYS:
             target_date += timedelta(days=1)
         return target_date
+
     @staticmethod
     def generate_timeline_data(case_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Generate structured timeline milestones for visualization"""
@@ -102,7 +103,6 @@ class TimelineEngine:
         data = TimelineEngine.generate_timeline_data(case_data)
         return [f"{s['milestone']} ({s['date']}): {s['details']}" for s in data]
 
-
     @staticmethod
     def check_limitation(case_data: Dict[str, Any]) -> Dict[str, Any]:
         """Check if case is within limitation period"""
@@ -111,6 +111,13 @@ class TimelineEngine:
         filing_date = case_data.get("filing_date")
         
         if not all([dishonour_date, notice_date]):
+            if case_data.get("limitation_barred") or case_data.get("limitation_issue"):
+                return {
+                    "is_barred": True,
+                    "days_remaining": 0,
+                    "status": "TIME_BARRED",
+                    "message": "Limitation period expired (explicitly specified by user)."
+                }
             return {
                 "is_barred": False,
                 "days_remaining": None,
@@ -147,16 +154,24 @@ class TimelineEngine:
             
             if filing_date:
                 filing_dt = parse_date(filing_date)
-                if filing_dt and filing_dt > limitation_date:
-                    delay_days = (filing_dt - limitation_date).days
-                    return {
-                        "is_barred": True,
-                        "days_remaining": 0,
-                        "delay_days": delay_days,
-                        "status": "TIME_BARRED",
-                        "message": f"Filed {delay_days} days after limitation period. Condonation of Delay (Section 142(b)) REQUIRED.",
-                        "condonation_required": True
-                    }
+                if filing_dt:
+                    if filing_dt > limitation_date:
+                        delay_days = (filing_dt - limitation_date).days
+                        return {
+                            "is_barred": True,
+                            "days_remaining": 0,
+                            "delay_days": delay_days,
+                            "status": "TIME_BARRED",
+                            "message": f"Filed {delay_days} days after limitation period. Condonation of Delay (Section 142(b)) REQUIRED.",
+                            "condonation_required": True
+                        }
+                    else:
+                        return {
+                            "is_barred": False,
+                            "days_remaining": 0,
+                            "status": "FILED_IN_TIME",
+                            "message": "Complaint filed within the limitation period."
+                        }
             
             if today > limitation_date:
                 days_over = (today - limitation_date).days
@@ -199,7 +214,6 @@ class TimelineEngine:
             return {"status": "UNKNOWN", "message": "Invalid date format."}
             
         # Determine limitation based on punishment severity
-        # Crimes with >3 years punishment have no limitation period (e.g. 302, 376, 420/318 BNS)
         no_limitation_crimes = ["420", "318", "302", "103", "376", "64", "392", "309"]
         one_year_limit_crimes = ["506", "351", "323", "115"]
         three_year_limit_crimes = ["498A", "85", "406", "316"]

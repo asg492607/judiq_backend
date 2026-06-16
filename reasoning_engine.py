@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 from typing import List, Dict, Any
 from kb_manager import kb_manager
 from precedent_manager import precedent_manager
@@ -148,33 +148,162 @@ class ReasoningEngine:
                     prec["is_verified_landmark"] = v["verified"]
                     matched.append(prec)
 
-        # Explicit Basalingappa Hardening (Adversarial Articulation)
-        amount = float(case_data.get("amount") or 0)
-        if amount > 500000 and not case_data.get("complainant_itr_available"):
-            prec = {
-                "concept":   "financial_capacity_risk",
-                "case":      "Basalingappa vs. Mudibasappa",
-                "citation":  "Basalingappa vs. Mudibasappa (2019) 5 SCC 418",
-                "court":     "Supreme Court of India",
-                "principle": "Rebuttal of S.139 presumption via financial capacity challenge.",
-                "why_relevant": "Your high-value loan (â‚¹5L+) without ITR or banking trail triggers the Basalingappa rule, allowing the accused to rebut the statutory presumption by merely raising a 'probable defense' of your lack of financial capacity.",
-                "authority": "Supreme Court Binding Precedent (S.141 Constitution of India)",
+        # Explicit Landmark Case Matching Engine (All 14 Landmark cases)
+        landmark_data = {
+            "Basalingappa": {
+                "case": "Basalingappa vs. Mudibasappa",
+                "citation": "Basalingappa vs. Mudibasappa (2019) 5 SCC 418",
+                "court": "Supreme Court of India",
+                "concept": "financial_capacity_risk",
+                "principle": "Rebuttal of S.139 presumption via financial capacity challenge. Complainant must prove source of funds in high-value cash transactions.",
                 "relevance": 0.98,
-                "is_live":   False,
-                "document_url": "/api/precedents/document/Basalingappa_vs_Mudibasappa",
-                "adversarial_note": "CRITICAL VULNERABILITY: Defence will destroy your case in cross-examination on this point alone."
+                "trigger": lambda data, concepts: float(data.get("amount") or data.get("cheque_amount") or 0) > 150000 and not data.get("complainant_itr_available")
+            },
+            "Rangappa": {
+                "case": "Rangappa vs. Srikanth",
+                "citation": "Rangappa vs. Srikanth (2010) 11 SCC 441",
+                "court": "Supreme Court of India",
+                "concept": "debt_presumption",
+                "principle": "Presumption of debt u/s 139 is active. The reverse onus burden is on the accused to rebut the presumption by raising a probable defense.",
+                "relevance": 0.95,
+                "trigger": lambda data, concepts: bool(data.get("cheque_present")) or "debt_acknowledgment" in [c["concept"] for c in concepts]
+            },
+            "AneetaHada": {
+                "case": "Aneeta Hada vs. Godfather Travels & Tours",
+                "citation": "Aneeta Hada vs. Godfather Travels (2012) 5 SCC 661",
+                "court": "Supreme Court of India",
+                "concept": "company_liability",
+                "principle": "Section 141 company prosecution. Directors/officers cannot be prosecuted u/s 138 without impleading the company entity as an accused.",
+                "relevance": 0.96,
+                "trigger": lambda data, concepts: str(data.get("accused_type")).lower() in ("company", "pvt ltd/ltd company", "partnership firm") or "s141_defect" in [c["concept"] for c in concepts]
+            },
+            "KishanRao": {
+                "case": "Kishan Rao vs. Shankargouda",
+                "citation": "Kishan Rao vs. Shankargouda (2018) 8 SCC 165",
+                "court": "Supreme Court of India",
+                "concept": "signature_dispute",
+                "principle": "Mere denial of debt/signature does not rebut the S.139 presumption. High standard of proof required for accused to shift burden.",
+                "relevance": 0.92,
+                "trigger": lambda data, concepts: "signature_dispute" in [c["concept"] for c in concepts] or bool(data.get("signature_mismatch"))
+            },
+            "DashrathRathod": {
+                "case": "Dashrath Rupsingh Rathod vs. State of Maharashtra",
+                "citation": "Dashrath Rupsingh Rathod vs. State of Maharashtra (2014) 9 SCC 129",
+                "court": "Supreme Court of India",
+                "concept": "jurisdictional_issue",
+                "principle": "Territorial jurisdiction for cheque bounce. Complaint must be filed where the payee bank branch is situated (post-2015 Amendment).",
+                "relevance": 0.90,
+                "trigger": lambda data, concepts: bool(data.get("payee_bank_city")) or "jurisdictional_defect" in [c["concept"] for c in concepts]
+            },
+            "YogendraPratap": {
+                "case": "Yogendra Pratap Singh vs. Savitri Pandey",
+                "citation": "Yogendra Pratap Singh vs. Savitri Pandey (2014) 10 SCC 713",
+                "court": "Supreme Court of India",
+                "concept": "timeline_defect",
+                "principle": "Premature filing u/s 138 NI Act is a fatal defect. Complaint filed before the expiry of the 15-day notice period cannot be validated.",
+                "relevance": 0.97,
+                "trigger": lambda data, concepts: "premature_chronology" in [c["concept"] for c in concepts] or "NOTICE_INVALID" in [c["concept"] for c in concepts] or str(data.get("within_15_days")).lower() == "yes"
+            },
+            "MSRLeathers": {
+                "case": "MSR Leathers vs. S. Palaniappan",
+                "citation": "MSR Leathers vs. S. Palaniappan (2013) 10 SCC 568",
+                "court": "Supreme Court of India",
+                "concept": "multiple_presentation",
+                "principle": "Cheque can be presented multiple times. Complainant can file a complaint on subsequent default, provided notice is sent within 30 days.",
+                "relevance": 0.91,
+                "trigger": lambda data, concepts: str(data.get("multiple_notices_sent")).lower() == "yes" or "limitation_issue" in [c["concept"] for c in concepts]
+            },
+            "BirSingh": {
+                "case": "Bir Singh vs. Mukesh Kumar",
+                "citation": "Bir Singh vs. Mukesh Kumar (2019) 4 SCC 197",
+                "court": "Supreme Court of India",
+                "concept": "blank_cheque_defense",
+                "principle": "Inchoate instruments u/s 20. A blank signed cheque handed to the payee implies authorization to fill it, and S.138 still applies.",
+                "relevance": 0.94,
+                "trigger": lambda data, concepts: bool(data.get("handwriting_different")) or "material_alteration" in [c["concept"] for c in concepts] or str(data.get("cheque_issued_blank")).lower() == "yes"
+            },
+            "ACNarayanan": {
+                "case": "A.C. Narayanan vs. State of Maharashtra",
+                "citation": "A.C. Narayanan vs. State of Maharashtra (2014) 11 SCC 790",
+                "court": "Supreme Court of India",
+                "concept": "poa_maintainability",
+                "principle": "Prosecution through Power of Attorney is maintainable if the POA holder is fully conversant with the facts of the transaction.",
+                "relevance": 0.93,
+                "trigger": lambda data, concepts: bool(data.get("is_authorized")) or str(data.get("filed_via_poa")).lower() == "yes"
+            },
+            "ArneshKumar": {
+                "case": "Arnesh Kumar vs. State of Bihar",
+                "citation": "Arnesh Kumar vs. State of Bihar (2014) 8 SCC 273",
+                "court": "Supreme Court of India",
+                "concept": "relative_implication_498a",
+                "principle": "Guidelines on arrest u/s 41A CrPC (now BNSS S.35). Mechanical arrest in matrimonial cases is barred.",
+                "relevance": 0.95,
+                "trigger": lambda data, concepts: str(data.get("case_type")).lower() == "criminal" or "498a" in str(data.get("description")).lower()
+            },
+            "GeetaMehrotra": {
+                "case": "Geeta Mehrotra vs. State of U.P.",
+                "citation": "Geeta Mehrotra vs. State of U.P. (2012) 10 SCC 741",
+                "court": "Supreme Court of India",
+                "concept": "matrimonial_quashing",
+                "principle": "Matrimonial quashing. Casual reference or vague allegations against family members under S.498A IPC does not justify prosecution.",
+                "relevance": 0.94,
+                "trigger": lambda data, concepts: "498a" in str(data.get("description")).lower() and "relative" in str(data.get("description")).lower()
+            },
+            "PreetiGupta": {
+                "case": "Preeti Gupta vs. State of Jharkhand",
+                "citation": "Preeti Gupta vs. State of Jharkhand (2010) 7 SCC 667",
+                "court": "Supreme Court of India",
+                "concept": "relative_implication",
+                "principle": "Over-implication of family members in S.498A matrimonial disputes is an abuse of process; quashing warranted.",
+                "relevance": 0.92,
+                "trigger": lambda data, concepts: "498a" in str(data.get("description")).lower() and "relative" in str(data.get("description")).lower()
+            },
+            "SampellyIREDA": {
+                "case": "Sampelly Satyanarayana Rao vs. Indian Renewable Energy Development Agency Ltd.",
+                "citation": "Sampelly Satyanarayana Rao vs. Indian Renewable Energy Development Agency Ltd. (2016) 10 SCC 458",
+                "court": "Supreme Court of India",
+                "concept": "security_cheque_defense",
+                "principle": "Once liability crystallizes on the cheque date, even an instrument labeled as a 'security cheque' is fully enforceable u/s 138.",
+                "relevance": 0.96,
+                "trigger": lambda data, concepts: "security_cheque" in [c["concept"] for c in concepts] or str(data.get("cheque_security_claim")).lower() == "yes"
+            },
+            "DalmiaCement": {
+                "case": "Dalmia Cement vs. Galaxy Traders",
+                "citation": "Dalmia Cement vs. Galaxy Traders (2001) 6 SCC 463",
+                "court": "Supreme Court of India",
+                "concept": "limitation_strictness",
+                "principle": "Strict compliance with statutory timelines in Section 138 is mandatory. Deemed notice service rules.",
+                "relevance": 0.90,
+                "trigger": lambda data, concepts: "limitation_issue" in [c["concept"] for c in concepts] or bool(data.get("notice_sent"))
             }
-            # Verify authenticity
-            v = precedent_manager.verify_citation_authenticity(prec["citation"])
-            prec["verification_status"] = v["status"]
-            prec["is_verified_landmark"] = v["verified"]
-            matched.append(prec)
+        }
+
+        for k, p in landmark_data.items():
+            if p["trigger"](case_data, concepts):
+                citation = p["citation"]
+                if citation not in seen_citations:
+                    seen_citations.add(citation)
+                    safe_citation = citation.replace('/', '_').replace(' ', '_')
+                    prec = {
+                        "concept":      p["concept"],
+                        "case":         p["case"],
+                        "citation":     citation,
+                        "court":        p["court"],
+                        "principle":    p["principle"],
+                        "relevance":    p["relevance"],
+                        "is_live":      False,
+                        "document_url": f"/api/precedents/document/{safe_citation}"
+                    }
+                    v = precedent_manager.verify_citation_authenticity(prec["citation"])
+                    prec["verification_status"] = v["status"]
+                    prec["is_verified_landmark"] = v["verified"]
+                    matched.append(prec)
 
         # Attach latest live precedents conditionally based on matching concepts
         concept_names_set = {c.get("concept", "") for c in concepts}
         for p in precedent_manager.get_latest_precedents(15):
             impact_area = p.get("impact_area", "general")
-            # Only include live precedents that match case concepts (to stop them from being the same for all)
+            # Only include live precedents that match case concepts
             if impact_area in concept_names_set or impact_area == "general":
                 title    = p.get("title", "")
                 citation = p.get("citation", "")

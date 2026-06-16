@@ -58,12 +58,14 @@ def test_cheque_bounce_strong_case(llm_disabled):
         "notice_sent": True,
         "notice_date": "2026-02-05",
         "dishonour_date": "2026-01-15",
+        "filing_date": "2026-03-01",
         "within_30_days": "Yes",
         "debt_proven": True,
         "cheque_amount": "500000",
         "payee_bank_city": "Mumbai",
         "loan_via_bank": True,
         "complainant_itr_available": True,
+        "evidence_texts": {"itr": "income tax pan return"},
         "description": (
             "The accused issued a cheque of Rs. 5,00,000 towards repayment of "
             "a loan. The cheque was dishonoured due to insufficient funds. A "

@@ -103,7 +103,15 @@ class PrecedentManager:
             "Aneeta Hada vs. Godfather Travels": "Real Landmark (2012) 5 SCC 661",
             "A.C. Narayanan vs. State of Maharashtra": "Real Landmark (2014) 11 SCC 790",
             "Dashrath Rupsingh Rathod vs. State of Maharashtra": "Real Landmark (2014) 9 SCC 129",
-            "Kishan Rao vs. Shankargouda": "Real Landmark (2018) 8 SCC 165"
+            "Kishan Rao vs. Shankargouda": "Real Landmark (2018) 8 SCC 165",
+            "Yogendra Pratap Singh vs. Savitri Pandey": "Real Landmark (2014) 10 SCC 713",
+            "MSR Leathers vs. S. Palaniappan": "Real Landmark (2013) 10 SCC 568",
+            "Bir Singh vs. Mukesh Kumar": "Real Landmark (2019) 4 SCC 197",
+            "Arnesh Kumar vs. State of Bihar": "Real Landmark (2014) 8 SCC 273",
+            "Geeta Mehrotra vs. State of U.P.": "Real Landmark (2012) 10 SCC 741",
+            "Preeti Gupta vs. State of Jharkhand": "Real Landmark (2010) 7 SCC 667",
+            "Sampelly Satyanarayana Rao vs. Indian Renewable Energy Development Agency Ltd.": "Real Landmark (2016) 10 SCC 458",
+            "Dalmia Cement vs. Galaxy Traders": "Real Landmark (2001) 6 SCC 463"
         }
         
         for key in AUTHORITATIVE_REGISTRY:
