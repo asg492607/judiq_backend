@@ -15,15 +15,13 @@ from typing import List, Dict, Any
 import importlib.util
 
 # Check package availability without importing them (saves memory at startup)
-HAS_VECTOR_DB = (
-    importlib.util.find_spec("faiss") is not None and 
-    importlib.util.find_spec("sentence_transformers") is not None
-)
+# Forced to False to optimize API response speed (<1ms) and memory usage on Render
+HAS_VECTOR_DB = False
 
 logger = logging.getLogger(__name__)
 
 # ── Authoritative Precedent Corpus ──────────────────────────────────────────
-PRECEDENT_CORPUS = [
+FALLBACK_PRECEDENT_CORPUS = [
     {
         "id": "CB-001",
         "title": "Basalingappa vs. Mudibasappa",
@@ -134,7 +132,7 @@ PRECEDENT_CORPUS = [
     },
     {
         "id": "CR-004",
-        "title": "POCSO — State of Karnataka vs. Shivanna @ Tarkari",
+        "title": "State of Karnataka vs. Shivanna @ Tarkari",
         "citation": "(2014) 8 SCC 913",
         "area": ["pocso", "child_victim", "medical_evidence"],
         "summary": "In POCSO cases, sole testimony of the child victim if found reliable and credible is sufficient for conviction. No corroboration is strictly required.",
@@ -157,6 +155,17 @@ PRECEDENT_CORPUS = [
         "court": "Supreme Court"
     },
 ]
+
+# Load precedents dynamically from JSON
+PRECEDENT_CORPUS = FALLBACK_PRECEDENT_CORPUS
+corpus_path = os.path.join(os.path.dirname(__file__), "precedents_corpus.json")
+if os.path.exists(corpus_path):
+    try:
+        with open(corpus_path, "r", encoding="utf-8") as f:
+            PRECEDENT_CORPUS = json.load(f)
+        logger.info(f"Loaded {len(PRECEDENT_CORPUS)} precedents from {corpus_path}")
+    except Exception as e:
+        logger.error(f"Failed to load precedents_corpus.json: {e}")
 
 
 class RAGManager:
