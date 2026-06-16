@@ -336,10 +336,22 @@ class ResponseBuilder:
         if not case_data.get("debt_proven"):
             alternative_evidence = ["WhatsApp correspondence", "Bank statements", "Ledger entries"]
 
+        def get_category(risk_name):
+            r = str(risk_name).lower()
+            if "notice" in r or "delay" in r or "time" in r or "premature" in r:
+                return "Procedural"
+            if "jurisdiction" in r or "court" in r:
+                return "Jurisdictional"
+            if "proof" in r or "evidence" in r or "memo" in r or "cheque" in r or "signature" in r or "contradiction" in r or "witness" in r or "itr" in r or "capacity" in r:
+                return "Evidentiary"
+            return "Statutory"
+
         for r in structured_weaknesses:
             r['text'] = r.get('risk', '')
             r['title'] = r.get('risk', '')
             r['description'] = r.get('detail', '')
+            r['category'] = get_category(r.get('risk', ''))
+            r['type'] = r['category']
 
         final_weaknesses = structured_weaknesses
         final_issues = [r for r in structured_weaknesses if r.get('severity') in ['FATAL', 'CRITICAL', 'HIGH']]
@@ -445,7 +457,13 @@ class ResponseBuilder:
             "economics":      engine_result.get("economics", {}),
             "checkpoints":    engine_result.get("checkpoints", []),
             "explicit_risk_propagation": [f"{c['fact']}: {c['impact']}" for c in causality_map],
-            "causality_delta": [c['impact'] for c in causality_map],
+            "causality_delta": {
+                "labels": [c.get('fact', 'Factor') for c in causality_map],
+                "values": [
+                    max(0, min(100, sum(x.get('impact', 0) for x in causality_map[:i+1])))
+                    for i in range(len(causality_map))
+                ]
+            },
             "causal_story": engine_result.get("causal_story", []),
             "contradictions": engine_result.get("contradictions", []),
             "timeline_anomalies": engine_result.get("timeline_anomalies", []),
