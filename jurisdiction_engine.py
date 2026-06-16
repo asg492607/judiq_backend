@@ -161,13 +161,6 @@ def map_jurisdiction(case_data: Dict) -> Dict:
     if drawer_bank_city and drawer_bank_city.lower() != primary_city.lower():
         alternate_courts.append({
             "court": f"{get_court_tier(drawer_bank_city)}, {drawer_bank_city.title()}",
-    court_name = f"{court_tier}, {primary_city.title()}"
-
-    # ── Alternative Courts (For Awareness) ───────────────────────────────────
-    alternate_courts = []
-    if drawer_bank_city and drawer_bank_city.lower() != primary_city.lower():
-        alternate_courts.append({
-            "court": f"{get_court_tier(drawer_bank_city)}, {drawer_bank_city.title()}",
             "basis": "Drawer's bank branch (applicable if cheque presented directly)",
             "applicability": "CONDITIONAL"
         })
