@@ -309,8 +309,11 @@ class ResponseBuilder:
         if not case_data.get("debt_proven"):
             alternative_evidence = ["WhatsApp correspondence", "Bank statements", "Ledger entries"]
 
+        for r in structured_weaknesses:
+            r['text'] = r.get('risk', '')
+
         final_weaknesses = structured_weaknesses
-        final_issues = [r for r in structured_weaknesses if r['severity'] in ['FATAL', 'CRITICAL', 'HIGH']]
+        final_issues = [r for r in structured_weaknesses if r.get('severity') in ['FATAL', 'CRITICAL', 'HIGH']]
 
         # ── SENIOR ADVOCATE BRIEF (Standalone Object for Print/UI) ───────────
         senior_brief = {
