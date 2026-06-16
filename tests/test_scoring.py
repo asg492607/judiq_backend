@@ -146,3 +146,44 @@ def test_fatal_defect_not_catastrophic():
     assert result["score"] > 0, (
         f"Score must not be zero even with a fatal defect; got {result['score']}"
     )
+
+
+def test_flat_wizard_normalization():
+    """
+    Test that flat options sent by the frontend wizard are correctly
+    normalized to the expected format and scoring inputs.
+    """
+    from normalizer import normalize_input
+    
+    flat_wizard_data = {
+        "case_id": "TEST-WIZ-01",
+        "case_type": "Cheque Bounce",
+        "client_role": "Complainant",
+        "complainant_authorized": "Yes - Original",
+        "original_cheque": "Yes - Original",
+        "bank_memo_received": "Yes",
+        "notice_sent": "Yes",
+        "agreement_type": "Written Agreement",
+        "supporting_documents": "Yes - All Documents",
+        "debt_acknowledgment": "Yes - Written",
+        "itr_available": "Yes",
+        "loan_via_bank": "Yes",
+        "debt_amount": 500000.0,
+    }
+    
+    normalized = normalize_input(flat_wizard_data)
+    
+    # Assert correct normalization
+    assert normalized["cheque_present"] is True
+    assert normalized["dishonour_memo"] is True
+    assert normalized["notice_sent"] is True
+    assert normalized["debt_proven"] is True
+    assert normalized["is_authorized"] is True
+    assert normalized["complainant_itr_available"] is True
+    assert normalized["loan_via_bank"] is True
+    assert "written" in normalized["debt_proof_type"].lower()
+    
+    # Run through the scoring engine
+    result = ScoringEngineV12.calculate_score_with_trace(normalized, [], [], {})
+    assert result["score"] >= 60, f"Expected high score for complete case, got {result['score']}"
+

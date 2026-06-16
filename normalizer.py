@@ -53,7 +53,14 @@ def _safe_bool(value: Any, default: bool = False) -> bool:
     if isinstance(value, (int, float)):
         return bool(value)
     if isinstance(value, str):
-        return value.strip().lower() in ("true", "yes", "1", "on")
+        v_lower = value.strip().lower()
+        if v_lower in ("true", "yes", "1", "on"):
+            return True
+        # Check for presence of truthy terms used in the UI/wizard options
+        truthy_terms = ("yes", "true", "original", "copy", "extensive", "limited", "partial", "signed", "written", "promissory", "deni")
+        if any(term in v_lower for term in truthy_terms):
+            return True
+        return False
     return default
 
 
@@ -168,12 +175,17 @@ def normalize_input(data: dict) -> dict:
     dishonour_reason = _safe_str(raw_reason, max_len=100, field_name="dishonour_reason")
 
     # ── Booleans ───────────────────────────────────────────────────────────────
-    cheque_present  = _safe_bool(data.get("cheque_present",  data.get("chequePresent",  cq_obj.get("cheque_present", False))))
-    dishonour_memo  = _safe_bool(data.get("dishonour_memo",  data.get("dishonourMemo",  ds_obj.get("bank_memo_received", False))))
+    cheque_present  = _safe_bool(data.get("cheque_present",  data.get("chequePresent",  data.get("original_cheque", cq_obj.get("cheque_present", False)))))
+    dishonour_memo  = _safe_bool(data.get("dishonour_memo",  data.get("dishonourMemo",  data.get("bank_memo_received", ds_obj.get("bank_memo_received", False)))))
     notice_sent     = _safe_bool(data.get("notice_sent",     data.get("noticeSent",     nt_obj.get("notice_sent", False))))
-    debt_proven     = _safe_bool(data.get("debt_proven",     data.get("debtProven",     tx_obj.get("debt_acknowledged", tx_obj.get("debt_proven", False)))))
+    
+    raw_debt_proven = data.get("debt_proven") or data.get("debtProven")
+    if raw_debt_proven is None:
+        raw_debt_proven = data.get("debt_acknowledgment") or data.get("supporting_documents") or tx_obj.get("debt_acknowledged") or tx_obj.get("debt_proven", False)
+    debt_proven     = _safe_bool(raw_debt_proven)
+
     directors_named = _safe_bool(data.get("directors_named", accu_obj.get("directors_named", False)))
-    is_authorized   = _safe_bool(data.get("is_authorized",   comp_obj.get("is_authorized", False)))
+    is_authorized   = _safe_bool(data.get("is_authorized",   data.get("complainant_authorized", comp_obj.get("is_authorized", False))))
     signature_disp  = _safe_bool(data.get("signature_dispute",     data.get("signatureDispute",     False)))
     debt_denial     = _safe_bool(data.get("debt_denial",           data.get("debtDenial",           False)))
     security_claim  = _safe_bool(data.get("cheque_security_claim", data.get("chequeSecurityClaim",  False)))
@@ -198,7 +210,7 @@ def normalize_input(data: dict) -> dict:
         "cheque_proof_type":   _safe_str(data.get("cheque_proof_type", cq_obj.get("cheque_proof_type", "original")), 50),
         "memo_type":           _safe_str(data.get("memo_type", ds_obj.get("memo_type", "original")), 50),
         "notice_served_proof": _safe_bool(data.get("notice_served_proof", nt_obj.get("notice_received", True))),
-        "debt_proof_type":     _safe_str(data.get("debt_proof_type", tx_obj.get("agreement_type", "written_agreement")), 50),
+        "debt_proof_type":     _safe_str(data.get("debt_proof_type", data.get("agreement_type", tx_obj.get("agreement_type", "written_agreement"))), 50),
         "debt_evidence_type":  _safe_str(data.get("debt_evidence_type", "Documentary"), 50), 
         "within_30_days":      _safe_str(data.get("within_30_days", nt_obj.get("within_statutory_period", "Yes")), 10),
         
@@ -258,7 +270,7 @@ def normalize_input(data: dict) -> dict:
         "directors_named":  directors_named,
 
         # Financial Capacity (Advocate Hardening)
-        "complainant_itr_available": _safe_bool(data.get("complainant_itr_available", False)),
+        "complainant_itr_available": _safe_bool(data.get("complainant_itr_available", data.get("itr_available", False))),
         "loan_via_bank":             _safe_bool(data.get("loan_via_bank", False)),
 
         # Draft Customization

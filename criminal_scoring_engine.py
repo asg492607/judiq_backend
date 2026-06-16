@@ -12,7 +12,14 @@ class CriminalScoringEngine(BaseScoringEngine):
     """
 
     @classmethod
-    def calculate_score(cls, case_data: Dict, concepts: List[Dict], contradictions: List[Dict], limitation: Dict) -> Dict:
+    def calculate_score(cls, case_data: Dict, concepts: List[Dict], contradictions: List[Dict], limitation: Dict = None) -> Dict:
+        if limitation is None:
+            try:
+                from timeline_engine import TimelineEngine
+                limitation = TimelineEngine.check_criminal_limitation(case_data)
+            except Exception:
+                limitation = {}
+
         concept_names = {c["concept"] for c in concepts}
         trace = []
         causality_map = []
@@ -147,4 +154,5 @@ class CriminalScoringEngine(BaseScoringEngine):
             "causality_map": causality_map,
             "evidence_reliability": evidence_reliability,
             "reasoning_trace": trace,
+            "score_breakdown": trace,
         }
