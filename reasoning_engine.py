@@ -24,8 +24,8 @@ class ReasoningEngine:
         accused_type = case_data.get("accused_type", "Individual")
 
         summary = (
-            f"Case: {complainant} vs {accused} â€” Prosecution for Dishonour of Cheque No. {cheque_no} "
-            f"valued at â‚¹{amount}. Reason: '{reason}'. "
+            f"Case: {complainant} vs {accused} - Prosecution for Dishonour of Cheque No. {cheque_no} "
+            f"valued at Rs. {amount}. Reason: '{reason}'. "
         )
 
         # Statutory Pillars Audit
@@ -35,7 +35,7 @@ class ReasoningEngine:
         if not case_data.get("cheque_present"): missing_pillars.append("Negotiable Instrument (S.138)")
 
         if missing_pillars:
-            summary += f"âš–ï¸ LEGAL WARNING: Critical statutory pillars are MISSING: {', '.join(missing_pillars)}. "
+            summary += f"[WARNING]: Critical statutory pillars are MISSING: {', '.join(missing_pillars)}. "
 
         # Notice status
         if case_data.get("notice_sent"):
