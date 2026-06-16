@@ -197,9 +197,18 @@ class JudiQEngine:
 
         # -- 2.5 Case Type Detection ------------------------------------------
         text_lower = text.lower()
-        is_criminal = case_data.get("case_type") == "criminal" or "criminal" in text_lower or "fir" in text_lower or case_data.get("offense_type") is not None
-        is_cheque_bounce = case_data.get("case_type") == "cheque_bounce" or "cheque" in text_lower or case_data.get("cheque_present")
-
+        
+        # Explicit type check first
+        explicit_type = str(case_data.get("case_type", "")).lower()
+        
+        is_criminal = explicit_type == "criminal"
+        is_cheque_bounce = explicit_type in ("cheque bounce", "cheque_bounce")
+        
+        # If no explicit type, fallback to heuristics
+        if not is_criminal and not is_cheque_bounce:
+            is_criminal = "criminal" in text_lower or "fir" in text_lower or case_data.get("offense_type") is not None
+            is_cheque_bounce = "cheque" in text_lower or case_data.get("cheque_present")
+        
         if is_criminal and is_cheque_bounce:
             logger.info("Mixed case detected (Criminal + Cheque Bounce). Orchestrating combined analysis.")
             adv_modules = ["adversarial", "criminal_adversarial"]

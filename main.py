@@ -76,7 +76,21 @@ async def startup_event():
 # Health Check
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "version": settings.VERSION, "timestamp": time.time()}
+    health_data = {"status": "healthy", "version": settings.VERSION, "timestamp": time.time()}
+    try:
+        import psutil
+        health_data["cpu_percent"] = psutil.cpu_percent(interval=0.1)
+        health_data["memory"] = psutil.virtual_memory()._asdict()
+    except ImportError:
+        health_data["cpu_percent"] = "psutil not installed"
+        
+    try:
+        from engine_core import registry
+        health_data["engine_registry_size"] = len(registry._instances)
+    except Exception:
+        pass
+        
+    return health_data
 
 # Root Endpoint
 @app.get("/")

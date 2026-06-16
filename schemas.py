@@ -78,6 +78,11 @@ class CaseInput(BaseModel):
     @model_validator(mode='before')
     @classmethod
     def map_aliases(cls, values):
+        # Ensure empty strings for floats become 0.0
+        for k in ['amount', 'cheque_amount', 'debt_amount']:
+            if k in values and values[k] == "":
+                values[k] = 0.0
+                
         # Map cheque_amount to amount if amount is 0 or missing
         if 'cheque_amount' in values and 'amount' not in values:
             try:
