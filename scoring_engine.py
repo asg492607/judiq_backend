@@ -180,7 +180,8 @@ class ScoringEngineV12(BaseScoringEngine):
         if bsa_result.get("cap"):
             max_score_cap = min(max_score_cap, bsa_result["cap"])
 
-        final_score = max(0, min(max_score_cap, score))
+        # Floor at 15 to prevent crushing to 0, which looks broken on UI
+        final_score = max(15, min(max_score_cap, score))
         if not cheque or not notice:
             # Soften harsh min() logic: apply a penalty multiplier instead of a strict cap of 30
             final_score = int(final_score * 0.6)
