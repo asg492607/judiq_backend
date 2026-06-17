@@ -222,6 +222,8 @@ class DocumentIntelligence:
         
         # We expect actual extracted text payload from the OCR pipeline
         evidence_texts = case_data.get("evidence_texts", {})
+        if not evidence_texts or not any(str(val).strip() for val in evidence_texts.values()):
+            return verification_flags
         
         # Import OCREngine for exact parsing
         try:
@@ -280,11 +282,12 @@ class DocumentIntelligence:
         # 1. ITR Claim vs Reality
         if case_data.get("complainant_itr_available"):
             itr_text = str(evidence_texts.get("itr", "")).lower()
-            if not itr_text or not any(k in itr_text for k in ["income tax", "assessment year", "return of income", "pan", "acknowledgement"]):
-                verification_flags["fraudulent_input_detected"] = True
-                verification_flags["verification_penalties"] -= 30
-                verification_flags["overrides"]["complainant_itr_available"] = False
-                logger.error("[!] STRICT ENFORCEMENT: User claimed ITR, but OCR found no valid tax document.")
+            if itr_text:
+                if not any(k in itr_text for k in ["income tax", "assessment year", "return of income", "pan", "acknowledgement"]):
+                    verification_flags["fraudulent_input_detected"] = True
+                    verification_flags["verification_penalties"] -= 30
+                    verification_flags["overrides"]["complainant_itr_available"] = False
+                    logger.error("[!] STRICT ENFORCEMENT: User claimed ITR, but OCR found no valid tax document.")
 
         # 2. Notice Delivery Tracking vs Reality
         if case_data.get("notice_sent"):
