@@ -236,6 +236,7 @@ Verified at ________ (Place) on this {today} that the contents of the above affi
 
 def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "standard") -> str:
     today, amount_str = _case_meta(case_data)
+    place_val = case_data.get("payee_bank_city") or (case_data.get("complainant_address", "").split(",")[-1].strip() if "," in case_data.get("complainant_address", "") else "") or "________ (Place)"
     is_aggressive = tone.lower() == "aggressive"
     is_conciliatory = tone.lower() == "conciliatory"
 
@@ -297,7 +298,7 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     if accused_type != "Individual":
         has_directors = case_data.get("directors_named", False)
         director_names = case_data.get("director_names", "")
-        director_roles = case_data.get("director_roles", "________ (Specify Exact Roles)")
+        director_roles = case_data.get("director_roles") or "Directors actively responsible for the day-to-day conduct and business of the accused company"
         
         resignation_date = case_data.get("director_resignation_date")
         cheque_date_val = case_data.get("cheque_date")
@@ -446,7 +447,7 @@ ANNEXURE-F: Section 63(4) BSA Certificate for WhatsApp/Email records (Mandatory)
 VERIFICATION:
 I, {complainant}, do hereby solemnly verify that the contents of the above Complaint are true and correct to the best of my knowledge, information, and belief. Nothing material has been concealed therefrom, and all supporting documents are annexed herewith.
 
-Place: ________ (Place)
+Place: {place_val}
 Date: {today}
                                                         {complainant}
                                                         (Complainant)

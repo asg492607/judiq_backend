@@ -162,6 +162,7 @@ def normalize_input(data: dict) -> dict:
 
     # ── Amount ─────────────────────────────────────────────────────────────────
     raw_amount = (data.get("amount") or data.get("caseAmount")
+                  or data.get("debt_amount") or data.get("cheque_amount")
                   or tx_obj.get("debt_amount") or cq_obj.get("cheque_amount") or 0)
     amount = _safe_amount(raw_amount)
 
@@ -278,7 +279,7 @@ def normalize_input(data: dict) -> dict:
         "signature_dispute":     signature_disp,
         "debt_denial":           debt_denial,
         "cheque_security_claim": security_claim,
-        "director_names":        _safe_str(data.get("director_names", accu_obj.get("director_names", "")), 500, "director_names"),
+        "director_names":        _safe_str(data.get("director_names", data.get("accused_directors", accu_obj.get("director_names", ""))), 500, "director_names"),
 
         # Analysis Mode (Quick Analysis)
         "analysis_mode":         _safe_str(data.get("analysis_mode", "detailed"), 20),
