@@ -310,8 +310,7 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
             liability_clause = f"""3. THE VICARIOUS LIABILITY (SEC. 141):
     That the Accused No. 1 is a {accused_type}, and Accused Nos. 2 onwards, namely {director_names}, are the Directors/Partners/Officers of the said Accused No. 1.
     That at the time the offence was committed, the said Accused Nos. 2 onwards were in charge of, and were responsible to the Accused No. 1 for the conduct of its business. 
-    Specifically, their exact roles are as follows: {director_roles}. They were actively involved in the day-to-day management and decision-making processes of the Accused No. 1, and the dishonoured cheque in question was issued with their full knowledge, consent, and connivance.{resignation_averment}
-    The Accused Nos. 2 onwards are thus vicariously liable for the acts of the Accused No. 1 as per the mandatory provisions of Section 141 of the Negotiable Instruments Act, 1881 and the law laid down by the Hon'ble Supreme Court in 'Aneeta Hada v. Godfather Travels'."""
+    Specifically, the Accused Nos. 2 onwards were, at the time of the commission of the offence, in charge of and responsible to the Accused No. 1 for the day-to-day conduct of its business, and are thus vicariously liable under Section 141 of the Negotiable Instruments Act, 1881.{resignation_averment}"""
         elif has_directors:
             liability_clause = f"3. THE VICARIOUS LIABILITY (SEC. 141): That the Accused No. 1 is a {accused_type} and the other Accused persons are its Directors/Officers who were in charge of and responsible for the conduct of the business (Exact roles: ________ (Specify Roles)) as per Section 141 of the NI Act."
         else:
@@ -321,7 +320,7 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     delay_para = ""
     within_30_days = case_data.get("within_30_days", "Yes") == "Yes"
     if not within_30_days:
-        delay_para = f"\n7A. CONDONATION OF DELAY: That there has been a technical delay of ____ days in issuing the statutory demand notice. The Complainant has filed a separate application under Section 142(1)(b) of the NI Act showing sufficient cause for the same, which may be read as part and parcel of this complaint.\n"
+        delay_para = f"There has been a technical delay of ____ days in issuing the statutory demand notice, for which a condonation of delay application under Section 142(1)(b) of the NI Act has been filed herewith."
 
     # ── EVIDENCE PLEADINGS (Advocate Hardening) ──────────────────────────
     if is_aggressive:
@@ -340,13 +339,13 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     dynamic_rebuttal = ""
     failure_point = str(case_data.get("failure_point_injected", "")).lower()
     if "signature" in failure_point or "handwriting" in failure_point:
-        dynamic_rebuttal = f"\n\n    9A. PRE-EMPTIVE REBUTTAL (SIGNATURE): That any anticipated defence regarding variation in handwriting or ink is completely frivolous and legally untenable. Under Section 20 of the NI Act, the Accused had granted implied authority to the Complainant to fill the inchoate instrument, and the signature is explicitly admitted, barring any forensic delay tactics (Bir Singh v. Mukesh Kumar)."
+        dynamic_rebuttal = f"Any anticipated defence regarding variation in handwriting or ink is completely frivolous and legally untenable. Under Section 20 of the NI Act, the Accused had granted implied authority to the Complainant to fill the inchoate instrument, and the signature is explicitly admitted, barring any forensic delay tactics (Bir Singh v. Mukesh Kumar)."
     elif "limitation" in failure_point or "premature" in failure_point or "notice" in failure_point:
-        dynamic_rebuttal = f"\n\n    9A. PRE-EMPTIVE REBUTTAL (PROCEDURAL): That the Complainant has meticulously followed the statutory timeline matrix under Section 138/142 of the NI Act. Any alleged procedural irregularity is either curable or a hyper-technicality that does not defeat the substantive cause of justice."
+        dynamic_rebuttal = f"The Complainant has meticulously followed the statutory timeline matrix under Section 138/142 of the NI Act. Any alleged procedural irregularity is either curable or a hyper-technicality that does not defeat the substantive cause of justice."
     elif "debt" in failure_point or "capacity" in failure_point:
-        dynamic_rebuttal = f"\n\n    9A. PRE-EMPTIVE REBUTTAL (EVIDENTIARY): That the underlying debt is crystallised and legally enforceable. The statutory presumption under Section 139 is firmly in favour of the Complainant, and the Accused cannot evade liability merely by raising bald denials without discharging the reverse onus of proof (Rangappa v. Mohan)."
+        dynamic_rebuttal = f"The underlying debt is crystallised and legally enforceable. The statutory presumption under Section 139 is firmly in favour of the Complainant, and the Accused cannot evade liability merely by raising bald denials without discharging the reverse onus of proof (Rangappa v. Mohan)."
     elif is_aggressive and score < 50:
-        dynamic_rebuttal = f"\n\n    9A. PRE-EMPTIVE REBUTTAL (GENERAL EVASION): The Complainant submits that any defence raised by the Accused is a mere afterthought designed to derail the summary procedure of Section 138. The Accused's silence during the statutory notice period operates as an implied admission of liability, precluding them from springing surprise defences at trial."
+        dynamic_rebuttal = f"The Complainant submits that any defence raised by the Accused is a mere afterthought designed to derail the summary procedure of Section 138. The Accused's silence during the statutory notice period operates as an implied admission of liability, precluding them from springing surprise defences at trial."
     
     if case_data.get("communication_records"):
         if is_aggressive:
@@ -365,7 +364,7 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
 
     # Dynamic FSL/Alteration Pre-emptive Rebuttal
     if case_data.get("handwriting_different") or case_data.get("signature_mismatch") or "material_alteration" in {c.get("concept", "") for c in concepts}:
-        debt_pleading += "\n\nFurthermore, the Complainant categorically asserts that the cheque in question was issued by the Accused in discharge of a legally enforceable debt. Any subsequent claim by the Accused regarding differences in handwriting or ink age is entirely frivolous and a mere afterthought. The signature on the cheque is admitted, and under Section 20 of the Negotiable Instruments Act, the Complainant possessed the implied prima facie authority to fill the inchoate instrument. Any attempt to seek an FSL examination under Section 45 of the Indian Evidence Act is a dilatory tactic intended solely to derail the trial, and the Complainant prays that such requests be rejected."
+        debt_pleading += "\n\nFurthermore, the Complainant categorically asserts that the cheque in question was issued by the Accused in discharge of a legally enforceable debt. Any subsequent claim by the Accused regarding differences in handwriting or ink age is entirely frivolous and a mere afterthought. The signature on the cheque is admitted, and under Section 20 of the Negotiable Instruments Act, the Complainant possessed the implied prima facie authority to fill the inchoate instrument. Any attempt to seek an FSL examination under Section 45 of the Indian Evidence Act is a dilatory tactic intended solely to derail the trial, and the Complainain pray that such requests be rejected."
 
     prayer_compensation = ""
     if is_aggressive:
@@ -375,12 +374,121 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     else:
         prayer_compensation = "(c) Direct the Accused to pay INTERIM COMPENSATION under Section 143A of the NI Act (20% of cheque amount);"
 
-    return f"""{_header("CRIMINAL COMPLAINT UNDER SECTION 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881")}
+    year_val = datetime.now().year
+    transaction_date = case_data.get("transaction_date") or case_data.get("transactionDate") or "________ (Transaction Date)"
+    presentation_date = case_data.get("presentation_date") or case_data.get("presentationDate") or "________ (Presentation Date)"
+    notice_received_date = case_data.get("notice_received_date") or case_data.get("noticeReceivedDate") or "________ (Notice Received Date)"
+    filing_date = case_data.get("filing_date") or case_data.get("filingDate") or "________ (Filing Date)"
 
-IN THE COURT OF THE LEARNED JUDICIAL MAGISTRATE FIRST CLASS / METROPOLITAN MAGISTRATE
+    index_section = f"""======================================================================
+INDEX OF FILING BUNDLE
+======================================================================
+
+IN THE COURT OF THE METROPOLITAN MAGISTRATE AT {court_name}
+COMPLAINT NO: _____ / {year_val}
+
+IN THE MATTER OF:
+{complainant}                                          ... COMPLAINANT
+VERSUS
+{accused}                                              ... ACCUSED
+
+INDEX
+S.NO.   PARTICULARS                                     PAGE NO.
+1.      Synopsis and List of Dates                      1 - 2
+2.      Memo of Parties                                 3
+3.      Complaint under Section 138 of the NI Act       4 - 7
+4.      Affidavit in support of the Complaint           8 - 9
+5.      List of Documents / Annexures                   10
+6.      Vakalatnama                                     11
+
+Place: {place_val}                                      THROUGH:
+Date: {today}                                           __________________, ADVOCATE
+                                                        FOR COMPLAINANT
+"""
+
+    synopsis_section = f"""======================================================================
+SYNOPSIS AND LIST OF DATES
+======================================================================
+
+SYNOPSIS:
+The present complaint is being filed under Section 138 read with Section 141 of the Negotiable Instruments Act, 1881, against the Accused for the dishonour of cheque bearing No. {cheque_no} for Rs. {amount_str} due to "{dishonour_reason}". Despite the service of the statutory demand notice dated {notice_date}, the Accused has failed to clear the outstanding liability within the statutory period of 15 days, thereby committing an offence under the Negotiable Instruments Act, 1881.
+
+LIST OF DATES:
+DATE            PARTICULARS
+{transaction_date}  The Accused approached the Complainant and underlying debt/liability of Rs. {amount_str} was established.
+{cheque_date}   In discharge of the legal liability, the Accused issued cheque bearing No. {cheque_no} for Rs. {amount_str} drawn on {bank_full}.
+{presentation_date} The cheque was presented for encashment by the Complainant.
+{dishonour_date}    The cheque was returned/dishonoured by the bank with the memo citing "{dishonour_reason}".
+{notice_date}   The Complainant sent the statutory demand notice under Section 138(b) of the NI Act to the Accused.
+{notice_received_date}   The statutory demand notice was served/deemed served on the Accused.
+{filing_date}   Filing of the present complaint before this Hon'ble Court.
+
+Place: {place_val}                                      THROUGH:
+Date: {today}                                           __________________, ADVOCATE
+                                                        FOR COMPLAINANT
+"""
+
+    memo_section = f"""======================================================================
+MEMO OF PARTIES
+======================================================================
+
+IN THE COURT OF THE METROPOLITAN MAGISTRATE AT {court_name}
+COMPLAINT NO: _____ / {year_val}
+
+IN THE MATTER OF:
+
+COMPLAINANT:    {complainant}
+                {complainant_addr}
+                {complainant_phone}
+                                                        ... COMPLAINANT
+VERSUS
+
+ACCUSED:        {accused}
+                {accused_addr}
+                                                        ... ACCUSED
+
+Place: {place_val}                                      THROUGH:
+Date: {today}                                           __________________, ADVOCATE
+                                                        FOR COMPLAINANT
+"""
+
+    affidavit_section = f"""======================================================================
+AFFIDAVIT IN SUPPORT OF THE COMPLAINT
+======================================================================
+
+IN THE COURT OF THE METROPOLITAN MAGISTRATE AT {court_name}
+COMPLAINT NO: _____ / {year_val}
+
+IN THE MATTER OF:
+{complainant}                                          ... COMPLAINANT
+VERSUS
+{accused}                                              ... ACCUSED
+
+AFFIDAVIT
+
+I, {complainant}, son/daughter/representative of ________, aged about ____ years, residing/having office at {complainant_addr}, do hereby solemnly affirm and state as under:
+
+1. That I am the Complainant in the accompanying complaint and am fully conversant with the facts of the case, and as such, competent to depose to this affidavit.
+2. That the accompanying Complaint under Section 138 of the Negotiable Instruments Act, 1881 has been drafted under my instructions, the contents of which may be read as part and parcel of this affidavit for the sake of brevity.
+3. That the Accused issued the cheque No. {cheque_no} in discharge of a legally enforceable debt, which was dishonoured upon presentation, and the Accused failed to make payment despite receipt of the statutory demand notice.
+4. That the annexures filed along with the complaint are true copies of their respective originals.
+
+                                                        DEPONENT
+
+VERIFICATION:
+Verified at {place_val} on this {today} that the contents of the above affidavit are true and correct to the best of my knowledge and belief, and nothing material has been concealed therefrom.
+
+                                                        DEPONENT
+"""
+
+    complaint_body = f"""======================================================================
+COMPLAINT UNDER SECTION 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881
+======================================================================
+
+IN THE COURT OF THE METROPOLITAN MAGISTRATE
 AT {court_name}
 
-COMPLAINT NO.: _____ / {datetime.now().year}
+COMPLAINT NO.: _____ / {year_val}
 
 IN THE MATTER OF:
 
@@ -403,10 +511,10 @@ COMPLAINT U/S 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881
 RESPECTFULLY SHOWETH:
 
 1. THE COMPLAINANT:
-   The Complainant, {complainant}, is a law-abiding citizen/entity carrying on {occupation}. {auth_clause}
+   The Complainant, {complainant}, is engaged in the business/occupation of {occupation}. {auth_clause}
 
 2. THE ACCUSED:
-   The Accused, {accused}, residing at {accused_addr}, is known to the Complainant and has been engaged in transactions with the Complainant.
+   The Accused, {accused}, residing at {accused_addr}, entered into the underlying business transaction/relationship with the Complainant, as detailed hereinafter.
 
 {liability_clause}
 
@@ -419,22 +527,19 @@ RESPECTFULLY SHOWETH:
 6. PRESENTATION AND DISHONOUR:
    The Complainant duly presented the said cheque for encashment through its banker. However, the said cheque was returned/dishonoured on {dishonour_date} with the bank memo citing "{dishonour_reason}", thereby constituting an offence under Section 138 of the NI Act, 1881.
 
-7. STATUTORY DEMAND NOTICE:
-   As mandated under Section 138(b) of the NI Act, the Complainant caused a legal demand notice to be served upon the Accused on {notice_date} through Registered Post (AD)/Speed Post, demanding payment of {amount_str} within 15 days of receipt of the notice. {delay_para}
+7. STATUTORY DEMAND NOTICE AND ACCUSED'S DEFAULT:
+   As mandated under Section 138(b) of the NI Act, 1881, the Complainant sent a legal demand notice dated {notice_date} to the Accused at their correct and known address via Registered Post (AD)/Speed Post, demanding payment of the cheque amount of {amount_str} within 15 days of receipt of the notice. The notice was duly served/deemed to be served upon the Accused. Despite receipt/deemed receipt of the notice, the Accused failed to make the payment of the cheque amount within the statutory period of 15 days, which expired on ________. The Accused has thus committed an offence punishable under Section 138 of the Negotiable Instruments Act, 1881. {delay_para} {dynamic_rebuttal}
 
-8. STATUTORY NOTICE:
-   That upon the dishonour of the said cheque, the Complainant sent a legal demand notice dated {notice_date} via registered post/speed post to the Accused at their correct and known address. Despite receipt/deemed receipt of the notice, the Accused has failed to make the payment of the cheque amount within the statutory period of 15 days, thereby committing an offence punishable under Section 138 of the NI Act.{dynamic_rebuttal}
-
-9. JURISDICTION:
+8. JURISDICTION:
    This Hon'ble Court has territorial jurisdiction to entertain and try this Complaint as the cheque in question was presented for encashment at {bank_full}, which is situated within the territorial limits of this Court, as per the law laid down by the Hon'ble Supreme Court in Dashrath Rupsingh Rathod vs. State of Maharashtra.
 
-10. PRAYER:
-    It is, therefore, most respectfully prayed that this Hon'ble Court may be pleased to:
-    (a) Take cognizance of the offence committed by the Accused under Section 138 of the NI Act, 1881;
-    (b) Issue summons/process to the Accused to face trial;
-    (c) Direct the Accused to pay INTERIM COMPENSATION of 20% of the cheque amount to the Complainant as per Section 143A of the NI Act (as amended in 2018);
-    (d) On conviction, sentence the Accused to imprisonment for the maximum term and/or impose a fine of twice the cheque amount to meet the ends of justice; and
-    (e) Pass such other order(s) as this Hon'ble Court may deem fit in the interest of justice.
+9. PRAYER:
+   It is, therefore, most respectfully prayed that this Hon'ble Court may be pleased to:
+   (a) Take cognizance of the offence committed by the Accused under Section 138 of the NI Act, 1881;
+   (b) Issue summons/process to the Accused to face trial;
+   (c) Direct the Accused to pay INTERIM COMPENSATION of 20% of the cheque amount to the Complainant as per Section 143A of the NI Act (as amended in 2018);
+   (d) On conviction, sentence the Accused to imprisonment for the maximum term and/or impose a fine of twice the cheque amount to meet the ends of justice; and
+   (e) Pass such other order(s) as this Hon'ble Court may deem fit in the interest of justice.
 
 LIST OF ANNEXURES:
 ANNEXURE-A: Original Board Resolution / Letter of Authority (If applicable)
@@ -452,6 +557,8 @@ Date: {today}
                                                         {complainant}
                                                         (Complainant)
 """
+
+    return f"{index_section}\n\n{synopsis_section}\n\n{memo_section}\n\n{complaint_body}\n\n{affidavit_section}"
 
 
 def generate_defence_strategy(case_data: Dict, concepts: List[Dict], score: int) -> str:
