@@ -203,10 +203,10 @@ class BaseScoringEngine:
         reliability = {}
         
         # Cheque Reliability
-        cheque_type = str(case_data.get("cheque_type", "Original")).lower()
-        if "original" in cheque_type:
+        cheque_proof_type = str(case_data.get("cheque_proof_type") or case_data.get("cheque_type") or "original").lower()
+        if "original" in cheque_proof_type:
             reliability["Cheque"] = {"score": 0.95, "status": "VERIFIED", "attack_risk": "MINIMAL"}
-        elif "photocopy" in cheque_type:
+        elif "photocopy" in cheque_proof_type:
             reliability["Cheque"] = {"score": 0.40, "status": "VULNERABLE", "attack_risk": "HIGH", "reason": "Photocopy requires strict secondary evidence foundation (S.61 BSA)."}
         else:
             reliability["Cheque"] = {"score": 0.0, "status": "MISSING", "attack_risk": "CRITICAL", "reason": "Missing core instrument."}
