@@ -283,7 +283,7 @@ def normalize_input(data: dict) -> dict:
         # Analysis Mode (Quick Analysis)
         "analysis_mode":         _safe_str(data.get("analysis_mode", "detailed"), 20),
         "proof_present":         _safe_bool(data.get("proof_present", True)),
-        "debt_acknowledged":     _safe_bool(data.get("debt_acknowledged", tx_obj.get("debt_acknowledged", False))),
+        "debt_acknowledged":     _safe_bool(data.get("debt_acknowledged") or data.get("debt_acknowledgment") or tx_obj.get("debt_acknowledged", False)),
     }
 
     normalized = resolve_logical_contradictions(normalized)

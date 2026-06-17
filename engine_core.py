@@ -170,10 +170,24 @@ class JudiQEngine:
 
         # -- 2. Semantic Extraction & Fact Graph (Hybrid Architecture) --------
         text = case_data.get("description", "").strip()
-        if not text:
-            parts = [phrase for key, phrase in SYNTHETIC_TEXT_MAP.items() if case_data.get(key)]
-            text = ". ".join(parts)
-            
+        parts = []
+        if text:
+            parts.append(text)
+        else:
+            synth_parts = [phrase for key, phrase in SYNTHETIC_TEXT_MAP.items() if case_data.get(key)]
+            if synth_parts:
+                parts.extend(synth_parts)
+
+        purpose = case_data.get("purpose", "").strip()
+        if purpose and purpose != "Not Provided":
+            parts.append(f"Purpose of transaction: {purpose}")
+
+        notes = case_data.get("additional_notes", "").strip()
+        if notes:
+            parts.append(notes)
+
+        text = ". ".join(parts)
+
         fact_graph = None
         if LLM_AVAILABLE:
             try:
@@ -195,6 +209,33 @@ class JudiQEngine:
             context="SemanticEngine"
         )
         concepts = semantic_result.get("concepts_detected") or []
+
+        # Augment concepts list based on structured case_data signals
+        existing_concepts = {c["concept"] for c in concepts}
+        if case_data.get("debt_acknowledged") and "debt_acknowledgment" not in existing_concepts:
+            concepts.append({
+                "concept": "debt_acknowledgment",
+                "confidence": 0.9,
+                "matched_phrases": ["debt acknowledgment (structured)"],
+                "legal_impact": "Strongly triggers presumption under Section 139 NI Act",
+                "polarity": 1
+            })
+        if case_data.get("cheque_security_claim") and "security_cheque" not in existing_concepts:
+            concepts.append({
+                "concept": "security_cheque",
+                "confidence": 0.8,
+                "matched_phrases": ["security cheque claim (structured)"],
+                "legal_impact": "Common defence; countered by Sripati Singh precedent",
+                "polarity": 1
+            })
+        if not case_data.get("complainant_itr_available") and "financial_capacity_challenge" not in existing_concepts:
+            concepts.append({
+                "concept": "financial_capacity_challenge",
+                "confidence": 0.75,
+                "matched_phrases": ["missing ITR (structured)"],
+                "legal_impact": "Invokes Basalingappa rule; requires complainant to prove source of funds",
+                "polarity": 1
+            })
 
         # -- 2.5 Case Type Detection ------------------------------------------
         text_lower = text.lower()
@@ -433,6 +474,7 @@ class JudiQEngine:
         )
 
         if is_fatal:
+            case_data["fatal_defect"] = fatal_reason
             final_score = min(final_score, 25.0)
             judicially_adjusted_score = min(judicially_adjusted_score, 25.0)
 

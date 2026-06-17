@@ -378,6 +378,28 @@ class ResponseBuilder:
         else:
             executive_summary_text = ResponseBuilder._prefix_text(executive_summary_text, "Rule-Based")
         
+        # Build defences for response
+        defences_list = engine_result.get("defences") or []
+        if not defences_list:
+            risks_and_rebuttals = engine_result.get("risks_and_rebuttals", [])
+            for node in risks_and_rebuttals:
+                collapse_prob = 50
+                try:
+                    collapse_prob = int(node.get("collapse_risk", "50").replace("%", ""))
+                except:
+                    pass
+                rebuttal_text = ""
+                rebut_tree = node.get("rebuttal_tree", {})
+                if rebut_tree:
+                    rebuttal_text = rebut_tree.get("complainant_counter", "")
+                defences_list.append({
+                    "argument": node.get("adversarial_vector", "Defence Strategy"),
+                    "strength": node.get("severity", "Medium"),
+                    "success_probability": collapse_prob,
+                    "trigger_reason": node.get("why_applied", "Applicable based on case facts."),
+                    "rebuttal": rebuttal_text
+                })
+
         base_draft = engine_result.get("draft", "")
         draft_type = engine_result.get("draft_type", "LEGAL_OPINION")
         enhanced_draft = enhance_legal_draft(base_draft, draft_type, case_data) if base_draft else ""
@@ -421,7 +443,7 @@ class ResponseBuilder:
                 "reasoning": lawyer_reasoning,
                 "breakdown": breakdown
             },
-            "defence_strategy":          engine_result.get("defences", []),
+            "defence_strategy":          defences_list,
             "draft":                     enhanced_draft,
             "draft_raw":                 base_draft,
             "draft_type":                engine_result.get("draft_type", "LEGAL_OPINION"),

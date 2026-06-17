@@ -856,7 +856,7 @@ class DraftEngine:
         # Strict Gating for Offensive Drafts
         offensive_drafts = ["LEGAL_NOTICE", "COMPLAINT", "FIR_DRAFT"]
         is_offensive = draft_type in offensive_drafts
-        has_fatal_defect = case_data.get("fatal_defect") or case_data.get("failure_point_injected")
+        has_fatal_defect = case_data.get("fatal_defect")
         
         if is_offensive and (score < 40 or has_fatal_defect):
             reason = has_fatal_defect if has_fatal_defect else "Survivability score below 40."
