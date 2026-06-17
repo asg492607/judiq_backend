@@ -175,20 +175,18 @@ def normalize_input(data: dict) -> dict:
     dishonour_reason = _safe_str(raw_reason, max_len=100, field_name="dishonour_reason")
 
     # ── Booleans ───────────────────────────────────────────────────────────────
-    cheque_present  = _safe_bool(data.get("cheque_present",  data.get("chequePresent",  data.get("original_cheque", cq_obj.get("cheque_present", False)))))
-    dishonour_memo  = _safe_bool(data.get("dishonour_memo",  data.get("dishonourMemo",  data.get("bank_memo_received", ds_obj.get("bank_memo_received", False)))))
-    notice_sent     = _safe_bool(data.get("notice_sent",     data.get("noticeSent",     nt_obj.get("notice_sent", False))))
+    cheque_present  = _safe_bool(data.get("cheque_present") or data.get("chequePresent") or data.get("original_cheque") or cq_obj.get("cheque_present", False))
+    dishonour_memo  = _safe_bool(data.get("dishonour_memo") or data.get("dishonourMemo") or data.get("bank_memo_received") or ds_obj.get("bank_memo_received", False))
+    notice_sent     = _safe_bool(data.get("notice_sent") or data.get("noticeSent") or nt_obj.get("notice_sent", False))
     
-    raw_debt_proven = data.get("debt_proven") or data.get("debtProven")
-    if raw_debt_proven is None:
-        raw_debt_proven = data.get("debt_acknowledgment") or data.get("supporting_documents") or tx_obj.get("debt_acknowledged") or tx_obj.get("debt_proven", False)
+    raw_debt_proven = data.get("debt_proven") or data.get("debtProven") or data.get("debt_acknowledgment") or data.get("supporting_documents") or tx_obj.get("debt_acknowledged") or tx_obj.get("debt_proven", False)
     debt_proven     = _safe_bool(raw_debt_proven)
 
-    directors_named = _safe_bool(data.get("directors_named", accu_obj.get("directors_named", False)))
-    is_authorized   = _safe_bool(data.get("is_authorized",   data.get("complainant_authorized", comp_obj.get("is_authorized", False))))
-    signature_disp  = _safe_bool(data.get("signature_dispute",     data.get("signatureDispute",     False)))
-    debt_denial     = _safe_bool(data.get("debt_denial",           data.get("debtDenial",           False)))
-    security_claim  = _safe_bool(data.get("cheque_security_claim", data.get("chequeSecurityClaim",  False)))
+    directors_named = _safe_bool(data.get("directors_named") or accu_obj.get("directors_named", False))
+    is_authorized   = _safe_bool(data.get("is_authorized") or data.get("complainant_authorized") or comp_obj.get("is_authorized", False))
+    signature_disp  = _safe_bool(data.get("signature_dispute") or data.get("signatureDispute", False))
+    debt_denial     = _safe_bool(data.get("debt_denial") or data.get("debtDenial", False))
+    security_claim  = _safe_bool(data.get("cheque_security_claim") or data.get("chequeSecurityClaim", False))
 
     # ── Accused type ───────────────────────────────────────────────────────────
     raw_accused_type = (data.get("accused_type") or accu_obj.get("type") or "Individual")
