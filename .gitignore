@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caching and testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Databases
+*.db
+judiq.db
+
+# Uploads & User data
+uploads/
+
+# Log files
+*.log
+
+# Duplicate/versioned downloads or backup copies
+*(*).py
