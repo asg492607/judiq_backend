@@ -64,6 +64,45 @@ def _convert_to_lawyer_language(raw_trace: list) -> list:
                 seen.add(cleaned)
     return clean_trace
 
+def format_fatal_explanation(risk_key_or_msg: str) -> str:
+    msg_lower = str(risk_key_or_msg).lower()
+    
+    # Defaults
+    reason = risk_key_or_msg.replace("_", " ").title()
+    statute = "Negotiable Instruments Act, 1881"
+    precedent = "Relevant Landmark Precedent"
+    
+    if "notice_not_sent" in msg_lower or "notice has not been sent" in msg_lower or "notice_missing" in msg_lower or "notice not sent" in msg_lower:
+        reason = "Mandatory demand notice under Section 138(b) NI Act was not sent or served, which is a strict pre-condition for filing a Section 138 complaint."
+        statute = "Section 138(b) of the Negotiable Instruments Act, 1881"
+        precedent = "C.C. Alavi Haji v. Palapetty Muhammed (2007) 6 SCC 555"
+    elif "premature" in msg_lower or "15-day" in msg_lower:
+        reason = "Complaint was filed prematurely before the expiry of the mandatory 15-day payment/cure period granted to the drawer from the date of notice service."
+        statute = "Section 138(c) read with Section 142(1)(b) of the Negotiable Instruments Act, 1881"
+        precedent = "Yogendra Pratap Singh v. Savitri Pandey (2014) 10 SCC 713"
+    elif "time-barred" in msg_lower or "limitation" in msg_lower or "expired" in msg_lower:
+        reason = "Complaint is barred by limitation as it was filed beyond the 30-day statutory window starting from the day the cause of action arose."
+        statute = "Section 142(1)(b) of the Negotiable Instruments Act, 1881"
+        precedent = "Saketh India Ltd. v. India Securities Ltd. (1999) 3 SCC 1"
+    elif "notice_defect" in msg_lower or "notice defect" in msg_lower or "invalid notice" in msg_lower:
+        reason = "The statutory legal demand notice is defective (e.g. invalid demand amount, incorrect drawer details, or failing to demand the exact cheque amount)."
+        statute = "Section 138(b) of the Negotiable Instruments Act, 1881"
+        precedent = "Suman Sethi v. Ajay K. Churiwal (2000) 2 SCC 380"
+    elif "jurisdiction" in msg_lower or "territorial" in msg_lower:
+        reason = "Wrong territorial jurisdiction. The complaint must be filed strictly before the court within whose jurisdiction the payee's bank branch is located."
+        statute = "Section 142(2) of the Negotiable Instruments Act, 1881"
+        precedent = "Dashrath Rupsingh Rathod v. State of Maharashtra (2014) 9 SCC 129 / Bridgestone India Pvt. Ltd. v. Inderpal Singh (2016) 2 SCC 75"
+    elif "s141" in msg_lower or "director" in msg_lower or "vicarious" in msg_lower:
+        reason = "Vicarious corporate liability pleading defect. Naming directors/officers of a corporate accused under Section 141 requires specific day-to-day active responsibility pleadings."
+        statute = "Section 141 of the Negotiable Instruments Act, 1881"
+        precedent = "Aneeta Hada v. Godfather Travels (2012) 5 SCC 661"
+    elif "authorization" in msg_lower or "board resolution" in msg_lower or "power of attorney" in msg_lower:
+        reason = "Corporate complaint representative authorization defect. A board resolution or authorization letter must explicitly empower the signatory and be dated prior to notice."
+        statute = "Section 142(1)(a) of the Negotiable Instruments Act, 1881"
+        precedent = "A.C. Narayanan v. State of Maharashtra (2014) 11 SCC 790"
+        
+    return f"Fatal Defect: {reason}<br/>Supporting Statute: {statute}<br/>Supporting Precedent: {precedent}"
+
 class ResponseBuilder:
     @staticmethod
     def _prefix_text(text: Any, label: str) -> Any:
@@ -81,46 +120,12 @@ class ResponseBuilder:
         concepts = engine_result.get("concepts", [])
         tldr = engine_result.get("tldr", {})
         
-        # New institutional-grade components
         causality_map = list(engine_result.get("causality_map", []))
         top_penalties = engine_result.get("top_penalties", [])
         strategy_result = engine_result.get("strategy_result", {})
         adversarial_result = engine_result.get("adversarial_result", {})
 
-        verdict = "STRONG CASE"
-        if score <= 25 or engine_result.get("verdict") == "DO NOT FILE":
-            verdict = "DO NOT FILE"
-        elif score < 40: 
-            verdict = "WEAK CASE / HIGH RISK"
-        elif score < 70: 
-            verdict = "MODERATE CASE"
-
-        # Dynamically append adjustments so score breakdown matches final score
-        current_sum = sum(c.get("impact", 0) for c in causality_map)
-        diff = int(score - current_sum)
-        if diff != 0:
-            if verdict == "DO NOT FILE" or score == 0:
-                causality_map.append({
-                    "fact": "Fatal Defect Override",
-                    "impact": diff,
-                    "type": "negative",
-                    "rationale": "Case has fatal procedural/statutory defects."
-                })
-            else:
-                causality_map.append({
-                    "fact": "Judicial Adjustment & Calibration",
-                    "impact": diff,
-                    "type": "negative" if diff < 0 else "positive",
-                    "rationale": "Calibration for territorial jurisdiction and court rules."
-                })
-
-        risk_level = "LOW"
-        if score < 50: risk_level = "CRITICAL"
-        elif score < 75: risk_level = "MEDIUM"
-
         strengths = []
-        weaknesses = []
-
         is_criminal = case_data.get("case_type") == "criminal" or "criminal" in str(case_data.get("description", "")).lower()
         if is_criminal:
             if case_data.get("fir_copy"): strengths.append("Prerequisite: FIR Copy secured")
@@ -133,8 +138,6 @@ class ResponseBuilder:
             if case_data.get("notice_sent"):      strengths.append("Prerequisite: Statutory demand notice served (S.138b)")
             if case_data.get("debt_proven"):      strengths.append("Strength: Legally enforceable debt established via corroborative proof")
 
-        # We will populate structured weaknesses later using ranked_weaknesses
-        
         for c in concepts:
             concept_name = c.get("concept", "")
             conf = c.get("confidence", 0)
@@ -142,7 +145,6 @@ class ResponseBuilder:
             if concept_name in POSITIVE_CONCEPTS and conf >= STRENGTH_THRESHOLD:
                 strengths.append(f"Strategic Asset: {label}")
                 
-        # Extract limitation data safely
         limitation = engine_result.get("limitation") or {}
         if not limitation and case_data.get("notice_date") and case_data.get("dishonour_date"):
             limitation = {"is_premature": False, "notice_delay_days": 0}
@@ -151,102 +153,31 @@ class ResponseBuilder:
         fatal_defect = case_data.get("fatal_defect") or engine_result.get("failure_point")
         if fatal_defect:
              structured_weaknesses.append({
-                 "risk": str(fatal_defect),
+                 "risk": "Fatal Defect",
                  "severity": "FATAL",
-                 "detail": f"This case has a fatal statutory/procedural defect: {fatal_defect}. It is highly recommended not to file or to withdraw."
+                 "detail": format_fatal_explanation(fatal_defect)
              })
 
         if limitation.get("is_premature"):
-            structured_weaknesses.append({"risk": "Premature Complaint", "severity": "FATAL", "detail": "Non-curable defect under NI Act."})
+            structured_weaknesses.append({"risk": "Premature Complaint", "severity": "FATAL", "detail": format_fatal_explanation("premature_complaint")})
         elif limitation.get("notice_delay_days", 0) > 0:
              structured_weaknesses.append({"risk": "Notice Delayed", "severity": "HIGH", "detail": f"Statutory notice delayed by {limitation['notice_delay_days']} days. Application for condonation mandatory."})
         
         if not case_data.get("proof_present", True):
              structured_weaknesses.append({"risk": "Missing Proof", "severity": "HIGH", "detail": "Proof (Cheque/Memo/Notice) is missing."})
 
-        # Inject logical contradictions from adversarial engine directly into weaknesses
         contradictions = engine_result.get("contradictions", [])
         for contra in contradictions:
             penalty = contra.get("penalty", 0)
             severity_mapped = "FATAL" if penalty <= -85 else ("CRITICAL" if penalty <= -50 else "HIGH")
+            detail_text = contra.get("detail", "")
+            if severity_mapped == "FATAL":
+                detail_text = format_fatal_explanation(contra.get("issue", "contradiction"))
             structured_weaknesses.append({
                 "risk": f"[CONTRADICTION] {contra.get('issue', 'Logical Contradiction')}",
                 "severity": severity_mapped,
-                "detail": contra.get("detail", "")
+                "detail": detail_text
             })
-
-        suggestions = []
-        desc_lower = (case_data.get("description") or "").lower()
-
-        if limitation.get("is_premature"):
-             suggestions.append({
-                 "id": "action_withdraw",
-                 "title": "IMMEDIATE ACTION: Withdraw Complaint",
-                 "description": "Withdraw the current complaint with liberty to re-file. Continuing with a premature complaint will lead to final dismissal.",
-                 "severity": "CRITICAL"
-             })
-        
-        if limitation.get("notice_delay_days", 0) > 0:
-             suggestions.append({
-                 "id": "action_condonation",
-                 "title": "FILE: S.142(1)(b) Condonation Application",
-                 "description": "Prepare a formal application showing 'sufficient cause' for the notice delay.",
-                 "severity": "HIGH"
-             })
-
-        if any(x in desc_lower for x in ["whatsapp", "email", "sms"]):
-             suggestions.append({
-                 "id": "action_63_bsa",
-                 "title": "PREPARE: Section 63(4) BSA Certificate",
-                 "description": "You MUST file a certificate under Section 63(4) of the Bharatiya Sakshya Adhiniyam (BSA) to make digital records admissible.",
-                 "severity": "HIGH"
-             })
-
-        if score < 60 and case_data.get("debt_evidence_type") == "Verbal":
-             suggestions.append({
-                 "id": "action_evidence_corroboration",
-                 "title": "COLLECT: Indirect Debt Proof",
-                 "description": "Gather bank statements or witness affidavits to counter 'Financial Capacity' rebuttals.",
-                 "severity": "HIGH"
-             })
-
-        confidence_score = round(sum(c.get("confidence", 0) for c in concepts) / len(concepts), 2) if concepts else None
-        
-        is_cynical = score < 65 or any("CYNICAL" in str(t) for t in trace)
-        improvement_metrics = [
-            {"area": "Procedural", "current": "Delayed" if "limitation_issue" in [c['concept'] for c in concepts] else "Compliant", "targeted": "S.142(1)(b) Filed"},
-            {"area": "Evidence", "current": "Risk (Digital)" if "whatsapp" in desc_lower else "Standard", "targeted": "S.63(4) BSA Compliant"},
-            {"area": "Recovery", "current": "Standard Trial", "targeted": "S.143A Relief (20%)"}
-        ]
-
-        cheque_amount = float(case_data.get("amount") or 0)
-        penalty_forecast = {
-            "min_fine": f"₹{cheque_amount * 1.2:,.0f}",
-            "max_fine": f"₹{cheque_amount * 2.0:,.0f} (Statutory Max)",
-            "imprisonment_risk": "HIGH" if score > 75 else "MEDIUM",
-            "realistic_outcome": f"Fine of ₹{cheque_amount * 1.5:,.0f} + 6 months simple imprisonment."
-        }
-
-        audit = {
-            "mode": "Cynical Advocate" if is_cynical else "Standard Analysis",
-            "risk_status": "HIGHLY VULNERABLE" if score < 50 else ("MODERATE RISK" if score < 75 else "FILING READY"),
-            "critical_vulnerability": weaknesses[0] if weaknesses else "None Detected",
-            "strategic_recommendation": suggestions[0]['title'] if suggestions else "Proceed with Caution",
-            "improvement_metrics": improvement_metrics,
-            "penalty_forecast": penalty_forecast
-        }
-
-        lawyer_reasoning = _convert_to_lawyer_language(trace)
-
-        concepts_for_response = [
-            {
-                "concept": c.get("concept", ""),
-                "confidence": c.get("confidence", 0),
-                "legal_impact": c.get("legal_impact", ""),
-                "matched_phrases": c.get("matched_phrases", [])
-            }
-            for c in concepts
-        ]
 
         NEGATIVE_RISK_ORDER = [
             "limitation_issue", "notice_defect", "notice_not_sent",
@@ -294,60 +225,98 @@ class ResponseBuilder:
                     else:
                         severity = base_sev
 
+                    detail = c.get("legal_impact", "") or "No specific impact detailed."
+                    if severity == "FATAL":
+                        detail = format_fatal_explanation(priority_concept)
+
                     ranked_weaknesses.append({
                         "risk": priority_concept.replace("_", " ").title(),
                         "severity": severity,
                         "confidence": conf,
-                        "detail": c.get("legal_impact", "") or "No specific impact detailed."
+                        "detail": detail
                     })
                     seen_weak.add(priority_concept)
 
         structured_weaknesses.extend(ranked_weaknesses)
-        
-        # Sort structured_weaknesses by severity (FATAL > CRITICAL > HIGH > MEDIUM)
         severity_order = {"FATAL": 4, "CRITICAL": 3, "HIGH": 2, "MEDIUM": 1}
         structured_weaknesses.sort(key=lambda x: severity_order.get(x["severity"], 0), reverse=True)
         
         top_3_risks = structured_weaknesses[:3]
         has_fatal = any(r["severity"] == "FATAL" for r in top_3_risks)
-        has_high_risk = any(r["severity"] == "HIGH" for r in top_3_risks)
 
-        is_criminal = case_data.get("case_type") == "criminal" or "criminal" in str(case_data.get("description", "")).lower()
+        verdict = "STRONG CASE"
+        if has_fatal or score <= 25 or engine_result.get("verdict") == "DO NOT FILE":
+            score = min(score, 25.0)
+            verdict = "DO NOT FILE"
+            risk_level = "CRITICAL"
+        else:
+            if score < 40: verdict = "WEAK CASE / HIGH RISK"
+            elif score < 70: verdict = "MODERATE CASE"
+            risk_level = "CRITICAL" if score < 50 else ("MEDIUM" if score < 75 else "LOW")
+
+        current_sum = sum(c.get("impact", 0) for c in causality_map)
+        diff = int(score - current_sum)
+        if diff != 0:
+            if verdict == "DO NOT FILE" or score <= 25:
+                causality_map.append({"fact": "Fatal Defect Override", "impact": diff, "type": "negative", "rationale": "Case has fatal procedural/statutory defects."})
+            else:
+                causality_map.append({"fact": "Judicial Adjustment & Calibration", "impact": diff, "type": "negative" if diff < 0 else "positive", "rationale": "Calibration for territorial jurisdiction and court rules."})
+
+        suggestions = []
+        desc_lower = (case_data.get("description") or "").lower()
+        if limitation.get("is_premature"):
+             suggestions.append({"id": "action_withdraw", "title": "IMMEDIATE ACTION: Withdraw Complaint", "description": "Withdraw the current complaint with liberty to re-file. Continuing with a premature complaint will lead to final dismissal.", "severity": "CRITICAL"})
+        if limitation.get("notice_delay_days", 0) > 0:
+             suggestions.append({"id": "action_condonation", "title": "FILE: S.142(1)(b) Condonation Application", "description": "Prepare a formal application showing 'sufficient cause' for the notice delay.", "severity": "HIGH"})
+        if any(x in desc_lower for x in ["whatsapp", "email", "sms"]):
+             suggestions.append({"id": "action_63_bsa", "title": "PREPARE: Section 63(4) BSA Certificate", "description": "You MUST file a certificate under Section 63(4) of the Bharatiya Sakshya Adhiniyam (BSA) to make digital records admissible.", "severity": "HIGH"})
+        if score < 60 and case_data.get("debt_evidence_type") == "Verbal":
+             suggestions.append({"id": "action_evidence_corroboration", "title": "COLLECT: Indirect Debt Proof", "description": "Gather bank statements or witness affidavits to counter 'Financial Capacity' rebuttals.", "severity": "HIGH"})
+
+        confidence_score = round(sum(c.get("confidence", 0) for c in concepts) / len(concepts), 2) if concepts else None
+        is_cynical = score < 65 or any("CYNICAL" in str(t) for t in trace)
+        improvement_metrics = [
+            {"area": "Procedural", "current": "Delayed" if "limitation_issue" in [c['concept'] for c in concepts] else "Compliant", "targeted": "S.142(1)(b) Filed"},
+            {"area": "Evidence", "current": "Risk (Digital)" if "whatsapp" in desc_lower else "Standard", "targeted": "S.63(4) BSA Compliant"},
+            {"area": "Recovery", "current": "Standard Trial", "targeted": "S.143A Relief (20%)"}
+        ]
+        cheque_amount = float(case_data.get("amount") or 0)
+        penalty_forecast = {
+            "min_fine": f"₹{cheque_amount * 1.2:,.0f}",
+            "max_fine": f"₹{cheque_amount * 2.0:,.0f} (Statutory Max)",
+            "imprisonment_risk": "HIGH" if score > 75 else "MEDIUM",
+            "realistic_outcome": f"Fine of ₹{cheque_amount * 1.5:,.0f} + 6 months simple imprisonment."
+        }
+        audit = {
+            "mode": "Cynical Advocate" if is_cynical else "Standard Analysis",
+            "risk_status": "HIGHLY VULNERABLE" if score < 50 else ("MODERATE RISK" if score < 75 else "FILING READY"),
+            "critical_vulnerability": structured_weaknesses[0] if structured_weaknesses else "None Detected",
+            "strategic_recommendation": suggestions[0]['title'] if suggestions else "Proceed with Caution",
+            "improvement_metrics": improvement_metrics,
+            "penalty_forecast": penalty_forecast
+        }
+        lawyer_reasoning = _convert_to_lawyer_language(trace)
+        concepts_for_response = [{"concept": c.get("concept", ""), "confidence": c.get("confidence", 0), "legal_impact": c.get("legal_impact", ""), "matched_phrases": c.get("matched_phrases", [])} for c in concepts]
+        
         if is_criminal and not case_data.get("police_complaint_filed"):
-            recommended_action = "FILE_COMPLAINT"
-            decision_label = "Initiate Formal Complaint"
-            decision_detail = "Formal complaint/FIR has not been registered. Required to set criminal law in motion."
+            recommended_action, decision_label, decision_detail = "FILE_COMPLAINT", "Initiate Formal Complaint", "Formal complaint/FIR has not been registered."
             next_steps = ["Draft Police Complaint", "Submit to jurisdictional police station"]
         elif not is_criminal and not case_data.get("notice_sent"):
-            recommended_action = "SEND_NOTICE"
-            decision_label = "Send Legal Notice First"
-            decision_detail = "Statutory demand notice (S.138b) has not been sent. Mandatory pre-condition."
+            recommended_action, decision_label, decision_detail = "SEND_NOTICE", "Send Legal Notice First", "Statutory demand notice (S.138b) has not been sent."
             next_steps = ["Draft and dispatch notice via RPAD", "Wait 15 days before filing"]
-        elif has_fatal:
-            recommended_action = "CONSIDER_SETTLEMENT"
-            decision_label = "Address Fatal Defects / Consider Settlement"
-            decision_detail = "This case has fatal statutory/procedural defects that make the filing legally untenable."
+        elif has_fatal or verdict == "DO NOT FILE":
+            recommended_action, decision_label, decision_detail = "CONSIDER_SETTLEMENT", "Address Fatal Defects / Consider Settlement", "This case has fatal statutory/procedural defects."
             next_steps = ["Review notice/limitation timelines", "Consider strategic settlement or civil recovery suit"]
         elif score > 75:
-            recommended_action = "FILE_COMPLAINT"
-            decision_label = "Proceed Aggressively"
-            decision_detail = f"Strong case ({score}/100). High statutory compliance makes success highly probable."
+            recommended_action, decision_label, decision_detail = "FILE_COMPLAINT", "Proceed Aggressively", f"Strong case ({score}/100)."
             next_steps = ["File Criminal Complaint", "Verify originals", "Prepare for summons stage"]
         elif score >= 50:
-            recommended_action = "FIX_THEN_FILE"
-            decision_label = "Proceed with Caution"
-            decision_detail = f"Moderate case ({score}/100). Foundational elements present, but review addressable risks."
+            recommended_action, decision_label, decision_detail = "FIX_THEN_FILE", "Proceed with Caution", f"Moderate case ({score}/100)."
             next_steps = [f"Fix: {top_3_risks[0]['risk'] if top_3_risks else 'defects'}", "Ensure all evidentiary documents are prepared"]
         else:
-            recommended_action = "CONSIDER_SETTLEMENT"
-            decision_label = "Consider Strategic Settlement"
-            decision_detail = f"Case has significant vulnerabilities ({score}/100). Settlement under S.147 NI Act recommended."
+            recommended_action, decision_label, decision_detail = "CONSIDER_SETTLEMENT", "Consider Strategic Settlement", f"Case has significant vulnerabilities ({score}/100)."
             next_steps = ["Draft settlement proposal", "Evaluate time-value of money"]
 
-        counter_strategies = {
-            "Security Cheque": "Rebut via 'Sampelly Satyanarayana Rao'. Prove crystallized debt.",
-            "Signature Dispute": "Apply for handwriting expert comparison. Rely on 'Bir Singh'.",
-            "No Debt Proof": "Invoke S.139 Presumption. Shift burden via 'Rangappa v. Mohan'.",
             "Notice Defect": "If window closed, consider civil recovery suit."
         }
         
