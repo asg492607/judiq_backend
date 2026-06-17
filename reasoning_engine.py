@@ -111,16 +111,16 @@ class ReasoningEngine:
             # Pull structured precedents from statutes.json
             statute_precedents = kb_manager.get_precedents_for_concept(concept_name)
             for p in statute_precedents:
-                citation = p.get("citation", "")
+                citation = p.get("citation") or (f"{p.get('case_name')} ({p.get('year')})" if p.get('year') else p.get('case_name', ''))
                 if citation not in seen_citations:
                     seen_citations.add(citation)
                     safe_citation = citation.replace('/', '_').replace(' ', '_')
                     matched.append({
                         "concept":      concept_name,
-                        "case":         p.get("case", ""),
+                        "case":         p.get("case") or p.get("case_name") or "",
                         "citation":     citation,
                         "court":        p.get("court", "Supreme Court of India"),
-                        "principle":    p.get("principle", ""),
+                        "principle":    p.get("principle") or p.get("summary") or "",
                         "relevance":    round(min(p.get("relevance_score", confidence), 1.0), 2),
                         "is_live":      False,
                         "document_url": f"/api/precedents/document/{safe_citation}"

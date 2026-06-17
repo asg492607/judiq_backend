@@ -15,7 +15,7 @@ class PDFGenerator:
             from reportlab.lib.pagesizes import letter
             from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
             from reportlab.lib.units import inch
-            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, KeepTogether
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, KeepTogether, Preformatted
             from reportlab.lib import colors
             from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
             
@@ -161,7 +161,14 @@ class PDFGenerator:
                 elements.append(Spacer(1, 0.1*inch))
                 
                 for weakness in weaknesses:
-                    weakness_text = weakness if isinstance(weakness, str) else str(weakness)
+                    if isinstance(weakness, dict):
+                        risk = weakness.get('risk') or weakness.get('title') or weakness.get('text') or 'Unknown Risk'
+                        severity = weakness.get('severity') or 'Unknown'
+                        detail = weakness.get('detail') or weakness.get('description') or ''
+                        color = "#ef4444" if severity == "FATAL" else ("#f59e0b" if severity in ["CRITICAL", "HIGH"] else "#9ca3af")
+                        weakness_text = f"<b>{risk}</b> [<font color='{color}'><b>{severity}</b></font>]: {detail}"
+                    else:
+                        weakness_text = str(weakness)
                     elements.append(Paragraph(f"⚠ {weakness_text}", body_style))
                     elements.append(Spacer(1, 0.05*inch))
                 
@@ -296,11 +303,35 @@ class PDFGenerator:
                 elements.append(Spacer(1, 0.1*inch))
                 
                 for p in precedents[:10]: # Top 10
-                    elements.append(Paragraph(f"<b>{p.get('case', '')}</b>", subheading_style))
-                    elements.append(Paragraph(f"<i>Citation: {p.get('citation', '')}</i>", body_style))
-                    elements.append(Paragraph(f"Principle: {p.get('principle', '')}", body_style))
+                    case_name = p.get('case') or p.get('case_name') or 'Landmark Case'
+                    citation = p.get('citation') or (f"{p.get('case_name')} ({p.get('year')})" if p.get('year') else '')
+                    principle = p.get('principle') or p.get('summary') or ''
+                    elements.append(Paragraph(f"<b>{case_name}</b>", subheading_style))
+                    elements.append(Paragraph(f"<i>Citation: {citation}</i>", body_style))
+                    elements.append(Paragraph(f"Principle: {principle}", body_style))
                     elements.append(Spacer(1, 0.1*inch))
                 
+                elements.append(Spacer(1, 0.2*inch))
+
+            # ===== DRAFTED DOCUMENT (NEW) =====
+            draft_text = analysis_result.get('draft') or analysis_result.get('draft_raw') or ''
+            if draft_text:
+                import re
+                draft_clean = re.sub(r'^\[(?:Rule-Based|AI Enhanced)\]\s*[\r\n]*', '', draft_text)
+                
+                elements.append(PageBreak())
+                elements.append(Paragraph("Drafted Legal Document", heading_style))
+                elements.append(Spacer(1, 0.15*inch))
+                
+                draft_style = ParagraphStyle(
+                    'DraftText',
+                    parent=styles['Normal'],
+                    fontName='Courier',
+                    fontSize=8.5,
+                    leading=11.5,
+                    textColor=colors.HexColor('#1e293b')
+                )
+                elements.append(Preformatted(draft_clean, draft_style))
                 elements.append(Spacer(1, 0.2*inch))
 
             # ===== FOOTER =====

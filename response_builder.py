@@ -254,13 +254,46 @@ class ResponseBuilder:
             "no_agreement", "cheque_misuse", "payment_already_made",
             "cheque_validity_issue", "dishonour_disputed"
         ]
+        
+        CONCEPT_BASE_SEVERITY = {
+            "notice_not_sent": "FATAL",
+            "limitation_issue": "FATAL",
+            "notice_defect": "FATAL",
+            "timeline_violation": "FATAL",
+            "s141_defect": "FATAL",
+            
+            "unaccounted_cash_loans": "CRITICAL",
+            "cheque_validity_issue": "CRITICAL",
+            "payment_already_made": "CRITICAL",
+            
+            "security_cheque": "HIGH",
+            "signature_dispute": "HIGH",
+            "no_debt_proof": "HIGH",
+            "cheque_misuse": "HIGH",
+            "dishonour_disputed": "HIGH",
+            
+            "no_agreement": "MEDIUM",
+            "witness_not_available": "MEDIUM",
+            "financial_capacity_risk": "HIGH",
+            "litigation_risk": "MEDIUM"
+        }
+
         ranked_weaknesses = []
         seen_weak = set()
         for priority_concept in NEGATIVE_RISK_ORDER:
             for c in concepts:
                 if c.get("concept") == priority_concept and c.get("confidence", 0) >= WEAKNESS_THRESHOLD and priority_concept not in seen_weak:
                     conf = c.get("confidence", 0)
-                    severity = "FATAL" if conf >= 0.8 else ("CRITICAL" if conf >= 0.65 else ("HIGH" if conf >= 0.45 else "MEDIUM"))
+                    base_sev = CONCEPT_BASE_SEVERITY.get(priority_concept, "MEDIUM")
+                    if conf < 0.4:
+                        severity = "MEDIUM"
+                    elif conf < 0.6:
+                        severity = "HIGH" if base_sev in ["FATAL", "CRITICAL", "HIGH"] else "MEDIUM"
+                    elif conf < 0.8:
+                        severity = "CRITICAL" if base_sev == "FATAL" else ("HIGH" if base_sev == "CRITICAL" else base_sev)
+                    else:
+                        severity = base_sev
+
                     ranked_weaknesses.append({
                         "risk": priority_concept.replace("_", " ").title(),
                         "severity": severity,
@@ -276,7 +309,7 @@ class ResponseBuilder:
         structured_weaknesses.sort(key=lambda x: severity_order.get(x["severity"], 0), reverse=True)
         
         top_3_risks = structured_weaknesses[:3]
-        has_fatal = any(r["severity"] in ["FATAL", "CRITICAL"] for r in top_3_risks)
+        has_fatal = any(r["severity"] == "FATAL" for r in top_3_risks)
         has_high_risk = any(r["severity"] == "HIGH" for r in top_3_risks)
 
         is_criminal = case_data.get("case_type") == "criminal" or "criminal" in str(case_data.get("description", "")).lower()
@@ -290,20 +323,25 @@ class ResponseBuilder:
             decision_label = "Send Legal Notice First"
             decision_detail = "Statutory demand notice (S.138b) has not been sent. Mandatory pre-condition."
             next_steps = ["Draft and dispatch notice via RPAD", "Wait 15 days before filing"]
-        elif score > 75 and not has_fatal:
+        elif has_fatal:
+            recommended_action = "CONSIDER_SETTLEMENT"
+            decision_label = "Address Fatal Defects / Consider Settlement"
+            decision_detail = "This case has fatal statutory/procedural defects that make the filing legally untenable."
+            next_steps = ["Review notice/limitation timelines", "Consider strategic settlement or civil recovery suit"]
+        elif score > 75:
             recommended_action = "FILE_COMPLAINT"
-            decision_label = "File Criminal Complaint"
-            decision_detail = f"Strong case ({score}/100). All prerequisites satisfied."
-            next_steps = ["Verify originals", "File within limitation", "Engage advocate"]
-        elif score >= 50 and not has_fatal:
+            decision_label = "Proceed Aggressively"
+            decision_detail = f"Strong case ({score}/100). High statutory compliance makes success highly probable."
+            next_steps = ["File Criminal Complaint", "Verify originals", "Prepare for summons stage"]
+        elif score >= 50:
             recommended_action = "FIX_THEN_FILE"
-            decision_label = "Address Defects Before Filing"
-            decision_detail = f"Moderate case ({score}/100). Foundational elements present but risks identified."
-            next_steps = [f"Fix: {top_3_risks[0]['risk'] if top_3_risks else 'defects'}", "Obtain corroborating documents"]
+            decision_label = "Proceed with Caution"
+            decision_detail = f"Moderate case ({score}/100). Foundational elements present, but review addressable risks."
+            next_steps = [f"Fix: {top_3_risks[0]['risk'] if top_3_risks else 'defects'}", "Ensure all evidentiary documents are prepared"]
         else:
             recommended_action = "CONSIDER_SETTLEMENT"
             decision_label = "Consider Strategic Settlement"
-            decision_detail = f"Case has significant vulnerabilities. Settlement under S.147 NI Act recommended."
+            decision_detail = f"Case has significant vulnerabilities ({score}/100). Settlement under S.147 NI Act recommended."
             next_steps = ["Draft settlement proposal", "Evaluate time-value of money"]
 
         counter_strategies = {
