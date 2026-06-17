@@ -108,7 +108,8 @@ def scan_fatal_defects(case_data, contradictions, adversarial_result, limitation
         
         
     # 6. Territorial Jurisdiction (S.142(2) NI Act)
-    if jurisdiction_info and (jurisdiction_info.get("status") == "INVALID" or jurisdiction_info.get("confidence") == "NONE"):
+    is_cheque_bounce = str(case_data.get("case_type", "")).lower() in ("cheque bounce", "cheque_bounce")
+    if is_cheque_bounce and jurisdiction_info and jurisdiction_info.get("status") == "INVALID":
         return True, jurisdiction_info.get("reason") or "Wrong territorial jurisdiction. Court cannot take cognizance under Dashrath Rupsingh Rathod / S.142(2)."
         
     return False, ""

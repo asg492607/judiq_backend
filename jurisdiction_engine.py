@@ -204,7 +204,7 @@ def _extract_city(address: str) -> Optional[str]:
 
 def apply_jurisdiction_guards(jurisdiction_info: Dict, concepts: list, final_score: float) -> float:
     """Applies S.142(2) territorial jurisdiction fatal defect checks."""
-    if jurisdiction_info.get("status") == "INVALID" or jurisdiction_info.get("confidence") == "NONE":
+    if jurisdiction_info.get("status") == "INVALID":
         # Jurisdiction is territorial and critical under S.142(2) NI Act. Applying severe penalty.
         judicially_adjusted_score = max(0, final_score - 35)
         if "jurisdictional_defect" not in {c.get("concept") for c in concepts}:
