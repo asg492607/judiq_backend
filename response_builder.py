@@ -245,6 +245,7 @@ class ResponseBuilder:
         has_fatal = any(r["severity"] == "FATAL" for r in top_3_risks)
 
         verdict = "STRONG CASE"
+        risk_level = "LOW"  # Safe default — overwritten below in all branches
         if has_fatal or score <= 25 or engine_result.get("verdict") == "DO NOT FILE":
             score = min(score, 25.0)
             verdict = "DO NOT FILE"
@@ -317,11 +318,22 @@ class ResponseBuilder:
             recommended_action, decision_label, decision_detail = "CONSIDER_SETTLEMENT", "Consider Strategic Settlement", f"Case has significant vulnerabilities ({score}/100)."
             next_steps = ["Draft settlement proposal", "Evaluate time-value of money"]
 
-            "Notice Defect": "If window closed, consider civil recovery suit."
+        # Counter-strategies mapped to top risks for UI display
+        counter_strategies = {
+            "Fatal Defect": "Withdraw and re-file after curing the defect, or consider civil recovery.",
+            "Notice Not Sent": "Send registered notice immediately. Do not file before 15 days expire.",
+            "Notice Defect": "If window closed, consider civil recovery suit.",
+            "Limitation Issue": "File S.142(1)(b) Condonation application with 'sufficient cause' affidavit.",
+            "Premature Complaint": "Withdraw immediately. Re-file after 15-day cure period.",
+            "No Debt Proof": "Gather bank statements, ITR, ledger entries, or witness affidavits.",
+            "Security Cheque": "Counter with Sripati Singh precedent; establish debt via correspondence.",
+            "Signature Dispute": "Obtain handwriting expert affidavit; file S.45 application.",
+            "Missing Proof": "Secure originals of cheque, memo, and notice before proceeding.",
+            "Unaccounted Cash Loans": "Produce 3-year ITR and CA certificate showing financial capacity.",
         }
-        
+
         for risk_obj in top_3_risks:
-            risk_name = risk_obj["risk"]
+            risk_name = risk_obj.get("risk", "")
             risk_obj["counter_strategy"] = counter_strategies.get(risk_name, "Strengthen documentary evidence.")
 
         decision = {
