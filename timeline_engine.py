@@ -11,7 +11,7 @@ from utils import parse_date, days_between
 COURT_HOLIDAYS = [
     "2026-01-26", # Republic Day
     "2026-08-15", # Independence Day
-    "2026-10-02"  # Gandhi Jacob
+    "2026-10-02"  # Gandhi Jayanti
 ]
 
 class TimelineEngine:
@@ -81,7 +81,8 @@ class TimelineEngine:
             
         if presentation_date:
             days_from_cheque = days_between(cheque_date, presentation_date)
-            status = "success" if days_from_cheque is not None and 0 <= days_from_cheque <= 90 else "error"
+            # RBI notification RBI/2011-12/251 mandates 3 months (approx 90-92 days)
+            status = "success" if days_from_cheque is not None and 0 <= days_from_cheque <= 92 else "error"
             steps.append({"milestone": "Cheque Presented", "date": presentation_date, "status": status, "details": f"Presented to bank. Validity: {days_from_cheque} days."})
             
         if dishonour_date:
@@ -153,7 +154,7 @@ class TimelineEngine:
                     "days_remaining": 0,
                     "status": "NOTICE_INVALID",
                     "message": service_resolution["message"],
-                    "fatal_defect": service_resolution["fatal_defect"],
+                    "fatal_defect": service_resolution.get("fatal_defect", "Notice service failed"),
                 }
             service_dt = service_resolution["service_dt"]
             earliest_filing_date = service_dt + timedelta(days=16)

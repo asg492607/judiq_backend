@@ -48,6 +48,56 @@ from schemas import EngineResponse
     description="Processes raw case facts through the Timeline, Scoring, and Adversarial engines to generate a comprehensive litigation strategy."
 )
 @limiter.limit("5/minute")
+# pyrefly: ignore [missing-import]
+import logging
+import sqlite3
+from datetime import datetime
+from fastapi import APIRouter, Request, Response, Depends
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Any
+
+from config import settings
+from engine_core import JudiQEngine
+from normalizer import normalize_input, validate_minimum_viability, ValidationError
+from session import DatabaseManager
+from security import AuditLogger, SecurityTelemetry
+from caseroom_logic import CaseroomManager
+from limiter import limiter
+
+router = APIRouter()
+logger = logging.getLogger("JudiQ.Analysis")
+
+class CaseAnalysisRequest(BaseModel):
+    description: Optional[str] = Field(None, max_length=10000)
+    amount: Optional[Any] = 0
+    cheque_present: Optional[Any] = False
+    dishonour_memo: Optional[Any] = False
+    notice_sent: Optional[Any] = False
+    debt_proven: Optional[Any] = False
+    accused_type: Optional[str] = "Individual"
+    analysis_mode: Optional[str] = "detailed"
+    
+    class Config:
+        extra = "allow"
+
+ANALYSIS_CACHE = {}
+
+def get_cache_key(data: dict):
+    import json
+    import hashlib
+    dump = json.dumps(data, sort_keys=True).encode('utf-8')
+    return hashlib.md5(dump).hexdigest()
+
+from schemas import EngineResponse
+
+@router.post(
+    "", 
+    response_model=EngineResponse,
+    summary="Analyze Legal Case",
+    description="Processes raw case facts through the Timeline, Scoring, and Adversarial engines to generate a comprehensive litigation strategy."
+)
+@limiter.limit("5/minute")
 async def analyze(request_data: CaseAnalysisRequest, request: Request):
     request_id = datetime.now().strftime("%Y%m%d%H%M%S%f")
     raw_data = request_data.model_dump()
@@ -78,24 +128,27 @@ async def analyze(request_data: CaseAnalysisRequest, request: Request):
     try:
         validate_minimum_viability(raw_data)
     except ValidationError as ve:
-        logger.warning(f"[{request_id}] Validation failed: {ve.message}")
+        error_msg = getattr(ve, 'message', str(ve))
+        field = getattr(ve, 'field', 'unknown')
+        logger.warning(f"[{request_id}] Validation failed: {error_msg}")
         return JSONResponse(status_code=422, content={
             "success": False,
-            "error": ve.message,
+            "error": error_msg,
             "error_code": "VALIDATION_ERROR",
-            "field": ve.field,
-            "user_message": ve.message
+            "field": field,
+            "user_message": error_msg
         })
 
     # 5. Engine execution
     try:
         result = JudiQEngine.analyze_case(raw_data)
     except ValidationError as ve:
+        error_msg = getattr(ve, 'message', str(ve))
         return JSONResponse(status_code=422, content={
             "success": False,
-            "error": ve.message,
+            "error": error_msg,
             "error_code": "VALIDATION_ERROR",
-            "user_message": ve.message
+            "user_message": error_msg
         })
     except RuntimeError as e:
         logger.error(f"[{request_id}] Engine error: {e}", exc_info=True)
@@ -125,6 +178,13 @@ async def analyze(request_data: CaseAnalysisRequest, request: Request):
         case_data = result.get("case_data", {})
         uid = case_data.get("user_id", "ANONYMOUS")
         cid = case_data.get("case_id", "")
+        
+        # Always cache the result regardless of user authentication
+        if len(ANALYSIS_CACHE) >= 100:
+            oldest_key = next(iter(ANALYSIS_CACHE))
+            del ANALYSIS_CACHE[oldest_key]
+        ANALYSIS_CACHE[cache_key] = result
+        
         if uid and cid and uid != "ANONYMOUS":
             DatabaseManager.save_case(
                 cid, 
@@ -135,6 +195,7 @@ async def analyze(request_data: CaseAnalysisRequest, request: Request):
                 result.get("verdict", "Unknown")
             )
             AuditLogger.log_interaction(user_id, cid, "FINISH_ANALYSIS", {"score": result.get("score")})
+            
             # Auto-initialize Caseroom
             existing_room_id = DatabaseManager.get_caseroom_by_case_id(cid)
             if not existing_room_id:

@@ -16,7 +16,7 @@ class DatabaseManager:
         Factory method to handle database connections.
         Supports SQLite (local) and PostgreSQL (production).
         """
-        if DATABASE_URL and DATABASE_URL.startswith("postgres"):
+        if DATABASE_URL and "postgres" in DATABASE_URL:
             try:
                 import psycopg2
                 conn = psycopg2.connect(DATABASE_URL)
@@ -446,3 +446,5 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Failed to fetch draft history: {e}")
             return []
+
+
