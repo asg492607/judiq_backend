@@ -9,6 +9,7 @@ DB_PATH = "analytics.db"
 DATABASE_URL = os.environ.get("DATABASE_URL") # Production Postgres Hook
 
 class DatabaseManager:
+    _active_dialect = "sqlite"
     @staticmethod
     def get_connection():
         """
@@ -19,6 +20,7 @@ class DatabaseManager:
             try:
                 import psycopg2
                 conn = psycopg2.connect(DATABASE_URL)
+                DatabaseManager._active_dialect = "postgres"
                 logger.info("📡 Production Database (Postgres) Connected.")
                 return conn
             except ImportError:
@@ -26,12 +28,13 @@ class DatabaseManager:
             except Exception as e:
                 logger.error(f"❌ Postgres connection failed: {e}. Falling back to SQLite.")
         
+        DatabaseManager._active_dialect = "sqlite"
         return sqlite3.connect(DB_PATH)
 
     @staticmethod
     def get_dialect_placeholder():
         """Returns the correct parameter placeholder for the current DB."""
-        if DATABASE_URL and DATABASE_URL.startswith("postgres"):
+        if DatabaseManager._active_dialect == "postgres":
             return "%s"
         return "?"
 
@@ -42,7 +45,7 @@ class DatabaseManager:
             cursor = conn.cursor()
             
             # --- Dialect-specific adaptations ---
-            serial_primary = "SERIAL PRIMARY KEY" if DATABASE_URL else "INTEGER PRIMARY KEY AUTOINCREMENT"
+            serial_primary = "SERIAL PRIMARY KEY" if DatabaseManager._active_dialect == "postgres" else "INTEGER PRIMARY KEY AUTOINCREMENT"
             
             # Saved Cases
             cursor.execute(f"""
@@ -179,9 +182,13 @@ class DatabaseManager:
                 """
             else: # SQLite
                 query = f"""
-                    INSERT OR REPLACE INTO saved_cases 
+                    INSERT INTO saved_cases
                     (case_id, user_id, case_data, analysis_result, score, verdict, created_at, updated_at, tags)
                     VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+                    ON CONFLICT(case_id) DO UPDATE SET
+                    user_id = excluded.user_id, case_data = excluded.case_data,
+                    analysis_result = excluded.analysis_result, score = excluded.score,
+                    verdict = excluded.verdict, updated_at = excluded.updated_at, tags = excluded.tags
                 """
                 
             cursor.execute(query, (
@@ -304,7 +311,9 @@ class DatabaseManager:
             # Fetch basic info
             cursor.execute(f"SELECT * FROM caserooms WHERE caseroom_id = {p}", (caseroom_id,))
             room = cursor.fetchone()
-            if not room: return None
+            if not room:
+                conn.close()
+                return None
             
             # Fetch participants
             cursor.execute(f"SELECT user_id, role FROM caseroom_participants WHERE caseroom_id = {p}", (caseroom_id,))
@@ -326,8 +335,8 @@ class DatabaseManager:
                 if r[6]:
                     try:
                         ext_data = json.loads(r[6])
-                    except:
-                        pass
+                    except (json.JSONDecodeError, TypeError) as e:
+                        logger.warning(f"Invalid extracted_data JSON for document {r[0]}: {e}")
                 documents.append({"id": r[0], "uploader_id": r[1], "file_name": r[2], "file_path": r[3], "doc_type": r[4], "validation_status": r[5], "extracted_data": ext_data, "created_at": r[7]})
             
             conn.close()

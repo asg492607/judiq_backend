@@ -281,7 +281,10 @@ class ResponseBuilder:
             {"area": "Evidence", "current": "Risk (Digital)" if "whatsapp" in desc_lower else "Standard", "targeted": "S.63(4) BSA Compliant"},
             {"area": "Recovery", "current": "Standard Trial", "targeted": "S.143A Relief (20%)"}
         ]
-        cheque_amount = float(case_data.get("amount") or 0)
+        try:
+            cheque_amount = float(case_data.get("amount") or case_data.get("cheque_amount") or 0)
+        except (TypeError, ValueError):
+            cheque_amount = 0.0
         penalty_forecast = {
             "min_fine": f"₹{cheque_amount * 1.2:,.0f}",
             "max_fine": f"₹{cheque_amount * 2.0:,.0f} (Statutory Max)",

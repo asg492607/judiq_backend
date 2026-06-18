@@ -81,7 +81,7 @@ class TimelineEngine:
             
         if presentation_date:
             days_from_cheque = days_between(cheque_date, presentation_date)
-            status = "success" if days_from_cheque and days_from_cheque <= 90 else "error"
+            status = "success" if days_from_cheque is not None and 0 <= days_from_cheque <= 90 else "error"
             steps.append({"milestone": "Cheque Presented", "date": presentation_date, "status": status, "details": f"Presented to bank. Validity: {days_from_cheque} days."})
             
         if dishonour_date:
@@ -89,7 +89,7 @@ class TimelineEngine:
             
         if notice_date:
             days_from_dishonour = days_between(dishonour_date, notice_date)
-            status = "success" if days_from_dishonour and days_from_dishonour <= 30 else "error"
+            status = "success" if days_from_dishonour is not None and 0 <= days_from_dishonour <= 30 else "error"
             steps.append({"milestone": "Notice Dispatched", "date": notice_date, "status": status, "details": f"Statutory notice sent within {days_from_dishonour} days."})
             
         if filing_date:
@@ -127,7 +127,15 @@ class TimelineEngine:
         
         # Calculate notice timing
         notice_gap = days_between(dishonour_date, notice_date)
-        if notice_gap and notice_gap > 30:
+        if notice_gap is not None and notice_gap < 0:
+            return {
+                "is_barred": True,
+                "days_remaining": 0,
+                "status": "INVALID_CHRONOLOGY",
+                "message": "Notice date cannot be before the dishonour date.",
+                "fatal_defect": "Notice predates cheque dishonour."
+            }
+        if notice_gap is not None and notice_gap > 30:
             return {
                 "is_barred": True,
                 "days_remaining": 0,
@@ -148,13 +156,23 @@ class TimelineEngine:
                     "fatal_defect": service_resolution["fatal_defect"],
                 }
             service_dt = service_resolution["service_dt"]
-            cause_of_action = service_dt + timedelta(days=15)
-            limitation_date = TimelineEngine.adjust_for_holidays(cause_of_action + timedelta(days=30))
-            today = datetime.now()
+            earliest_filing_date = service_dt + timedelta(days=16)
+            limitation_date = TimelineEngine.adjust_for_holidays(earliest_filing_date + timedelta(days=29))
+            today = datetime.now().date()
             
             if filing_date:
                 filing_dt = parse_date(filing_date)
                 if filing_dt:
+                    if filing_dt < earliest_filing_date:
+                        return {
+                            "is_barred": False,
+                            "is_premature": True,
+                            "days_remaining": 0,
+                            "status": "PREMATURE_FILING",
+                            "earliest_filing_date": earliest_filing_date.strftime("%Y-%m-%d"),
+                            "message": "Complaint was filed before the statutory 15-day payment period expired.",
+                            "fatal_defect": "Premature complaint."
+                        }
                     if filing_dt > limitation_date:
                         delay_days = (filing_dt - limitation_date).days
                         return {
@@ -173,8 +191,9 @@ class TimelineEngine:
                             "message": "Complaint filed within the limitation period."
                         }
             
-            if today > limitation_date:
-                days_over = (today - limitation_date).days
+            limitation_day = limitation_date.date()
+            if today > limitation_day:
+                days_over = (today - limitation_day).days
                 return {
                     "is_barred": True,
                     "days_remaining": 0,
@@ -184,7 +203,7 @@ class TimelineEngine:
                     "condonation_required": True
                 }
             else:
-                days_left = (limitation_date - today).days
+                days_left = (limitation_day - today).days
                 return {
                     "is_barred": False,
                     "days_remaining": days_left,
@@ -228,7 +247,11 @@ class TimelineEngine:
         else:
             limit_years = 3 # Default for others
             
-        limitation_date = TimelineEngine.adjust_for_holidays(incident_dt.replace(year=incident_dt.year + limit_years))
+        try:
+            anniversary = incident_dt.replace(year=incident_dt.year + limit_years)
+        except ValueError:
+            anniversary = incident_dt.replace(year=incident_dt.year + limit_years, day=28)
+        limitation_date = TimelineEngine.adjust_for_holidays(anniversary)
         today = datetime.now()
         
         if today > limitation_date:

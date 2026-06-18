@@ -1,4 +1,11 @@
 from typing import Any, List, Dict
+
+def _number(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value or 0)
+    except (TypeError, ValueError):
+        return default
+
 class StrategyEngine:
     """
     Advanced Litigation Strategy Engine — generates actionable litigation maps,
@@ -19,7 +26,7 @@ class StrategyEngine:
     @staticmethod
     def calculate_economics(case_data: Dict, score: int) -> Dict[str, Any]:
         """Models delay economics and settlement pressure."""
-        amount = float(case_data.get("amount") or 0)
+        amount = _number(case_data.get("amount") or case_data.get("cheque_amount") or case_data.get("debt_amount"))
         est_trial_duration = 36 # Months
         legal_cost_est = amount * 0.10
         
@@ -34,6 +41,8 @@ class StrategyEngine:
                 "cost_of_delay": f"₹{amount * 0.12:,.0f} (Inflation + Opportunity Cost)"
             },
             "settlement_posture": settlement_preference,
+            "estimated_trial_duration_months": est_trial_duration,
+            "estimated_legal_cost": legal_cost_est,
             "economic_rationale": "Immediate liquidity is preferable given the 36-month standard trial duration in jurisdictional courts."
         }
 
@@ -58,9 +67,16 @@ class StrategyEngine:
     @staticmethod
     def generate_litigation_map(case_data: Dict, score: float, concepts: List[Dict], detected_defences: List[Dict] = None) -> Dict[str, Any]:
         # Keep existing map logic but wrap it
-        concept_names = {c["concept"] for c in concepts}
+        concept_names = {c.get("concept") for c in concepts if isinstance(c, dict)}
         prosecution = {"primary_objective": "Secure Conviction", "tactical_moves": ["File S.143A application."]}
-        defence = {"primary_objective": "Rebut S.139", "tactical_moves": ["Challenge debt provenance."]}
+        defence_moves = ["Challenge debt provenance."]
+        if detected_defences:
+            defence_moves.extend(
+                str(item.get("argument"))
+                for item in detected_defences
+                if isinstance(item, dict) and item.get("argument")
+            )
+        defence = {"primary_objective": "Rebut S.139", "tactical_moves": defence_moves}
         
         return {
             "prosecution": prosecution,

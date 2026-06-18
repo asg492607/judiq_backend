@@ -31,14 +31,6 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Global unhandled exception: {exc}", exc_info=True)
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "An unexpected error occurred on the server.", "error": str(exc)}
-    )
-
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
@@ -63,7 +55,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Global error: {exc}", exc_info=True)
     return JSONResponse(
         status_code=500,
-        content={"success": False, "error": "Internal Server Error", "detail": str(exc)}
+        content={"success": False, "error": "Internal Server Error"}
     )
 
 # Startup
@@ -71,7 +63,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 async def startup_event():
     logger.info("Initializing JudiQ Infrastructure...")
     DatabaseManager.init_db()
-    logger.info("âœ… Infrastructure Ready.")
+    logger.info("Infrastructure ready.")
 
 # Health Check
 @app.get("/health")

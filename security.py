@@ -1,6 +1,8 @@
 # pyrefly: ignore [missing-import]
 import jwt
 import logging
+import os
+import hashlib
 from datetime import datetime, timedelta
 from typing import Optional, Dict
 
@@ -74,17 +76,25 @@ class AuditLogger:
     """
     @staticmethod
     def log_interaction(user_id: str, case_id: str, action: str, metadata: dict = None):
+        def redact_identifier(value: str) -> str:
+            if not value or value in {"ANONYMOUS", "PENDING", "THREAT"}:
+                return value
+            return hashlib.sha256(str(value).encode("utf-8")).hexdigest()[:12]
+
         log_entry = {
             "timestamp": datetime.now().isoformat(),
-            "user_id": user_id,
+            "user_id": redact_identifier(user_id),
             "case_id": case_id,
             "action": action,
             "metadata": metadata or {}
         }
-        # Write to Firebase Firestore for audit tracking
+        if os.getenv("ENABLE_FIREBASE_AUDIT", "false").lower() != "true":
+            logger.debug("[AUDIT] Firebase persistence disabled.")
+            return
+
         try:
             import firebase_admin
-            from firebase_admin import credentials, firestore
+            from firebase_admin import firestore
             
             if not firebase_admin._apps:
                 # Assumes GOOGLE_APPLICATION_CREDENTIALS is set
@@ -92,9 +102,9 @@ class AuditLogger:
                 
             db = firestore.client()
             db.collection("audit_logs").add(log_entry)
-            logger.info(f"[AUDIT] Successfully logged to Firebase: {log_entry}")
+            logger.info("[AUDIT] Interaction persisted to Firebase.")
         except ImportError:
-            logger.error("firebase_admin not installed. Audit persistence failed.")
+            logger.warning("Firebase audit enabled but firebase_admin is not installed.")
         except Exception as e:
             logger.warning(f"Audit persistence to Firebase skipped/failed: {e}")
 

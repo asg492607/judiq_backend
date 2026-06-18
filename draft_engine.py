@@ -2,10 +2,6 @@ import logging
 from datetime import datetime, date
 from typing import Dict, Any, List
 from jinja2 import Environment, FileSystemLoader
-import logging
-from datetime import datetime, date
-from typing import Dict, Any, List
-from jinja2 import Environment, FileSystemLoader
 import os
 
 logger = logging.getLogger(__name__)
@@ -26,8 +22,8 @@ def _get_criminal_precedent(offense_type: str) -> dict:
             for key, val in kb_models.items():
                 if offense_type.upper() in key or key in offense_type.upper():
                     return val
-    except Exception:
-        pass
+    except (OSError, ValueError, TypeError) as e:
+        logger.warning("Could not load criminal precedent data: %s", e)
     return {}
 
 
@@ -76,13 +72,13 @@ def decide_draft_type(score: int, concepts: List[Dict], case_data: Dict) -> str:
     if not case_data.get("notice_sent"):
         return "LEGAL_NOTICE"
     
-    # 2. Strong Case? -> COMPLAINT (Even if not perfect, aim for filing)
-    if score >= 65:
-        return "COMPLAINT"
-        
-    # 3. Limitation Issue? -> DELAY CONDONATION
+    # 2. Fatal procedural issues must override score-based routing.
     if "limitation_issue" in concept_names:
         return "DELAY_CONDONATION"
+
+    # 3. Strong Case? -> COMPLAINT
+    if score >= 65:
+        return "COMPLAINT"
         
     # 4. Weak Case (Accused or Borderline)? -> DEFENCE/OPINION
     if score < 45:

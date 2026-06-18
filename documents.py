@@ -1,6 +1,6 @@
 # pyrefly: ignore [missing-import]
 import logging
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, Request, Response, Query
 from fastapi.responses import JSONResponse
 from pdf_generator import PDFGenerator
 from jurisdiction_engine import map_jurisdiction
@@ -33,6 +33,13 @@ async def jurisdiction_map(request: Request):
 
 @router.get("/draft/history/{case_id}/{draft_type}")
 async def get_draft_history(case_id: str, draft_type: str):
+    from session import DatabaseManager
+    history = DatabaseManager.get_draft_history(case_id, draft_type)
+    return {"success": True, "history": history}
+
+@router.get("/draft/history")
+async def get_draft_history_query(case_id: str = Query(...), draft_type: str = Query(...)):
+    """Path-safe draft history lookup for case IDs that contain slashes."""
     from session import DatabaseManager
     history = DatabaseManager.get_draft_history(case_id, draft_type)
     return {"success": True, "history": history}

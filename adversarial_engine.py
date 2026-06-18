@@ -1,4 +1,11 @@
 from typing import Dict, List, Any
+
+def _number(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value or 0)
+    except (TypeError, ValueError):
+        return default
+
 class AdversarialEngine:
     """
     Institutional-Grade Adversarial Engine — Simulates courtroom dynamics, tactical rebuttal chains,
@@ -131,10 +138,13 @@ class AdversarialEngine:
     def simulate_strategic_stress_test(cls, case_data: Dict, concepts: List[Dict]) -> List[Dict]:
         """Deep modeling of potential defence theories and rebuttal chains."""
         analysis_nodes = []
-        concept_names = {c["concept"] for c in concepts}
-        amount = float(case_data.get("amount") or 0)
+        concept_names = {c.get("concept") for c in concepts if isinstance(c, dict)}
+        amount = _number(case_data.get("amount") or case_data.get("cheque_amount"))
         accused_name = str(case_data.get("accused_name", "")).lower()
-        is_company = any(x in accused_name for x in ["pvt", "ltd", "corp", "inc", "co.", "company"])
+        accused_type = str(case_data.get("accused_type", "")).lower()
+        is_company = accused_type in {"company", "pvt ltd/ltd company", "partnership firm"} or any(
+            x in accused_name for x in ["pvt", "ltd", "corp", "inc", "co.", "company"]
+        )
 
         # 1. Security Cheque Logic
         if not case_data.get("debt_proven") or "security_cheque" in concept_names:

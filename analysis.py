@@ -54,7 +54,8 @@ async def analyze(request_data: CaseAnalysisRequest, request: Request):
     user_id = raw_data.get("user_id", "ANONYMOUS")
     
     # 1. Audit Log
-    AuditLogger.log_interaction(user_id, "PENDING", "START_ANALYSIS", {"ip": request.client.host})
+    client_ip = request.client.host if request.client else "unknown"
+    AuditLogger.log_interaction(user_id, "PENDING", "START_ANALYSIS", {"ip": client_ip})
 
     # 2. Security Telemetry
     threats = SecurityTelemetry.audit_payload(raw_data)
@@ -67,7 +68,9 @@ async def analyze(request_data: CaseAnalysisRequest, request: Request):
     cache_key = get_cache_key(raw_data)
     if cache_key in ANALYSIS_CACHE:
         logger.info(f"[{request_id}] Cache hit for request.")
-        return ANALYSIS_CACHE[cache_key]
+        cached = dict(ANALYSIS_CACHE[cache_key])
+        cached["request_id"] = request_id
+        return cached
 
     logger.info(f"[{request_id}] /analyze request received")
 
@@ -132,16 +135,11 @@ async def analyze(request_data: CaseAnalysisRequest, request: Request):
                 result.get("verdict", "Unknown")
             )
             AuditLogger.log_interaction(user_id, cid, "FINISH_ANALYSIS", {"score": result.get("score")})
-            if len(ANALYSIS_CACHE) >= 100:
-                oldest_key = next(iter(ANALYSIS_CACHE))
-                del ANALYSIS_CACHE[oldest_key]
-            ANALYSIS_CACHE[cache_key] = result
-            
             # Auto-initialize Caseroom
             existing_room_id = DatabaseManager.get_caseroom_by_case_id(cid)
             if not existing_room_id:
                 CaseroomManager.initialize_caseroom_for_case(cid, uid)
-    except sqlite3.Error as e:
+    except Exception as e:
         logger.warning(f"[{request_id}] DB/Caseroom persistence failed (non-fatal): {e}")
 
     # 7. Build response
@@ -151,7 +149,11 @@ async def analyze(request_data: CaseAnalysisRequest, request: Request):
     # Include Caseroom ID
     case_data = result.get("case_data", {})
     cid = case_data.get("case_id", "")
-    response_body["caseroom_id"] = DatabaseManager.get_caseroom_by_case_id(cid) if cid else None
+    try:
+        response_body["caseroom_id"] = DatabaseManager.get_caseroom_by_case_id(cid) if cid else None
+    except Exception as e:
+        logger.warning(f"[{request_id}] Caseroom lookup failed (non-fatal): {e}")
+        response_body["caseroom_id"] = None
 
     # Jurisdiction Mapping
     try:
@@ -162,5 +164,9 @@ async def analyze(request_data: CaseAnalysisRequest, request: Request):
         response_body["jurisdiction"] = None
 
     response_body["data"] = result
+    if len(ANALYSIS_CACHE) >= 100:
+        oldest_key = next(iter(ANALYSIS_CACHE))
+        del ANALYSIS_CACHE[oldest_key]
+    ANALYSIS_CACHE[cache_key] = dict(response_body)
     return response_body
 

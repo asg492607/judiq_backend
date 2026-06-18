@@ -113,7 +113,13 @@ class CaseInput(BaseModel):
 class EngineResponse(BaseModel):
     status: str = "success"
     message: str = ""
+    success: bool = True
+    request_id: Optional[str] = None
+    caseroom_id: Optional[str] = None
+    jurisdiction: Optional[Dict[str, Any]] = None
     data: Dict[str, Any] = Field(default_factory=dict)
+
+    model_config = {"extra": "allow"}
     
 class ScoringResult(BaseModel):
     score: int

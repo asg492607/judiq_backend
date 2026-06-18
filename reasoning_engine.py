@@ -5,6 +5,13 @@ from precedent_manager import precedent_manager
 
 logger = logging.getLogger(__name__)
 
+def _number(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value or 0)
+    except (TypeError, ValueError):
+        logger.warning("Invalid numeric value in reasoning engine: %r", value)
+        return default
+
 
 class ReasoningEngine:
     """
@@ -60,8 +67,7 @@ class ReasoningEngine:
 
         # Financial Capacity (Basalingappa)
         amount_val = 0
-        try: amount_val = float(amount)
-        except: pass
+        amount_val = _number(amount)
         if amount_val > 150000 and not case_data.get("loan_via_bank") and not case_data.get("complainant_itr_available"):
             summary += " ðŸš¨ EVIDENTIARY RISK: Complainant's financial capacity to lend this amount in cash may be challenged under the Basalingappa rule."
 
@@ -81,7 +87,7 @@ class ReasoningEngine:
             msg = "Your case has significant risks. Some mandatory legal steps appear missing or defective."
             
         # Add specific warnings
-        existing_concepts = [c["concept"] for c in analysis_result.get("concepts", [])]
+        existing_concepts = [c.get("concept") for c in analysis_result.get("concepts", []) if isinstance(c, dict)]
         if "notice_defect" in existing_concepts:
             msg += " Specifically, there is an issue with the legal notice timing."
         if "no_debt_proof" in existing_concepts:
@@ -157,7 +163,7 @@ class ReasoningEngine:
                 "concept": "financial_capacity_risk",
                 "principle": "Rebuttal of S.139 presumption via financial capacity challenge. Complainant must prove source of funds in high-value cash transactions.",
                 "relevance": 0.98,
-                "trigger": lambda data, concepts: float(data.get("amount") or data.get("cheque_amount") or 0) > 150000 and not data.get("complainant_itr_available")
+                "trigger": lambda data, concepts: _number(data.get("amount") or data.get("cheque_amount")) > 150000 and not data.get("complainant_itr_available")
             },
             "Rangappa": {
                 "case": "Rangappa vs. Srikanth",
@@ -166,7 +172,7 @@ class ReasoningEngine:
                 "concept": "debt_presumption",
                 "principle": "Presumption of debt u/s 139 is active. The reverse onus burden is on the accused to rebut the presumption by raising a probable defense.",
                 "relevance": 0.95,
-                "trigger": lambda data, concepts: bool(data.get("cheque_present")) or "debt_acknowledgment" in [c["concept"] for c in concepts]
+                "trigger": lambda data, concepts: bool(data.get("cheque_present")) or "debt_acknowledgment" in [c.get("concept") for c in concepts if isinstance(c, dict)]
             },
             "AneetaHada": {
                 "case": "Aneeta Hada vs. Godfather Travels & Tours",
@@ -175,7 +181,7 @@ class ReasoningEngine:
                 "concept": "company_liability",
                 "principle": "Section 141 company prosecution. Directors/officers cannot be prosecuted u/s 138 without impleading the company entity as an accused.",
                 "relevance": 0.96,
-                "trigger": lambda data, concepts: str(data.get("accused_type")).lower() in ("company", "pvt ltd/ltd company", "partnership firm") or "s141_defect" in [c["concept"] for c in concepts]
+                "trigger": lambda data, concepts: str(data.get("accused_type")).lower() in ("company", "pvt ltd/ltd company", "partnership firm") or "s141_defect" in [c.get("concept") for c in concepts if isinstance(c, dict)]
             },
             "KishanRao": {
                 "case": "Kishan Rao vs. Shankargouda",
@@ -184,7 +190,7 @@ class ReasoningEngine:
                 "concept": "signature_dispute",
                 "principle": "Mere denial of debt/signature does not rebut the S.139 presumption. High standard of proof required for accused to shift burden.",
                 "relevance": 0.92,
-                "trigger": lambda data, concepts: "signature_dispute" in [c["concept"] for c in concepts] or bool(data.get("signature_mismatch"))
+                "trigger": lambda data, concepts: "signature_dispute" in [c.get("concept") for c in concepts if isinstance(c, dict)] or bool(data.get("signature_mismatch"))
             },
             "DashrathRathod": {
                 "case": "Dashrath Rupsingh Rathod vs. State of Maharashtra",
@@ -193,7 +199,7 @@ class ReasoningEngine:
                 "concept": "jurisdictional_issue",
                 "principle": "Territorial jurisdiction for cheque bounce. Complaint must be filed where the payee bank branch is situated (post-2015 Amendment).",
                 "relevance": 0.90,
-                "trigger": lambda data, concepts: bool(data.get("payee_bank_city")) or "jurisdictional_defect" in [c["concept"] for c in concepts]
+                "trigger": lambda data, concepts: bool(data.get("payee_bank_city")) or "jurisdictional_defect" in [c.get("concept") for c in concepts if isinstance(c, dict)]
             },
             "YogendraPratap": {
                 "case": "Yogendra Pratap Singh vs. Savitri Pandey",

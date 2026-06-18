@@ -8,7 +8,7 @@ def ensure_list(x):
 
 def ensure_number(x, default=0):
     try: return float(x)
-    except: return default
+    except (TypeError, ValueError): return default
 
 DEFENCE_ONLY_NEGATIVE_CONCEPTS = {
     "security_cheque", "signature_dispute", "signature_disputed", "no_debt_proof",
@@ -43,6 +43,8 @@ class DefenceEngineV12:
         seen = set()
 
         for concept_det in ensure_list(concepts):
+            if not isinstance(concept_det, dict):
+                continue
             concept = concept_det.get("concept", "unknown")
             confidence = ensure_number(concept_det.get("confidence", 0))
 
