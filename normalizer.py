@@ -252,6 +252,7 @@ def normalize_input(data: dict) -> dict:
         "memo_date":         _safe_str(data.get("memo_date",         ds_obj.get("memo_date",         "")), 30, "memo_date"),
         "dishonour_reason":  dishonour_reason,
         "presentation_date": _safe_str(data.get("presentation_date", ds_obj.get("presentation_date", "")), 30, "presentation_date"),
+        "memo_signed":       _safe_str(data.get("memo_signed", ""), 50, "memo_signed"),
 
         # Notice details
         "notice_date":          _safe_str(data.get("notice_date",     nt_obj.get("notice_date",     "")), 30, "notice_date"),
@@ -281,6 +282,7 @@ def normalize_input(data: dict) -> dict:
         "debt_denial":           debt_denial,
         "cheque_security_claim": security_claim,
         "director_names":        _safe_str(data.get("director_names", data.get("accused_directors", accu_obj.get("director_names", ""))), 500, "director_names"),
+        "court_attendance":      _safe_str(data.get("court_attendance", ""), 50, "court_attendance"),
 
         # Analysis Mode (Quick Analysis)
         "analysis_mode":         _safe_str(data.get("analysis_mode", "detailed"), 20),

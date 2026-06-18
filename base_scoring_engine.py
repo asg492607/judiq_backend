@@ -9,6 +9,8 @@ PENALTY_DIRECTOR_RESIGNED = -50
 PENALTY_BASALINGAPPA_FATAL = -40
 PENALTY_BASALINGAPPA_HIGH = -25
 PENALTY_LIMITATION = -30
+PENALTY_UNSIGNED_MEMO = -15
+PENALTY_ABSCONDING = -5
 PENALTY_NOTICE_DEFECT = -25
 PENALTY_UNVERIFIED_SIGNATURE = -35
 PENALTY_MATERIAL_ALTERATION = -40
@@ -81,9 +83,15 @@ class BaseScoringEngine:
             causality_map.append({"fact": "Missing Original Cheque", "impact": PILLAR_CHEQUE_MISSING, "type": "negative", "rationale": "S.138 requires the instrument itself."})
 
         if memo:
-            score_delta += PILLAR_MEMO_PRESENT
-            trace.append(f"Procedural Proof: Bank return memo authenticated (+{PILLAR_MEMO_PRESENT}).")
-            causality_map.append({"fact": "Bank Memo Presence", "impact": PILLAR_MEMO_PRESENT, "type": "positive", "rationale": "Formal proof of dishonour by the bank."})
+            memo_signed_str = case_data.get("memo_signed", "")
+            if "Unsigned" in memo_signed_str:
+                score_delta += PILLAR_MEMO_PRESENT + PENALTY_UNSIGNED_MEMO
+                trace.append(f"Bank memo present but unsigned/digital. S.146 presumption fails. ({PENALTY_UNSIGNED_MEMO} penalty).")
+                causality_map.append({"fact": "Unsigned Bank Memo", "impact": PENALTY_UNSIGNED_MEMO, "type": "negative", "rationale": "Without bank stamp, S.146 presumption does not apply. Bank official must be summoned under S.311 CrPC."})
+            else:
+                score_delta += PILLAR_MEMO_PRESENT
+                trace.append(f"Procedural Proof: Bank return memo authenticated (+{PILLAR_MEMO_PRESENT}).")
+                causality_map.append({"fact": "Bank Memo Presence", "impact": PILLAR_MEMO_PRESENT, "type": "positive", "rationale": "Formal proof of dishonour by the bank."})
         else:
             score_delta += PILLAR_MEMO_MISSING
             case_data["fatal_defect"] = case_data.get("fatal_defect") or "Missing Bank Return Memo"
@@ -231,7 +239,13 @@ class BaseScoringEngine:
             reliability["Witness"] = {"score": 0.25, "status": "MISSING", "attack_risk": "HIGH", "reason": "No independent corroboration; heavy reliance on documentary evidence."}
 
         # Bank Memo
-        reliability["Bank Return Memo"] = {"score": 0.95, "status": "VERIFIED", "attack_risk": "MINIMAL"}
+        memo_signed_str = case_data.get("memo_signed", "")
+        if memo and "Unsigned" in memo_signed_str:
+            reliability["Bank Return Memo"] = {"score": 0.40, "status": "VULNERABLE", "attack_risk": "HIGH", "detail": "Unsigned printout. Requires summoning Bank Official under S.311 CrPC."}
+        elif memo:
+            reliability["Bank Return Memo"] = {"score": 0.95, "status": "VERIFIED", "attack_risk": "MINIMAL"}
+        else:
+            reliability["Bank Return Memo"] = {"score": 0.0, "status": "MISSING", "attack_risk": "CRITICAL"}
         
         return reliability
 
