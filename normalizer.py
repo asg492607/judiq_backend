@@ -57,7 +57,8 @@ def _safe_bool(value: Any, default: bool = False) -> bool:
         if v_lower in ("true", "yes", "1", "on"):
             return True
         # Check for presence of truthy terms used in the UI/wizard options
-        truthy_terms = ("yes", "true", "original", "copy", "extensive", "limited", "partial", "signed", "written", "promissory", "deni")
+        # "in progress" = notice is being sent, treat as True for scoring purposes
+        truthy_terms = ("yes", "true", "original", "copy", "extensive", "limited", "partial", "signed", "written", "promissory", "deni", "in progress", "progress")
         if any(term in v_lower for term in truthy_terms):
             return True
         return False
@@ -316,13 +317,22 @@ def resolve_logical_contradictions(data: dict) -> dict:
         data["fatal_defect"] = "Notice sent to incorrect address. Not a valid service."
 
     # Date Contradiction Logic
+    # NOTE: We do NOT override notice_sent=False here — the user explicitly said notice was sent.
+    # We only mark a fatal_defect warning so the scoring engine can flag it, but we do not
+    # silently zero out the notice_sent boolean which causes wrong UI output.
     try:
-        if data.get("notice_date") and data.get("filing_date"):
-            n_date = datetime.strptime(data["notice_date"], "%Y-%m-%d").date()
-            f_date = datetime.strptime(data["filing_date"], "%Y-%m-%d").date()
+        notice_date_raw = str(data.get("notice_date", "") or "").strip()
+        filing_date_raw = str(data.get("filing_date", "") or "").strip()
+        if notice_date_raw and filing_date_raw:
+            n_date = datetime.strptime(notice_date_raw, "%Y-%m-%d").date()
+            f_date = datetime.strptime(filing_date_raw, "%Y-%m-%d").date()
             if n_date > f_date:
-                data["fatal_defect"] = "Contradiction: Filing date is before the Notice was even sent."
-                data["notice_sent"] = False  # Logically impossible
+                # Flag as a contradiction warning but do NOT override notice_sent boolean.
+                # The user explicitly confirmed notice was sent; the date mismatch
+                # might be a typo. Scoring engine will add this as a contradiction penalty.
+                existing = data.get("fatal_defect") or ""
+                if not existing:
+                    data["fatal_defect"] = "Date Contradiction: Notice date is after filing date — please verify dates."
     except Exception:
         pass
         
