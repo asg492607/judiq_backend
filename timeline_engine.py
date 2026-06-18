@@ -18,7 +18,7 @@ class TimelineEngine:
     @staticmethod
     def resolve_notice_service(case_data: Dict[str, Any], notice_dt: datetime) -> Dict[str, Any]:
         """Maps notice delivery states to their legal service effect."""
-        delivery_date = case_data.get("notice_delivery_date")
+        delivery_date = case_data.get("notice_received_date") or case_data.get("notice_delivery_date")
         normalized = BaseScoringEngine.normalize_notice_service_status(case_data)
 
         if normalized["bucket"] == "DEEMED_SERVICE":
