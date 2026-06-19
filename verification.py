@@ -43,7 +43,7 @@ async def verify_memo(
         import pytesseract
         from PIL import Image
         import io
-import asyncio
+        import asyncio
         
         # Load image from bytes
         image = Image.open(io.BytesIO(content))
