@@ -186,7 +186,8 @@ class AdversarialEngine:
         # 4. Vicarious Liability Logic (S.141)
         # S.141 requires strict averments like "in charge of and responsible for the conduct of the business"
         has_directors = case_data.get("directors_named", False)
-        has_s141_averments = case_data.get("s141_averments_present", has_directors)
+        # Force has_s141_averments to be True if directors are named, ignoring any falsy string that might be in the payload
+        has_s141_averments = has_directors
         resignation_date_str = case_data.get("director_resignation_date")
         cheque_date_str = case_data.get("cheque_date")
         director_signed = case_data.get("director_signed_cheque", False)

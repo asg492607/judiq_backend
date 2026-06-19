@@ -459,6 +459,13 @@ class JudiQEngine:
         # Apply Jurisdiction Fatal Defect Check
         from jurisdiction_engine import apply_jurisdiction_guards
         judicially_adjusted_score = apply_jurisdiction_guards(jurisdiction_info, concepts, final_score)
+        if judicially_adjusted_score < final_score:
+            scoring_result.setdefault("causality_map", []).append({
+                "fact": "S.142(2) Territorial Mismatch",
+                "impact": -35,
+                "type": "negative",
+                "rationale": "Jurisdiction is territorially defective."
+            })
 
         # -- 6.7 Fatal Defect Hard Override -----------------------------------
         # (Timeline Engine execution was moved up to step 3.5)

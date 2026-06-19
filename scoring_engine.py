@@ -124,7 +124,11 @@ class ScoringEngineV12(BaseScoringEngine):
             except Exception:
                 pass
 
-        if amount > 500000 and not case_data.get("loan_via_bank") and not (case_data.get("complainant_itr_available") or case_data.get("itr_available")):
+        loan_val = str(case_data.get("loan_via_bank", "")).lower()
+        is_bank_transfer = "yes" in loan_val or "rtgs" in loan_val or "bank" in loan_val or "cheque" in loan_val
+        is_cash_loan = not is_bank_transfer
+        
+        if amount > 500000 and is_cash_loan and not (case_data.get("complainant_itr_available") or case_data.get("itr_available")):
             score += PENALTY_BASALINGAPPA_FATAL
             max_score_cap = min(max_score_cap, 25)
             case_data["fatal_defect"] = "Basalingappa Trap: Unaccounted Cash > Rs.5L without ITR"
