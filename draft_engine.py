@@ -53,7 +53,7 @@ def decide_draft_type(score: int, concepts: List[Dict], case_data: Dict) -> str:
             return "PROTEST_PETITION"
 
         # If no specific procedural flag, default to core litigation documents
-        if role == "Complainant":
+        if (role or "").lower() == "complainant":
             return "FIR_DRAFT"
         else:
             arrested = str(case_data.get("arrested_during_investigation")).lower()
@@ -66,7 +66,7 @@ def decide_draft_type(score: int, concepts: List[Dict], case_data: Dict) -> str:
 
     # ── CHEQUE BOUNCE ROUTING ──
     # If the case is functionally dead or highly risky for Complainant
-    if score < 40 and role != "Accused":
+    if score < 40 and (role or "").lower() != "accused":
         return "LEGAL_OPINION"
 
     # 1. Statutory Notice missing? -> MUST send notice first
@@ -83,7 +83,7 @@ def decide_draft_type(score: int, concepts: List[Dict], case_data: Dict) -> str:
         
     # 4. Weak Case (Accused or Borderline)? -> DEFENCE/OPINION
     if score < 45:
-        if role == "Accused":
+        if (role or "").lower() == "accused":
             if concept_names & {"security_cheque", "cheque_misuse", "signature_dispute", "no_agreement"}:
                 return "DEFENCE_STRATEGY"
             return "DEFENCE_REPLY"
@@ -130,7 +130,7 @@ def _num_to_words(n: int) -> str:
 
 def generate_legal_notice(case_data: Dict, tone: str = "standard") -> str:
     today, amount_str = _case_meta(case_data)
-    is_aggressive = tone.lower() == "aggressive"
+    is_aggressive = (tone or "").lower() == "aggressive"
 
     complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
     accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
@@ -149,11 +149,11 @@ def generate_legal_notice(case_data: Dict, tone: str = "standard") -> str:
     purpose = case_data.get("purpose", "")
 
     transaction_nature = "a legally enforceable debt/liability"
-    if "loan" in description.lower() or "loan" in purpose.lower():
+    if "loan" in (description or "").lower() or "loan" in purpose.lower():
         transaction_nature = "a loan advanced"
-    elif "goods" in description.lower() or "supply" in purpose.lower():
+    elif "goods" in (description or "").lower() or "supply" in purpose.lower():
         transaction_nature = "goods supplied"
-    elif "service" in description.lower():
+    elif "service" in (description or "").lower():
         transaction_nature = "services rendered"
     elif purpose:
         transaction_nature = purpose[:100]
@@ -182,7 +182,7 @@ def generate_legal_notice(case_data: Dict, tone: str = "standard") -> str:
         dishonour_date=dishonour_date,
         dishonour_reason=dishonour_reason,
         transaction_nature=transaction_nature,
-        tone=tone.lower()
+        tone=(tone or "").lower()
     )
 
 
@@ -234,9 +234,9 @@ Verified at ________ (Place) on this {today} that the contents of the above affi
 
 def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "standard") -> str:
     today, amount_str = _case_meta(case_data)
-    place_val = case_data.get("payee_bank_city") or (case_data.get("complainant_address", "").split(",")[-1].strip() if "," in case_data.get("complainant_address", "") else "") or "________ (Place)"
-    is_aggressive = tone.lower() == "aggressive"
-    is_conciliatory = tone.lower() == "conciliatory"
+    place_val = case_data.get("payee_bank_city") or ((case_data.get("complainant_address") or "").split(",")[-1].strip() if "," in case_data.get("complainant_address", "") else "") or "________ (Place)"
+    is_aggressive = (tone or "").lower() == "aggressive"
+    is_conciliatory = (tone or "").lower() == "conciliatory"
 
     complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
     complainant_addr = case_data.get("complainant_address") or case_data.get("complainantAddress") or "________ (Complainant Address)"
@@ -265,13 +265,13 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     transaction_nature = "a legally enforceable debt"
     occupation = "business/profession"
 
-    if "loan" in description.lower() or "loan" in purpose.lower():
+    if "loan" in (description or "").lower() or "loan" in purpose.lower():
         transaction_nature = "a loan transaction"
         occupation = "lending/financing business"
-    elif "goods" in description.lower() or "supply" in purpose.lower():
+    elif "goods" in (description or "").lower() or "supply" in purpose.lower():
         transaction_nature = "supply of goods"
         occupation = "trade and commerce"
-    elif "service" in description.lower():
+    elif "service" in (description or "").lower():
         transaction_nature = "provision of services"
         occupation = "service provider"
     elif purpose:
@@ -1020,6 +1020,15 @@ class DraftEngine:
 def generate_settlement_draft(case_data: Dict, score: int) -> str:
     return "MEMORANDUM OF SETTLEMENT\n\nThis memorandum of settlement is generated based on the case facts. A formal mediator or counsel should review the terms."
 
+def generate_fir_draft(case_data: Dict, concepts: List[Dict]) -> str:
+    return "FIRST INFORMATION REPORT (FIR) DRAFT\n\nDrafted based on core criminal facts."
+
+def generate_regular_bail(case_data: Dict) -> str:
+    return "APPLICATION FOR REGULAR BAIL\n\nUnder Section 439 of the Code of Criminal Procedure."
+
+def generate_anticipatory_bail(case_data: Dict) -> str:
+    return "APPLICATION FOR ANTICIPATORY BAIL\n\nUnder Section 438 of the Code of Criminal Procedure."
+
 def generate_delay_condonation(case_data: Dict) -> str:
     return "APPLICATION FOR CONDONATION OF DELAY\n\nUnder Section 5 of the Limitation Act, 1963 read with Section 142(b) of the Negotiable Instruments Act, 1881.\n\n[DRAFT DETAILS TO BE FILLED]"
 
@@ -1042,7 +1051,7 @@ Subject: Strategic Assessment of Cheque Dishonour Case involving {amount_str}
 
 2. KEY RISK VECTORS:
    The following legal concepts were detected which directly impact the litigation posture:
-   { "\n".join([f"   - {c['concept'].replace('_', ' ').upper()} (Impact: High)" for c in concepts if c.get('confidence', 0) > 0.7]) or "   - No high-confidence risks detected." }
+   { "\n".join([f"   - {c.get('concept', '').replace('_', ' ').upper()} (Impact: High)" for c in concepts if c.get('confidence', 0) > 0.7]) or "   - No high-confidence risks detected." }
 
 3. STRATEGIC RECOMMENDATION:
    { "Proceed with the filing of a Criminal Complaint under Section 138 NI Act whilst ensuring all statutory timelines are strictly met." if score > 60 else "Immediate litigation is not recommended. Focus on evidentiary remediation or explore a mediated settlement (Section 147 NI Act) to mitigate costs." }
