@@ -24,3 +24,16 @@ def log_case_execution(case_data, result, duration_ms):
             
     except Exception as e:
         logger.warning(f"Failed to write telemetry: {e}")
+from fastapi import APIRouter, Request
+from pydantic import BaseModel
+
+router = APIRouter()
+
+@router.post("/error")
+async def log_telemetry_error(request: Request):
+    try:
+        body = await request.json()
+        logger.error(f"Frontend Telemetry Error: {body}")
+        return {"status": "logged"}
+    except Exception as e:
+        return {"status": "failed", "reason": str(e)}
