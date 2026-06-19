@@ -1017,6 +1017,16 @@ class DraftEngine:
             return generate_legal_opinion(score, concepts, case_data)
 
 
+def generate_settlement_draft(case_data: Dict, score: int) -> str:
+    return "MEMORANDUM OF SETTLEMENT\n\nThis memorandum of settlement is generated based on the case facts. A formal mediator or counsel should review the terms."
+
+def generate_delay_condonation(case_data: Dict) -> str:
+    return "APPLICATION FOR CONDONATION OF DELAY\n\nUnder Section 5 of the Limitation Act, 1963 read with Section 142(b) of the Negotiable Instruments Act, 1881.\n\n[DRAFT DETAILS TO BE FILLED]"
+
+def generate_application_143a(case_data: Dict) -> str:
+    return "APPLICATION UNDER SECTION 143A OF THE NEGOTIABLE INSTRUMENTS ACT\n\nFor direction to the Accused to pay interim compensation.\n\n[DRAFT DETAILS TO BE FILLED]"
+
+
 def generate_legal_opinion(score: int, concepts: List[Dict], case_data: Dict) -> str:
     today, amount_str = _case_meta(case_data)
     
