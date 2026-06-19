@@ -30,7 +30,7 @@ class CaseAnalysisRequest(BaseModel):
     analysis_mode: Optional[str] = "detailed"
     
     class Config:
-        extra = "forbid"
+        extra = "ignore"
 
 ANALYSIS_CACHE = {}
 
