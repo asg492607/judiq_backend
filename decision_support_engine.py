@@ -182,7 +182,7 @@ class DecisionSupportEngine:
         # Hard-coded strategy triggers based on case data (Institutional Hardening)
         risks.append({
             "risk": "Procedural Veracity Protocol",
-            "severity": "FATAL",
+            "severity": "LOW",
             "description": "Any mismatch between alleged precedents and official records can lead to professional misconduct proceedings.",
             "rebuttal": "Verify every citation against official gazettes or reporters (SCC/AIR) before submission.",
             "case_law": "Bar Council of India Standards"
@@ -190,7 +190,7 @@ class DecisionSupportEngine:
         
         risks.append({
             "risk": "Boilerplate Pleading Scrutiny",
-            "severity": "HIGH",
+            "severity": "LOW",
             "description": "Courts are increasingly rejecting e-filed complaints that lack specific transactional details or appear mass-produced.",
             "rebuttal": "Ensure the final draft contains unique transactional facts that demonstrate application of mind.",
             "case_law": "Judicial Protocol 2026"
