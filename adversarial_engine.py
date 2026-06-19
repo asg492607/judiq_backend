@@ -151,8 +151,12 @@ class AdversarialEngine:
             analysis_nodes.append(cls._build_node(cls.VULNERABILITY_MODELS["security_cheque"], "Security Cheque Defence Theory"))
 
         # 2. Financial Capacity Logic
-        itr_missing = not case_data.get("complainant_itr_available")
-        is_cash_loan = not case_data.get("loan_via_bank", True)
+        itr_raw = str(case_data.get("complainant_itr_available", case_data.get("itr_available", ""))).strip().lower()
+        has_itr = itr_raw in ["yes", "true", "1", "y"]
+        itr_missing = not has_itr
+
+        loan_bank_raw = str(case_data.get("loan_via_bank", "yes")).strip().lower()
+        is_cash_loan = loan_bank_raw in ["no", "false", "0", "n", "cash"]
         capacity_threshold = 50000 if is_cash_loan else 200000
         
         if amount >= capacity_threshold and itr_missing:

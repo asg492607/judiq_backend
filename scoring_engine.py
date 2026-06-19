@@ -124,11 +124,19 @@ class ScoringEngineV12(BaseScoringEngine):
             except Exception:
                 pass
 
-        loan_val = str(case_data.get("loan_via_bank", "")).lower()
-        is_bank_transfer = "yes" in loan_val or "rtgs" in loan_val or "bank" in loan_val or "cheque" in loan_val
-        is_cash_loan = not is_bank_transfer
+        # 1. Aggressively parse the ITR value (handles booleans, strings, and missing keys)
+        itr_raw = str(case_data.get("complainant_itr_available", case_data.get("itr_available", ""))).strip().lower()
+        has_itr = itr_raw in ["yes", "true", "1", "y"]
+
+        # 2. Safely check for cash. If the frontend doesn't send it, DO NOT assume cash.
+        # Default to False (assuming it was a bank transfer) to prevent false positives.
+        # Our frontend sends 'loan_via_bank' boolean. If missing, assume bank transfer.
+        loan_bank_raw = str(case_data.get("loan_via_bank", "yes")).strip().lower()
+        is_cash_loan = loan_bank_raw in ["no", "false", "0", "n", "cash"]
         
-        if amount > 500000 and is_cash_loan and not (case_data.get("complainant_itr_available") or case_data.get("itr_available")):
+        # 3. The updated Basalingappa Rule
+        # It now ONLY fires if we strictly know it's cash AND there is no ITR.
+        if amount > 500000 and is_cash_loan and not has_itr:
             score += PENALTY_BASALINGAPPA_FATAL
             max_score_cap = min(max_score_cap, 25)
             case_data["fatal_defect"] = "Basalingappa Trap: Unaccounted Cash > Rs.5L without ITR"
