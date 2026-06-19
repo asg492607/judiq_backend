@@ -239,7 +239,8 @@ class BaseScoringEngine:
             reliability["Witness"] = {"score": 0.25, "status": "MISSING", "attack_risk": "HIGH", "reason": "No independent corroboration; heavy reliance on documentary evidence."}
 
         # Bank Memo
-        memo_signed_str = case_data.get("memo_signed", "")
+        memo = case_data.get("dishonour_memo", False) or case_data.get("bank_memo_received") == "Yes"
+        memo_signed_str = str(case_data.get("memo_signed", ""))
         if memo and "Unsigned" in memo_signed_str:
             reliability["Bank Return Memo"] = {"score": 0.40, "status": "VULNERABLE", "attack_risk": "HIGH", "detail": "Unsigned printout. Requires summoning Bank Official under S.311 CrPC."}
         elif memo:
