@@ -225,7 +225,7 @@ class PDFGenerator:
                     arg = defence.get('argument', 'N/A')
                     prob = f"{defence.get('success_probability', 0)}%"
                     strength = defence.get('strength', 'N/A')
-                    defence_data.append([arg, prob, strength])
+                    defence_data.append([Paragraph(arg, body_style), prob, Paragraph(strength, body_style)])
                 
                 defence_table = Table(defence_data, colWidths=[3.5*inch, 1.2*inch, 1.3*inch])
                 defence_table.setStyle(TableStyle([
@@ -262,7 +262,7 @@ class PDFGenerator:
                     conf = f"{int(concept.get('confidence', 0) * 100)}%"
                     impact_raw = concept.get('legal_impact', 'N/A') or 'N/A'
                     impact = (impact_raw[:50] + '...') if len(impact_raw) > 50 else impact_raw
-                    concept_data.append([name, conf, impact])
+                    concept_data.append([Paragraph(name, body_style), conf, Paragraph(impact, body_style)])
                 
                 concept_table = Table(concept_data, colWidths=[2*inch, 1*inch, 3*inch])
                 concept_table.setStyle(TableStyle([

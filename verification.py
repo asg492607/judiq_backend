@@ -1,5 +1,6 @@
 # pyrefly: ignore [missing-import]
 import logging
+import asyncio
 from fastapi import APIRouter, UploadFile, File
 from ocr_engine import OCREngine
 
@@ -42,11 +43,12 @@ async def verify_memo(
         import pytesseract
         from PIL import Image
         import io
+import asyncio
         
         # Load image from bytes
         image = Image.open(io.BytesIO(content))
         # Extract text using pytesseract
-        extracted_text = pytesseract.image_to_string(image)
+        extracted_text = await asyncio.to_thread(pytesseract.image_to_string, image)
     except ImportError:
         logger.error("pytesseract or PIL not installed. Falling back to placeholder.")
         extracted_text = "[Memo text extracted fallback]"

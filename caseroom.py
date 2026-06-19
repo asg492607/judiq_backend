@@ -10,6 +10,7 @@ from cryptography.fernet import Fernet
 from ocr_engine import OCREngine
 from llm_engine import _invoke_llm
 import json
+import asyncio
 
 router = APIRouter()
 logger = logging.getLogger("JudiQ.Caseroom")
@@ -33,18 +34,18 @@ class ConnectionManager:
             for connection in self.active_connections[room_id]:
                 try:
                     await connection.send_json(message)
-                except:
+                except Exception:
                     pass
 
 manager = ConnectionManager()
 
-# Encryption setup — robust init that never crashes on bad env var
+# Encryption setup - robust init that never crashes on bad env var
 try:
     _raw_key = settings.ENCRYPTION_KEY.encode() if isinstance(settings.ENCRYPTION_KEY, str) else settings.ENCRYPTION_KEY
     fernet = Fernet(_raw_key)
-except Exception:
-    # Fallback: generate a fresh valid key if the env var is malformed
-    fernet = Fernet(Fernet.generate_key())
+except Exception as e:
+    # Crash fast to prevent permanent data loss of encrypted files
+    raise RuntimeError(f"FATAL: ENCRYPTION_KEY is invalid or missing. Do not fallback to ephemeral keys. Error: {e}")
 
 @router.post("/create")
 async def create_caseroom(request: Request):
@@ -80,7 +81,7 @@ async def send_caseroom_message(room_id: str, request: Request):
         if "@JudiQ" in content:
             prompt = f"You are an adversarial opposing counsel in an Indian courtroom. The defense lawyer just said: '{content}'. Cross-examine them aggressively but professionally to find logical gaps. Keep it to 2-3 sentences."
             try:
-                llm_response = _invoke_llm(prompt, max_tokens=200, fallback_value=None)
+                llm_response = await asyncio.to_thread(_invoke_llm, prompt, 200, None)
                 ai_text = llm_response if llm_response else "Objection, your honor. The statement lacks merit."
             except Exception as e:
                 logger.error(f"Simulator LLM Error: {e}")
@@ -141,12 +142,14 @@ async def upload_caseroom_document(
     encrypted_content = fernet.encrypt(content)
     
     # Save encrypted file to disk
-    with open(file_path, "wb") as f:
-        f.write(encrypted_content)
+    def write_file():
+        with open(file_path, "wb") as f:
+            f.write(encrypted_content)
+    await asyncio.to_thread(write_file)
 
     # Text extraction and verification
     extracted_text = "[Extraction logic here]" # Simplified for now
-    verification_result = OCREngine.analyze_document(extracted_text, doc_type, claimed_reason)
+    verification_result = await asyncio.to_thread(OCREngine.analyze_document, extracted_text, doc_type, claimed_reason)
     verification_status = "VERIFIED" if verification_result.get("is_verified") else "FAILED"
 
     # Save metadata to DB
@@ -174,8 +177,11 @@ async def download_caseroom_document(room_id: str, filename: str):
     if not os.path.exists(file_path):
         return JSONResponse(status_code=404, content={"error": "File not found"})
         
-    with open(file_path, "rb") as f:
-        encrypted_content = f.read()
+    def read_file():
+        with open(file_path, "rb") as f:
+            return f.read()
+            
+    encrypted_content = await asyncio.to_thread(read_file)
         
     try:
         decrypted_content = fernet.decrypt(encrypted_content)
@@ -187,4 +193,3 @@ async def download_caseroom_document(room_id: str, filename: str):
         content=decrypted_content,
         headers={"Content-Disposition": f'attachment; filename="{filename}"'}
     )
-

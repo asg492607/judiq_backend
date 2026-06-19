@@ -204,7 +204,7 @@ class RAGManager:
         if not self.model:
             return
         import faiss
-        texts = [p.get("summary", "") + " " + " ".join(p.get("keywords", [])) for p in self._corpus]
+        texts = [p.get("summary", "") + " " + " ".join(p.get("keywords") or []) for p in self._corpus]
         embeddings = self.model.encode(texts)
         dimension = embeddings.shape[1]
         
@@ -250,7 +250,7 @@ class RAGManager:
             if stance_filter and prec.get("stance") != stance_filter:
                 continue
             score = 0
-            kws = " ".join(prec.get("keywords", []) + prec.get("area", []))
+            kws = " ".join((prec.get("keywords") or []) + (prec.get("area") or [])).lower()
             for word in query_words:
                 if word in kws:
                     score += 2
@@ -310,7 +310,11 @@ class RAGManager:
         if case_facts.get("defence_claim"):
             parts.append(str(case_facts["defence_claim"]))
         if case_facts.get("offence_sections"):
-            parts.append(" ".join(case_facts.get("offence_sections", [])))
+            sections = case_facts.get("offence_sections")
+            if isinstance(sections, list):
+                parts.append(" ".join(sections))
+            elif sections:
+                parts.append(str(sections))
         if case_facts.get("cheque_security_claim"):
             parts.append("security cheque")
         if case_facts.get("notice_mode"):

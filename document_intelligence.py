@@ -146,7 +146,7 @@ class DocumentIntelligence:
         
         # We expect actual extracted text payload from the OCR pipeline
         evidence_texts = case_data.get("evidence_texts", {})
-        if not evidence_texts or not any(str(val).strip() for val in evidence_texts.values()):
+        if not evidence_texts or not any(val and str(val).strip() for val in evidence_texts.values()):
             return verification_flags
         
         # Import OCREngine for exact parsing
@@ -157,7 +157,7 @@ class DocumentIntelligence:
 
         # 0. Amount Verification (Strict)
         claimed_amount = str(case_data.get("cheque_amount") or case_data.get("amount", ""))
-        cheque_text = str(evidence_texts.get("cheque", "")).lower()
+        cheque_text = str(evidence_texts.get("cheque") or "").lower()
         
         # Simulated confidence score based on OCR text length/quality
         ocr_confidence = 100 if len(cheque_text) > 50 else (len(cheque_text) * 2)
@@ -205,7 +205,7 @@ class DocumentIntelligence:
 
         # 1. ITR Claim vs Reality
         if case_data.get("complainant_itr_available"):
-            itr_text = str(evidence_texts.get("itr", "")).lower()
+            itr_text = str(evidence_texts.get("itr") or "").lower()
             if itr_text:
                 if not any(k in itr_text for k in ["income tax", "assessment year", "return of income", "pan", "acknowledgement"]):
                     verification_flags["fraudulent_input_detected"] = True
@@ -215,7 +215,7 @@ class DocumentIntelligence:
 
         # 2. Notice Delivery Tracking vs Reality
         if case_data.get("notice_sent"):
-            tracking_text = str(evidence_texts.get("tracking_report", "")).lower()
+            tracking_text = str(evidence_texts.get("tracking_report") or "").lower()
             user_tracking_status = str(case_data.get("notice_delivery_status", "")).lower()
             
             tracking_confidence = 100 if len(tracking_text) > 30 else (len(tracking_text) * 3)
@@ -246,7 +246,7 @@ class DocumentIntelligence:
                 
         # 4. Bank Memo Reason vs Claimed Reason
         if case_data.get("dishonour_reason"):
-            memo_text = str(evidence_texts.get("memo", "")).lower()
+            memo_text = str(evidence_texts.get("memo") or "").lower()
             user_reason = str(case_data.get("dishonour_reason", "")).lower()
             memo_confidence = 100 if len(memo_text) > 40 else (len(memo_text) * 2)
             
@@ -256,7 +256,7 @@ class DocumentIntelligence:
                     # Exact string match check against standard reasons
                     reason_matched = False
                     for dr in memo_analysis["detected_reasons"]:
-                        if dr.lower() in user_reason or user_reason in dr.lower():
+                        if user_reason and (dr.lower() in user_reason or user_reason in dr.lower()):
                             reason_matched = True
                             break
                     if not reason_matched:

@@ -153,10 +153,118 @@ class DatabaseManager:
             logger.info("Database and Caseroom tables initialized successfully.")
         except Exception as e:
             logger.error(f"Database init failed: {e}")
+            
+            # Saved Cases
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS saved_cases (
+                    id {serial_primary},
+                    case_id TEXT UNIQUE NOT NULL,
+                    user_id TEXT NOT NULL,
+                    case_data TEXT,
+                    analysis_result TEXT,
+                    score REAL,
+                    verdict TEXT,
+                    created_at TEXT,
+                    updated_at TEXT,
+                    tags TEXT
+                )
+            """)
+
+            # Saved Drafts Version History
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS saved_drafts (
+                    id {serial_primary},
+                    case_id TEXT NOT NULL,
+                    draft_type TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    version INTEGER DEFAULT 1,
+                    created_at TEXT,
+                    UNIQUE(case_id, draft_type, version)
+                )
+            """)
+            
+            # --- CASEROOM TABLES ---
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS caserooms (
+                    id {serial_primary},
+                    caseroom_id TEXT UNIQUE NOT NULL,
+                    case_id TEXT NOT NULL,
+                    owner_id TEXT NOT NULL,
+                    status TEXT DEFAULT 'ACTIVE',
+                    created_at TEXT
+                )
+            """)
+
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS caseroom_participants (
+                    id {serial_primary},
+                    caseroom_id TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    role TEXT DEFAULT 'RESEARCHER',
+                    joined_at TEXT,
+                    UNIQUE(caseroom_id, user_id)
+                )
+            """)
+
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS caseroom_messages (
+                    id {serial_primary},
+                    caseroom_id TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    created_at TEXT
+                )
+            """)
+
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS caseroom_documents (
+                    id {serial_primary},
+                    caseroom_id TEXT NOT NULL,
+                    uploader_id TEXT NOT NULL,
+                    file_name TEXT NOT NULL,
+                    file_path TEXT NOT NULL,
+                    doc_type TEXT, 
+                    validation_status TEXT DEFAULT 'PENDING',
+                    extracted_data TEXT, 
+                    version INTEGER DEFAULT 1,
+                    created_at TEXT
+                )
+            """)
+
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS caseroom_tasks (
+                    id {serial_primary},
+                    caseroom_id TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    description TEXT,
+                    due_date TEXT,
+                    status TEXT DEFAULT 'PENDING',
+                    created_at TEXT
+                )
+            """)
+
+            # --- AUDIT LOGS ---
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS audit_logs (
+                    id {serial_primary},
+                    user_id TEXT NOT NULL,
+                    case_id TEXT,
+                    action TEXT NOT NULL,
+                    metadata TEXT,
+                    timestamp TEXT
+                )
+            """)
+
+            conn.commit()
+            conn.close()
+            logger.info("Database and Caseroom tables initialized successfully.")
+        except Exception as e:
+            logger.error(f"Database init failed: {e}")
             raise e
 
     @staticmethod
     def save_case(case_id, user_id, case_data, analysis_result, score, verdict):
+        conn = None
         try:
             conn = DatabaseManager.get_connection()
             cursor = conn.cursor()
@@ -220,46 +328,51 @@ class DatabaseManager:
                     """, (case_id, draft_type, draft_content, next_version, now))
             
             conn.commit()
-            conn.close()
             return True
         except Exception as e:
             logger.error(f"Failed to save case {case_id}: {e}")
             return False
+        finally:
+            if conn: conn.close()
 
     @staticmethod
     def get_case(case_id):
+        conn = None
         try:
             conn = DatabaseManager.get_connection()
             cursor = conn.cursor()
             p = DatabaseManager.get_dialect_placeholder()
             cursor.execute(f"SELECT * FROM saved_cases WHERE case_id = {p}", (case_id,))
             row = cursor.fetchone()
-            conn.close()
             return row
         except Exception as e:
             logger.error(f"Failed to fetch case {case_id}: {e}")
             return None
+        finally:
+            if conn: conn.close()
 
     @staticmethod
     def get_caseroom_by_case_id(case_id):
+        conn = None
         try:
             conn = DatabaseManager.get_connection()
             cursor = conn.cursor()
             p = DatabaseManager.get_dialect_placeholder()
             cursor.execute(f"SELECT caseroom_id FROM caserooms WHERE case_id = {p}", (case_id,))
             row = cursor.fetchone()
-            conn.close()
             return row[0] if row else None
         except Exception as e:
             logger.error(f"Failed to fetch caseroom by case_id {case_id}: {e}")
             return None
+        finally:
+            if conn: conn.close()
 
     @staticmethod
     def create_caseroom(caseroom_id, case_id, owner_id):
+        conn = None
         try:
             conn = DatabaseManager.get_connection()
             cursor = conn.cursor()
-            p = DatabaseManager.get_dialect_placeholder()
             now = datetime.now().isoformat()
             cursor.execute(f"""
                 INSERT INTO caserooms (caseroom_id, case_id, owner_id, created_at)
@@ -267,23 +380,6 @@ class DatabaseManager:
             """, (caseroom_id, case_id, owner_id, now))
             
             # Add owner as Lead Counsel
-            cursor.execute(f"""
-                INSERT INTO caseroom_participants (caseroom_id, user_id, role, joined_at)
-                VALUES ({p}, {p}, 'LEAD_COUNSEL', {p})
-            """, (caseroom_id, owner_id, now))
-            
-            conn.commit()
-            conn.close()
-            return True
-        except Exception as e:
-            logger.error(f"Failed to create caseroom {caseroom_id}: {e}")
-            return False
-
-    @staticmethod
-    def add_participant(caseroom_id, user_id, role="RESEARCHER"):
-        try:
-            conn = DatabaseManager.get_connection()
-            cursor = conn.cursor()
             p = DatabaseManager.get_dialect_placeholder()
             now = datetime.now().isoformat()
             
@@ -446,5 +542,6 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Failed to fetch draft history: {e}")
             return []
+
 
 

@@ -28,7 +28,7 @@ def _get_criminal_precedent(offense_type: str) -> dict:
 
 
 def decide_draft_type(score: int, concepts: List[Dict], case_data: Dict) -> str:
-    concept_names = {c.get("concept", "") for c in concepts}
+    concept_names = {c.get("concept", "") for c in concepts if isinstance(c, dict)}
     case_type = str(case_data.get("case_type", "")).upper()
     role = case_data.get("client_role", "Accused")
     
@@ -56,7 +56,8 @@ def decide_draft_type(score: int, concepts: List[Dict], case_data: Dict) -> str:
         if role == "Complainant":
             return "FIR_DRAFT"
         else:
-            if case_data.get("arrested_during_investigation") == "Yes" or case_data.get("in_custody"):
+            arrested = str(case_data.get("arrested_during_investigation")).lower()
+            if arrested in ("yes", "true", "1") or case_data.get("in_custody"):
                 return "REGULAR_BAIL"
             elif case_data.get("anticipate_arrest") or case_data.get("flight_risk"):
                 return "ANTICIPATORY_BAIL"
@@ -162,7 +163,8 @@ def generate_legal_notice(case_data: Dict, tone: str = "standard") -> str:
 
     # Dynamic Financial Capacity Defense (Basalingappa Rebuttal)
     amount_val = float(case_data.get("cheque_amount") or case_data.get("amount") or 0)
-    is_cash = str(case_data.get("loan_via_bank", "Yes")).lower() != "yes"
+    loan_via_bank = str(case_data.get("loan_via_bank", "yes")).lower()
+    is_cash = loan_via_bank not in ("yes", "true", "1")
     if amount_val > 150000 and is_cash:
         transaction_nature += f". My client specifically asserts possessing sufficient source of funds to the tune of {amount_str} at the time of the transaction, advanced from accumulated personal savings/agricultural income, fully satisfying their financial capacity"
 
@@ -314,7 +316,7 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
 
     # ── DELAY CONDONATION (Advocate Hardening) ───────────────────────────
     delay_para = ""
-    within_30_days = case_data.get("within_30_days", "Yes") == "Yes"
+    within_30_days = str(case_data.get("within_30_days", "yes")).lower() in ("yes", "true", "1")
     if not within_30_days:
         delay_para = f"There has been a technical delay of ____ days in issuing the statutory demand notice, for which a condonation of delay application under Section 142(1)(b) of the NI Act has been filed herewith."
 
@@ -327,7 +329,8 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
         
     # Dynamic Financial Capacity Defense (Basalingappa Rebuttal)
     amount_val = float(case_data.get("cheque_amount") or case_data.get("amount") or 0)
-    is_cash = str(case_data.get("loan_via_bank", "Yes")).lower() != "yes"
+    loan_via_bank = str(case_data.get("loan_via_bank", "yes")).lower()
+    is_cash = loan_via_bank not in ("yes", "true", "1")
     if amount_val > 150000 and is_cash:
         debt_pleading += f" It is specifically averred that the Complainant possessed sufficient source of funds to the tune of {amount_str} at the time of the transaction, which was advanced from accumulated personal savings/agricultural income, and the Complainant has the requisite financial capacity, fully satisfying the legal mandate of 'Basalingappa v. Mudibasappa'."
     
@@ -559,7 +562,7 @@ Date: {today}
 
 def generate_defence_strategy(case_data: Dict, concepts: List[Dict], score: int) -> str:
     today, amount_str = _case_meta(case_data)
-    concept_names = {c.get("concept", "") for c in concepts}
+    concept_names = {c.get("concept", "") for c in concepts if isinstance(c, dict)}
 
     defences_identified = []
     legal_arguments = []
@@ -695,7 +698,7 @@ MOST RESPECTFULLY SHOWETH:
    That the FIR has been instituted with an ulterior motive to wreak vengeance on the Petitioner due to a private and personal dispute. The allegations, even if taken on their face value and accepted in their entirety, do not prima facie constitute any offence or make out a case against the Petitioner, falling squarely within Parameters 1 and 7 laid down in 'State of Haryana v. Bhajan Lal'.
 
 3. PURELY CIVIL DISPUTE GIVEN CRIMINAL COLOR:
-   That the crux of the dispute between the parties is inherently civil/commercial in nature (e.g., breach of contract/partnership dispute). The Complainant is attempting to weaponize the criminal justice system to exert pressure for a civil recovery, which is strictly deprecated by the Hon'ble Supreme Court in 'Indian Oil Corp v. NEPC India'.{precedent_text}
+   That the crux of the dispute between the parties is inherently civil/commercial in nature (e.g., breach of contract/partnership dispute). The Complainant is attempting to weaponize the criminal justice system to exert pressure for a civil recovery, which is strictly deprecated by the Hon'ble Supreme Court in 'Indian Oil Corp v. NEPC India'.
 
 PRAYER:
 It is prayed that this Hon'ble Court may be pleased to quash the impugned FIR No. ________ (FIR No.) and all consequential proceedings emanating therefrom.

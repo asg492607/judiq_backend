@@ -208,7 +208,7 @@ class ReasoningEngine:
                 "concept": "timeline_defect",
                 "principle": "Premature filing u/s 138 NI Act is a fatal defect. Complaint filed before the expiry of the 15-day notice period cannot be validated.",
                 "relevance": 0.97,
-                "trigger": lambda data, concepts: "premature_chronology" in [c["concept"] for c in concepts] or "NOTICE_INVALID" in [c["concept"] for c in concepts] or str(data.get("within_15_days")).lower() == "yes"
+                "trigger": lambda data, concepts: "premature_chronology" in [c.get("concept", "") for c in concepts if isinstance(c, dict)] or "NOTICE_INVALID" in [c.get("concept", "") for c in concepts if isinstance(c, dict)] or str(data.get("within_15_days")).lower() in ("yes", "true", "1")
             },
             "MSRLeathers": {
                 "case": "MSR Leathers vs. S. Palaniappan",
@@ -217,7 +217,7 @@ class ReasoningEngine:
                 "concept": "multiple_presentation",
                 "principle": "Cheque can be presented multiple times. Complainant can file a complaint on subsequent default, provided notice is sent within 30 days.",
                 "relevance": 0.91,
-                "trigger": lambda data, concepts: str(data.get("multiple_notices_sent")).lower() == "yes" or "limitation_issue" in [c["concept"] for c in concepts]
+                "trigger": lambda data, concepts: str(data.get("multiple_notices_sent")).lower() in ("yes", "true", "1") or "limitation_issue" in [c.get("concept", "") for c in concepts if isinstance(c, dict)]
             },
             "BirSingh": {
                 "case": "Bir Singh vs. Mukesh Kumar",
@@ -226,7 +226,7 @@ class ReasoningEngine:
                 "concept": "blank_cheque_defense",
                 "principle": "Inchoate instruments u/s 20. A blank signed cheque handed to the payee implies authorization to fill it, and S.138 still applies.",
                 "relevance": 0.94,
-                "trigger": lambda data, concepts: bool(data.get("handwriting_different")) or "material_alteration" in [c["concept"] for c in concepts] or str(data.get("cheque_issued_blank")).lower() == "yes"
+                "trigger": lambda data, concepts: bool(data.get("handwriting_different")) or "material_alteration" in [c.get("concept", "") for c in concepts if isinstance(c, dict)] or str(data.get("cheque_issued_blank")).lower() in ("yes", "true", "1")
             },
             "ACNarayanan": {
                 "case": "A.C. Narayanan vs. State of Maharashtra",
@@ -271,7 +271,7 @@ class ReasoningEngine:
                 "concept": "security_cheque_defense",
                 "principle": "Once liability crystallizes on the cheque date, even an instrument labeled as a 'security cheque' is fully enforceable u/s 138.",
                 "relevance": 0.96,
-                "trigger": lambda data, concepts: "security_cheque" in [c["concept"] for c in concepts] or str(data.get("cheque_security_claim")).lower() == "yes"
+                "trigger": lambda data, concepts: "security_cheque" in [c.get("concept", "") for c in concepts if isinstance(c, dict)] or str(data.get("cheque_security_claim")).lower() in ("yes", "true", "1")
             },
             "DalmiaCement": {
                 "case": "Dalmia Cement vs. Galaxy Traders",
@@ -280,7 +280,7 @@ class ReasoningEngine:
                 "concept": "limitation_strictness",
                 "principle": "Strict compliance with statutory timelines in Section 138 is mandatory. Deemed notice service rules.",
                 "relevance": 0.90,
-                "trigger": lambda data, concepts: "limitation_issue" in [c["concept"] for c in concepts] or bool(data.get("notice_sent"))
+                "trigger": lambda data, concepts: "limitation_issue" in [c.get("concept", "") for c in concepts if isinstance(c, dict)] or bool(data.get("notice_sent"))
             }
         }
 
@@ -380,7 +380,7 @@ class ReasoningEngine:
     # â”€â”€ 3. Statutory Interpretation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     @staticmethod
     def interpret_statutes(case_data: Dict, concepts: List[Dict]) -> List[Dict]:
-        concept_names = {c["concept"] for c in concepts}
+        concept_names = {c.get("concept", "") for c in concepts if isinstance(c, dict)}
         interpretations: List[Dict] = []
 
         # â”€ Section 138 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -600,7 +600,7 @@ class ReasoningEngine:
         })
 
         # 2. Causal Risk Propagation (AI_INFERENCE)
-        risks = [c for c in concepts if "risk" in c["concept"] or "defect" in c["concept"]]
+        risks = [c for c in concepts if isinstance(c, dict) and ("risk" in c.get("concept", "") or "defect" in c.get("concept", ""))]
         if risks:
             causality_chain = []
             if float(case_data.get("amount") or 0) > 500000 and not case_data.get("complainant_itr_available"):

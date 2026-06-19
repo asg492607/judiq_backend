@@ -1,6 +1,7 @@
 # pyrefly: ignore [missing-import]
 import logging
 import sqlite3
+import asyncio
 from datetime import datetime
 from fastapi import APIRouter, Request, Response, Depends
 from fastapi.responses import JSONResponse
@@ -20,66 +21,16 @@ logger = logging.getLogger("JudiQ.Analysis")
 
 class CaseAnalysisRequest(BaseModel):
     description: Optional[str] = Field(None, max_length=10000)
-    amount: Optional[Any] = 0
-    cheque_present: Optional[Any] = False
-    dishonour_memo: Optional[Any] = False
-    notice_sent: Optional[Any] = False
-    debt_proven: Optional[Any] = False
+    amount: Optional[float] = 0.0
+    cheque_present: Optional[bool] = False
+    dishonour_memo: Optional[bool] = False
+    notice_sent: Optional[bool] = False
+    debt_proven: Optional[bool] = False
     accused_type: Optional[str] = "Individual"
     analysis_mode: Optional[str] = "detailed"
     
     class Config:
-        extra = "allow"
-
-ANALYSIS_CACHE = {}
-
-def get_cache_key(data: dict):
-    import json
-    import hashlib
-    dump = json.dumps(data, sort_keys=True).encode('utf-8')
-    return hashlib.md5(dump).hexdigest()
-
-from schemas import EngineResponse
-
-@router.post(
-    "", 
-    response_model=EngineResponse,
-    summary="Analyze Legal Case",
-    description="Processes raw case facts through the Timeline, Scoring, and Adversarial engines to generate a comprehensive litigation strategy."
-)
-@limiter.limit("5/minute")
-# pyrefly: ignore [missing-import]
-import logging
-import sqlite3
-from datetime import datetime
-from fastapi import APIRouter, Request, Response, Depends
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
-
-from config import settings
-from engine_core import JudiQEngine
-from normalizer import normalize_input, validate_minimum_viability, ValidationError
-from session import DatabaseManager
-from security import AuditLogger, SecurityTelemetry
-from caseroom_logic import CaseroomManager
-from limiter import limiter
-
-router = APIRouter()
-logger = logging.getLogger("JudiQ.Analysis")
-
-class CaseAnalysisRequest(BaseModel):
-    description: Optional[str] = Field(None, max_length=10000)
-    amount: Optional[Any] = 0
-    cheque_present: Optional[Any] = False
-    dishonour_memo: Optional[Any] = False
-    notice_sent: Optional[Any] = False
-    debt_proven: Optional[Any] = False
-    accused_type: Optional[str] = "Individual"
-    analysis_mode: Optional[str] = "detailed"
-    
-    class Config:
-        extra = "allow"
+        extra = "forbid"
 
 ANALYSIS_CACHE = {}
 
@@ -141,7 +92,7 @@ async def analyze(request_data: CaseAnalysisRequest, request: Request):
 
     # 5. Engine execution
     try:
-        result = JudiQEngine.analyze_case(raw_data)
+        result = await asyncio.to_thread(JudiQEngine.analyze_case, raw_data)
     except ValidationError as ve:
         error_msg = getattr(ve, 'message', str(ve))
         return JSONResponse(status_code=422, content={
@@ -186,7 +137,8 @@ async def analyze(request_data: CaseAnalysisRequest, request: Request):
         ANALYSIS_CACHE[cache_key] = result
         
         if uid and cid and uid != "ANONYMOUS":
-            DatabaseManager.save_case(
+            await asyncio.to_thread(
+                DatabaseManager.save_case,
                 cid, 
                 uid, 
                 case_data, 

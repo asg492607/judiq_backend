@@ -133,7 +133,7 @@ class JudicialIntelligenceEngine:
             return courts[court_name]
         # Fuzzy match
         for name, data in courts.items():
-            if name.lower() in court_name.lower() or court_name.lower() in name.lower():
+            if court_name and (name.lower() in court_name.lower() or court_name.lower() in name.lower()):
                 return data
         return self._default_court_analytics(court_name)
 
@@ -143,7 +143,7 @@ class JudicialIntelligenceEngine:
         if judge_name in judges:
             return judges[judge_name]
         for name, data in judges.items():
-            if judge_name.lower() in name.lower():
+            if judge_name and (judge_name.lower() in name.lower()):
                 return data
         return None
 

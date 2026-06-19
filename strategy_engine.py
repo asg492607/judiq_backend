@@ -71,12 +71,12 @@ class StrategyEngine:
         prosecution = {"primary_objective": "Secure Conviction", "tactical_moves": ["File S.143A application."]}
         
         # New checks
-        memo_signed_str = case_data.get("memo_signed", "")
+        memo_signed_str = str(case_data.get("memo_signed", ""))
         if "Unsigned" in memo_signed_str:
             prosecution["tactical_moves"].append("Summon Bank Official as witness under S.311 CrPC to prove dishonour since memo is unsigned.")
             
-        court_att = case_data.get("court_attendance", "")
-        if "Skipping Dates" in court_att or "Absconding" in case_data.get("evasive_conduct", ""):
+        court_att = str(case_data.get("court_attendance", ""))
+        if "Skipping Dates" in court_att or "Absconding" in str(case_data.get("evasive_conduct", "")):
             prosecution["tactical_moves"].append("Apply for Non-Bailable Warrants (NBW) & initiate S.82/83 CrPC proceedings to compel attendance.")
             
         defence_moves = ["Challenge debt provenance."]
