@@ -155,8 +155,8 @@ class AdversarialEngine:
         has_itr = itr_raw in ["yes", "true", "1", "y"]
         itr_missing = not has_itr
 
-        loan_bank_raw = str(case_data.get("loan_via_bank", "yes")).strip().lower()
-        is_cash_loan = loan_bank_raw in ["no", "false", "0", "n", "cash"]
+        transfer_method = str(case_data.get("loan_advanced_via", "")).strip().lower()
+        is_cash_loan = (transfer_method == "cash")
         capacity_threshold = 50000 if is_cash_loan else 200000
         
         if amount >= capacity_threshold and itr_missing:

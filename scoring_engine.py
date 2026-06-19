@@ -124,18 +124,16 @@ class ScoringEngineV12(BaseScoringEngine):
             except Exception:
                 pass
 
-        # 1. Aggressively parse the ITR value (handles booleans, strings, and missing keys)
+        # 1. Grab the exact explicit value from your new frontend dropdown
+        transfer_method = str(case_data.get("loan_advanced_via", "")).strip().lower()
+        is_cash_loan = (transfer_method == "cash")
+
+        # 2. Aggressively parse the ITR value just to be safe
         itr_raw = str(case_data.get("complainant_itr_available", case_data.get("itr_available", ""))).strip().lower()
         has_itr = itr_raw in ["yes", "true", "1", "y"]
-
-        # 2. Safely check for cash. If the frontend doesn't send it, DO NOT assume cash.
-        # Default to False (assuming it was a bank transfer) to prevent false positives.
-        # Our frontend sends 'loan_via_bank' boolean. If missing, assume bank transfer.
-        loan_bank_raw = str(case_data.get("loan_via_bank", "yes")).strip().lower()
-        is_cash_loan = loan_bank_raw in ["no", "false", "0", "n", "cash"]
         
-        # 3. The updated Basalingappa Rule
-        # It now ONLY fires if we strictly know it's cash AND there is no ITR.
+        # 3. The bulletproof Basalingappa Rule
+        # It now ONLY fires if they explicitly selected "Cash" AND don't have an ITR
         if amount > 500000 and is_cash_loan and not has_itr:
             score += PENALTY_BASALINGAPPA_FATAL
             max_score_cap = min(max_score_cap, 25)
