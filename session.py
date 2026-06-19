@@ -373,6 +373,7 @@ class DatabaseManager:
         try:
             conn = DatabaseManager.get_connection()
             cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
             now = datetime.now().isoformat()
             cursor.execute(f"""
                 INSERT INTO caserooms (caseroom_id, case_id, owner_id, created_at)
@@ -380,23 +381,18 @@ class DatabaseManager:
             """, (caseroom_id, case_id, owner_id, now))
             
             # Add owner as Lead Counsel
-            p = DatabaseManager.get_dialect_placeholder()
-            now = datetime.now().isoformat()
-            
-            # Handle dialect differences for IGNORE
             if p == "%s": # Postgres
                 query = f"INSERT INTO caseroom_participants (caseroom_id, user_id, role, joined_at) VALUES ({p}, {p}, {p}, {p}) ON CONFLICT DO NOTHING"
             else: # SQLite
                 query = f"INSERT OR IGNORE INTO caseroom_participants (caseroom_id, user_id, role, joined_at) VALUES ({p}, {p}, {p}, {p})"
                 
-            cursor.execute(query, (caseroom_id, user_id, role, now))
+            cursor.execute(query, (caseroom_id, owner_id, 'Lead Counsel', now))
             conn.commit()
             conn.close()
             return True
         except Exception as e:
-            logger.error(f"Failed to add participant to {caseroom_id}: {e}")
+            logger.error(f"Failed to create caseroom {caseroom_id}: {e}")
             return False
-
     @staticmethod
     def get_caseroom_data(caseroom_id):
         try:

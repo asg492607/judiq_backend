@@ -62,10 +62,10 @@ class BaseScoringEngine:
         trace = []
         causality_map = []
 
-        cheque = bool(case_data.get("cheque_present"))
-        memo = bool(case_data.get("dishonour_memo"))
+        cheque = bool(case_data.get("cheque_present") or case_data.get("original_cheque"))
+        memo = bool(case_data.get("dishonour_memo") or case_data.get("bank_memo_received"))
         notice = bool(case_data.get("notice_sent"))
-        debt = bool(case_data.get("debt_proven"))
+        debt = bool(case_data.get("debt_proven") or case_data.get("agreement_documents") or case_data.get("debt_acknowledgment"))
         amount = cls._to_number(case_data.get("amount", case_data.get("cheque_amount", 0)))
         notice_status = cls.normalize_notice_service_status(case_data)
         within_30 = str(case_data.get("within_30_days", "Yes")).lower() == "yes"
@@ -211,7 +211,7 @@ class BaseScoringEngine:
         reliability = {}
         
         # Cheque Reliability
-        cheque_proof_type = str(case_data.get("cheque_proof_type") or case_data.get("cheque_type") or "original").lower()
+        cheque_proof_type = str(case_data.get("cheque_proof_type") or case_data.get("original_cheque") or case_data.get("cheque_type") or "original").lower()
         if "original" in cheque_proof_type:
             reliability["Cheque"] = {"score": 0.95, "status": "VERIFIED", "attack_risk": "MINIMAL"}
         elif "photocopy" in cheque_proof_type:
