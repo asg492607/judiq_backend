@@ -49,9 +49,9 @@ from schemas import EngineResponse
     description="Processes raw case facts through the Timeline, Scoring, and Adversarial engines to generate a comprehensive litigation strategy."
 )
 @limiter.limit("5/minute")
-async def analyze(request_data: CaseAnalysisRequest, request: Request):
+async def analyze(request_data: Dict[str, Any], request: Request):
     request_id = datetime.now().strftime("%Y%m%d%H%M%S%f")
-    raw_data = request_data.model_dump()
+    raw_data = request_data
     user_id = raw_data.get("user_id", "ANONYMOUS")
     
     # 1. Audit Log
