@@ -202,6 +202,7 @@ def apply_jurisdiction_guards(jurisdiction_info: Dict, concepts: list, final_sco
             concepts.append({
                 "concept": "jurisdictional_defect", 
                 "confidence": 0.95, 
+                "matched_phrases": ["territorial jurisdiction mismatch"],
                 "legal_impact": "FATAL: Wrong territorial jurisdiction. Complaint will be returned under Dashrath Rupsingh Rathod precedent."
             })
         return judicially_adjusted_score

@@ -548,8 +548,9 @@ class JudiQEngine:
                         "complainant_counter": dr.get("rebuttal", ""),
                         "magistrate_view": f"High attention to {dr.get('case_law', 'relevant statutes')}"
                     },
-                    "survival_probability": "65%",
-                    "collapse_risk": "35%"
+                    "survival_probability": f"{100 - (85 if dr.get('severity') == 'CRITICAL' else 65 if dr.get('severity') == 'HIGH' else 35 if dr.get('severity') == 'MEDIUM' else 15)}%",
+                    "collapse_risk": f"{(85 if dr.get('severity') == 'CRITICAL' else 65 if dr.get('severity') == 'HIGH' else 35 if dr.get('severity') == 'MEDIUM' else 15)}%",
+                    "why_applied": dr.get("description", "Applicable based on case facts.")
                 })
 
         # -- 9. Timeline & Simulation -----------------------------------------
