@@ -72,6 +72,9 @@ def map_jurisdiction(case_data: Dict) -> Dict:
     payee_branch = case_data.get("payee_branch") or case_data.get("branch_name") or ""
     payee_bank_city = case_data.get("payee_bank_city") or ""
 
+    if not payee_bank_city and payee_branch:
+        payee_bank_city = _extract_city(payee_branch)
+
     drawer_bank = case_data.get("drawer_bank_name") or ""
     drawer_bank_city = case_data.get("drawer_bank_city") or ""
 
@@ -127,18 +130,6 @@ def map_jurisdiction(case_data: Dict) -> Dict:
             "legal_basis": "Section 142(2) NI Act (2015 Amendment)",
             "confidence": "NONE",
             "warnings": ["Provide payee bank branch location to enable jurisdiction mapping."]
-        }
-
-    supplied_court = str(case_data.get("court_name") or "").strip().lower()
-    if supplied_court and primary_city and primary_city.lower() not in supplied_court:
-        return {
-            "status": "INVALID",
-            "recommended_court": f"{get_court_tier(primary_city)}, {primary_city.title()}",
-            "primary_city": primary_city.title(),
-            "confidence": confidence,
-            "legal_basis": basis,
-            "reason": f"Filed court '{case_data.get('court_name')}' does not align with S.142(2) territorial jurisdiction at {primary_city.title()}.",
-            "warnings": warnings + ["Territorial jurisdiction mismatch triggers a maintainability defect."],
         }
 
     supplied_court = str(case_data.get("court_name") or "").strip().lower()
