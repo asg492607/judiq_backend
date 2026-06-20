@@ -150,7 +150,7 @@ class ResponseBuilder:
             limitation = {"is_premature": False, "notice_delay_days": 0}
 
         structured_weaknesses = []
-        fatal_defect = case_data.get("fatal_defect") or engine_result.get("failure_point")
+        fatal_defect = case_data.get("fatal_defect")
         if fatal_defect:
              structured_weaknesses.append({
                  "risk": "Fatal Defect",
