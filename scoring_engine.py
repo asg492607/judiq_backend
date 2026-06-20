@@ -106,7 +106,7 @@ class ScoringEngineV12(BaseScoringEngine):
 
         accused_name = str(case_data.get("accused_name", "")).lower()
         is_company = any(x in accused_name for x in ["pvt", "ltd", "corp", "inc", "co.", "company"])
-        if is_company and not case_data.get("directors_named"):
+        if is_company and not cls._truthy(case_data.get("directors_named")):
             score += PENALTY_COMPANY_DIRECTOR_NOT_NAMED
             trace.append(f"{PENALTY_COMPANY_DIRECTOR_NOT_NAMED} FATAL: S.141 defect - Directors not named.")
             causality_map.append({"fact": "S.141 Defect", "impact": PENALTY_COMPANY_DIRECTOR_NOT_NAMED, "rationale": "Company prosecution fails without naming responsible officers."})
@@ -237,6 +237,7 @@ class ScoringEngineV12(BaseScoringEngine):
         return {
             "score": int(calibrated_score),
             "final_score": int(calibrated_score),
+            "execution_timestamp": datetime.now().isoformat(),
             "concepts": concepts,
             "raw_heuristic_score": int(final_score),
             "calibration_metadata": {

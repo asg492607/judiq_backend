@@ -1,5 +1,6 @@
 from typing import Dict, List, Any
 import logging
+from utils import days_between
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +69,14 @@ class BaseScoringEngine:
         debt = bool(case_data.get("debt_proven") or case_data.get("agreement_documents") or case_data.get("debt_acknowledgment"))
         amount = cls._to_number(case_data.get("amount", case_data.get("cheque_amount", 0)))
         notice_status = cls.normalize_notice_service_status(case_data)
-        within_30 = cls._truthy(case_data.get("within_30_days", "Yes"))
+        
+        dishonour_date = case_data.get("dishonour_date")
+        notice_date = case_data.get("notice_date")
+        if dishonour_date and notice_date:
+            notice_gap = days_between(dishonour_date, notice_date)
+            within_30 = (notice_gap is not None and notice_gap <= 30)
+        else:
+            within_30 = cls._truthy(case_data.get("within_30_days", "Yes"))
 
         if cheque:
             is_original = cls._truthy(case_data.get("original_cheque")) or "original" in str(case_data.get("cheque_proof_type") or case_data.get("cheque_type") or "").lower()
@@ -194,7 +202,8 @@ class BaseScoringEngine:
     def _truthy(value: Any) -> bool:
         if isinstance(value, bool):
             return value
-        return str(value).strip().lower() in {"yes", "true", "1"}
+        v = str(value).strip().lower()
+        return v in {"yes", "true", "1"} or v.startswith("yes")
 
     @staticmethod
     def _to_number(value: Any, default: float = 0) -> float:
