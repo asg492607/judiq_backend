@@ -1577,7 +1577,7 @@
     "keywords": [
       "dishonour",
       "crystallized liability",
-      "high court of punjab and haryana",
+      "supreme court of india",
       "no debt",
       "cheque bounce",
       "security cheque rebuttal",
@@ -1585,9 +1585,9 @@
       "real case",
       "section 139"
     ],
-    "court": "High Court of Punjab and Haryana",
+    "court": "Supreme Court of India",
     "link": "https://indiankanoon.org/doc/153215452/",
-    "binding": false
+    "binding": true
   },
   {
     "id": "CB-066",
@@ -2172,15 +2172,15 @@
       "crystallized liability",
       "no debt",
       "cheque bounce",
-      "high court of rajasthan",
+      "supreme court of india",
       "security cheque rebuttal",
       "security cheque",
       "real case",
       "section 139"
     ],
-    "court": "High Court of Rajasthan",
+    "court": "Supreme Court of India",
     "link": "https://indiankanoon.org/doc/120305460/",
-    "binding": false
+    "binding": true
   },
   {
     "id": "CB-089",
@@ -4899,13 +4899,13 @@
       "crystallized liability",
       "no debt",
       "cheque bounce",
-      "high court of bombay",
+      "high court of madras",
       "security cheque rebuttal",
       "security cheque",
       "real case",
       "section 139"
     ],
-    "court": "High Court of Bombay",
+    "court": "High Court of Madras",
     "link": "https://indiankanoon.org/doc/1149862/",
     "binding": false
   },

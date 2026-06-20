@@ -421,6 +421,7 @@ class ReasoningEngine:
             })
 
         # â”€ Section 139 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # — Section 139 ————————————————————————————————————————————————————————————————
         sec139 = kb_manager.get_ni_act_section("139")
         interpretations.append({
             "section": "139",
@@ -428,7 +429,7 @@ class ReasoningEngine:
             "status":  "ACTIVE",
             "finding": (
                 "The statutory presumption under S.139 is active in your favour. "
-                "The burden is on the ACCUSED to prove no debt existed, not on you."
+                "However, the accused does NOT have to prove beyond a reasonable doubt; they only need to raise a 'probable defense' on a preponderance of probabilities to shift the burden back to you."
             ) if case_data.get("cheque_present") else (
                 "S.139 presumption is not invocable without a cheque instrument."
             ),

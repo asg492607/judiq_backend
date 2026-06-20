@@ -60,7 +60,7 @@ RISK_CATALOGUE = [
         "risk": "Vicarious Liability Defect (S.141)",
         "severity": "CRITICAL",
         "description": "For corporate accused, failure to specifically name and aver the exact role of directors is fatal per Aneeta Hada (2012).",
-        "rebuttal": "Ensure the complaint contains specific averments that the named directors were 'in charge of and responsible for the conduct of business' with their exact roles described.",
+        "rebuttal": "You must explicitly aver that the named partner/director was 'in charge of, and directly responsible to the firm for the conduct of its business' at the time the offense was committed.",
         "case_law": "Aneeta Hada v. Godfather Travels (2012)"
     },
     {

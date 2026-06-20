@@ -220,44 +220,70 @@ class BaseScoringEngine:
         """
         reliability = {}
         
+        # Electronic Evidence (BSA 2023 Compliance)
+        has_electronic = cls._truthy(case_data.get("has_electronic_evidence", "No")) or bool(case_data.get("communication_records"))
+        has_63_4_cert = (
+            cls._truthy(case_data.get("has_bsa_certificate"))
+            or cls._truthy(case_data.get("has_65b_certificate"))
+            or cls._truthy(case_data.get("s65b_certificate"))
+            or cls._truthy(case_data.get("bsa_certificate", ""))
+        )
+        
+        admissibility_multiplier = 1.0
+        if has_electronic and not has_63_4_cert:
+            reliability["WhatsApp Screenshot"] = {"score": 0.0, "status": "INADMISSIBLE", "attack_risk": "CRITICAL", "reason": "Mandatory S.63(4) BSA Certificate missing (Replacing old 65B). Evidence is legally void."}
+            admissibility_multiplier = 0.3  # Drags down all other pillars
+        elif has_electronic and has_63_4_cert:
+            reliability["WhatsApp/Email"] = {"score": 0.85, "status": "AUTHENTICATED", "attack_risk": "LOW"}
+
         # Cheque Reliability
         is_original = cls._truthy(case_data.get("original_cheque")) or "original" in str(case_data.get("cheque_proof_type") or case_data.get("cheque_type") or "").lower()
         if is_original:
-            reliability["Cheque"] = {"score": 0.95, "status": "VERIFIED", "attack_risk": "MINIMAL"}
+            reliability["Cheque Original"] = {"score": 0.95 * admissibility_multiplier, "status": "VERIFIED", "attack_risk": "MINIMAL"}
         elif "photocopy" in str(case_data.get("cheque_proof_type") or case_data.get("cheque_type") or "").lower():
-            reliability["Cheque"] = {"score": 0.40, "status": "VULNERABLE", "attack_risk": "HIGH", "reason": "Photocopy requires strict secondary evidence foundation (S.61 BSA)."}
+            reliability["Cheque Original"] = {"score": 0.40 * admissibility_multiplier, "status": "VULNERABLE", "attack_risk": "HIGH", "reason": "Photocopy requires strict secondary evidence foundation (S.61 BSA)."}
         else:
-            reliability["Cheque"] = {"score": 0.0, "status": "MISSING", "attack_risk": "CRITICAL", "reason": "Missing core instrument."}
-
-        # Electronic Evidence (BSA 2023 Compliance)
-        has_electronic = cls._truthy(case_data.get("has_electronic_evidence", "No"))
-        has_63_4_cert = cls._truthy(case_data.get("has_65b_certificate", "No")) # Mapped to 63(4) internally
-        
-        if has_electronic:
-            if has_63_4_cert:
-                reliability["WhatsApp/Email"] = {"score": 0.85, "status": "AUTHENTICATED", "attack_risk": "LOW"}
-            else:
-                reliability["WhatsApp Screenshot"] = {"score": 0.0, "status": "INADMISSIBLE", "attack_risk": "CRITICAL", "reason": "Mandatory S.63(4) BSA Certificate missing (Replacing old 65B). Evidence is legally void."}
+            reliability["Cheque Original"] = {"score": 0.0, "status": "MISSING", "attack_risk": "CRITICAL", "reason": "Missing core instrument."}
 
         # Witness Support
         witness_status = str(case_data.get("witness_available", "No")).lower()
         if "multiple" in witness_status:
-            reliability["Witness"] = {"score": 0.85, "status": "STRONG", "attack_risk": "LOW", "reason": "Multiple witnesses provide robust corroboration."}
+            reliability["Witness"] = {"score": 0.85 * admissibility_multiplier, "status": "STRONG", "attack_risk": "LOW", "reason": "Multiple witnesses provide robust corroboration."}
         elif "one" in witness_status:
-            reliability["Witness"] = {"score": 0.60, "status": "ADEQUATE", "attack_risk": "MEDIUM", "reason": "Single witness; susceptible to targeted cross-examination."}
+            reliability["Witness"] = {"score": 0.60 * admissibility_multiplier, "status": "ADEQUATE", "attack_risk": "MEDIUM", "reason": "Single witness; susceptible to targeted cross-examination."}
         else:
-            reliability["Witness"] = {"score": 0.25, "status": "MISSING", "attack_risk": "HIGH", "reason": "No independent corroboration; heavy reliance on documentary evidence."}
+            reliability["Witness"] = {"score": 0.25 * admissibility_multiplier, "status": "MISSING", "attack_risk": "HIGH", "reason": "No independent corroboration; heavy reliance on documentary evidence."}
 
         # Bank Memo
         memo = case_data.get("dishonour_memo", False) or cls._truthy(case_data.get("bank_memo_received", "No"))
         memo_signed_str = str(case_data.get("memo_signed", ""))
         if memo and "Unsigned" in memo_signed_str:
-            reliability["Bank Return Memo"] = {"score": 0.40, "status": "VULNERABLE", "attack_risk": "HIGH", "detail": "Unsigned printout. Requires summoning Bank Official under S.311 CrPC."}
+            reliability["Dishonour Memo"] = {"score": 0.40 * admissibility_multiplier, "status": "VULNERABLE", "attack_risk": "HIGH", "detail": "Unsigned printout. Requires summoning Bank Official under S.311 CrPC."}
         elif memo:
-            reliability["Bank Return Memo"] = {"score": 0.95, "status": "VERIFIED", "attack_risk": "MINIMAL"}
+            reliability["Dishonour Memo"] = {"score": 0.95 * admissibility_multiplier, "status": "VERIFIED", "attack_risk": "MINIMAL"}
         else:
-            reliability["Bank Return Memo"] = {"score": 0.0, "status": "MISSING", "attack_risk": "CRITICAL"}
-        
+            reliability["Dishonour Memo"] = {"score": 0.0, "status": "MISSING", "attack_risk": "CRITICAL"}
+
+        # Notice Compliance
+        notice_sent = case_data.get("notice_sent", False)
+        notice_status = cls.normalize_notice_service_status(case_data)
+        if notice_sent:
+            if notice_status["bucket"] == "FAILED_SERVICE":
+                reliability["Notice (Registered Post)"] = {"score": 0.0, "status": "FAILED", "attack_risk": "CRITICAL"}
+            elif notice_status["bucket"] == "DEEMED_SERVICE":
+                reliability["Notice (Registered Post)"] = {"score": 0.70 * admissibility_multiplier, "status": "DEEMED", "attack_risk": "MEDIUM"}
+            else:
+                reliability["Notice (Registered Post)"] = {"score": 0.90 * admissibility_multiplier, "status": "SERVED", "attack_risk": "LOW"}
+        else:
+            reliability["Notice (Registered Post)"] = {"score": 0.0, "status": "MISSING", "attack_risk": "CRITICAL"}
+            
+        # Debt Proof
+        debt_proven = case_data.get("debt_proven", False)
+        if debt_proven:
+            reliability["Financial Capacity (Basalingappa)"] = {"score": 0.85 * admissibility_multiplier, "status": "PROVEN", "attack_risk": "LOW"}
+        else:
+            reliability["Financial Capacity (Basalingappa)"] = {"score": 0.30 * admissibility_multiplier, "status": "VULNERABLE", "attack_risk": "HIGH"}
+
         return reliability
 
     @classmethod
