@@ -68,7 +68,7 @@ class BaseScoringEngine:
         debt = bool(case_data.get("debt_proven") or case_data.get("agreement_documents") or case_data.get("debt_acknowledgment"))
         amount = cls._to_number(case_data.get("amount", case_data.get("cheque_amount", 0)))
         notice_status = cls.normalize_notice_service_status(case_data)
-        within_30 = str(case_data.get("within_30_days", "Yes")).lower() == "yes"
+        within_30 = cls._truthy(case_data.get("within_30_days", "Yes"))
 
         if cheque:
             cheque_type = str(case_data.get("cheque_proof_type") or case_data.get("cheque_type") or "original").lower()
@@ -151,7 +151,7 @@ class BaseScoringEngine:
             cls._truthy(case_data.get("has_bsa_certificate"))
             or cls._truthy(case_data.get("has_65b_certificate"))
             or cls._truthy(case_data.get("s65b_certificate"))
-            or str(case_data.get("bsa_certificate", "")).strip().lower() == "yes"
+            or cls._truthy(case_data.get("bsa_certificate", ""))
         )
         if not has_electronic or has_certificate:
             return {"score_delta": 0, "trace": [], "causality_map": [], "cap": None}
@@ -220,8 +220,8 @@ class BaseScoringEngine:
             reliability["Cheque"] = {"score": 0.0, "status": "MISSING", "attack_risk": "CRITICAL", "reason": "Missing core instrument."}
 
         # Electronic Evidence (BSA 2023 Compliance)
-        has_electronic = str(case_data.get("has_electronic_evidence", "No")).lower() == "yes"
-        has_63_4_cert = str(case_data.get("has_65b_certificate", "No")).lower() == "yes" # Mapped to 63(4) internally
+        has_electronic = cls._truthy(case_data.get("has_electronic_evidence", "No"))
+        has_63_4_cert = cls._truthy(case_data.get("has_65b_certificate", "No")) # Mapped to 63(4) internally
         
         if has_electronic:
             if has_63_4_cert:
@@ -239,7 +239,7 @@ class BaseScoringEngine:
             reliability["Witness"] = {"score": 0.25, "status": "MISSING", "attack_risk": "HIGH", "reason": "No independent corroboration; heavy reliance on documentary evidence."}
 
         # Bank Memo
-        memo = case_data.get("dishonour_memo", False) or case_data.get("bank_memo_received") == "Yes"
+        memo = case_data.get("dishonour_memo", False) or cls._truthy(case_data.get("bank_memo_received", "No"))
         memo_signed_str = str(case_data.get("memo_signed", ""))
         if memo and "Unsigned" in memo_signed_str:
             reliability["Bank Return Memo"] = {"score": 0.40, "status": "VULNERABLE", "attack_risk": "HIGH", "detail": "Unsigned printout. Requires summoning Bank Official under S.311 CrPC."}
