@@ -71,8 +71,9 @@ class BaseScoringEngine:
         within_30 = cls._truthy(case_data.get("within_30_days", "Yes"))
 
         if cheque:
-            cheque_type = str(case_data.get("cheque_proof_type") or case_data.get("cheque_type") or "original").lower()
-            cheque_points = PILLAR_CHEQUE_ORIGINAL if "original" in cheque_type else PILLAR_CHEQUE_PHOTOCOPY
+            is_original = cls._truthy(case_data.get("original_cheque")) or "original" in str(case_data.get("cheque_proof_type") or case_data.get("cheque_type") or "").lower()
+            cheque_type = "original" if is_original else "photocopy"
+            cheque_points = PILLAR_CHEQUE_ORIGINAL if is_original else PILLAR_CHEQUE_PHOTOCOPY
             score_delta += cheque_points
             trace.append(f"Instrument Admissibility: {cheque_type.title()} instrument verified (+{cheque_points}).")
             causality_map.append({"fact": f"Cheque ({cheque_type})", "impact": cheque_points, "type": "positive", "rationale": "Possession of the original instrument is foundational under S.138."})
@@ -211,10 +212,10 @@ class BaseScoringEngine:
         reliability = {}
         
         # Cheque Reliability
-        cheque_proof_type = str(case_data.get("cheque_proof_type") or case_data.get("original_cheque") or case_data.get("cheque_type") or "original").lower()
-        if "original" in cheque_proof_type:
+        is_original = cls._truthy(case_data.get("original_cheque")) or "original" in str(case_data.get("cheque_proof_type") or case_data.get("cheque_type") or "").lower()
+        if is_original:
             reliability["Cheque"] = {"score": 0.95, "status": "VERIFIED", "attack_risk": "MINIMAL"}
-        elif "photocopy" in cheque_proof_type:
+        elif "photocopy" in str(case_data.get("cheque_proof_type") or case_data.get("cheque_type") or "").lower():
             reliability["Cheque"] = {"score": 0.40, "status": "VULNERABLE", "attack_risk": "HIGH", "reason": "Photocopy requires strict secondary evidence foundation (S.61 BSA)."}
         else:
             reliability["Cheque"] = {"score": 0.0, "status": "MISSING", "attack_risk": "CRITICAL", "reason": "Missing core instrument."}
