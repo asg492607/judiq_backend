@@ -83,28 +83,29 @@ def scan_fatal_defects(case_data, contradictions, adversarial_result, limitation
     is_fatal = False
     fatal_reason = ""
     
-    # 1. Check Contradictions
-    for contra in contradictions:
-        if contra.get("penalty", 0) <= -50 or "Fatal" in contra.get("remediation", "") or "DO NOT FILE" in contra.get("remediation", ""):
-            return True, contra.get("issue", "Critical Defect")
-            
-    # 2. Hardcoded fatal_defect in case_data
+    # 1. Hardcoded fatal_defect in case_data (Generated mathematically by core engine)
     if case_data.get("fatal_defect"):
         return True, str(case_data.get("fatal_defect"))
         
-    # 3. Adversarial Fatalities
+    # 2. Adversarial Fatalities (Strictly governed by rules in adversarial_engine)
     if "analysis_nodes" in adversarial_result:
         for node in adversarial_result["analysis_nodes"]:
             if node.get("severity") == "FATAL":
                 return True, node.get("risk_explained", "Fatal Adversarial Risk")
                 
-    # 4. OCR / Evidentiary Fraud
+    # 3. OCR / Evidentiary Fraud
     if verification_penalties < 0:
         return True, "Evidentiary Fraud / Document Intelligence Override"
         
-    # 5. Timeline / Notice Service Fatalities
+    # 4. Timeline / Notice Service Fatalities
     if limitation.get("fatal_defect") or limitation.get("is_premature") or limitation.get("status") in {"NOTICE_INVALID", "TIME_BARRED", "EXPIRED"}:
         return True, limitation.get("fatal_defect", "Invalid Timeline/Notice Issue")
+
+    # 5. Territorial Jurisdiction Bar
+    if jurisdiction_info and jurisdiction_info.get("status") == "INVALID":
+        return True, "Court lacks territorial jurisdiction over the subject matter."
+
+    return False, ""
         
         
     # 6. Territorial Jurisdiction (S.142(2) NI Act)

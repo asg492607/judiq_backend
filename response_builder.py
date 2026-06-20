@@ -430,10 +430,12 @@ class ResponseBuilder:
         base_draft = ResponseBuilder._prefix_text(base_draft, "Rule-Based")
 
         return {
-            "score":              score,
-            "final_score":        score,
-            "verdict":            verdict,
-            "risk_level":         risk_level,
+            "score": score,
+            "final_score": score,
+            "verdict": verdict,
+            "risk_level": risk_level,
+            "diagnostic_status": "V3-ORCHESTRATOR-LIVE",
+            "jurisdiction": engine_result.get("jurisdiction_info"),
             "analysis_confidence": confidence_score,
             "decision":           decision,
             "strengths":          strengths,
