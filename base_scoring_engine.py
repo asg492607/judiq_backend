@@ -279,7 +279,11 @@ class BaseScoringEngine:
             
         # Debt Proof
         debt_proven = case_data.get("debt_proven", False)
-        if debt_proven:
+        agreement_type = str(case_data.get("agreement_type", "")).strip()
+        
+        if agreement_type == "Commercial Invoice":
+            reliability["Commercial Transaction (Sunil Todi)"] = {"score": 0.90 * admissibility_multiplier, "status": "PRESUMED", "attack_risk": "MINIMAL"}
+        elif debt_proven:
             reliability["Financial Capacity (Basalingappa)"] = {"score": 0.85 * admissibility_multiplier, "status": "PROVEN", "attack_risk": "LOW"}
         else:
             reliability["Financial Capacity (Basalingappa)"] = {"score": 0.30 * admissibility_multiplier, "status": "VULNERABLE", "attack_risk": "HIGH"}
