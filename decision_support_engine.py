@@ -136,10 +136,32 @@ class DecisionSupportEngine:
     """
 
     @staticmethod
-    def identify_risks_and_rebuttals(concepts: List[Dict], case_data: Dict) -> List[Dict]:
+    def identify_risks_and_rebuttals(concepts: List[Dict], case_data: Dict, limitation_status: str = "") -> List[Dict]:
         concept_names = {c["concept"] for c in concepts}
         risks: List[Dict] = []
         seen_risks: set = set()
+        
+        has_condonation = str(case_data.get("condonation_attached", "")).lower() in ["yes", "true", "1"] or str(case_data.get("condonation_attached", "")).startswith("yes")
+        
+        if limitation_status in ("TIME_BARRED", "EXPIRED"):
+            if not has_condonation:
+                seen_risks.add("Jurisdictional Bar: Limitation Period Expired")
+                risks.append({
+                    "risk": "Jurisdictional Bar: Limitation Period Expired",
+                    "severity": "CRITICAL",
+                    "description": "The complaint has been filed past the strict 30-day statutory window. Unless condoned, the court lacks jurisdiction to take cognizance.",
+                    "rebuttal": "Immediately file an application for Condonation of Delay under the proviso to Section 142(1)(b) of the NI Act.",
+                    "case_law": "Section 142(1)(b) Proviso"
+                })
+            else:
+                seen_risks.add("Condonation of Delay Required")
+                risks.append({
+                    "risk": "Condonation of Delay Required",
+                    "severity": "HIGH",
+                    "description": "The complaint is technically time-barred but a Condonation Application is attached. The court must be convinced of 'sufficient cause'.",
+                    "rebuttal": "Ensure the affidavit clearly explains the specific daily delay. Medical or administrative reasons must be backed by documentary proof.",
+                    "case_law": "Pawan Kumar Ralli v. Maninder Singh Narula (2014)"
+                })
 
         for rule in RISK_CATALOGUE:
             concept_trigger = rule.get("concept_trigger")
@@ -167,12 +189,22 @@ class DecisionSupportEngine:
 
             if fired:
                 seen_risks.add(risk_key)
+                
+                rebuttal = rule["rebuttal"]
+                case_law = rule.get("case_law", "")
+                
+                if risk_key == "Security Cheque Defense (S.138)":
+                    agreement_type = str(case_data.get("agreement_type", "")).lower()
+                    if "invoice" in agreement_type or "bill" in agreement_type:
+                        rebuttal = "Counter via S.139 presumption. Per 'Sunil Todi v. State of Gujarat (2021)', a cheque issued as security for a commercial supply/invoice is enforceable if the debt matures by the date of presentation."
+                        case_law = "Sunil Todi v. State of Gujarat (2021)"
+
                 risks.append({
                     "risk":        risk_key,
                     "severity":    rule["severity"],
                     "description": rule["description"],
-                    "rebuttal":    rule["rebuttal"],
-                    "case_law":    rule.get("case_law", "")
+                    "rebuttal":    rebuttal,
+                    "case_law":    case_law
                 })
 
         # Sort: FATAL → CRITICAL → HIGH → MEDIUM

@@ -98,8 +98,14 @@ def scan_fatal_defects(case_data, contradictions, adversarial_result, limitation
         return True, "Evidentiary Fraud / Document Intelligence Override"
         
     # 4. Timeline / Notice Service Fatalities
-    if limitation.get("fatal_defect") or limitation.get("is_premature") or limitation.get("status") in {"NOTICE_INVALID", "TIME_BARRED", "EXPIRED"}:
+    limitation_status = limitation.get("status")
+    has_condonation = str(case_data.get("condonation_attached", "")).lower() in ["yes", "true", "1"] or str(case_data.get("condonation_attached", "")).startswith("yes")
+
+    if limitation.get("fatal_defect") or limitation.get("is_premature") or limitation_status == "NOTICE_INVALID":
         return True, limitation.get("fatal_defect", "Invalid Timeline/Notice Issue")
+        
+    if limitation_status in {"TIME_BARRED", "EXPIRED"} and not has_condonation:
+        return True, "Limitation Period Expired (No Condonation Application Attached)"
 
     # 5. Territorial Jurisdiction Bar
     if jurisdiction_info and jurisdiction_info.get("status") == "INVALID":
@@ -523,16 +529,17 @@ class JudiQEngine:
             fallback="à¤®à¤œà¤¬à¥‚à¤¤ à¤®à¤¾à¤®à¤²à¤¾",
             context="DecisionSupportEngine.translate"
         )
-        evidence_suggestions = _safe_call(
-            decision_engine.suggest_evidence_gaps, case_data,
-            fallback=[],
-            context="DecisionSupportEngine.evidence"
-        )
-        decision_risks = _safe_call(
-            decision_engine.identify_risks_and_rebuttals, concepts, case_data,
-            fallback=[],
-            context="DecisionSupportEngine.risks"
-        )
+        if decision_engine:
+            evidence_suggestions = _safe_call(
+                decision_engine.suggest_evidence_gaps, case_data,
+                fallback=[],
+                context="DecisionSupportEngine.evidence"
+            )
+            decision_risks = _safe_call(
+                decision_engine.identify_risks_and_rebuttals, concepts, case_data, limitation.get("status", ""),
+                fallback=[],
+                context="DecisionSupportEngine.risks"
+            )
         
         # -- 8. Integrated Adversarial Analysis -------------------------------
         # Merge risks from both engines with Deduplication (Contextual Severity Engine)
