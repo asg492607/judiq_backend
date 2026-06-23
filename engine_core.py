@@ -8,7 +8,10 @@ logger = logging.getLogger(__name__)
 
 # â”€â”€ Safe Fallback Builder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def _safe_call(fn, *args, fallback, context=""):
-    """Call fn(*args); on any exception return fallback and log the error."""
+    """
+    Safely executes a function with a guaranteed fallback on failure.
+    Logs the exception with context to prevent silent failures in the engine pipeline.
+    """
     try:
         return fn(*args)
     except Exception as exc:
