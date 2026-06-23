@@ -546,6 +546,16 @@ class JudiQEngine:
         if "risks_and_rebuttals" not in adversarial_result:
             adversarial_result["risks_and_rebuttals"] = []
             
+        agreement_type = str(case_data.get("agreement_type", "")).strip()
+        is_commercial = agreement_type == "Commercial Invoice"
+        
+        # Deduplicate generic security cheque if commercial (leaving only Sunil Todi)
+        if is_commercial:
+            adversarial_result["risks_and_rebuttals"] = [
+                r for r in adversarial_result["risks_and_rebuttals"] 
+                if "security cheque" not in str(r.get("adversarial_vector", "")).lower()
+            ]
+            
         existing_risk_titles = {str(r.get("adversarial_vector", r.get("risk", ""))).lower() for r in adversarial_result["risks_and_rebuttals"]}
         
         for dr in decision_risks:

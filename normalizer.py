@@ -248,16 +248,20 @@ def normalize_input(data: dict) -> dict:
         "accused_city":     _safe_str(data.get("accused_city", ""), 100, "accused_city"),
 
         # Dishonour details
-        "dishonour_date":    _safe_str(data.get("dishonour_date",    ds_obj.get("dishonour_date",    "")), 30, "dishonour_date"),
-        "memo_date":         _safe_str(data.get("memo_date",         ds_obj.get("memo_date",         "")), 30, "memo_date"),
+        "dishonour_date":    _safe_str(data.get("dishonour_date", ds_obj.get("dishonour_date", ds_obj.get("date", ""))), 30, "dishonour_date"),
         "dishonour_reason":  dishonour_reason,
+        "memo_date":         _safe_str(data.get("memo_date",         ds_obj.get("memo_date",         "")), 30, "memo_date"),
         "presentation_date": _safe_str(data.get("presentation_date", ds_obj.get("presentation_date", "")), 30, "presentation_date"),
         "memo_signed":       _safe_str(data.get("memo_signed", ""), 50, "memo_signed"),
 
+        # What-If Toggles (Scenario Modeler)
+        "condonation_attached": _safe_bool(data.get("condonation_attached", False)),
+        "agreement_type": _safe_str(data.get("agreement_type", tx_obj.get("agreement_type", "")), 100, "agreement_type"),
+
         # Notice details
-        "notice_date":          _safe_str(data.get("notice_date",     nt_obj.get("notice_date",     "")), 30, "notice_date"),
+        "notice_date":          _safe_str(data.get("notice_date",     nt_obj.get("date_sent", "")), 30, "notice_date"),
         "notice_mode":          _safe_str(data.get("notice_mode",     nt_obj.get("notice_mode",     "")), 50, "notice_mode"),
-        "notice_received_type": _safe_str(data.get("notice_received", nt_obj.get("notice_received", "")), 30, "notice_received"),
+        "notice_received_type": _safe_str(data.get("notice_received_type", nt_obj.get("delivery_status", "Success")), 50),
         "notice_received_date": _safe_str(data.get("notice_received_date", nt_obj.get("notice_received_date", "")), 30, "notice_received_date"),
 
         # Timeline

@@ -179,10 +179,15 @@ class BaseScoringEngine:
         trace = []
         causality_map = []
 
+        condonation_attached = str(case_data.get("condonation_attached", "")).strip().lower() in ("true", "1", "yes")
         if "limitation_issue" in concept_names or limitation.get("is_barred") or limitation.get("fatal_defect"):
-            score_delta += PENALTY_LIMITATION
-            trace.append(f"{PENALTY_LIMITATION} CRITICAL: Limitation Period delay/jurisdictional bar.")
-            causality_map.append({"fact": "Limitation Delay", "impact": PENALTY_LIMITATION, "rationale": "Limitation is a jurisdictional bar."})
+            if not condonation_attached:
+                score_delta += PENALTY_LIMITATION
+                trace.append(f"{PENALTY_LIMITATION} CRITICAL: Limitation Period delay/jurisdictional bar.")
+                causality_map.append({"fact": "Limitation Delay", "impact": PENALTY_LIMITATION, "rationale": "Limitation is a jurisdictional bar."})
+            else:
+                trace.append("0 INFO: Limitation Period delay cured via Condonation Application.")
+                causality_map.append({"fact": "Limitation Delay", "impact": 0, "rationale": "Jurisdictional bar mitigated via condonation application."})
 
         if "notice_defect" in concept_names:
             score_delta += PENALTY_NOTICE_DEFECT

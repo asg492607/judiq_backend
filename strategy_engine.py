@@ -19,8 +19,8 @@ class StrategyEngine:
         return {
             "litigation_map": StrategyEngine.generate_litigation_map(case_data, score, concepts),
             "economics": StrategyEngine.calculate_economics(case_data, score),
-            "roadmap": AdversarialEngine.calculate_stage_survivability(score, adversarial_risk),
-            "checkpoints": StrategyEngine.get_advocate_checkpoints(score)
+            "roadmap": AdversarialEngine.calculate_stage_survivability(score, adversarial_risk, case_data.get("condonation_attached", False)),
+            "checkpoints": StrategyEngine.get_advocate_checkpoints(score, case_data)
         }
 
     @staticmethod
@@ -47,28 +47,75 @@ class StrategyEngine:
         }
 
     @staticmethod
-    def generate_procedural_roadmap(score: int) -> List[Dict]:
+    def generate_procedural_roadmap(score: int, case_data: Dict = None) -> List[Dict]:
         """Actionable tactical roadmap."""
-        return [
+        roadmap = []
+        
+        if case_data:
+            accused_type = str(case_data.get("accused_type", "")).lower()
+            accused_name = str(case_data.get("accused_name", "")).lower()
+            is_company = accused_type in {"company", "pvt ltd/ltd company", "partnership firm"} or any(
+                x in accused_name for x in ["pvt", "ltd", "corp", "inc", "co.", "company"]
+            )
+            directors_named = case_data.get("directors_named", False)
+            
+            if is_company and not directors_named:
+                roadmap.append({
+                    "stage": "Drafting", 
+                    "objective": "1. Copy the injected Section 141 management clause into paragraph 3 of your complaint draft to reclaim +5 points and remove the threshold maintainability risk.", 
+                    "priority": "FATAL"
+                })
+
+        # Context-Aware Precedent Selection for Security Cheque
+        agreement_type = str(case_data.get("agreement_type", "")).lower()
+        if "invoice" in agreement_type or "commercial" in agreement_type or "business" in agreement_type:
+            security_precedent = "Sunil Todi v. State of Gujarat (2021) for commercial supply security cheques"
+        else:
+            security_precedent = "Sampelly Satyanarayana Rao precedent for loan security cheques"
+
+        roadmap.extend([
             {"stage": "Pre-Trial", "objective": "Secure Section 143A Interim Compensation (20% of cheque amount).", "priority": "CRITICAL"},
-            {"stage": "Evidence", "objective": "Verify S.65B Certificate for digital records.", "priority": "HIGH"},
-            {"stage": "Cross-Exam", "objective": "Rebut 'Security Cheque' defense via Sampelly Satyanarayana Rao precedent.", "priority": "MEDIUM"}
-        ]
+            {"stage": "Evidence", "objective": "Verify S.63(4) BSA Certificate for digital records.", "priority": "HIGH"},
+            {"stage": "Cross-Exam", "objective": f"Rebut 'Security Cheque' defense via {security_precedent}.", "priority": "MEDIUM"}
+        ])
+        return roadmap
 
     @staticmethod
-    def get_advocate_checkpoints(score: int) -> List[str]:
+    def get_advocate_checkpoints(score: int, case_data: Dict = None) -> List[str]:
         """Human override and validation points."""
-        return [
+        checkpoints = []
+        if case_data:
+            accused_type = str(case_data.get("accused_type", "")).lower()
+            accused_name = str(case_data.get("accused_name", "")).lower()
+            is_company = accused_type in {"company", "pvt ltd/ltd company", "partnership firm"} or any(
+                x in accused_name for x in ["pvt", "ltd", "corp", "inc", "co.", "company"]
+            )
+            directors_named = case_data.get("directors_named", False)
+            if is_company and not directors_named:
+                checkpoints.append("1. Copy the injected Section 141 management clause into paragraph 3 of your complaint draft to reclaim +5 points and remove the threshold maintainability risk.")
+        
+        checkpoints.extend([
             "MANDATORY: Verify original AD Card signature before filing affidavit of service.",
             "STRATEGIC: Consult Senior Counsel if 'Financial Capacity' is challenged via S.91 application.",
             "DISCRETIONARY: Evaluate accused's social standing for 'Stop Payment' tactic rebuttal."
-        ]
+        ])
+        return checkpoints
 
     @staticmethod
     def generate_litigation_map(case_data: Dict, score: float, concepts: List[Dict], detected_defences: List[Dict] = None) -> Dict[str, Any]:
         # Keep existing map logic but wrap it
         concept_names = {c.get("concept") for c in concepts if isinstance(c, dict)}
         prosecution = {"primary_objective": "Secure Conviction", "tactical_moves": ["File S.143A application."]}
+        
+        accused_type = str(case_data.get("accused_type", "")).lower()
+        accused_name = str(case_data.get("accused_name", "")).lower()
+        is_company = accused_type in {"company", "pvt ltd/ltd company", "partnership firm"} or any(
+            x in accused_name for x in ["pvt", "ltd", "corp", "inc", "co.", "company"]
+        )
+        directors_named = case_data.get("directors_named", False)
+        if is_company and not directors_named:
+            prosecution["tactical_moves"].insert(0, "1. Copy the injected Section 141 management clause into paragraph 3 of your complaint draft to reclaim +5 points and remove the threshold maintainability risk.")
+            
         
         # New checks
         memo_signed_str = str(case_data.get("memo_signed", ""))

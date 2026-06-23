@@ -321,6 +321,14 @@ class ResponseBuilder:
             recommended_action, decision_label, decision_detail = "CONSIDER_SETTLEMENT", "Consider Strategic Settlement", f"Case has significant vulnerabilities ({score}/100)."
             next_steps = ["Draft settlement proposal", "Evaluate time-value of money"]
 
+        accused_type = str(case_data.get("accused_type", "")).lower()
+        accused_name = str(case_data.get("accused_name", "")).lower()
+        is_company = accused_type in {"company", "pvt ltd/ltd company", "partnership firm"} or any(
+            x in accused_name for x in ["pvt", "ltd", "corp", "inc", "co.", "company"]
+        )
+        if is_company and not case_data.get("directors_named", False):
+            next_steps.insert(0, "1. Copy the injected Section 141 management clause into paragraph 3 of your complaint draft to reclaim +5 points and remove the threshold maintainability risk.")
+
         # Counter-strategies mapped to top risks for UI display
         counter_strategies = {
             "Fatal Defect": "Withdraw and re-file after curing the defect, or consider civil recovery.",

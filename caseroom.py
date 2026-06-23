@@ -79,7 +79,13 @@ async def send_caseroom_message(room_id: str, request: Request):
         
         # AI Simulator Logic
         if "@JudiQ" in content:
-            prompt = f"You are an adversarial opposing counsel in an Indian courtroom. The defense lawyer just said: '{content}'. Cross-examine them aggressively but professionally to find logical gaps. Keep it to 2-3 sentences."
+            state = CaseroomManager.get_full_caseroom_state(room_id)
+            latest_analysis = state.get("latest_analysis") or {} if state else {}
+            causality_map = latest_analysis.get("causality_map", [])
+            vulnerabilities = [c["fact"] for c in causality_map if c.get("impact", 0) < 0]
+            vuln_str = ", ".join(vulnerabilities) if vulnerabilities else "none"
+            
+            prompt = f"You are an adversarial opposing counsel in an Indian courtroom. The case currently has the following lingering vulnerabilities: {vuln_str}. Target these specific gaps. The defense lawyer just said: '{content}'. Cross-examine them aggressively but professionally to find logical gaps based on these vulnerabilities. Keep it to 2-3 sentences."
             try:
                 llm_response = await asyncio.to_thread(_invoke_llm, prompt, 200, None)
                 ai_text = llm_response if llm_response else "Objection, your honor. The statement lacks merit."

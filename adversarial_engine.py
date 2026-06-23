@@ -113,7 +113,7 @@ class AdversarialEngine:
     }
 
     @classmethod
-    def calculate_stage_survivability(cls, score: int, adversarial_risk: float) -> List[Dict]:
+    def calculate_stage_survivability(cls, score: int, adversarial_risk: float, has_condonation: bool = False) -> List[Dict]:
         """Calculates quantified probability of surviving each stage of litigation."""
         roadmap = []
         current_risk_multiplier = 1.0 - (adversarial_risk * 0.7) # Aggressive risk weighting
@@ -123,6 +123,11 @@ class AdversarialEngine:
             
             if stage["id"] == "cross_exam":
                 prob *= 0.75 # Heaviest collapse point
+                
+            if stage["id"] == "limitation" and has_condonation:
+                # Flatline the massive drop if a condonation framework is actively attached
+                # Minor 5% procedural drop for realism (risk of application being challenged)
+                prob = max(prob, 0.95 * (score / 100.0))
                 
             roadmap.append({
                 "stage": stage["name"],
