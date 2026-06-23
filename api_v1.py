@@ -9,5 +9,5 @@ api_router.include_router(verification.router, prefix="/verify", tags=["Verifica
 api_router.include_router(documents.router, prefix="/documents", tags=["Documents"])
 api_router.include_router(cases.router, prefix="/cases", tags=["Cases"])
 
-
+# Observability & Metrics
 api_router.include_router(telemetry.router, prefix="/telemetry", tags=["Telemetry"])
