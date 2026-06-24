@@ -377,14 +377,210 @@ class PDFGenerator:
         Generate a professional legal draft PDF from raw text.
         Applies monospaced/legal formatting for court submissions.
         """
+                    elements.append(Paragraph(f"• {event_text}", body_style))
+                    elements.append(Spacer(1, 0.05*inch))
+                
+                elements.append(Spacer(1, 0.2*inch))
+            
+            # ===== LEGAL ANALYSIS =====
+            # legal_analysis may be a str (joined text) or a dict — handle both
+            legal_analysis = analysis_result.get('legal_analysis', '')
+            reasoning_lines = []
+            if isinstance(legal_analysis, dict):
+                reasoning_lines = legal_analysis.get('reasoning', [])
+            elif isinstance(legal_analysis, str) and legal_analysis.strip():
+                # Split the joined string back into individual lines
+                reasoning_lines = [l.strip() for l in legal_analysis.split('\n') if l.strip()]
+            elif isinstance(legal_analysis, list):
+                reasoning_lines = legal_analysis
+
+            if reasoning_lines:
+                reasoning_elements = []
+                reasoning_elements.append(Paragraph("Legal Reasoning", heading_style))
+                reasoning_elements.append(Spacer(1, 0.1*inch))
+                for reason in reasoning_lines:
+                    reason_text = reason if isinstance(reason, str) else str(reason)
+                    reasoning_elements.append(Paragraph(f"\u2192 {reason_text}", body_style))
+                    reasoning_elements.append(Spacer(1, 0.05*inch))
+                reasoning_elements.append(Spacer(1, 0.2*inch))
+                elements.append(KeepTogether(reasoning_elements))
+            
+            # ===== DEFENCE STRATEGIES =====
+            defences = analysis_result.get('defence_strategy', [])
+            if defences:
+                elements.append(Paragraph("Predicted Defence Strategies", heading_style))
+                elements.append(Spacer(1, 0.1*inch))
+                
+                defence_data = []
+                defence_data.append(['Argument', 'Probability', 'Strength'])
+                
+                for defence in defences[:5]:  # Top 5 defences
+                    if not isinstance(defence, dict):
+                        continue
+                    arg = defence.get('argument', 'N/A')
+                    prob = f"{defence.get('success_probability', 0)}%"
+                    strength = defence.get('strength', 'N/A')
+                    defence_data.append([Paragraph(arg, body_style), prob, Paragraph(strength, body_style)])
+                
+                defence_table = Table(defence_data, colWidths=[3.5*inch, 1.2*inch, 1.3*inch])
+                defence_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495e')),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 10),
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                    ('FONTSIZE', (0, 1), (-1, -1), 9),
+                    ('PADDING', (0, 0), (-1, -1), 8),
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                    ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f9fa')])
+                ]))
+                
+                elements.append(defence_table)
+                elements.append(Spacer(1, 0.2*inch))
+            
+            # ===== SEMANTIC CONCEPTS =====
+            semantic = analysis_result.get('semantic_analysis', {})
+            concepts = semantic.get('concepts_detected', [])
+            if concepts:
+                concept_elements = []
+                concept_elements.append(Paragraph("Legal Concepts Detected", heading_style))
+                concept_elements.append(Spacer(1, 0.1*inch))
+                
+                concept_data = []
+                concept_data.append(['Concept', 'Confidence', 'Impact'])
+                
+                for concept in concepts[:8]:  # Top 8 concepts
+                    if not isinstance(concept, dict):
+                        continue
+                    name = concept.get('concept', 'N/A').replace('_', ' ').title()
+                    conf = f"{int(concept.get('confidence', 0) * 100)}%"
+                    impact_raw = concept.get('legal_impact', 'N/A') or 'N/A'
+                    impact = (impact_raw[:50] + '...') if len(impact_raw) > 50 else impact_raw
+                    concept_data.append([Paragraph(name, body_style), conf, Paragraph(impact, body_style)])
+                
+                concept_table = Table(concept_data, colWidths=[2*inch, 1*inch, 3*inch])
+                concept_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495e')),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 10),
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                    ('FONTSIZE', (0, 1), (-1, -1), 9),
+                    ('PADDING', (0, 0), (-1, -1), 8),
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                    ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f9fa')])
+                ]))
+                
+                concept_elements.append(concept_table)
+                concept_elements.append(Spacer(1, 0.2*inch))
+                elements.append(KeepTogether(concept_elements))
+            
+            # ===== STATUTORY INTERPRETATION (NEW) =====
+            statutes = analysis_result.get('statutory_interpretation', [])
+            if statutes:
+                elements.append(Paragraph("Statutory Interpretation (NI Act)", heading_style))
+                elements.append(Spacer(1, 0.1*inch))
+                
+                for s in statutes:
+                    elements.append(Paragraph(f"<b>Section {s.get('section', '')}: {s.get('title', '')}</b>", subheading_style))
+                    elements.append(Paragraph(f"Finding: {s.get('finding', '')}", body_style))
+                    elements.append(Paragraph(f"Status: {s.get('status', '')}", body_style))
+                    elements.append(Spacer(1, 0.08*inch))
+                
+                elements.append(Spacer(1, 0.2*inch))
+
+            # ===== LANDMARK PRECEDENTS (NEW) =====
+            precedents = analysis_result.get('precedents', [])
+            if precedents:
+                elements.append(Paragraph("Landmark Precedents", heading_style))
+                elements.append(Spacer(1, 0.1*inch))
+                
+                for p in precedents[:10]: # Top 10
+                    case_name = p.get('case') or p.get('case_name') or 'Landmark Case'
+                    citation = p.get('citation') or (f"{p.get('case_name')} ({p.get('year')})" if p.get('year') else '')
+                    principle = p.get('principle') or p.get('summary') or ''
+                    elements.append(Paragraph(f"<b>{case_name}</b>", subheading_style))
+                    elements.append(Paragraph(f"<i>Citation: {citation}</i>", body_style))
+                    elements.append(Paragraph(f"Principle: {principle}", body_style))
+                    elements.append(Spacer(1, 0.1*inch))
+                
+                elements.append(Spacer(1, 0.2*inch))
+
+            # ===== DRAFTED DOCUMENT (NEW) =====
+            draft_text = analysis_result.get('draft') or analysis_result.get('draft_raw') or ''
+            if draft_text:
+                import re
+                draft_clean = re.sub(r'^\[(?:Rule-Based|AI Enhanced)\]\s*[\r\n]*', '', draft_text)
+                
+                elements.append(PageBreak())
+                elements.append(Paragraph("Drafted Legal Document", heading_style))
+                elements.append(Spacer(1, 0.15*inch))
+                
+                draft_style = ParagraphStyle(
+                    'DraftText',
+                    parent=styles['Normal'],
+                    fontName='Courier',
+                    fontSize=8.5,
+                    leading=11.5,
+                    textColor=colors.HexColor('#1e293b')
+                )
+                elements.append(Preformatted(draft_clean, draft_style))
+                elements.append(Spacer(1, 0.2*inch))
+
+            # ===== FOOTER =====
+            elements.append(Spacer(1, 0.3*inch))
+            footer_style = ParagraphStyle(
+                'Footer',
+                parent=styles['Normal'],
+                fontSize=8,
+                textColor=colors.grey,
+                alignment=TA_CENTER
+            )
+            
+            elements.append(Paragraph("─" * 80, footer_style))
+            elements.append(Spacer(1, 0.1*inch))
+            elements.append(Paragraph(
+                "This report was generated by JUDIQ AI Legal Intelligence Platform<br/>"
+                "For informational purposes only. Consult a qualified legal professional for legal advice.<br/>"
+                f"Report Version: v20.2 | Engine: {analysis_result.get('engine_version', 'v20.0')}",
+                footer_style
+            ))
+            
+            # Build PDF
+            doc.build(elements)
+            
+            # Get PDF bytes
+            pdf_bytes = buffer.getvalue()
+            buffer.close()
+            
+            logger.info(f"PDF generated successfully: {len(pdf_bytes)} bytes")
+            return pdf_bytes
+            
+        except ImportError as e:
+            logger.error(f"ReportLab not installed: {e}")
+            raise RuntimeError(f"PDF generation requires ReportLab: {e}")
+            
+        except Exception as e:
+            logger.error(f"PDF generation error: {e}", exc_info=True)
+            raise RuntimeError(f"PDF generation error: {e}")
+
+    @staticmethod
+    def generate_draft_pdf(title: str, content: str) -> bytes:
+        """
+        Generate a professional legal draft PDF from raw text.
+        Applies monospaced/legal formatting for court submissions.
+        """
         try:
             from reportlab.lib.pagesizes import letter
             from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
             from reportlab.lib.units import inch
             from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
             from reportlab.lib import colors
-            from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
+            from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_RIGHT
             from io import BytesIO
+            import re
 
             buffer = BytesIO()
             doc = SimpleDocTemplate(
@@ -410,22 +606,71 @@ class PDFGenerator:
                 alignment=TA_JUSTIFY, fontName='Courier'
             )
 
+            center_bold_style = ParagraphStyle(
+                'CenterBold', parent=styles['Normal'],
+                fontSize=12, leading=18,
+                alignment=TA_CENTER, fontName='Courier-Bold',
+                spaceAfter=10, spaceBefore=10
+            )
+
+            right_style = ParagraphStyle(
+                'RightAlign', parent=styles['Normal'],
+                fontSize=12, leading=18,
+                alignment=TA_RIGHT, fontName='Courier-Bold',
+                spaceBefore=20
+            )
+            
+            hanging_style = ParagraphStyle(
+                'HangingIndent', parent=styles['Normal'],
+                fontSize=12, leading=18,
+                alignment=TA_JUSTIFY, fontName='Courier',
+                leftIndent=20, firstLineIndent=-20
+            )
+
+            # Watermark and Pagination Canvas
+            def watermark_canvas(canvas, doc):
+                canvas.saveState()
+                # Page number footer
+                canvas.setFont('Helvetica', 9)
+                canvas.setFillColorRGB(0.5, 0.5, 0.5)
+                canvas.drawRightString(7.5 * inch, 0.5 * inch, f"Page {doc.page} | Generated by JudiQ AI")
+                
+                # Draft Watermark
+                canvas.setFont('Helvetica-Bold', 80)
+                canvas.setFillColorRGB(0.9, 0.9, 0.9, alpha=0.5)
+                canvas.translate(4.25 * inch, 5.5 * inch)
+                canvas.rotate(45)
+                canvas.drawCentredString(0, 0, "DRAFT")
+                canvas.restoreState()
+
             # Document Header/Title
             elements.append(Paragraph(title, title_style))
             elements.append(Spacer(1, 0.2*inch))
 
-            # Process text content, preserving newlines
+            # Smart Typography Heuristics
             paragraphs = content.split('\n')
             for p in paragraphs:
                 if p.strip() == "":
                     elements.append(Spacer(1, 12))
+                    continue
+
+                safe_p = p.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+                upper_p = safe_p.upper().strip()
+
+                # Detect Court Headings
+                if upper_p.startswith("IN THE COURT OF") or upper_p == "VERSUS" or upper_p == "BETWEEN" or upper_p == "AND":
+                    elements.append(Paragraph(safe_p, center_bold_style))
+                # Detect Sign-offs
+                elif "DEPONENT" in upper_p or "ADVOCATE" in upper_p or "SIGNATURE" in upper_p:
+                    elements.append(Paragraph(safe_p, right_style))
+                # Detect Numbered Paragraphs
+                elif re.match(r'^\d+\.', safe_p.strip()):
+                    elements.append(Paragraph(safe_p, hanging_style))
                 else:
-                    # Escape HTML chars to prevent ReportLab parsing errors
-                    safe_p = p.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
                     elements.append(Paragraph(safe_p, body_style))
                     elements.append(Spacer(1, 6))
 
-            doc.build(elements)
+            doc.build(elements, onFirstPage=watermark_canvas, onLaterPages=watermark_canvas)
             pdf_bytes = buffer.getvalue()
             buffer.close()
             return pdf_bytes
