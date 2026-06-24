@@ -711,8 +711,34 @@ class PDFGenerator:
                 f"Score: {score}/100 | Risk Level: {risk_level}", 
                 analytics_style
             ))
+            elements.append(Spacer(1, 0.3*inch))
             
-            elements.append(Spacer(1, 0.5*inch))
+            # --- Case Strategy Brief Section ---
+            defences = metadata.get('defences', [])
+            precedents = metadata.get('precedents', [])
+            
+            brief_heading_style = ParagraphStyle(
+                'BriefHeading', parent=styles['Normal'],
+                fontSize=12, textColor=colors.HexColor('#1e293b'),
+                fontName='Helvetica-Bold', spaceAfter=10, spaceBefore=15
+            )
+            brief_bullet_style = ParagraphStyle(
+                'BriefBullet', parent=styles['Normal'],
+                fontSize=10, leading=14, textColor=colors.HexColor('#334155'),
+                fontName='Helvetica', leftIndent=15, spaceAfter=6
+            )
+            
+            if defences:
+                elements.append(Paragraph("Key Strategic Arguments", brief_heading_style))
+                for d in defences:
+                    elements.append(Paragraph(f"• {d}", brief_bullet_style))
+                    
+            if precedents:
+                elements.append(Paragraph("Landmark Precedents Cited", brief_heading_style))
+                for p in precedents:
+                    elements.append(Paragraph(f"• {p}", brief_bullet_style))
+            
+            elements.append(Spacer(1, 0.4*inch))
             elements.append(Paragraph("DRAFT PREVIEW", cover_meta_style))
             
             elements.append(PageBreak())
