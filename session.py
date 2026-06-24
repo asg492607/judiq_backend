@@ -29,7 +29,7 @@ class DatabaseManager:
                 logger.error(f"❌ Postgres connection failed: {e}. Falling back to SQLite.")
         
         DatabaseManager._active_dialect = "sqlite"
-        return sqlite3.connect(DB_PATH)
+        return sqlite3.connect(DB_PATH, check_same_thread=False)
 
     @staticmethod
     def get_dialect_placeholder():
