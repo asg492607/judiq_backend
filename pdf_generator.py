@@ -370,3 +370,66 @@ class PDFGenerator:
         except Exception as e:
             logger.error(f"PDF generation error: {e}", exc_info=True)
             raise RuntimeError(f"PDF generation error: {e}")
+
+    @staticmethod
+    def generate_draft_pdf(title: str, content: str) -> bytes:
+        """
+        Generate a professional legal draft PDF from raw text.
+        Applies monospaced/legal formatting for court submissions.
+        """
+        try:
+            from reportlab.lib.pagesizes import letter
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.units import inch
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+            from reportlab.lib import colors
+            from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
+            from io import BytesIO
+
+            buffer = BytesIO()
+            doc = SimpleDocTemplate(
+                buffer, pagesize=letter,
+                rightMargin=1*inch, leftMargin=1*inch,
+                topMargin=1*inch, bottomMargin=1*inch,
+                title=title, author="JUDIQ Legal Drafts"
+            )
+
+            elements = []
+            styles = getSampleStyleSheet()
+
+            title_style = ParagraphStyle(
+                'DraftTitle', parent=styles['Heading1'],
+                fontSize=14, textColor=colors.black,
+                alignment=TA_CENTER, fontName='Helvetica-Bold',
+                spaceAfter=20
+            )
+
+            body_style = ParagraphStyle(
+                'DraftBody', parent=styles['Normal'],
+                fontSize=12, leading=18,
+                alignment=TA_JUSTIFY, fontName='Courier'
+            )
+
+            # Document Header/Title
+            elements.append(Paragraph(title, title_style))
+            elements.append(Spacer(1, 0.2*inch))
+
+            # Process text content, preserving newlines
+            paragraphs = content.split('\n')
+            for p in paragraphs:
+                if p.strip() == "":
+                    elements.append(Spacer(1, 12))
+                else:
+                    # Escape HTML chars to prevent ReportLab parsing errors
+                    safe_p = p.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+                    elements.append(Paragraph(safe_p, body_style))
+                    elements.append(Spacer(1, 6))
+
+            doc.build(elements)
+            pdf_bytes = buffer.getvalue()
+            buffer.close()
+            return pdf_bytes
+
+        except Exception as e:
+            logger.error(f"Draft PDF generation error: {e}", exc_info=True)
+            raise RuntimeError(f"Draft PDF generation error: {e}")
