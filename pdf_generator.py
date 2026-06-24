@@ -717,13 +717,27 @@ class PDFGenerator:
             elements.append(Paragraph(f"<b>Generated On:</b> {gen_date}", cover_meta_style))
             elements.append(Spacer(1, 0.5*inch))
             
-            # --- Analytics Box ---
+            # --- Dynamic Analytics Box ---
+            risk_upper = str(risk_level).upper()
+            if "HIGH" in risk_upper:
+                bg_color = colors.HexColor('#fee2e2')
+                border_color = colors.HexColor('#ef4444')
+                text_color = colors.HexColor('#991b1b')
+            elif "MOD" in risk_upper:
+                bg_color = colors.HexColor('#fef3c7')
+                border_color = colors.HexColor('#f59e0b')
+                text_color = colors.HexColor('#92400e')
+            else:
+                bg_color = colors.HexColor('#dcfce3')
+                border_color = colors.HexColor('#22c55e')
+                text_color = colors.HexColor('#166534')
+
             analytics_style = ParagraphStyle(
                 'AnalyticsStyle', parent=styles['Normal'],
-                fontSize=12, textColor=colors.HexColor('#2c3e50'),
+                fontSize=12, textColor=text_color,
                 alignment=TA_CENTER, fontName='Helvetica-Bold',
-                borderPadding=10, backColor=colors.HexColor('#f1f5f9'),
-                borderColor=colors.HexColor('#cbd5e1'), borderWidth=1,
+                borderPadding=10, backColor=bg_color,
+                borderColor=border_color, borderWidth=1,
                 spaceAfter=20
             )
             
@@ -758,6 +772,17 @@ class PDFGenerator:
                 elements.append(Paragraph("Landmark Precedents Cited", brief_heading_style))
                 for p in precedents:
                     elements.append(Paragraph(f"• {p}", brief_bullet_style))
+            
+            # --- Cryptographic Verification Box ---
+            elements.append(Spacer(1, 1.5*inch))
+            import hashlib
+            doc_hash = hashlib.sha256(f"{case_id}{gen_date}{score}".encode()).hexdigest()[:24]
+            hash_style = ParagraphStyle(
+                'HashStyle', parent=styles['Normal'],
+                fontSize=8, textColor=colors.grey,
+                alignment=TA_CENTER, fontName='Courier'
+            )
+            elements.append(Paragraph(f"Digital Verification Hash<br/>SHA-256: {doc_hash.upper()}", hash_style))
             
             elements.append(Spacer(1, 0.4*inch))
             elements.append(Paragraph("DRAFT PREVIEW", cover_meta_style))
