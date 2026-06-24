@@ -578,7 +578,7 @@ class PDFGenerator:
             from reportlab.lib.pagesizes import letter
             from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
             from reportlab.lib.units import inch
-            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle, KeepTogether, Preformatted
             from reportlab.lib import colors
             from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_RIGHT
             from io import BytesIO
@@ -743,7 +743,133 @@ class PDFGenerator:
             
             elements.append(PageBreak())
 
-            # ===== 2. DOCUMENT BODY =====
+            # ===== 2. DETAILED LEGAL DOSSIER (NEW) =====
+            analysis_result = metadata.get('analysis_result', {})
+            if analysis_result:
+                heading_style = ParagraphStyle(
+                    'DossierHeading', parent=styles['Heading2'],
+                    fontSize=14, textColor=colors.HexColor('#1e293b'),
+                    fontName='Helvetica-Bold', spaceAfter=15, spaceBefore=20
+                )
+                subheading_style = ParagraphStyle(
+                    'DossierSubheading', parent=styles['Normal'],
+                    fontSize=11, textColor=colors.HexColor('#334155'),
+                    fontName='Helvetica-Bold', spaceAfter=8
+                )
+                
+                # --- A. Timeline / Fact Extraction ---
+                timeline = analysis_result.get('timeline', [])
+                if timeline:
+                    elements.append(Paragraph("Extracted Factual Timeline", heading_style))
+                    for event in timeline:
+                        event_text = event.get('event', '') if isinstance(event, dict) else str(event)
+                        elements.append(Paragraph(f"• {event_text}", body_style))
+                        elements.append(Spacer(1, 0.05*inch))
+                    
+                    elements.append(Spacer(1, 0.2*inch))
+                
+                # --- B. Legal Analysis & Reasoning ---
+                legal_analysis = analysis_result.get('legal_analysis', '')
+                reasoning_lines = []
+                if isinstance(legal_analysis, dict):
+                    reasoning_lines = legal_analysis.get('reasoning', [])
+                elif isinstance(legal_analysis, str) and legal_analysis.strip():
+                    reasoning_lines = [l.strip() for l in legal_analysis.split('\n') if l.strip()]
+                elif isinstance(legal_analysis, list):
+                    reasoning_lines = legal_analysis
+
+                if reasoning_lines:
+                    reasoning_elements = []
+                    reasoning_elements.append(Paragraph("Legal Reasoning", heading_style))
+                    reasoning_elements.append(Spacer(1, 0.1*inch))
+                    for reason in reasoning_lines:
+                        reason_text = reason if isinstance(reason, str) else str(reason)
+                        reasoning_elements.append(Paragraph(f"\u2192 {reason_text}", body_style))
+                        reasoning_elements.append(Spacer(1, 0.05*inch))
+                    reasoning_elements.append(Spacer(1, 0.2*inch))
+                    elements.append(KeepTogether(reasoning_elements))
+                
+                # --- C. Defence Strategies (Table) ---
+                defences_full = analysis_result.get('defence_strategy', [])
+                if defences_full:
+                    elements.append(Paragraph("Predicted Defence Strategies", heading_style))
+                    elements.append(Spacer(1, 0.1*inch))
+                    
+                    defence_data = [['Argument', 'Probability', 'Strength']]
+                    for defence in defences_full[:5]:  # Top 5
+                        if not isinstance(defence, dict): continue
+                        arg = defence.get('argument', 'N/A')
+                        prob = f"{defence.get('success_probability', 0)}%"
+                        strength = defence.get('strength', 'N/A')
+                        defence_data.append([Paragraph(arg, body_style), prob, Paragraph(strength, body_style)])
+                    
+                    if len(defence_data) > 1:
+                        defence_table = Table(defence_data, colWidths=[3.5*inch, 1.2*inch, 1.3*inch])
+                        defence_table.setStyle(TableStyle([
+                            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495e')),
+                            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                            ('FONTSIZE', (0, 0), (-1, 0), 10),
+                            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                            ('FONTSIZE', (0, 1), (-1, -1), 9),
+                            ('PADDING', (0, 0), (-1, -1), 8),
+                            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f9fa')])
+                        ]))
+                        elements.append(defence_table)
+                        elements.append(Spacer(1, 0.2*inch))
+                
+                # --- D. Semantic Concepts (Table) ---
+                semantic = analysis_result.get('semantic_analysis', {})
+                concepts = semantic.get('concepts_detected', [])
+                if concepts:
+                    concept_elements = []
+                    concept_elements.append(Paragraph("Legal Concepts Detected", heading_style))
+                    concept_elements.append(Spacer(1, 0.1*inch))
+                    
+                    concept_data = [['Concept', 'Confidence', 'Impact']]
+                    for concept in concepts[:8]:
+                        if not isinstance(concept, dict): continue
+                        name = concept.get('concept', 'N/A').replace('_', ' ').title()
+                        conf = f"{int(concept.get('confidence', 0) * 100)}%"
+                        impact_raw = concept.get('legal_impact', 'N/A') or 'N/A'
+                        impact = (impact_raw[:50] + '...') if len(impact_raw) > 50 else impact_raw
+                        concept_data.append([Paragraph(name, body_style), conf, Paragraph(impact, body_style)])
+                    
+                    if len(concept_data) > 1:
+                        concept_table = Table(concept_data, colWidths=[2*inch, 1*inch, 3*inch])
+                        concept_table.setStyle(TableStyle([
+                            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495e')),
+                            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                            ('FONTSIZE', (0, 0), (-1, 0), 10),
+                            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                            ('FONTSIZE', (0, 1), (-1, -1), 9),
+                            ('PADDING', (0, 0), (-1, -1), 8),
+                            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f9fa')])
+                        ]))
+                        concept_elements.append(concept_table)
+                        concept_elements.append(Spacer(1, 0.2*inch))
+                        elements.append(KeepTogether(concept_elements))
+                
+                # --- E. Statutory Interpretation ---
+                statutes = analysis_result.get('statutory_interpretation', [])
+                if statutes:
+                    elements.append(Paragraph("Statutory Interpretation", heading_style))
+                    elements.append(Spacer(1, 0.1*inch))
+                    for s in statutes:
+                        elements.append(Paragraph(f"<b>Section {s.get('section', '')}: {s.get('title', '')}</b>", subheading_style))
+                        elements.append(Paragraph(f"Finding: {s.get('finding', '')}", body_style))
+                        elements.append(Paragraph(f"Status: {s.get('status', '')}", body_style))
+                        elements.append(Spacer(1, 0.08*inch))
+                    elements.append(Spacer(1, 0.2*inch))
+                
+                elements.append(PageBreak())
+
+            # ===== 3. DOCUMENT BODY (Pleading Draft) =====
             elements.append(Paragraph(title, title_style))
             elements.append(Spacer(1, 0.2*inch))
 
