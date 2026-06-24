@@ -44,3 +44,18 @@ async def get_draft_history_query(case_id: str = Query(...), draft_type: str = Q
     history = DatabaseManager.get_draft_history(case_id, draft_type)
     return {"success": True, "history": history}
 
+@router.post("/draft-pdf")
+async def generate_draft_pdf(request: Request):
+    data = await request.json()
+    try:
+        title = data.get("title", "Legal_Draft")
+        content = data.get("content", "")
+        pdf_bytes = PDFGenerator.generate_draft_pdf(title, content)
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=JUDIQ_{title.replace(' ', '_')}.pdf"}
+        )
+    except Exception as e:
+        logger.error(f"Draft PDF generation failed: {e}")
+        return JSONResponse(status_code=500, content={"error": "Failed to generate draft PDF."})
