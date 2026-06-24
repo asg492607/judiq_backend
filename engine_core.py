@@ -55,8 +55,17 @@ class EngineRegistry:
             
         return self._instances[module_name]
 
+    def preload_all(self):
+        """Eagerly load all engines to prevent I/O locking during HTTP requests."""
+        for module_name in self._modules:
+            try:
+                self.get(module_name)
+            except Exception as e:
+                logger.error(f"Failed to preload {module_name}: {e}")
+
 # Global Registry Instance
 registry = EngineRegistry()
+registry.preload_all()
 
 # LLM Availability Flag
 from llm_engine import LLM_AVAILABLE
