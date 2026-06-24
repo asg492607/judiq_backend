@@ -686,9 +686,33 @@ class PDFGenerator:
             
             case_id = metadata.get('caseId', 'Unknown Case')
             gen_date = datetime.now().strftime("%B %d, %Y - %H:%M:%S")
+            court_name = metadata.get('courtName', 'Competent Court')
+            score = metadata.get('score', 'N/A')
+            risk_level = metadata.get('riskLevel', 'Unknown')
+            client_role = metadata.get('clientRole', 'Client')
             
-            elements.append(Paragraph(f"Case Reference: {case_id}", cover_meta_style))
-            elements.append(Paragraph(f"Generated On: {gen_date}", cover_meta_style))
+            elements.append(Paragraph(f"<b>Court:</b> {court_name}", cover_meta_style))
+            elements.append(Paragraph(f"<b>Case Reference:</b> {case_id}", cover_meta_style))
+            elements.append(Paragraph(f"<b>Generated On:</b> {gen_date}", cover_meta_style))
+            elements.append(Spacer(1, 0.5*inch))
+            
+            # --- Analytics Box ---
+            analytics_style = ParagraphStyle(
+                'AnalyticsStyle', parent=styles['Normal'],
+                fontSize=12, textColor=colors.HexColor('#2c3e50'),
+                alignment=TA_CENTER, fontName='Helvetica-Bold',
+                borderPadding=10, backColor=colors.HexColor('#f1f5f9'),
+                borderColor=colors.HexColor('#cbd5e1'), borderWidth=1,
+                spaceAfter=20
+            )
+            
+            elements.append(Paragraph(
+                f"<b>AI PREDICTION METRICS</b><br/>"
+                f"Score: {score}/100 | Risk Level: {risk_level}", 
+                analytics_style
+            ))
+            
+            elements.append(Spacer(1, 0.5*inch))
             elements.append(Paragraph("DRAFT PREVIEW", cover_meta_style))
             
             elements.append(PageBreak())
@@ -719,6 +743,14 @@ class PDFGenerator:
                 else:
                     elements.append(Paragraph(safe_p, body_style))
                     elements.append(Spacer(1, 6))
+
+            # ===== 3. AUTOMATED SIGNATURE BLOCK =====
+            elements.append(Spacer(1, 1*inch))
+            elements.append(Paragraph("___________________________", right_style))
+            elements.append(Paragraph(f"ADVOCATE FOR {client_role.upper()}", right_style))
+            elements.append(Spacer(1, 0.5*inch))
+            elements.append(Paragraph("___________________________", right_style))
+            elements.append(Paragraph(f"{client_role.upper()}", right_style))
 
             doc.build(elements, onFirstPage=watermark_canvas, onLaterPages=watermark_canvas)
             pdf_bytes = buffer.getvalue()
