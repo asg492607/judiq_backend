@@ -15,6 +15,8 @@ from session import DatabaseManager
 from security import AuditLogger, SecurityTelemetry
 from caseroom_logic import CaseroomManager
 from limiter import limiter
+import threading
+from jurisdiction_engine import map_jurisdiction
 
 router = APIRouter()
 logger = logging.getLogger("JudiQ.Analysis")
@@ -33,6 +35,7 @@ class CaseAnalysisRequest(BaseModel):
         extra = "ignore"
 
 ANALYSIS_CACHE = {}
+CACHE_LOCK = threading.Lock()
 
 def get_cache_key(data: dict):
     import json
@@ -59,7 +62,7 @@ async def analyze(request_data: Dict[str, Any], request: Request):
     AuditLogger.log_interaction(user_id, "PENDING", "START_ANALYSIS", {"ip": client_ip})
 
     # 2. Security Telemetry
-    threats = SecurityTelemetry.audit_payload(raw_data)
+    threats = await asyncio.to_thread(SecurityTelemetry.audit_payload, raw_data)
     if threats:
         AuditLogger.log_interaction(user_id, "THREAT", "SECURITY_VIOLATION", {"threats": threats})
         logger.error(f"[{request_id}] Security threats detected: {threats}")
@@ -67,11 +70,12 @@ async def analyze(request_data: Dict[str, Any], request: Request):
 
     # 3. Caching
     cache_key = get_cache_key(raw_data)
-    if cache_key in ANALYSIS_CACHE:
-        logger.info(f"[{request_id}] Cache hit for request.")
-        cached = dict(ANALYSIS_CACHE[cache_key])
-        cached["request_id"] = request_id
-        return cached
+    with CACHE_LOCK:
+        if cache_key in ANALYSIS_CACHE:
+            logger.info(f"[{request_id}] Cache hit for request.")
+            cached = dict(ANALYSIS_CACHE[cache_key])
+            cached["request_id"] = request_id
+            return cached
 
     logger.info(f"[{request_id}] /analyze request received")
 
@@ -131,10 +135,11 @@ async def analyze(request_data: Dict[str, Any], request: Request):
         cid = case_data.get("case_id", "")
         
         # Always cache the result regardless of user authentication
-        if len(ANALYSIS_CACHE) >= 100:
-            oldest_key = next(iter(ANALYSIS_CACHE))
-            del ANALYSIS_CACHE[oldest_key]
-        ANALYSIS_CACHE[cache_key] = result
+        with CACHE_LOCK:
+            if len(ANALYSIS_CACHE) >= 100:
+                oldest_key = next(iter(ANALYSIS_CACHE))
+                del ANALYSIS_CACHE[oldest_key]
+            ANALYSIS_CACHE[cache_key] = result
         
         if uid and cid and uid != "ANONYMOUS":
             await asyncio.to_thread(
@@ -170,16 +175,16 @@ async def analyze(request_data: Dict[str, Any], request: Request):
 
     # Jurisdiction Mapping
     try:
-        from jurisdiction_engine import map_jurisdiction
         response_body["jurisdiction"] = map_jurisdiction(raw_data)
     except (KeyError, ValueError) as je:
         logger.warning(f"Jurisdiction mapping failed: {je}")
         response_body["jurisdiction"] = None
 
     response_body["data"] = result
-    if len(ANALYSIS_CACHE) >= 100:
-        oldest_key = next(iter(ANALYSIS_CACHE))
-        del ANALYSIS_CACHE[oldest_key]
-    ANALYSIS_CACHE[cache_key] = dict(response_body)
+    with CACHE_LOCK:
+        if len(ANALYSIS_CACHE) >= 100:
+            oldest_key = next(iter(ANALYSIS_CACHE))
+            del ANALYSIS_CACHE[oldest_key]
+        ANALYSIS_CACHE[cache_key] = dict(response_body)
     return response_body
 
