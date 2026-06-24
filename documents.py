@@ -50,7 +50,8 @@ async def generate_draft_pdf(request: Request):
     try:
         title = data.get("title", "Legal_Draft")
         content = data.get("content", "")
-        pdf_bytes = PDFGenerator.generate_draft_pdf(title, content)
+        metadata = data.get("metadata", {})
+        pdf_bytes = PDFGenerator.generate_draft_pdf(title, content, metadata)
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",
