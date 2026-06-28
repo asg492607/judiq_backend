@@ -41,6 +41,22 @@ def get_draft_history_query(case_id: str = Query(...), draft_type: str = Query(.
     from session import DatabaseManager
     history = DatabaseManager.get_draft_history(case_id, draft_type)
     return {"success": True, "history": history}
+@router.post("/draft-word")
+def generate_draft_word_endpoint(data: dict = Body(...)):
+    from word_generator import WordGenerator
+    try:
+        title = data.get("title", "Legal_Draft")
+        content = data.get("content", "")
+        metadata = data.get("metadata", {})
+        word_bytes = WordGenerator.generate_draft_word(title, content, metadata)
+        return Response(
+            content=word_bytes,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={"Content-Disposition": f"attachment; filename=JUDIQ_{title.replace(' ', '_')}.docx"}
+        )
+    except Exception as e:
+        logger.error(f"Draft Word generation failed: {e}")
+        return JSONResponse(status_code=500, content={"error": "Failed to generate draft Word document."})
 
 @router.post("/draft-pdf")
 def generate_draft_pdf(data: dict = Body(...)):
