@@ -1,14 +1,15 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Dict, Any
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import List, Dict, Any
 from session import DatabaseManager
+from security import get_current_user_optional
 import json
 
 router = APIRouter()
 
 @router.get("")
-def get_recent_cases(user_id: str = Query(..., description="The ID of the user")) -> List[Dict[str, Any]]:
+def get_recent_cases(user_id: str = Depends(get_current_user_optional)) -> List[Dict[str, Any]]:
     """Fetch recent cases for a specific user from the database."""
     try:
         conn = DatabaseManager.get_connection()
@@ -47,17 +48,17 @@ def get_recent_cases(user_id: str = Query(..., description="The ID of the user")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/detail")
-def get_case_details_query(case_id: str = Query(...), user_id: str = Query(...)) -> Dict[str, Any]:
+def get_case_details_query(case_id: str = Query(...), user_id: str = Depends(get_current_user_optional)) -> Dict[str, Any]:
     """Path-safe case lookup for IDs such as CC/2026/123."""
     return get_case_details(case_id, user_id)
 
 @router.delete("/delete")
-def delete_case_query(case_id: str = Query(...), user_id: str = Query(...)) -> Dict[str, Any]:
+def delete_case_query(case_id: str = Query(...), user_id: str = Depends(get_current_user_optional)) -> Dict[str, Any]:
     """Path-safe case deletion for IDs such as CC/2026/123."""
     return delete_case(case_id, user_id)
 
 @router.delete("/{case_id}")
-def delete_case(case_id: str, user_id: str = Query(...)) -> Dict[str, Any]:
+def delete_case(case_id: str, user_id: str = Depends(get_current_user_optional)) -> Dict[str, Any]:
     """Delete a saved case."""
     try:
         conn = DatabaseManager.get_connection()
@@ -80,7 +81,7 @@ def delete_case(case_id: str, user_id: str = Query(...)) -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{case_id}")
-def get_case_details(case_id: str, user_id: str = Query(...)) -> Dict[str, Any]:
+def get_case_details(case_id: str, user_id: str = Depends(get_current_user_optional)) -> Dict[str, Any]:
     """Fetch full details of a specific case."""
     try:
         conn = DatabaseManager.get_connection()

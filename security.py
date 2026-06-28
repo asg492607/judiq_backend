@@ -102,11 +102,41 @@ class AuditLogger:
                 
             db = firestore.client()
             db.collection("audit_logs").add(log_entry)
+            
+            if not firebase_admin._apps:
+                # Assumes GOOGLE_APPLICATION_CREDENTIALS is set
+                firebase_admin.initialize_app()
+                
+            db = firestore.client()
+            db.collection("audit_logs").add(log_entry)
             logger.info("[AUDIT] Interaction persisted to Firebase.")
         except ImportError:
             logger.warning("Firebase audit enabled but firebase_admin is not installed.")
         except Exception as e:
             logger.warning(f"Audit persistence to Firebase skipped/failed: {e}")
+
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import uuid
+
+security_scheme = HTTPBearer(auto_error=False)
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)) -> str:
+    """Dependency to enforce JWT authentication."""
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Missing Authentication Token")
+    payload = SecurityManager.verify_token(credentials.credentials)
+    if not payload or "sub" not in payload:
+        raise HTTPException(status_code=401, detail="Invalid or Expired Token")
+    return payload["sub"]
+
+def get_current_user_optional(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)) -> str:
+    """Dependency that returns a user ID if authenticated, else ANONYMOUS."""
+    if credentials:
+        payload = SecurityManager.verify_token(credentials.credentials)
+        if payload and "sub" in payload:
+            return payload["sub"]
+    return "ANONYMOUS"
 
 class SecurityTelemetry:
     """
@@ -116,5 +146,4 @@ class SecurityTelemetry:
     def audit_payload(payload: dict) -> list:
         # Stub implementation for threat detection
         threats = []
-        # Add basic threat detection if necessary in the future
         return threats
