@@ -1,12 +1,14 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Dict, Any
+from fastapi import APIRouter, HTTPException, Query
+from typing import List, Dict, Any
 from session import DatabaseManager
 import json
 
 router = APIRouter()
 
 @router.get("")
-async def get_recent_cases(user_id: str = Query(..., description="The ID of the user")) -> List[Dict[str, Any]]:
+def get_recent_cases(user_id: str = Query(..., description="The ID of the user")) -> List[Dict[str, Any]]:
     """Fetch recent cases for a specific user from the database."""
     try:
         conn = DatabaseManager.get_connection()
@@ -45,58 +47,71 @@ async def get_recent_cases(user_id: str = Query(..., description="The ID of the 
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/detail")
-async def get_case_details_query(case_id: str = Query(...), user_id: str = Query(...)) -> Dict[str, Any]:
+def get_case_details_query(case_id: str = Query(...), user_id: str = Query(...)) -> Dict[str, Any]:
     """Path-safe case lookup for IDs such as CC/2026/123."""
-    return await get_case_details(case_id, user_id)
+    return get_case_details(case_id, user_id)
 
 @router.delete("/delete")
-async def delete_case_query(case_id: str = Query(...), user_id: str = Query(...)) -> Dict[str, Any]:
+def delete_case_query(case_id: str = Query(...), user_id: str = Query(...)) -> Dict[str, Any]:
     """Path-safe case deletion for IDs such as CC/2026/123."""
-    return await delete_case(case_id, user_id)
+    return delete_case(case_id, user_id)
 
 @router.delete("/{case_id}")
-async def delete_case(case_id: str, user_id: str = Query(...)) -> Dict[str, Any]:
-    """Delete a specific case for a user."""
+def delete_case(case_id: str, user_id: str = Query(...)) -> Dict[str, Any]:
+    """Delete a saved case."""
     try:
         conn = DatabaseManager.get_connection()
         cursor = conn.cursor()
         p = DatabaseManager.get_dialect_placeholder()
         
+        # Verify ownership
+        cursor.execute(f"SELECT id FROM saved_cases WHERE case_id = {p} AND user_id = {p}", (case_id, user_id))
+        if not cursor.fetchone():
+            conn.close()
+            raise HTTPException(status_code=404, detail="Case not found or unauthorized")
+            
         cursor.execute(f"DELETE FROM saved_cases WHERE case_id = {p} AND user_id = {p}", (case_id, user_id))
         conn.commit()
-        deleted = cursor.rowcount > 0
         conn.close()
-        
-        if not deleted:
-            raise HTTPException(status_code=404, detail="Case not found or unauthorized")
-        return {"status": "success", "message": "Case deleted"}
+        return {"success": True, "message": "Case deleted successfully"}
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{case_id}")
-async def get_case_details(case_id: str, user_id: str = Query(...)) -> Dict[str, Any]:
-    """Fetch full case details."""
+def get_case_details(case_id: str, user_id: str = Query(...)) -> Dict[str, Any]:
+    """Fetch full details of a specific case."""
     try:
         conn = DatabaseManager.get_connection()
         cursor = conn.cursor()
         p = DatabaseManager.get_dialect_placeholder()
         
-        cursor.execute(f"SELECT case_data, analysis_result FROM saved_cases WHERE case_id = {p} AND user_id = {p}", (case_id, user_id))
+        cursor.execute(f"SELECT case_data, analysis_result, score, verdict FROM saved_cases WHERE case_id = {p} AND user_id = {p}", (case_id, user_id))
         row = cursor.fetchone()
-        conn.close()
         
         if not row:
-            raise HTTPException(status_code=404, detail="Case not found or unauthorized")
+            conn.close()
+            raise HTTPException(status_code=404, detail="Case not found")
             
+        try:
+            cdata = json.loads(row[0]) if row[0] else {}
+        except (json.JSONDecodeError, TypeError):
+            cdata = {}
+        try:
+            analysis = json.loads(row[1]) if row[1] else {}
+        except (json.JSONDecodeError, TypeError):
+            analysis = {}
+            
+        conn.close()
         return {
-            "case_data": json.loads(row[0]) if row[0] else {},
-            "analysis_result": json.loads(row[1]) if row[1] else {}
+            "case_id": case_id,
+            "case_data": cdata,
+            "analysis_result": analysis,
+            "score": row[2],
+            "verdict": row[3]
         }
     except HTTPException:
         raise
-    except (json.JSONDecodeError, TypeError) as e:
-        raise HTTPException(status_code=500, detail="Stored case data is invalid") from e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
