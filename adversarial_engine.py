@@ -265,7 +265,7 @@ class AdversarialEngine:
         - Material credibility risk: Significant threat to the cause of action.
         """
         contradictions = []
-        concept_names = [c["concept"] for c in concepts]
+        concept_names = [c.get("concept") if isinstance(c, dict) else str(c) for c in concepts]
         
         # 1. Notice/Service Contradiction
         notice_received_raw = str(case_data.get("notice_received", "")).lower()
@@ -381,13 +381,15 @@ class AdversarialEngine:
         for i, c1 in enumerate(concepts):
             for j, c2 in enumerate(concepts):
                 if i >= j: continue
+                if not isinstance(c1, dict) or not isinstance(c2, dict):
+                    continue
                 # Example semantic rule: if concept 1 implies validity and concept 2 implies invalidity
                 # (This relies on NLP scoring from semantic_engine passing 'polarity' or 'conflict_weight')
                 if c1.get("polarity", 1) * c2.get("polarity", 1) < 0 and c1.get("confidence", 0) > 0.7 and c2.get("confidence", 0) > 0.7:
                     contradictions.append({
                         "severity": "Strategic contradiction",
-                        "issue": f"Semantic Conflict: {c1['concept']} vs {c2['concept']}",
-                        "detail": f"NLP engine detected a high-confidence semantic conflict between {c1['concept']} and {c2['concept']}.",
+                        "issue": f"Semantic Conflict: {c1.get('concept')} vs {c2.get('concept')}",
+                        "detail": f"NLP engine detected a high-confidence semantic conflict between {c1.get('concept')} and {c2.get('concept')}.",
                         "remediation": "Clarify the narrative to reconcile these opposing concepts.",
                         "penalty": -20
                     })

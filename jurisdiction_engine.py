@@ -198,7 +198,7 @@ def apply_jurisdiction_guards(jurisdiction_info: Dict, concepts: list, final_sco
     if jurisdiction_info.get("status") == "INVALID":
         # Jurisdiction is territorial and critical under S.142(2) NI Act. Applying severe penalty.
         judicially_adjusted_score = max(0, final_score - 35)
-        if "jurisdictional_defect" not in {c.get("concept") for c in concepts}:
+        if "jurisdictional_defect" not in {c.get("concept") if isinstance(c, dict) else str(c) for c in concepts}:
             concepts.append({
                 "concept": "jurisdictional_defect", 
                 "confidence": 0.95, 

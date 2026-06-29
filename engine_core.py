@@ -541,6 +541,8 @@ class JudiQEngine:
             fallback="à¤®à¤œà¤¬à¥‚à¤¤ à¤®à¤¾à¤®à¤²à¤¾",
             context="DecisionSupportEngine.translate"
         )
+        evidence_suggestions = []
+        decision_risks = []
         if decision_engine:
             evidence_suggestions = _safe_call(
                 decision_engine.suggest_evidence_gaps, case_data,
