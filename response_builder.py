@@ -1,16 +1,13 @@
 import re
 import logging
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import Dict, Any
 from llm_engine import generate_executive_summary, enhance_legal_draft
-
 logger = logging.getLogger(__name__)
-
 def ensure_list(x):
     if x is None: return []
     if isinstance(x, list): return x
     return [x]
-
 NEGATIVE_CONCEPTS = {
     "signature_dispute", "notice_defect", "notice_not_sent", "no_debt_proof", "security_cheque",
     "cheque_misuse", "limitation_issue", "payment_already_made", "dishonour_disputed",
@@ -18,17 +15,14 @@ NEGATIVE_CONCEPTS = {
     "stop_payment_instructions", "material_alteration", "premature_complaint",
     "unaccounted_cash_loans", "legal_heirs_liability", "litigation_risk"
 }
-
 POSITIVE_CONCEPTS = {
     "cheque_bounce", "legal_notice_compliance", "legally_enforceable_debt",
     "strong_documentary_evidence", "partnership_and_firms",
     "power_of_attorney_holder", "interim_compensation", "appeal_deposit",
     "compounding_offence"
 }
-
 WEAKNESS_THRESHOLD = 0.22
 STRENGTH_THRESHOLD = 0.45
-
 def _convert_to_lawyer_language(raw_trace: list) -> list:
     _PHRASE_MAP = [
         (r"\+\d+\s+instrument\s+present", "The foundational Negotiable Instrument (S.138) is present and verified."),
@@ -45,7 +39,6 @@ def _convert_to_lawyer_language(raw_trace: list) -> list:
         (r"BASALINGAPPA\s+PENALTY", "EVIDENTIARY GAP: High-value debt based solely on verbal testimony is highly vulnerable to 'Financial Capacity' rebuttals (Basalingappa v. Mudibasappa)."),
         (r"FATAL\s+ERROR:\s+PREMATURE", "FATAL PROCEDURAL ERROR: Premature filing before the expiry of the 15-day cure period (Yogendra Pratap Singh v. Savitri Pandey)."),
     ]
-
     clean_trace = []
     seen = set()
     for item in raw_trace:
@@ -63,15 +56,11 @@ def _convert_to_lawyer_language(raw_trace: list) -> list:
                 clean_trace.append(cleaned)
                 seen.add(cleaned)
     return clean_trace
-
 def format_fatal_explanation(risk_key_or_msg: str) -> str:
     msg_lower = str(risk_key_or_msg).lower()
-    
-    # Defaults
     reason = risk_key_or_msg.replace("_", " ").title()
     statute = "Negotiable Instruments Act, 1881"
     precedent = "Relevant Landmark Precedent"
-    
     if "notice_not_sent" in msg_lower or "notice has not been sent" in msg_lower or "notice_missing" in msg_lower or "notice not sent" in msg_lower:
         reason = "Mandatory demand notice under Section 138(b) NI Act was not sent or served, which is a strict pre-condition for filing a Section 138 complaint."
         statute = "Section 138(b) of the Negotiable Instruments Act, 1881"
@@ -100,9 +89,7 @@ def format_fatal_explanation(risk_key_or_msg: str) -> str:
         reason = "Corporate complaint representative authorization defect. A board resolution or authorization letter must explicitly empower the signatory and be dated prior to notice."
         statute = "Section 142(1)(a) of the Negotiable Instruments Act, 1881"
         precedent = "A.C. Narayanan v. State of Maharashtra (2014) 11 SCC 790"
-        
     return f"Fatal Defect: {reason}<br/>Supporting Statute: {statute}<br/>Supporting Precedent: {precedent}"
-
 class ResponseBuilder:
     @staticmethod
     def _prefix_text(text: Any, label: str) -> Any:
@@ -111,7 +98,6 @@ class ResponseBuilder:
         if text.startswith("[AI Enhanced]") or text.startswith("[Rule-Based]"):
             return text
         return f"[{label}]\n{text}"
-
     @staticmethod
     def build_final_response(engine_result: Dict[str, Any], case_data: Dict[str, Any]) -> Dict[str, Any]:
         score = engine_result.get("final_score", 0)
@@ -119,12 +105,10 @@ class ResponseBuilder:
         breakdown = engine_result.get("score_breakdown", [])
         concepts = engine_result.get("concepts", [])
         tldr = engine_result.get("tldr", {})
-        
         causality_map = list(engine_result.get("causality_map", []))
         top_penalties = engine_result.get("top_penalties", [])
         strategy_result = engine_result.get("strategy_result", {})
         adversarial_result = engine_result.get("adversarial_result", {})
-
         strengths = []
         is_criminal = case_data.get("case_type") == "criminal" or "criminal" in str(case_data.get("description", "")).lower()
         if is_criminal:
@@ -137,18 +121,15 @@ class ResponseBuilder:
             if case_data.get("dishonour_memo"):   strengths.append("Prerequisite: Bank dishonour memo / return slip available")
             if case_data.get("notice_sent"):      strengths.append("Prerequisite: Statutory demand notice served (S.138b)")
             if case_data.get("debt_proven"):      strengths.append("Strength: Legally enforceable debt established via corroborative proof")
-
         for c in concepts:
             concept_name = c.get("concept", "")
             conf = c.get("confidence", 0)
             label = concept_name.replace('_', ' ').title()
             if concept_name in POSITIVE_CONCEPTS and conf >= STRENGTH_THRESHOLD:
                 strengths.append(f"Strategic Asset: {label}")
-                
         limitation = engine_result.get("limitation") or {}
         if not limitation and case_data.get("notice_date") and case_data.get("dishonour_date"):
             limitation = {"is_premature": False, "notice_delay_days": 0}
-
         structured_weaknesses = []
         fatal_defect = case_data.get("fatal_defect")
         if fatal_defect:
@@ -157,15 +138,12 @@ class ResponseBuilder:
                  "severity": "FATAL",
                  "detail": format_fatal_explanation(fatal_defect)
              })
-
         if limitation.get("is_premature"):
             structured_weaknesses.append({"risk": "Premature Complaint", "severity": "FATAL", "detail": format_fatal_explanation("premature_complaint")})
         elif limitation.get("notice_delay_days", 0) > 0:
              structured_weaknesses.append({"risk": "Notice Delayed", "severity": "HIGH", "detail": f"Statutory notice delayed by {limitation['notice_delay_days']} days. Application for condonation mandatory."})
-        
         if not case_data.get("proof_present", True):
              structured_weaknesses.append({"risk": "Missing Proof", "severity": "HIGH", "detail": "Proof (Cheque/Memo/Notice) is missing."})
-
         contradictions = engine_result.get("contradictions", [])
         for contra in contradictions:
             penalty = contra.get("penalty", 0)
@@ -178,37 +156,31 @@ class ResponseBuilder:
                 "severity": severity_mapped,
                 "detail": detail_text
             })
-
         NEGATIVE_RISK_ORDER = [
             "limitation_issue", "notice_defect", "notice_not_sent",
             "unaccounted_cash_loans", "litigation_risk", "security_cheque", "signature_dispute", "no_debt_proof",
             "no_agreement", "cheque_misuse", "payment_already_made",
             "cheque_validity_issue", "dishonour_disputed"
         ]
-        
         CONCEPT_BASE_SEVERITY = {
             "notice_not_sent": "FATAL",
             "limitation_issue": "FATAL",
             "notice_defect": "FATAL",
             "timeline_violation": "FATAL",
             "s141_defect": "FATAL",
-            
             "unaccounted_cash_loans": "CRITICAL",
             "cheque_validity_issue": "CRITICAL",
             "payment_already_made": "CRITICAL",
-            
             "security_cheque": "HIGH",
             "signature_dispute": "HIGH",
             "no_debt_proof": "HIGH",
             "cheque_misuse": "HIGH",
             "dishonour_disputed": "HIGH",
-            
             "no_agreement": "MEDIUM",
             "witness_not_available": "MEDIUM",
             "financial_capacity_risk": "HIGH",
             "litigation_risk": "MEDIUM"
         }
-
         ranked_weaknesses = []
         seen_weak = set()
         for priority_concept in NEGATIVE_RISK_ORDER:
@@ -224,11 +196,9 @@ class ResponseBuilder:
                         severity = "CRITICAL" if base_sev == "FATAL" else ("HIGH" if base_sev == "CRITICAL" else base_sev)
                     else:
                         severity = base_sev
-
                     detail = c.get("legal_impact", "") or "No specific impact detailed."
                     if severity == "FATAL":
                         detail = format_fatal_explanation(priority_concept)
-
                     ranked_weaknesses.append({
                         "risk": priority_concept.replace("_", " ").title(),
                         "severity": severity,
@@ -236,16 +206,13 @@ class ResponseBuilder:
                         "detail": detail
                     })
                     seen_weak.add(priority_concept)
-
         structured_weaknesses.extend(ranked_weaknesses)
         severity_order = {"FATAL": 4, "CRITICAL": 3, "HIGH": 2, "MEDIUM": 1}
         structured_weaknesses.sort(key=lambda x: severity_order.get(x["severity"], 0), reverse=True)
-        
         top_3_risks = structured_weaknesses[:3]
         has_fatal = any(r["severity"] == "FATAL" for r in top_3_risks)
-
         verdict = "STRONG CASE"
-        risk_level = "LOW"  # Safe default — overwritten below in all branches
+        risk_level = "LOW"                                                    
         if has_fatal or score <= 25 or engine_result.get("verdict") == "DO NOT FILE":
             score = min(score, 25.0)
             verdict = "DO NOT FILE"
@@ -254,7 +221,6 @@ class ResponseBuilder:
             if score < 40: verdict = "WEAK CASE / HIGH RISK"
             elif score < 70: verdict = "MODERATE CASE"
             risk_level = "CRITICAL" if score < 50 else ("MEDIUM" if score < 75 else "LOW")
-
         current_sum = sum(c.get("impact", 0) for c in causality_map)
         diff = int(score - current_sum)
         if diff != 0:
@@ -262,7 +228,6 @@ class ResponseBuilder:
                 causality_map.append({"fact": "Fatal Defect Override", "impact": diff, "type": "negative", "rationale": "Case has fatal procedural/statutory defects."})
             else:
                 causality_map.append({"fact": "Judicial Adjustment & Calibration", "impact": diff, "type": "negative" if diff < 0 else "positive", "rationale": "Calibration for territorial jurisdiction and court rules."})
-
         suggestions = []
         desc_lower = (case_data.get("description") or "").lower()
         if limitation.get("is_premature"):
@@ -273,7 +238,6 @@ class ResponseBuilder:
              suggestions.append({"id": "action_63_bsa", "title": "PREPARE: Section 63(4) BSA Certificate", "description": "You MUST file a certificate under Section 63(4) of the Bharatiya Sakshya Adhiniyam (BSA) to make digital records admissible.", "severity": "HIGH"})
         if score < 60 and case_data.get("debt_evidence_type") == "Verbal":
              suggestions.append({"id": "action_evidence_corroboration", "title": "COLLECT: Indirect Debt Proof", "description": "Gather bank statements or witness affidavits to counter 'Financial Capacity' rebuttals.", "severity": "HIGH"})
-
         confidence_score = round(sum(c.get("confidence", 0) for c in concepts) / len(concepts), 2) if concepts else None
         is_cynical = score < 65 or any("CYNICAL" in str(t) for t in trace)
         improvement_metrics = [
@@ -301,7 +265,6 @@ class ResponseBuilder:
         }
         lawyer_reasoning = _convert_to_lawyer_language(trace)
         concepts_for_response = [{"concept": c.get("concept", ""), "confidence": c.get("confidence", 0), "legal_impact": c.get("legal_impact", ""), "matched_phrases": c.get("matched_phrases", [])} for c in concepts]
-        
         if is_criminal and not case_data.get("police_complaint_filed"):
             recommended_action, decision_label, decision_detail = "FILE_COMPLAINT", "Initiate Formal Complaint", "Formal complaint/FIR has not been registered."
             next_steps = ["Draft Police Complaint", "Submit to jurisdictional police station"]
@@ -320,7 +283,6 @@ class ResponseBuilder:
         else:
             recommended_action, decision_label, decision_detail = "CONSIDER_SETTLEMENT", "Consider Strategic Settlement", f"Case has significant vulnerabilities ({score}/100)."
             next_steps = ["Draft settlement proposal", "Evaluate time-value of money"]
-
         accused_type = str(case_data.get("accused_type", "")).lower()
         accused_name = str(case_data.get("accused_name", "")).lower()
         is_company = accused_type in {"company", "pvt ltd/ltd company", "partnership firm"} or any(
@@ -328,8 +290,6 @@ class ResponseBuilder:
         )
         if is_company and not case_data.get("directors_named", False):
             next_steps.insert(0, "1. Copy the injected Section 141 management clause into paragraph 3 of your complaint draft to reclaim +5 points and remove the threshold maintainability risk.")
-
-        # Counter-strategies mapped to top risks for UI display
         counter_strategies = {
             "Fatal Defect": "Withdraw and re-file after curing the defect, or consider civil recovery.",
             "Notice Not Sent": "Send registered notice immediately. Do not file before 15 days expire.",
@@ -342,11 +302,9 @@ class ResponseBuilder:
             "Missing Proof": "Secure originals of cheque, memo, and notice before proceeding.",
             "Unaccounted Cash Loans": "Produce 3-year ITR and CA certificate showing financial capacity.",
         }
-
         for risk_obj in top_3_risks:
             risk_name = risk_obj.get("risk", "")
             risk_obj["counter_strategy"] = counter_strategies.get(risk_name, "Strengthen documentary evidence.")
-
         decision = {
             "recommended_action": recommended_action,
             "decision_label": decision_label,
@@ -355,17 +313,14 @@ class ResponseBuilder:
             "top_3_risks": top_3_risks,
             "draft_type_generated": engine_result.get("draft_type", "LEGAL_OPINION")
         }
-
         strategy = [
             "Proceed with procedural compliance audit.",
             "Verify jurisdictional facts.",
             "Maintain evidentiary safe custody."
         ]
-
         alternative_evidence = []
         if not case_data.get("debt_proven"):
             alternative_evidence = ["WhatsApp correspondence", "Bank statements", "Ledger entries"]
-
         def get_category(risk_name):
             r = str(risk_name).lower()
             if "notice" in r or "delay" in r or "time" in r or "premature" in r:
@@ -375,18 +330,14 @@ class ResponseBuilder:
             if "proof" in r or "evidence" in r or "memo" in r or "cheque" in r or "signature" in r or "contradiction" in r or "witness" in r or "itr" in r or "capacity" in r:
                 return "Evidentiary"
             return "Statutory"
-
         for r in structured_weaknesses:
             r['text'] = r.get('risk', '')
             r['title'] = r.get('risk', '')
             r['description'] = r.get('detail', '')
             r['category'] = get_category(r.get('risk', ''))
             r['type'] = r['category']
-
         final_weaknesses = structured_weaknesses
         final_issues = [r for r in structured_weaknesses if r.get('severity') in ['FATAL', 'CRITICAL', 'HIGH']]
-
-        # ── SENIOR ADVOCATE BRIEF (Standalone Object for Print/UI) ───────────
         senior_brief = {
             "verdict": verdict,
             "biggest_risk": tldr.get("core_risk", "Evidentiary Gaps") if verdict != "DO NOT FILE" else "[!] FATAL: " + tldr.get("core_risk", "Statutorily Dead Case"),
@@ -397,18 +348,13 @@ class ResponseBuilder:
         if verdict == "DO NOT FILE":
             senior_brief["predicted_posture"] = "WITHDRAW OR ABANDON (High Perjury/Cost Risk)"
             senior_brief["biggest_risk"] = engine_result.get("failure_point", senior_brief["biggest_risk"])
-
-        # ── LLM COPILOT LAYER ───────────
         weakness_strs = [w['risk'] for w in final_weaknesses]
         executive_summary_text = generate_executive_summary(score, weakness_strs, strengths, case_data)
-        
         from llm_engine import LLM_AVAILABLE
         if LLM_AVAILABLE and "Case Score" not in executive_summary_text:
             executive_summary_text = ResponseBuilder._prefix_text(executive_summary_text, "AI Enhanced")
         else:
             executive_summary_text = ResponseBuilder._prefix_text(executive_summary_text, "Rule-Based")
-        
-        # Build defences for response
         defences_list = engine_result.get("defences") or []
         if not defences_list:
             risks_and_rebuttals = engine_result.get("risks_and_rebuttals", [])
@@ -429,14 +375,12 @@ class ResponseBuilder:
                     "trigger_reason": node.get("why_applied", "Applicable based on case facts."),
                     "rebuttal": rebuttal_text
                 })
-
         base_draft = engine_result.get("draft", "")
         draft_type = engine_result.get("draft_type", "LEGAL_OPINION")
         enhanced_draft = enhance_legal_draft(base_draft, draft_type, case_data) if base_draft else ""
         draft_label = "AI Enhanced" if LLM_AVAILABLE and enhanced_draft and enhanced_draft != base_draft else "Rule-Based"
         enhanced_draft = ResponseBuilder._prefix_text(enhanced_draft, draft_label)
         base_draft = ResponseBuilder._prefix_text(base_draft, "Rule-Based")
-
         return {
             "score": score,
             "final_score": score,
@@ -539,14 +483,12 @@ class ResponseBuilder:
             "senior_brief": senior_brief,
             "failure_point": engine_result.get("failure_point", ""),
             "question_bank": engine_result.get("question_bank", []),
-            # New: Judicial Intelligence Layer
             "judicial_report": engine_result.get("judicial_report", {}),
             "jurisdiction_info": engine_result.get("jurisdiction_info", {}),
             "theoretical_score": engine_result.get("theoretical_score", score),
             "judicial_multiplier": engine_result.get("judicial_report", {}).get("judicial_multiplier", {}),
             "judge_challenge_predictions": engine_result.get("judicial_report", {}).get("judge_challenge_predictions", []),
             "court_stats": engine_result.get("judicial_report", {}).get("court_stats", {}),
-            # New: RAG Precedent Intelligence
             "precedent_intelligence": engine_result.get("precedent_intelligence", {}),
             "supporting_precedents": engine_result.get("precedent_intelligence", {}).get("supporting", []),
             "opposing_precedents": engine_result.get("precedent_intelligence", {}).get("opposing", []),

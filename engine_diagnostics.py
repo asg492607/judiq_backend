@@ -1,15 +1,8 @@
 import logging
-from typing import Dict, List, Any
+from typing import Dict, Any
 from engine_core import JudiQEngine
-
 logger = logging.getLogger(__name__)
-
 class EngineDiagnostics:
-    """
-    REGRESSION & ADVERSARIAL TESTING SUITE
-    Used to ensure logic consistency and prevent hallucination/regression.
-    """
-    
     TEST_CASES = [
         {
             "name": "PERFECT_COMPLAINANT_CASE",
@@ -68,7 +61,7 @@ class EngineDiagnostics:
                 "dishonour_memo": True,
                 "notice_sent": True,
                 "notice_received_date": "2024-01-01",
-                "filing_date": "2024-03-01", # > 30 days after notice period
+                "filing_date": "2024-03-01",                                
                 "amount": 50000
             },
             "max_score": 35,
@@ -94,7 +87,7 @@ class EngineDiagnostics:
                 "dishonour_memo": True,
                 "notice_sent": True,
                 "notice_received_date": "2024-05-01",
-                "filing_date": "2024-05-10", # < 15 days
+                "filing_date": "2024-05-10",            
                 "amount": 150000
             },
             "max_score": 30,
@@ -141,30 +134,22 @@ class EngineDiagnostics:
             "required_risks": []
         }
     ]
-
     @classmethod
     async def run_diagnostics(cls) -> Dict[str, Any]:
         results = []
         engine = JudiQEngine()
-        
         for case in cls.TEST_CASES:
             try:
-                # Mocking the RAG/OCR for pure logic testing
-                # pyrefly: ignore [not-async]
                 analysis = await engine.analyze_case(case["data"], analysis_mode="detailed")
                 score = analysis.get("score", 0)
-                
                 passed = True
                 errors = []
-                
                 if "min_score" in case and score < case["min_score"]:
                     passed = False
                     errors.append(f"Score {score} below minimum {case['min_score']}")
-                
                 if "max_score" in case and score > case["max_score"]:
                     passed = False
                     errors.append(f"Score {score} above maximum {case['max_score']}")
-                
                 results.append({
                     "case": case["name"],
                     "status": "PASS" if passed else "FAIL",
@@ -177,7 +162,6 @@ class EngineDiagnostics:
                     "status": "ERROR",
                     "error": str(e)
                 })
-        
         return {
             "summary": {
                 "total": len(cls.TEST_CASES),
@@ -187,7 +171,6 @@ class EngineDiagnostics:
             },
             "details": results
         }
-
 if __name__ == "__main__":
     import asyncio
     async def main():
@@ -196,6 +179,4 @@ if __name__ == "__main__":
         print(f"Passed: {report['summary']['passed']}/{report['summary']['total']}")
         for detail in report['details']:
             print(f"- {detail['case']}: {detail['status']} (Score: {detail.get('score')}) {detail.get('errors', '')}")
-    
     asyncio.run(main())
-

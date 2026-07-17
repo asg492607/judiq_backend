@@ -14,7 +14,6 @@ Design decisions:
 - apply_jurisdiction_guards tests use simple dicts; the function signature
   is (jurisdiction_info: dict, concepts: list, final_score: float) → float.
 """
-import pytest
 from jurisdiction_engine import map_jurisdiction, get_court_tier, apply_jurisdiction_guards
 
 

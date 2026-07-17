@@ -1,9 +1,6 @@
 import logging
 from typing import List, Dict, Any
-
 logger = logging.getLogger(__name__)
-
-# ── Risk catalogue ─────────────────────────────────────────────────────────────
 RISK_CATALOGUE = [
     {
         "concept_trigger": "security_cheque",
@@ -96,9 +93,6 @@ RISK_CATALOGUE = [
         "case_law": "Sushil Kumar v. Sandeep Kumar (2026) / Basalingappa (2019)"
     }
 ]
-
-
-# Mapping from score → prediction (Cynical Advocate Tuning)
 OUTCOME_MAP = [
     (88, "High Probability of Conviction",      "Exceptional documentary trail. Presumptions are nearly impossible to rebut. Subject to trial technicalities."),
     (75, "Likely Conviction (Trial Risk)",       "Strong pillars, but 'reasonable doubt' remains a tactical weapon for the defense. Successful cross-examination is vital."),
@@ -106,7 +100,6 @@ OUTCOME_MAP = [
     (45, "High Risk of Acquittal",               "Defense will likely rebut presumptions. Procedural gaps provide multiple 'escape routes' for the accused."),
     ( 0, "Non-Maintainable / Fatal Defects",     "Complaint is procedurally or substantively DOA. Expect dismissal at pre-summoning or discharge stage."),
 ]
-
 TRANSLATIONS = {
     "hindi": {
         "STRONG":   "मजबूत मामला — अभियोजन संभावित (Strong Case)",
@@ -124,25 +117,13 @@ TRANSLATIONS = {
         "WEAK":     "નબળો કેસ — સમાધાન ધ્યાનમાં લો"
     }
 }
-
-
 class DecisionSupportEngine:
-    """
-    Decision-Support Layer:
-    ─ Risk identification with AI-driven rebuttals
-    ─ Outcome probability prediction
-    ─ Multilingual verdict translation
-    ─ Evidence gap suggestions
-    """
-
     @staticmethod
     def identify_risks_and_rebuttals(concepts: List[Dict], case_data: Dict, limitation_status: str = "") -> List[Dict]:
         concept_names = {c["concept"] for c in concepts}
         risks: List[Dict] = []
         seen_risks: set = set()
-        
         has_condonation = str(case_data.get("condonation_attached", "")).lower() in ["yes", "true", "1"] or str(case_data.get("condonation_attached", "")).startswith("yes")
-        
         if limitation_status in ("TIME_BARRED", "EXPIRED"):
             if not has_condonation:
                 seen_risks.add("Jurisdictional Bar: Limitation Period Expired")
@@ -162,43 +143,31 @@ class DecisionSupportEngine:
                     "rebuttal": "Ensure the affidavit clearly explains the specific daily delay. Medical or administrative reasons must be backed by documentary proof.",
                     "case_law": "Pawan Kumar Ralli v. Maninder Singh Narula (2014)"
                 })
-
         for rule in RISK_CATALOGUE:
             concept_trigger = rule.get("concept_trigger")
             pillar_trigger  = rule.get("pillar_trigger")
             risk_key        = rule["risk"]
-
             if risk_key in seen_risks:
                 continue
-
             fired = False
-
-            # Fire if the semantic engine detected the concept
             if concept_trigger and concept_trigger in concept_names:
                 fired = True
-
-            # Fire if a boolean pillar is false (for structural risks)
             if pillar_trigger and not case_data.get(pillar_trigger, True):
-                # Special case: corporate vicarious liability
                 if pillar_trigger == "directors_named":
                     accused_type = case_data.get("accused_type", "Individual")
                     if accused_type in ("Pvt Ltd/Ltd Company", "Company", "Partnership Firm"):
                         fired = True
                 else:
                     fired = True
-
             if fired:
                 seen_risks.add(risk_key)
-                
                 rebuttal = rule["rebuttal"]
                 case_law = rule.get("case_law", "")
-                
                 if risk_key == "Security Cheque Defense (S.138)":
                     agreement_type = str(case_data.get("agreement_type", "")).lower()
                     if "invoice" in agreement_type or "bill" in agreement_type:
                         rebuttal = "Counter via S.139 presumption. Per 'Sunil Todi v. State of Gujarat (2021)', a cheque issued as security for a commercial supply/invoice is enforceable if the debt matures by the date of presentation."
                         case_law = "Sunil Todi v. State of Gujarat (2021)"
-
                 risks.append({
                     "risk":        risk_key,
                     "severity":    rule["severity"],
@@ -206,12 +175,8 @@ class DecisionSupportEngine:
                     "rebuttal":    rebuttal,
                     "case_law":    case_law
                 })
-
-        # Sort: FATAL → CRITICAL → HIGH → MEDIUM
         order = {"FATAL": 0, "CRITICAL": 1, "HIGH": 2, "MEDIUM": 3, "LOW": 4}
         risks.sort(key=lambda r: order.get(r["severity"], 99))
-
-        # Hard-coded strategy triggers based on case data (Institutional Hardening)
         risks.append({
             "risk": "Procedural Veracity Protocol",
             "severity": "LOW",
@@ -219,7 +184,6 @@ class DecisionSupportEngine:
             "rebuttal": "Verify every citation against official gazettes or reporters (SCC/AIR) before submission.",
             "case_law": "Bar Council of India Standards"
         })
-        
         risks.append({
             "risk": "Boilerplate Pleading Scrutiny",
             "severity": "LOW",
@@ -227,7 +191,6 @@ class DecisionSupportEngine:
             "rebuttal": "Ensure the final draft contains unique transactional facts that demonstrate application of mind.",
             "case_law": "Judicial Protocol 2026"
         })
-
         if case_data.get("communication_records"):
             risks.append({
                 "risk": "BSA Section 63 Admissibility",
@@ -236,7 +199,6 @@ class DecisionSupportEngine:
                 "rebuttal": "Prepare the mandatory S.63(4) certificate identifying the device and the person in control at the time of retrieval.",
                 "case_law": "BSA Section 63(4) Compliance"
             })
-        
         if case_data.get("amount", 0) >= 50000:
             risks.append({
                 "risk": "Section 143A Discretionary Bar",
@@ -245,9 +207,7 @@ class DecisionSupportEngine:
                 "rebuttal": "File a separate application u/s 143A detailing the financial impact on the complainant.",
                 "case_law": "S.143A Discretionary Guidelines"
             })
-
         return risks
-
     @staticmethod
     def predict_outcome(final_score: float) -> Dict[str, Any]:
         for threshold, prediction, rationale in OUTCOME_MAP:
@@ -268,12 +228,10 @@ class DecisionSupportEngine:
             "rationale": "Insufficient data to assess outcome.",
             "score_band": "WEAK"
         }
-
     @staticmethod
     def translate_verdict(verdict: str, target_lang: str = "hindi") -> str:
         lang_map = TRANSLATIONS.get(target_lang.lower(), TRANSLATIONS["hindi"])
         return lang_map.get(verdict.upper(), verdict)
-
     @staticmethod
     def suggest_evidence_gaps(case_data: Dict) -> List[str]:
         suggestions: List[str] = []
@@ -285,7 +243,6 @@ class DecisionSupportEngine:
                 "Promissory note or acknowledgement of debt signed by accused",
                 "SMS logs discussing repayment timeline or outstanding balance",
             ]
-        
         if case_data.get("communication_records"):
             suggestions += [
                 "Mandatory: Prepare Section 63(4) BSA Certificate for WhatsApp/Email printouts (Replacing old 65B)",
@@ -296,8 +253,7 @@ class DecisionSupportEngine:
                 "Draft and dispatch demand notice via Registered Post AD within 30 days of dishonour memo",
                 "BEWARE 'Notice of Service Ghost': Ensure the A.D. card has the accused's actual signature, and tracking report clearly shows 'Item Delivered' to the correct person.",
             ]
-        if case_data.get("accused_type") in ("Pvt Ltd/Ltd Company", "Company", "Partnership Firm") \
-                and not case_data.get("directors_named"):
+        if case_data.get("accused_type") in ("Pvt Ltd/Ltd Company", "Company", "Partnership Firm")                and not case_data.get("directors_named"):
             suggestions += [
                 "Obtain Memorandum of Association / Partnership Deed to identify directors/partners",
                 "Name all directors in charge of business in the complaint with specific averments",

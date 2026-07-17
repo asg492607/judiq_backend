@@ -1,12 +1,6 @@
-from typing import Dict, List, Any
+from typing import Dict, List
 from adversarial_engine import AdversarialEngine
-
 class CriminalAdversarialEngine(AdversarialEngine):
-    """
-    Simulates courtroom dynamics, tactical rebuttal chains, and stage-wise 
-    procedural survivability for general criminal law matters.
-    """
-
     PROCEDURAL_STAGES = [
         {"id": "bail", "name": "Bail Hearing (S.437/439)", "baseline_prob": 0.60},
         {"id": "cognizance", "name": "Cognizance/Summoning", "baseline_prob": 0.85},
@@ -17,12 +11,9 @@ class CriminalAdversarialEngine(AdversarialEngine):
         {"id": "defense", "name": "Defense Evidence", "baseline_prob": 0.60},
         {"id": "final", "name": "Final Arguments", "baseline_prob": 0.50}
     ]
-
     VULNERABILITY_MODELS = {}
-
     @classmethod
     def load_knowledge_base(cls):
-        """Loads the massive vulnerability ruleset from JSON."""
         if cls.VULNERABILITY_MODELS:
             return
         try:
@@ -32,20 +23,15 @@ class CriminalAdversarialEngine(AdversarialEngine):
                 data = json.load(f)
                 cls.VULNERABILITY_MODELS = data.get("vulnerability_models", {})
         except Exception as e:
-            cls.VULNERABILITY_MODELS = {} # Failsafe
-
+            cls.VULNERABILITY_MODELS = {}           
     @classmethod
     def calculate_stage_survivability(cls, severity_score: int, adversarial_risk: float) -> List[Dict]:
-        """Calculates quantified probability of surviving each stage of the criminal trial."""
         roadmap = []
         current_risk_multiplier = 1.0 - (adversarial_risk * 0.5)
-        
         for stage in cls.PROCEDURAL_STAGES:
             prob = stage["baseline_prob"] * (severity_score / 100.0) * current_risk_multiplier
-            
             if stage["id"] == "cross":
-                prob *= 0.65 # Cross-examination is the ultimate test in criminal trials
-                
+                prob *= 0.65                                                            
             roadmap.append({
                 "stage": stage["name"],
                 "probability": f"{int(max(5, min(95, prob * 100)))}%",
@@ -53,15 +39,11 @@ class CriminalAdversarialEngine(AdversarialEngine):
                 "risk_factor": "Cross-exam fumble" if stage["id"] == "cross" else "Procedural/Evidentiary bar"
             })
             current_risk_multiplier *= 0.95
-            
         return roadmap
-
     @classmethod
     def detect_contradictions(cls, case_data: Dict, concepts: List[Dict]) -> List[Dict]:
-        """Detects mutually exclusive facts or procedural lapses in criminal narratives."""
         contradictions = []
         concept_names = [c["concept"] for c in concepts]
-        
         if "fir_delay" in concept_names and not case_data.get("delay_explanation"):
             contradictions.append({
                 "severity": "Material credibility risk",
@@ -70,7 +52,6 @@ class CriminalAdversarialEngine(AdversarialEngine):
                 "remediation": "File a supplementary statement detailing reasons for delay (e.g., medical treatment, fear).",
                 "penalty": -30
             })
-
         if case_data.get("electronic_evidence") and not case_data.get("s65b_certificate"):
             contradictions.append({
                 "severity": "Fatal Procedural Defect",
@@ -79,7 +60,6 @@ class CriminalAdversarialEngine(AdversarialEngine):
                 "remediation": "Procure and file the S.65B certificate immediately before the trial commences.",
                 "penalty": -50
             })
-            
         offense_type = str(case_data.get("offense_type", "")).upper()
         if offense_type == "420" and case_data.get("contract_exists") and case_data.get("partial_performance_done"):
             contradictions.append({
@@ -89,17 +69,13 @@ class CriminalAdversarialEngine(AdversarialEngine):
                 "remediation": "Argue that the partial performance was merely a smokescreen to induce further funds.",
                 "penalty": -40
             })
-
         return contradictions
-
     @classmethod
     def simulate_strategic_stress_test(cls, case_data: Dict, concepts: List[Dict]) -> List[Dict]:
-        """Deep modeling of potential defence theories from the JSON knowledge base."""
         cls.load_knowledge_base()
         analysis_nodes = []
         offense_type = str(case_data.get("offense_type", "")).upper()
         concept_names = [c["concept"] for c in concepts]
-
         def _build_node(model_key: str):
             tree = cls.VULNERABILITY_MODELS.get(model_key)
             if not tree: return None
@@ -115,9 +91,7 @@ class CriminalAdversarialEngine(AdversarialEngine):
                 "survival_probability": f"{int((1.0 - tree.get('probability_collapse', 0.5)) * 100)}%",
                 "collapse_risk": f"{int(tree.get('probability_collapse', 0.5) * 100)}%"
             }
-
         if offense_type:
-            # 1. Exact Match in Knowledge Base
             matched = False
             for model_key in cls.VULNERABILITY_MODELS.keys():
                 if offense_type in model_key or model_key in offense_type:
@@ -125,8 +99,6 @@ class CriminalAdversarialEngine(AdversarialEngine):
                     if node:
                         analysis_nodes.append(node)
                         matched = True
-            
-            # 2. Dynamic Generic Fallback for unmapped 100+ sections
             if not matched and ("IPC" in offense_type or "BNS" in offense_type):
                 node = {
                     "adversarial_vector": f"Procedural Challenge ({offense_type})",
@@ -148,45 +120,33 @@ class CriminalAdversarialEngine(AdversarialEngine):
                     "collapse_risk": "35%"
                 }
                 analysis_nodes.append(node)
-                
-        # Additional concept-based triggers
         if case_data.get("medical_contradicts_ocular"):
             node = _build_node("MEDICAL_OCULAR")
             if node: analysis_nodes.append(node)
-            
         if case_data.get("s161_s164_contradiction"):
             node = _build_node("CRPC_161_164")
             if node: analysis_nodes.append(node)
-            
         if case_data.get("fir_delay_unexplained"):
             node = _build_node("CRPC_154")
             if node: analysis_nodes.append(node)
-            
         if case_data.get("default_bail_window"):
             node = _build_node("CRPC_167")
             if node: analysis_nodes.append(node)
-            
-        # Harden Discharge / Quashing Simulation
         for node in analysis_nodes:
             if node.get("quashing_ground"):
                 node["discharge_quashing_strategy"] = f"File S.482 CrPC / S.528 BNSS petition citing: {node['quashing_ground']}."
-
         return analysis_nodes
-
     @classmethod
     def audit_case(cls, case_data: Dict, concepts: List[Dict]) -> Dict:
-        """Central audit method for the criminal orchestrator."""
         cls.load_knowledge_base()
         contradictions = cls.detect_contradictions(case_data, concepts)
         analysis_nodes = cls.simulate_strategic_stress_test(case_data, concepts)
-        
         base_risk = 0.20
         for node in analysis_nodes:
             try:
                 dest_prob = float(node["collapse_risk"].strip('%')) / 100.0
                 base_risk += (dest_prob * 0.3)
             except: base_risk += 0.1
-            
         for c in contradictions:
             if "Fatal" in c["severity"]:
                 base_risk += 0.4
@@ -194,7 +154,6 @@ class CriminalAdversarialEngine(AdversarialEngine):
                 base_risk += 0.2
             else:
                 base_risk += 0.1
-                
         return {
             "risks_and_rebuttals": analysis_nodes,
             "contradictions": contradictions, 

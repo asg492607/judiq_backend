@@ -1,11 +1,3 @@
-"""
-rag_engine.py — JudiQ RAG (Retrieval-Augmented Generation) Foundation Layer
-Provides vector-style semantic search over the legal precedent corpus.
-Currently uses TF-IDF-like keyword matching as a production-ready stub;
-the interface is designed to swap in FAISS/Qdrant/Pinecone with zero 
-changes to callers.
-"""
-
 import logging
 import os
 import json
@@ -13,14 +5,8 @@ import re
 import numpy as np
 from typing import List, Dict, Any
 import importlib.util
-
-# Check package availability without importing them (saves memory at startup)
-# Forced to False to optimize API response speed (<1ms) and memory usage on Render
 HAS_VECTOR_DB = False
-
 logger = logging.getLogger(__name__)
-
-# ── Authoritative Precedent Corpus ──────────────────────────────────────────
 FALLBACK_PRECEDENT_CORPUS = [
     {
         "id": "CB-001",
@@ -155,8 +141,6 @@ FALLBACK_PRECEDENT_CORPUS = [
         "court": "Supreme Court"
     },
 ]
-
-# Load precedents dynamically from JSON
 PRECEDENT_CORPUS = FALLBACK_PRECEDENT_CORPUS
 corpus_path = os.path.join(os.path.dirname(__file__), "precedents_corpus.json")
 if os.path.exists(corpus_path):
@@ -166,27 +150,16 @@ if os.path.exists(corpus_path):
         logger.info(f"Loaded {len(PRECEDENT_CORPUS)} precedents from {corpus_path}")
     except Exception as e:
         logger.error(f"Failed to load precedents_corpus.json: {e}")
-
-
 class RAGManager:
-    """
-    Vector-search layer over the legal precedent corpus.
-    Uses keyword-frequency matching now; designed to plug into
-    FAISS/Qdrant with identical interface.
-    """
-
     def __init__(self):
         self._corpus = PRECEDENT_CORPUS
         self._use_vector = HAS_VECTOR_DB
         self.model = None
         self.index = None
-        
-        # Log status on init, but do not block by loading the model yet
         if self._use_vector:
             logger.info("[RAGManager] Vector DB capabilities available. SentenceTransformer will load lazily on first search.")
         else:
             logger.info(f"[RAGManager] Loaded {len(self._corpus)} precedents into Keyword corpus (Fallback).")
-
     def _lazy_init_vector(self):
         if self._use_vector and self.model is None:
             try:
@@ -198,54 +171,36 @@ class RAGManager:
             except Exception as e:
                 logger.error(f"[RAGManager] Lazy vector initialization failed: {e}. Falling back to Keyword RAG.")
                 self._use_vector = False
-
     def _build_index(self):
-        """Builds the FAISS index by embedding the summaries of all precedents."""
         if not self.model:
             return
         import faiss
         texts = [p.get("summary", "") + " " + " ".join(p.get("keywords") or []) for p in self._corpus]
         embeddings = self.model.encode(texts)
         dimension = embeddings.shape[1]
-        
-        # L2 Distance metric
         self.index = faiss.IndexFlatL2(dimension)
         self.index.add(np.array(embeddings).astype('float32'))
-
     def semantic_search(self, query: str, top_k: int = 5, stance_filter: str = None) -> List[Dict]:
-        """
-        Main search API. Returns top_k most relevant precedents for query.
-        Uses FAISS vector search if available, otherwise falls back to keywords.
-        stance_filter: 'complainant_favourable' | 'defence_favourable' | 'neutral' | None
-        """
         if self._use_vector:
             self._lazy_init_vector()
-
         if not query:
             return self._corpus[:top_k]
-
         if self._use_vector and self.model and self.index:
             try:
                 query_vector = self.model.encode([query])
                 distances, indices = self.index.search(np.array(query_vector).astype('float32'), len(self._corpus))
-                
                 scored = []
                 for i, idx in enumerate(indices[0]):
                     prec = self._corpus[idx]
                     if stance_filter and prec.get("stance") != stance_filter:
                         continue
-                    # distance is L2, so smaller is better. Let's invert it for score (arbitrary scaling)
                     score = 1.0 / (1.0 + distances[0][i])
                     scored.append((score, prec))
-                
                 return [p for _, p in scored[:top_k]]
             except Exception as e:
                 logger.error(f"Vector search failed: {e}. Falling back.")
-
-        # Fallback Keyword Logic
         query_words = set(re.sub(r'[^\w\s]', '', query.lower()).split())
         scored = []
-
         for prec in self._corpus:
             if stance_filter and prec.get("stance") != stance_filter:
                 continue
@@ -260,37 +215,23 @@ class RAGManager:
                     score += 3
             if score > 0:
                 scored.append((score, prec))
-
         scored.sort(key=lambda x: x[0], reverse=True)
         return [p for _, p in scored[:top_k]]
-
     def find_supporting_precedents(self, case_facts: Dict) -> List[Dict]:
-        """Find precedents SUPPORTING the case (complainant-favourable)."""
         query = self._build_query(case_facts)
         return self.semantic_search(query, top_k=3, stance_filter="complainant_favourable")
-
     def find_opposing_precedents(self, case_facts: Dict) -> List[Dict]:
-        """Find precedents AGAINST the case (defence-favourable)."""
         query = self._build_query(case_facts)
         return self.semantic_search(query, top_k=3, stance_filter="defence_favourable")
-
     def find_distinguishable_precedents(self, case_facts: Dict) -> List[Dict]:
-        """Find precedents that could be distinguished from the current case."""
         query = self._build_query(case_facts)
         all_results = self.semantic_search(query, top_k=5)
-        # Return those that are binding but from different stance
         return [p for p in all_results if p.get("binding")][:3]
-
     def get_precedent_intelligence(self, case_facts: Dict) -> Dict:
-        """
-        Full precedent intelligence report: supporting + opposing + distinguishable.
-        This is what gets injected into the analyze_case response.
-        """
         supporting = self.find_supporting_precedents(case_facts)
         opposing = self.find_opposing_precedents(case_facts)
         distinguishable = self.find_distinguishable_precedents(case_facts)
         all_relevant = self.semantic_search(self._build_query(case_facts), top_k=5)
-
         return {
             "supporting": supporting,
             "opposing": opposing,
@@ -299,9 +240,7 @@ class RAGManager:
             "total_found": len(all_relevant),
             "rag_source": "JudiQ Legal Corpus v1.0 (226 precedents indexed)"
         }
-
     def _build_query(self, case_facts: Dict) -> str:
-        """Build a natural language query from case facts."""
         parts = []
         if case_facts.get("case_type"):
             parts.append(case_facts["case_type"])
@@ -320,7 +259,4 @@ class RAGManager:
         if case_facts.get("notice_mode"):
             parts.append(case_facts["notice_mode"])
         return " ".join(parts)
-
-
-# Singleton
 rag_manager = RAGManager()

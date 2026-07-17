@@ -12,7 +12,6 @@ Design decisions:
 - Numeric thresholds are set conservatively so that valid-but-imperfect rule
   outputs still pass (e.g., final_score < 70 instead of < 50 for notice issues).
 """
-import pytest
 import llm_engine
 from engine_core import analyze_case
 

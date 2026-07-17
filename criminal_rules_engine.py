@@ -1,17 +1,8 @@
-from typing import Dict, List, Any
-
+from typing import Dict, List
 class CriminalRulesEngine:
-    """
-    Evaluates strict binary statutory rules and Supreme Court directives.
-    Unlike adversarial strategy, these rules operate on absolute IF-THEN-FATAL logic.
-    """
-
     @classmethod
     def evaluate_rules(cls, case_data: Dict) -> List[Dict]:
         triggered_rules = []
-        
-        # 1. Juvenility Claim (Juvenile Justice Act)
-        # Age can be raised at any time.
         age_at_incident = case_data.get("age_at_incident")
         if age_at_incident:
             try:
@@ -27,8 +18,6 @@ class CriminalRulesEngine:
                     })
             except ValueError:
                 pass
-
-        # 2. Sanction for Prosecution (S.197 CrPC / S.19 PC Act)
         if case_data.get("is_public_servant") and not case_data.get("sanction_obtained"):
             triggered_rules.append({
                 "rule_name": "S.197 CrPC / S.19 PC Act (Want of Sanction)",
@@ -38,13 +27,9 @@ class CriminalRulesEngine:
                 "legal_effect": "Taking cognizance of the offence is strictly barred by law. The entire proceeding is null and void ab initio.",
                 "action": "File an application for discharge or S.482 Quashing citing lack of valid sanction."
             })
-
-        # 3. Satender Kumar Antil Bail Guidelines (Supreme Court)
-        # Category A: Punishable <= 7 years, not arrested during investigation, cooperated.
         max_punishment = case_data.get("max_punishment_years")
         arrested_during_investigation = case_data.get("arrested_during_investigation")
         cooperated_with_io = case_data.get("cooperated_with_io")
-        
         if max_punishment is not None and arrested_during_investigation is not None:
             try:
                 punishment = int(max_punishment)
@@ -60,15 +45,11 @@ class CriminalRulesEngine:
                     })
             except ValueError:
                 pass
-
-        # 4. S.468 CrPC / S.336 BNSS Limitation Bar
-        # e.g., if max punishment is < 3 years, limitation is 3 years.
         limitation_years = case_data.get("limitation_years_passed")
         if limitation_years is not None and max_punishment is not None:
             try:
                 punishment = int(max_punishment)
                 years_passed = float(limitation_years)
-                
                 barred = False
                 bar_limit = 0
                 if punishment <= 1 and years_passed > 1:
@@ -77,7 +58,6 @@ class CriminalRulesEngine:
                 elif punishment <= 3 and years_passed > 3:
                     barred = True
                     bar_limit = 3
-                    
                 if barred:
                     triggered_rules.append({
                         "rule_name": "S.468 CrPC (Bar of Limitation)",
@@ -89,5 +69,4 @@ class CriminalRulesEngine:
                     })
             except ValueError:
                 pass
-
         return triggered_rules

@@ -1,13 +1,10 @@
-# pyrefly: ignore [missing-import]
 import logging
 from fastapi import APIRouter, Response, Query, Body
 from fastapi.responses import JSONResponse
 from pdf_generator import PDFGenerator
 from jurisdiction_engine import map_jurisdiction
-
 router = APIRouter()
 logger = logging.getLogger("JudiQ.Documents")
-
 @router.post("/generate-pdf")
 def generate_pdf(data: dict = Body(...)):
     try:
@@ -23,21 +20,17 @@ def generate_pdf(data: dict = Body(...)):
     except Exception as e:
         logger.error(f"PDF generation failed: {e}")
         return JSONResponse(status_code=500, content={"error": "Failed to generate PDF report."})
-
 @router.post("/jurisdiction/map")
 def jurisdiction_map(data: dict = Body(...)):
     result = map_jurisdiction(data)
     return {"success": True, "jurisdiction": result}
-
 @router.get("/draft/history/{case_id}/{draft_type}")
 def get_draft_history(case_id: str, draft_type: str):
     from session import DatabaseManager
     history = DatabaseManager.get_draft_history(case_id, draft_type)
     return {"success": True, "history": history}
-
 @router.get("/draft/history")
 def get_draft_history_query(case_id: str = Query(...), draft_type: str = Query(...)):
-    """Path-safe draft history lookup for case IDs that contain slashes."""
     from session import DatabaseManager
     history = DatabaseManager.get_draft_history(case_id, draft_type)
     return {"success": True, "history": history}
@@ -57,7 +50,6 @@ def generate_draft_word_endpoint(data: dict = Body(...)):
     except Exception as e:
         logger.error(f"Draft Word generation failed: {e}")
         return JSONResponse(status_code=500, content={"error": "Failed to generate draft Word document."})
-
 @router.post("/draft-pdf")
 def generate_draft_pdf(data: dict = Body(...)):
     try:

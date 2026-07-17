@@ -1,26 +1,20 @@
-# pyrefly: ignore [missing-import]
 import logging
-import sqlite3
 import asyncio
 from datetime import datetime
-from fastapi import APIRouter, Request, Response, Depends
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
-
-from config import settings
+from typing import Optional, Dict, Any
 from engine_core import JudiQEngine
-from normalizer import normalize_input, validate_minimum_viability, ValidationError
+from normalizer import validate_minimum_viability, ValidationError
 from session import DatabaseManager
 from security import AuditLogger, SecurityTelemetry
 from caseroom_logic import CaseroomManager
 from limiter import limiter
 import threading
 from jurisdiction_engine import map_jurisdiction
-
 router = APIRouter()
 logger = logging.getLogger("JudiQ.Analysis")
-
 class CaseAnalysisRequest(BaseModel):
     description: Optional[str] = Field(None, max_length=10000)
     amount: Optional[float] = 0.0
@@ -30,21 +24,16 @@ class CaseAnalysisRequest(BaseModel):
     debt_proven: Optional[bool] = False
     accused_type: Optional[str] = "Individual"
     analysis_mode: Optional[str] = "detailed"
-    
     class Config:
         extra = "ignore"
-
 ANALYSIS_CACHE = {}
 CACHE_LOCK = threading.Lock()
-
 def get_cache_key(data: dict):
     import json
     import hashlib
     dump = json.dumps(data, sort_keys=True).encode('utf-8')
     return hashlib.md5(dump).hexdigest()
-
 from schemas import EngineResponse
-
 @router.post(
     "", 
     response_model=EngineResponse,
@@ -56,19 +45,13 @@ async def analyze(request_data: Dict[str, Any], request: Request):
     request_id = datetime.now().strftime("%Y%m%d%H%M%S%f")
     raw_data = request_data
     user_id = raw_data.get("user_id", "ANONYMOUS")
-    
-    # 1. Audit Log
     client_ip = request.client.host if request.client else "unknown"
     AuditLogger.log_interaction(user_id, "PENDING", "START_ANALYSIS", {"ip": client_ip})
-
-    # 2. Security Telemetry
     threats = await asyncio.to_thread(SecurityTelemetry.audit_payload, raw_data)
     if threats:
         AuditLogger.log_interaction(user_id, "THREAT", "SECURITY_VIOLATION", {"threats": threats})
         logger.error(f"[{request_id}] Security threats detected: {threats}")
         return JSONResponse(status_code=403, content={"success": False, "error": "Malicious payload detected."})
-
-    # 3. Caching
     cache_key = get_cache_key(raw_data)
     with CACHE_LOCK:
         if cache_key in ANALYSIS_CACHE:
@@ -76,10 +59,7 @@ async def analyze(request_data: Dict[str, Any], request: Request):
             cached = dict(ANALYSIS_CACHE[cache_key])
             cached["request_id"] = request_id
             return cached
-
     logger.info(f"[{request_id}] /analyze request received")
-
-    # 4. Minimum viability gate
     try:
         validate_minimum_viability(raw_data)
     except ValidationError as ve:
@@ -93,8 +73,6 @@ async def analyze(request_data: Dict[str, Any], request: Request):
             "field": field,
             "user_message": error_msg
         })
-
-    # 5. Engine execution
     try:
         result = await asyncio.to_thread(JudiQEngine.analyze_case, raw_data)
     except ValidationError as ve:
@@ -127,20 +105,15 @@ async def analyze(request_data: Dict[str, Any], request: Request):
                 "user_message": "An unexpected server error occurred during analysis."
             }
         )
-
-    # 6. Persist
     try:
         case_data = result.get("case_data", {})
         uid = case_data.get("user_id", "ANONYMOUS")
         cid = case_data.get("case_id", "")
-        
-        # Always cache the result regardless of user authentication
         with CACHE_LOCK:
             if len(ANALYSIS_CACHE) >= 100:
                 oldest_key = next(iter(ANALYSIS_CACHE))
                 del ANALYSIS_CACHE[oldest_key]
             ANALYSIS_CACHE[cache_key] = result
-        
         if uid and cid and uid != "ANONYMOUS":
             await asyncio.to_thread(
                 DatabaseManager.save_case,
@@ -152,19 +125,13 @@ async def analyze(request_data: Dict[str, Any], request: Request):
                 result.get("verdict", "Unknown")
             )
             AuditLogger.log_interaction(user_id, cid, "FINISH_ANALYSIS", {"score": result.get("score")})
-            
-            # Auto-initialize Caseroom
             existing_room_id = DatabaseManager.get_caseroom_by_case_id(cid)
             if not existing_room_id:
                 CaseroomManager.initialize_caseroom_for_case(cid, uid)
     except Exception as e:
         logger.warning(f"[{request_id}] DB/Caseroom persistence failed (non-fatal): {e}")
-
-    # 7. Build response
     response_body = {"success": True, "request_id": request_id}
     response_body.update(result)
-    
-    # Include Caseroom ID
     case_data = result.get("case_data", {})
     cid = case_data.get("case_id", "")
     try:
@@ -172,14 +139,11 @@ async def analyze(request_data: Dict[str, Any], request: Request):
     except Exception as e:
         logger.warning(f"[{request_id}] Caseroom lookup failed (non-fatal): {e}")
         response_body["caseroom_id"] = None
-
-    # Jurisdiction Mapping
     try:
         response_body["jurisdiction"] = map_jurisdiction(raw_data)
     except (KeyError, ValueError) as je:
         logger.warning(f"Jurisdiction mapping failed: {je}")
         response_body["jurisdiction"] = None
-
     response_body["data"] = result
     with CACHE_LOCK:
         if len(ANALYSIS_CACHE) >= 100:
@@ -187,4 +151,3 @@ async def analyze(request_data: Dict[str, Any], request: Request):
             del ANALYSIS_CACHE[oldest_key]
         ANALYSIS_CACHE[cache_key] = dict(response_body)
     return response_body
-

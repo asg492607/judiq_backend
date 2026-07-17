@@ -1,14 +1,7 @@
 import logging
 from typing import List, Dict, Any
-
 logger = logging.getLogger(__name__)
-
 class SimulatorEngine:
-    """
-    Cross-Examination Simulator — Anticipates defense attacks and prepares 
-    the Complainant for the witness box.
-    """
-
     STRATEGY_MAP = {
         "financial_capacity_risk": {
             "question": "You claim to have lent ₹4,50,000 in cash. Can you show your Income Tax Returns for that year reflecting this withdrawal?",
@@ -41,30 +34,22 @@ class SimulatorEngine:
             "suggested_answer": "The slight delay occurred due to bona fide reasons beyond my control, for which a formal application for condonation has already been filed under Section 142(1)(b). The law supports a liberal approach to condonation to ensure that substantive justice is not defeated by technicalities."
         }
     }
-
     @classmethod
     def generate_simulation(cls, concepts: List[Dict], amount: float) -> List[Dict[str, Any]]:
         simulation = []
         concept_names = {c["concept"] for c in concepts}
-        
-        # Add baseline questions
         simulation.append({
             "question": f"When and where exactly was this amount of ₹{amount:,.2f} handed over to the Accused?",
             "objective": "To test the consistency of your story (Factum of Grant).",
             "preparation": "Be specific about the date, time, and mode (Cash/Cheque/Transfer)."
         })
-
-        # Add concept-specific attacks
         for concept in concept_names:
             if concept in cls.STRATEGY_MAP:
                 simulation.append(cls.STRATEGY_MAP[concept])
-
-        # High-value cash attack
         if amount > 100000 and "loan_via_bank" not in concept_names:
             simulation.append({
                 "question": "Is it not true that according to Income Tax laws, any cash loan above ₹20,000 is illegal and hence not a 'legally enforceable debt'?",
                 "objective": "To use S.269SS of the IT Act to invalidate the debt.",
                 "preparation": "Cite 'Rangappa v. Mohan' — an IT violation does not automatically invalidate a S.138 prosecution."
             })
-
-        return simulation[:5] # Return top 5 most critical
+        return simulation[:5]                             

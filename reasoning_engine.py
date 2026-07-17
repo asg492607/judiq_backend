@@ -2,24 +2,14 @@ import logging
 from typing import List, Dict, Any
 from kb_manager import kb_manager
 from precedent_manager import precedent_manager
-
 logger = logging.getLogger(__name__)
-
 def _number(value: Any, default: float = 0.0) -> float:
     try:
         return float(value or 0)
     except (TypeError, ValueError):
         logger.warning("Invalid numeric value in reasoning engine: %r", value)
         return default
-
-
 class ReasoningEngine:
-    """
-    Reasoning Layer â€” Summarization, Statutory Interpretation, Precedent Matching,
-    and Explainability Trail Generation.
-    """
-
-    # â”€â”€ 1. Case Summarization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     @staticmethod
     def summarize_case(case_data: Dict) -> str:
         complainant = case_data.get("complainant_name") or "Complainant"
@@ -29,92 +19,65 @@ class ReasoningEngine:
         reason      = case_data.get("dishonour_reason") or "Insufficient Funds"
         bank        = case_data.get("bank_name")        or "the drawee bank"
         accused_type = case_data.get("accused_type", "Individual")
-
         summary = (
             f"Case: {complainant} vs {accused} - Prosecution for Dishonour of Cheque No. {cheque_no} "
             f"valued at Rs. {amount}. Reason: '{reason}'. "
         )
-
-        # Statutory Pillars Audit
         missing_pillars = []
         if not case_data.get("notice_sent"): missing_pillars.append("Statutory Notice (S.138b)")
         if not case_data.get("debt_proven"): missing_pillars.append("Legally Enforceable Debt (S.139)")
         if not case_data.get("cheque_present"): missing_pillars.append("Negotiable Instrument (S.138)")
-
         if missing_pillars:
             summary += f"[WARNING]: Critical statutory pillars are MISSING: {', '.join(missing_pillars)}. "
-
-        # Notice status
         if case_data.get("notice_sent"):
             mode = case_data.get("notice_mode") or "registered post"
             summary += f" Mandatory demand notice served via {mode}."
         else:
             summary += " CRITICAL: Statutory notice NOT served. Filing without notice is legally non-maintainable."
-
-        # Debt / evidence status
         if case_data.get("debt_proven"):
             summary += " Underlying debt relationship is documented."
         else:
             summary += " Evidentiary Gap: Lack of debt documentation creates high acquittal risk via rebuttal of S.139 presumption."
-
-        # Corporate flag
         if accused_type in ("Pvt Ltd/Ltd Company", "Company", "Partnership Firm"):
             directors = case_data.get("directors_named", False)
             if directors:
                 summary += f" Corporate accused ({accused_type}) impleaded correctly with responsible officers."
             else:
                 summary += f" FATAL DEFECT: Corporate accused ({accused_type}) impleaded WITHOUT naming responsible officers (S.141)."
-
-        # Financial Capacity (Basalingappa)
         amount_val = 0
         amount_val = _number(amount)
         if amount_val > 150000 and not case_data.get("loan_via_bank") and not case_data.get("complainant_itr_available"):
             summary += " ðŸš¨ EVIDENTIARY RISK: Complainant's financial capacity to lend this amount in cash may be challenged under the Basalingappa rule."
-
         return summary
-
     @staticmethod
     def generate_client_summary(analysis_result: Dict) -> str:
-        """Generates a plain-language summary for the client."""
         score = analysis_result.get("score", 0)
         verdict = analysis_result.get("verdict", "Unknown")
-        
         if score >= 75:
             msg = "Your case is very strong. All legal requirements are met."
         elif score >= 50:
             msg = "Your case is moderate. We have the core documents, but the defense may challenge some details."
         else:
             msg = "Your case has significant risks. Some mandatory legal steps appear missing or defective."
-            
-        # Add specific warnings
         existing_concepts = [c.get("concept") for c in analysis_result.get("concepts", []) if isinstance(c, dict)]
         if "notice_defect" in existing_concepts:
             msg += " Specifically, there is an issue with the legal notice timing."
         if "no_debt_proof" in existing_concepts:
             msg += " We need better proof that the money was actually owed."
-            
         return msg
-
     @staticmethod
     def determine_trend(score: int) -> str:
-        """Determines the conviction probability trend."""
         if score >= 80: return "STRONG_UPWARD"
         if score >= 60: return "STABLE_POSITIVE"
         if score >= 40: return "VOLATILE"
         return "CRITICAL_DOWNWARD"
-
-
-    # â”€â”€ 2. Precedent Matching â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     @staticmethod
     def match_precedents(case_data: Dict, concepts: List[Dict]) -> List[Dict]:
         matched: List[Dict] = []
         seen_citations: set = set()
-
         for concept_entry in concepts:
             concept_name = concept_entry.get("concept", "")
             confidence   = concept_entry.get("confidence", 0.5)
-
-            # Pull structured precedents from statutes.json
             statute_precedents = kb_manager.get_precedents_for_concept(concept_name)
             for p in statute_precedents:
                 citation = p.get("citation") or (f"{p.get('case_name')} ({p.get('year')})" if p.get('year') else p.get('case_name', ''))
@@ -131,8 +94,6 @@ class ReasoningEngine:
                         "is_live":      False,
                         "document_url": f"/api/precedents/document/{safe_citation}"
                     })
-
-            # Pull any inline precedents from knowledge_base.json
             kb = kb_manager.get_knowledge_base()
             if concept_name in kb:
                 kb_prec = kb[concept_name].get("precedent")
@@ -153,8 +114,6 @@ class ReasoningEngine:
                     prec["verification_status"] = v["status"]
                     prec["is_verified_landmark"] = v["verified"]
                     matched.append(prec)
-
-        # Explicit Landmark Case Matching Engine (All 14 Landmark cases)
         landmark_data = {
             "Basalingappa": {
                 "case": "Basalingappa vs. Mudibasappa",
@@ -283,7 +242,6 @@ class ReasoningEngine:
                 "trigger": lambda data, concepts: "limitation_issue" in [c.get("concept", "") for c in concepts if isinstance(c, dict)] or bool(data.get("notice_sent"))
             }
         }
-
         for k, p in landmark_data.items():
             if p["trigger"](case_data, concepts):
                 citation = p["citation"]
@@ -304,25 +262,18 @@ class ReasoningEngine:
                     prec["verification_status"] = v["status"]
                     prec["is_verified_landmark"] = v["verified"]
                     matched.append(prec)
-
-        # Attach latest live precedents conditionally based on matching concepts
         concept_names_set = {c.get("concept", "") for c in concepts}
         for p in precedent_manager.get_latest_precedents(15):
             impact_area = p.get("impact_area", "general")
-            # Only include live precedents that match case concepts
             if impact_area in concept_names_set or impact_area == "general":
                 title    = p.get("title", "")
                 citation = p.get("citation", "")
                 key      = citation or title
                 if key and key not in seen_citations:
                     seen_citations.add(key)
-                    
-                    # Calculate a dynamic percentage-based relevance score based on impact_area
                     base_relevance = 0.88 if impact_area in concept_names_set else 0.65
-                    # Add small variance
                     variance = (hash(key) % 15) / 100.0
                     final_relevance = min(base_relevance + variance, 0.99)
-                    
                     safe_citation = citation.replace('/', '_').replace(' ', '_') if citation else title.replace(' ', '_')
                     prec = {
                         "concept":   impact_area,
@@ -339,12 +290,9 @@ class ReasoningEngine:
                     prec["verification_status"] = v["status"]
                     prec["is_verified_landmark"] = v["verified"]
                     matched.append(prec)
-
-        # â”€â”€ 3. Live AI Research Layer (Actual Real AI) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         for concept_entry in concepts:
             concept_name = concept_entry.get("concept", "")
             if concept_name in ["financial_capacity_risk", "limitation_issue", "notice_defect", "company_liability"]:
-                # Trigger real-time search for the specific risk
                 live_research = precedent_manager.search_real_precedents(f"S.138 NI Act {concept_name} landmark judgment")
                 for p in live_research:
                     if p["citation"] not in seen_citations:
@@ -365,25 +313,17 @@ class ReasoningEngine:
                         prec["verification_status"] = v["status"]
                         prec["is_verified_landmark"] = v["verified"]
                         matched.append(prec)
-
-        # Format match_percentage for all matched precedents
         for m in matched:
             if "match_percentage" not in m:
                 m["match_percentage"] = f"{int(m.get('relevance', 0) * 100)}%"
             if "is_ai_researched" not in m:
                 m["is_ai_researched"] = False
-
-        # Sort by relevance descending
         matched.sort(key=lambda x: x.get("relevance", 0), reverse=True)
         return matched[:15]
-
-    # â”€â”€ 3. Statutory Interpretation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     @staticmethod
     def interpret_statutes(case_data: Dict, concepts: List[Dict]) -> List[Dict]:
         concept_names = {c.get("concept", "") for c in concepts if isinstance(c, dict)}
         interpretations: List[Dict] = []
-
-        # â”€ Section 138 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         sec138 = kb_manager.get_ni_act_section("138")
         if case_data.get("cheque_present"):
             cond_met  = []
@@ -396,7 +336,6 @@ class ReasoningEngine:
                     cond_fail.append(cond)
                 else:
                     cond_met.append(cond)
-
             status = "SATISFIED" if not cond_fail else ("PARTIAL" if cond_met else "DEFECTIVE")
             interpretations.append({
                 "section":   "138",
@@ -419,9 +358,6 @@ class ReasoningEngine:
                 "finding": "FATAL: No cheque instrument present. Section 138 NI Act cannot be invoked without a negotiable instrument.",
                 "conditions_met": [], "conditions_failed": []
             })
-
-        # â”€ Section 139 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        # — Section 139 ————————————————————————————————————————————————————————————————
         sec139 = kb_manager.get_ni_act_section("139")
         interpretations.append({
             "section": "139",
@@ -435,14 +371,10 @@ class ReasoningEngine:
             ),
             "interpretation": sec139.get("interpretation", ""),
         })
-
-        # â”€ Section 141 (Corporate only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         accused_type = case_data.get("accused_type", "Individual")
         if accused_type in ("Pvt Ltd/Ltd Company", "Company", "Partnership Firm"):
             sec141 = kb_manager.get_ni_act_section("141")
             has_directors = case_data.get("directors_named", False)
-            
-            # Resignation Check Logic
             resigned_risk = False
             cheque_date = case_data.get("cheque_date")
             resignation_date = case_data.get("director_resignation_date")
@@ -454,7 +386,6 @@ class ReasoningEngine:
                     if res_dt < chq_dt:
                         resigned_risk = True
                 except: pass
-
             status = "CRITICAL_DEFECT" if not has_directors or resigned_risk else "SATISFIED"
             finding = ""
             if not has_directors:
@@ -463,7 +394,6 @@ class ReasoningEngine:
                 finding = f"FATAL ADVERSARIAL TRAP: Director impleaded who resigned on {resignation_date} (BEFORE cheque date). This triggers automatic quashing u/s 482 and exposes you to a 'Malicious Prosecution' counter-suit. PRUNING RECOMMENDED."
             else:
                 finding = "Responsible officers/directors have been named. S.141 vicarious liability is properly pleaded."
-
             interpretations.append({
                 "section": "141",
                 "title":   sec141.get("title", "Offences by companies"),
@@ -471,8 +401,6 @@ class ReasoningEngine:
                 "finding": finding,
                 "requirement": sec141.get("requirement", ""),
             })
-
-        # â”€ Section 142 (Limitation) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         sec142 = kb_manager.get_ni_act_section("142")
         interpretations.append({
             "section": "142",
@@ -484,8 +412,6 @@ class ReasoningEngine:
             ),
             "limitation": sec142.get("limitation", ""),
         })
-
-        # â”€ Section 143A (Interim Compensation) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         sec143a = kb_manager.get_ni_act_section("143A")
         interpretations.append({
             "section": "143A",
@@ -497,22 +423,13 @@ class ReasoningEngine:
             ),
             "limit": sec143a.get("limit", ""),
         })
-
         return interpretations
-
     @staticmethod
     def generate_causal_story(case_data: Dict, concepts: List[Dict]) -> List[Dict]:
-        """
-        Causal Story Builder: Constructs a step-by-step narrative of the case
-        to visualize the logical flow and potential breaks.
-        """
         story = []
-        
-        # 1. Transactional Origin
         complainant = case_data.get("complainant_name") or "Complainant"
         accused = case_data.get("accused_name") or "Accused"
         amount = case_data.get("amount") or case_data.get("cheque_amount") or "X"
-        
         if case_data.get("debt_proven"):
             story.append({
                 "stage": "Liability Origin",
@@ -525,8 +442,6 @@ class ReasoningEngine:
                 "text": f"An alleged friendly loan/transaction of â‚¹{amount} took place without formal documentation.",
                 "status": "VULNERABLE"
             })
-            
-        # 2. Instrument Issuance
         if case_data.get("cheque_present"):
             story.append({
                 "stage": "Instrument Issuance",
@@ -539,8 +454,6 @@ class ReasoningEngine:
                 "text": "The physical cheque instrument is not documented in the current assessment.",
                 "status": "CRITICAL"
             })
-            
-        # 3. Presentment & Dishonour
         if case_data.get("dishonour_memo"):
             story.append({
                 "stage": "Bank Dishonour",
@@ -553,8 +466,6 @@ class ReasoningEngine:
                 "text": "Formal bank return memo is missing; dishonour state is not legally proven.",
                 "status": "CRITICAL"
             })
-            
-        # 4. Legal Demand
         if case_data.get("notice_sent"):
             story.append({
                 "stage": "Demand Compliance",
@@ -567,54 +478,37 @@ class ReasoningEngine:
                 "text": "Mandatory demand notice was not served within the 30-day statutory window.",
                 "status": "CRITICAL"
             })
-            
-        # 5. Cause of Action
         if case_data.get("notice_sent") and not case_data.get("reply_received"):
             story.append({
                 "stage": "Cause of Action",
                 "text": "Accused failed to pay within 15 days of notice receipt. Criminal liability crystallized.",
                 "status": "CRYSTALLIZED"
             })
-            
         return story
-
-    # â”€â”€ 4. Reasoning Trail (Explainability) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     @classmethod
     def generate_reasoning_trail(cls, case_data: Dict, concepts: List[Dict], final_score: float = 0.0, engine_result: Dict = None) -> List[Dict]:
-        """
-        Generates a structured reasoning trail with strict provenance metadata.
-        This addresses the 'Legal Trust' weakness by separating authoritative law from AI inference.
-        """
         trail: List[Dict] = []
-        
-        # 1. Statutory Pillar Verification (AUTHORITATIVE)
         pillars = []
         if case_data.get("cheque_present"): pillars.append("S.138 instrument verified")
         if case_data.get("notice_sent"):    pillars.append("Demand notice complied")
         if case_data.get("debt_proven"):    pillars.append("Enforceable debt established")
-        
         trail.append({
             "text": f"RULE-BASED AUDIT: Verified {len(pillars)}/3 statutory pillars. " + (f"Compliance confirmed: {', '.join(pillars)}." if pillars else "FATAL ERROR: No statutory pillars satisfied."),
             "provenance": "STATUTORY",
             "confidence": 1.0,
             "authority": "The Negotiable Instruments Act, 1881"
         })
-
-        # 2. Causal Risk Propagation (AI_INFERENCE)
         risks = [c for c in concepts if isinstance(c, dict) and ("risk" in c.get("concept", "") or "defect" in c.get("concept", ""))]
         if risks:
             causality_chain = []
             if float(case_data.get("amount") or 0) > 500000 and not case_data.get("complainant_itr_available"):
                 causality_chain.append("Missing ITR -> Financial Capacity Risk -> Rebuttal u/s 139 (Basalingappa).")
-            
             trail.append({
                 "text": f"CAUSALITY ANALYSIS: Detected {len(risks)} explicit risk vectors. Propagation: { ' | '.join(causality_chain) or 'Implicit logic applied.'}",
                 "provenance": "AI_INFERENCE",
                 "confidence": 0.85,
                 "logic_engine": "Adversarial Propagation Engine v7.0"
             })
-
-        # 3. Statistical Calibration (EMPIRICAL)
         if engine_result and "calibration_metadata" in engine_result:
             cal = engine_result["calibration_metadata"]
             if cal.get("calibration_notes"):
@@ -624,8 +518,6 @@ class ReasoningEngine:
                     "confidence": 0.95,
                     "logic_engine": "Calibration Engine v1.0"
                 })
-
-        # 4. Semantic Concept Validation (AI_INFERENCE)
         for c in concepts:
             concept_name = c.get("concept", "").replace("_", " ").title()
             trail.append({
@@ -634,8 +526,6 @@ class ReasoningEngine:
                 "confidence": c.get("confidence", 0.7),
                 "rationale": f"This matters because {concept_name.lower()} affects the overall survivability and burden of proof u/s 138."
             })
-
-        # 5. Precedent Binding (PRECEDENTIAL)
         precs = cls.match_precedents(case_data, concepts)
         if precs:
             trail.append({
@@ -645,8 +535,6 @@ class ReasoningEngine:
                 "citation": precs[0]['citation'],
                 "rationale": "This matters because judicial precedents provide the binding interpretation of statutory laws."
             })
-
-        # 6. Strategic Simulation (SIMULATED)
         if final_score < 60:
             trail.append({
                 "text": f"STRATEGIC PIVOT: Settlement recommended. Low survivability ({final_score}%) due to fatal evidentiary gaps.",
@@ -655,6 +543,4 @@ class ReasoningEngine:
                 "scenario": "Adversarial Collapse Simulation",
                 "rationale": "This matters because proceeding with a weak case increases risk of cost penalties and malicious prosecution claims."
             })
-
         return trail
-
