@@ -183,6 +183,7 @@ def normalize_input(data: dict) -> dict:
         "accused_type":     accused_type,
         "directors_named":  directors_named,
         "complainant_itr_available": _safe_bool(data.get("complainant_itr_available", data.get("itr_available", False))),
+        "loan_via_bank":             _safe_bool(data.get("loan_via_bank", False)),
         "loan_advanced_via":         _safe_str(data.get("loan_advanced_via", "")),
         "draft_tone": _safe_str(data.get("draft_tone", "standard"), 50),
         "signature_dispute":     signature_disp,

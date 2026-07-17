@@ -57,6 +57,8 @@ def test_cheque_bounce_strong_case(llm_disabled):
         "dishonour_memo": True,
         "notice_sent": True,
         "notice_date": "2026-02-05",
+        "notice_received_type": "Delivered",
+        "notice_received_date": "2026-02-08",
         "dishonour_date": "2026-01-15",
         "filing_date": "2026-03-01",
         "within_30_days": "Yes",
