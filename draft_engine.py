@@ -72,6 +72,20 @@ def decide_draft_type(score: int, concepts: List[Dict], case_data: Dict) -> str:
 def _header(title: str) -> str:
     line = "=" * 70
     return f"{line}\n{title}\n{line}"
+
+def _safe_float(val) -> float:
+    if val in (None, "", "________ (Amount)"):
+        return 0.0
+    if isinstance(val, str):
+        val = val.replace(",", "").replace("Rs.", "").replace(" ", "").strip()
+        try:
+            return float(val)
+        except ValueError:
+            return 0.0
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return 0.0
 def _case_meta(case_data: Dict):
     today = datetime.now().strftime("%d %B %Y")
     amount = case_data.get("amount", "________ (Amount)")
@@ -120,7 +134,7 @@ def generate_legal_notice(case_data: Dict, tone: str = "standard") -> str:
     elif purpose:
         transaction_nature = purpose[:100]
     transaction_nature = transaction_nature.rstrip('.')
-    amount_val = float(case_data.get("cheque_amount") or case_data.get("amount") or 0)
+    amount_val = _safe_float(case_data.get("cheque_amount") or case_data.get("amount") or 0)
     loan_via_bank = str(case_data.get("loan_via_bank", "yes")).lower()
     is_cash = loan_via_bank not in ("yes", "true", "1")
     if amount_val > 150000 and is_cash:
@@ -243,7 +257,7 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     This liability is securely established by contemporaneous commercial records. The issuance of the subject cheque by the Accused was an explicit acknowledgment of this debt. Its subsequent dishonour is a clear demonstration of the Accused's mala fide intent to evade lawful obligations, compelling the Complainant to invoke the strict provisions of Section 138 of the NI Act."""
     else:
         debt_pleading = f"The Complainant states that the Accused is indebted to the Complainant for a sum of {amount_str} arising from {transaction_nature}. The said debt is legally enforceable and constitutes a valid liability under law."
-    amount_val = float(case_data.get("cheque_amount") or case_data.get("amount") or 0)
+    amount_val = _safe_float(case_data.get("cheque_amount") or case_data.get("amount") or 0)
     loan_via_bank = str(case_data.get("loan_via_bank", "yes")).lower()
     is_cash = loan_via_bank not in ("yes", "true", "1")
     if amount_val > 150000 and is_cash:
