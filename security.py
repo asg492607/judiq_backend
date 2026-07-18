@@ -78,10 +78,6 @@ class AuditLogger:
                 firebase_admin.initialize_app()
             db = firestore.client()
             db.collection("audit_logs").add(log_entry)
-            if not firebase_admin._apps:
-                firebase_admin.initialize_app()
-            db = firestore.client()
-            db.collection("audit_logs").add(log_entry)
             logger.info("[AUDIT] Interaction persisted to Firebase.")
         except ImportError:
             logger.warning("Firebase audit enabled but firebase_admin is not installed.")

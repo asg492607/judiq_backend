@@ -80,10 +80,6 @@ def scan_fatal_defects(case_data, contradictions, adversarial_result, limitation
     if jurisdiction_info and jurisdiction_info.get("status") == "INVALID":
         return True, "Court lacks territorial jurisdiction over the subject matter."
     return False, ""
-    is_cheque_bounce = str(case_data.get("case_type", "")).lower() in ("cheque bounce", "cheque_bounce")
-    if is_cheque_bounce and jurisdiction_info and jurisdiction_info.get("status") == "INVALID":
-        return True, jurisdiction_info.get("reason") or "Wrong territorial jurisdiction. Court cannot take cognizance under Dashrath Rupsingh Rathod / S.142(2)."
-    return False, ""
 class JudiQEngine:
     @classmethod
     def analyze_case(cls, raw_data: dict, analysis_mode: str = "detailed") -> dict:
@@ -198,6 +194,7 @@ class JudiQEngine:
             strat_modules = ["strategy"]
             scoring_modules = ["scoring"]
         attack_chains = []
+        adversarial_engine = None  # Initialize before loop to prevent NameError if loop is empty
         for adv_module in adv_modules:
             adversarial_engine = registry.get(adv_module)
             adversarial_result = _safe_call(
