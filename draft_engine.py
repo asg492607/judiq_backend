@@ -270,7 +270,7 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
         dynamic_rebuttal = f"The Complainant has meticulously followed the statutory timeline matrix under Section 138/142 of the NI Act. Any alleged procedural irregularity is either curable or a hyper-technicality that does not defeat the substantive cause of justice."
     elif "debt" in failure_point or "capacity" in failure_point:
         dynamic_rebuttal = f"The underlying debt is crystallised and legally enforceable. The statutory presumption under Section 139 is firmly in favour of the Complainant, and the Accused cannot evade liability merely by raising bald denials without discharging the reverse onus of proof (Rangappa v. Mohan)."
-    elif is_aggressive and score < 50:
+    elif is_aggressive and case_data.get("score", 100) < 50:
         dynamic_rebuttal = f"The Complainant submits that any defence raised by the Accused is a mere afterthought designed to derail the summary procedure of Section 138. The Accused's silence during the statutory notice period operates as an implied admission of liability, precluding them from springing surprise defences at trial."
     if case_data.get("communication_records"):
         if is_aggressive:
