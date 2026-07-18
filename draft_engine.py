@@ -210,14 +210,15 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     if complainant_type != "Individual":
         is_auth = case_data.get("is_authorized", False)
         auth_name = case_data.get("authorized_person_name", "________ (Name of Authorized Person)")
+        board_res_date = case_data.get("board_resolution_date", "________ (Date prior to notice)")
         if is_auth:
-            auth_clause = f"The Complainant is a {complainant_type} and is represented by its Authorized Signatory, Mr./Ms. {auth_name}, who is duly empowered by way of a Board Resolution dated ________ (Date prior to notice) and a Letter of Authority, produced herewith as ANNEXURE-A. The said representative is fully conversant with the facts and circumstances of the present case and is competent to depose on behalf of the Complainant per the mandate of 'A.C. Narayanan vs. State of Maharashtra'."
+            auth_clause = f"The Complainant is a {complainant_type} and is represented by its Authorized Signatory, Mr./Ms. {auth_name}, who is duly empowered by way of a Board Resolution dated {board_res_date} and a Letter of Authority, produced herewith as ANNEXURE-A. The said representative is fully conversant with the facts and circumstances of the present case and is competent to depose on behalf of the Complainant per the mandate of 'A.C. Narayanan vs. State of Maharashtra'."
         else:
             auth_clause = f"The Complainant is a {complainant_type} filing through its representative. [🚨 FATAL DEFECT WARNING: A.C. Narayanan Trap. You MUST annex a Board Resolution naming the exact person signing this complaint, and it MUST have been passed BEFORE the legal notice was sent]."
     liability_clause = ""
     if accused_type != "Individual":
         has_directors = case_data.get("directors_named", False)
-        director_names = case_data.get("director_names", "")
+        director_names = case_data.get("director_names") or case_data.get("accused_directors", "")
         director_roles = case_data.get("director_roles") or "Directors actively responsible for the day-to-day conduct and business of the accused company"
         resignation_date = case_data.get("director_resignation_date")
         cheque_date_val = case_data.get("cheque_date")
