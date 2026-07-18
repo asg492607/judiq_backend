@@ -3,6 +3,22 @@ import logging
 from datetime import datetime
 from io import BytesIO
 from typing import Dict, Any
+import re
+import hashlib
+
+try:
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import (SimpleDocTemplate, Paragraph,
+                                     Spacer, Table, TableStyle,
+                                     PageBreak, KeepTogether,
+                                     Preformatted)
+    from reportlab.lib import colors
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY, TA_RIGHT
+    from reportlab.platypus.flowables import Flowable
+except ImportError:
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -31,15 +47,6 @@ class PDFGenerator:
         Ensures proper PDF format with correct MIME type.
         """
         try:
-            from reportlab.lib.pagesizes import letter
-            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-            from reportlab.lib.units import inch
-            from reportlab.platypus import (SimpleDocTemplate, Paragraph,
-                                             Spacer, Table, TableStyle,
-                                             PageBreak, KeepTogether,
-                                             Preformatted)
-            from reportlab.lib import colors
-            from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 
             buffer = BytesIO()
             doc = SimpleDocTemplate(
@@ -308,7 +315,6 @@ class PDFGenerator:
             # ── draft ─────────────────────────────────────────────────────
             draft_text = analysis_result.get('draft') or analysis_result.get('draft_raw') or ''
             if draft_text:
-                import re
                 draft_clean = re.sub(r'^\[(?:Rule-Based|AI Enhanced)\]\s*[\r\n]*', '', draft_text)
                 elements.append(PageBreak())
                 elements.append(Paragraph("Drafted Legal Document", heading_style))
@@ -366,19 +372,6 @@ class PDFGenerator:
         if metadata is None:
             metadata = {}
         try:
-            from reportlab.lib.pagesizes import letter
-            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-            from reportlab.lib.units import inch
-            from reportlab.platypus import (SimpleDocTemplate, Paragraph,
-                                             Spacer, PageBreak, Table,
-                                             TableStyle, KeepTogether,
-                                             Preformatted)
-            from reportlab.lib import colors
-            from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_RIGHT
-            from reportlab.platypus.flowables import Flowable
-            import re
-            import hashlib
-
             class Bookmark(Flowable):
                 def __init__(self, bm_title, level=0):
                     Flowable.__init__(self)
