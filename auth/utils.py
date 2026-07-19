@@ -25,7 +25,7 @@ from firebase_admin import auth
 def get_current_user(credentials: HTTPAuthorizationCredentials = Security(security)):
     token = credentials.credentials
     try:
-        decoded_token = auth.verify_id_token(token)
+        decoded_token = auth.verify_id_token(token, clock_skew_seconds=60)
         return decoded_token
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Invalid Firebase authentication token: {str(e)}")
