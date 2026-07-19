@@ -53,10 +53,89 @@ class DatabaseManager:
             cursor = conn.cursor()
 
             cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS users (
+                    id TEXT PRIMARY KEY,
+                    email TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    first_name TEXT,
+                    last_name TEXT,
+                    is_active INTEGER DEFAULT 1,
+                    created_at TEXT
+                )
+            """)
+            
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS organizations (
+                    id {serial_primary},
+                    name TEXT NOT NULL,
+                    type TEXT NOT NULL,
+                    subtype TEXT,
+                    created_at TEXT
+                )
+            """)
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS regions (
+                    id {serial_primary},
+                    org_id INTEGER NOT NULL,
+                    name TEXT NOT NULL,
+                    FOREIGN KEY(org_id) REFERENCES organizations(id)
+                )
+            """)
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS branches (
+                    id {serial_primary},
+                    region_id INTEGER NOT NULL,
+                    name TEXT NOT NULL,
+                    location TEXT,
+                    FOREIGN KEY(region_id) REFERENCES regions(id)
+                )
+            """)
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS departments (
+                    id {serial_primary},
+                    branch_id INTEGER NOT NULL,
+                    name TEXT NOT NULL,
+                    FOREIGN KEY(branch_id) REFERENCES branches(id)
+                )
+            """)
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS user_workspaces (
+                    id {serial_primary},
+                    user_id TEXT NOT NULL,
+                    org_id INTEGER,
+                    role TEXT,
+                    department_id INTEGER,
+                    FOREIGN KEY(org_id) REFERENCES organizations(id),
+                    FOREIGN KEY(department_id) REFERENCES departments(id)
+                )
+            """)
+            cursor.execute(f"""
                 CREATE TABLE IF NOT EXISTS saved_cases (
                     id {serial_primary},
                     case_id TEXT UNIQUE NOT NULL,
                     user_id TEXT NOT NULL,
+                    organization_id INTEGER,
+                    region_id INTEGER,
+                    branch_id INTEGER,
+                    department_id INTEGER,
+                    assigned_advocate_id TEXT,
+                    litigation_type TEXT DEFAULT 'CHEQUE_BOUNCE',
+                    case_stage TEXT,
+                    workflow_stage TEXT DEFAULT 'REGISTERED',
+                    ai_status TEXT,
+                    customer_name TEXT,
+                    account_number TEXT,
+                    cheque_number TEXT,
+                    cheque_amount REAL,
+                    priority TEXT DEFAULT 'MEDIUM',
+                    case_health TEXT DEFAULT 'HEALTHY',
+                    litigation_cost REAL DEFAULT 0.0,
+                    recovered_amount REAL DEFAULT 0.0,
+                    outstanding_amount REAL DEFAULT 0.0,
+                    settlement_amount REAL DEFAULT 0.0,
+                    filing_date TEXT,
+                    limitation_date TEXT,
+                    next_hearing_date TEXT,
                     case_data TEXT,
                     analysis_result TEXT,
                     score REAL,
@@ -64,6 +143,42 @@ class DatabaseManager:
                     created_at TEXT,
                     updated_at TEXT,
                     tags TEXT
+                )
+            """)
+            
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS case_members (
+                    id {serial_primary},
+                    case_id TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    role TEXT NOT NULL,
+                    assigned_at TEXT,
+                    FOREIGN KEY(case_id) REFERENCES saved_cases(case_id)
+                )
+            """)
+            
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS case_activities (
+                    id {serial_primary},
+                    case_id TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    action TEXT NOT NULL,
+                    description TEXT,
+                    created_at TEXT,
+                    FOREIGN KEY(case_id) REFERENCES saved_cases(case_id)
+                )
+            """)
+            
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS case_documents (
+                    id {serial_primary},
+                    case_id TEXT NOT NULL,
+                    uploader_id TEXT NOT NULL,
+                    document_type TEXT NOT NULL,
+                    file_path TEXT NOT NULL,
+                    status TEXT DEFAULT 'UPLOADED',
+                    uploaded_at TEXT,
+                    FOREIGN KEY(case_id) REFERENCES saved_cases(case_id)
                 )
             """)
             cursor.execute(f"""
