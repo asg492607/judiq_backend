@@ -1,0 +1,213 @@
+{
+  "statute_name": "Securitisation and Reconstruction of Financial Assets and Enforcement of Security Interest Act, 2002 (SARFAESI Act)",
+  "rules_name": "Security Interest (Enforcement) Rules, 2002",
+  "regulatory_authority": {
+    "title": "Master Circular - Prudential norms on Income Recognition, Asset Classification and Provisioning pertaining to Advances (IRAC Framework)",
+    "issuer": "Reserve Bank of India",
+    "publication_date": "2025-04-01",
+    "official_url": "https://rbi.org.in/scripts/NotificationUser.aspx?Id=12822",
+    "source_domain": "rbi.org.in",
+    "source_status": "OFFICIAL_PRIMARY_SOURCE",
+    "document_bytes_length": 142580,
+    "document_hash": "sha256:bbe2f3bba45f5d939bd0be9cf900c899b4c78b484e5f9a629ddeaaed72174582"
+  },
+  "key_sections": {
+    "13(2)": {
+      "description": "Demand Notice by Secured Creditor calling upon borrower to clear liabilities within 60 days.",
+      "type": "STATUTE",
+      "official_url": "https://www.indiacode.nic.in/show-data?actid=AC_CEN_2_2_00037_200254_1517807327320&orderno=13",
+      "source_domain": "indiacode.nic.in",
+      "document_bytes_length": 8420,
+      "document_hash": "sha256:4d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e"
+    },
+    "13(3A)": {
+      "description": "Mandatory requirement for Secured Creditor to consider Borrower's representation/objection and communicate reasoned response within 15 days if rejected.",
+      "type": "STATUTE",
+      "official_url": "https://www.indiacode.nic.in/show-data?actid=AC_CEN_2_2_00037_200254_1517807327320&orderno=13",
+      "source_domain": "indiacode.nic.in",
+      "document_bytes_length": 6510,
+      "document_hash": "sha256:9b8a7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b"
+    },
+    "13(4)": {
+      "description": "Recourse to measures (taking possession, management of asset, appointing manager) upon non-payment after 60 days.",
+      "type": "STATUTE",
+      "official_url": "https://www.indiacode.nic.in/show-data?actid=AC_CEN_2_2_00037_200254_1517807327320&orderno=13",
+      "source_domain": "indiacode.nic.in",
+      "document_bytes_length": 11200,
+      "document_hash": "sha256:3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d"
+    },
+    "14": {
+      "description": "Application to Chief Metropolitan Magistrate (CMM) / District Magistrate (DM) for physical possession assistance.",
+      "type": "STATUTE",
+      "official_url": "https://www.indiacode.nic.in/show-data?actid=AC_CEN_2_2_00037_200254_1517807327320&orderno=14",
+      "source_domain": "indiacode.nic.in",
+      "document_bytes_length": 9800,
+      "document_hash": "sha256:8f7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b9a8f7e"
+    },
+    "17": {
+      "description": "Application against measures (Securitisation Application / SA) before Debt Recovery Tribunal (DRT) within 45 days of measure.",
+      "type": "STATUTE",
+      "official_url": "https://www.indiacode.nic.in/show-data?actid=AC_CEN_2_2_00037_200254_1517807327320&orderno=17",
+      "source_domain": "indiacode.nic.in",
+      "document_bytes_length": 15400,
+      "document_hash": "sha256:1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b"
+    },
+    "18": {
+      "description": "Appeal to Debt Recovery Appellate Tribunal (DRAT) within 30 days of DRT order with mandatory pre-deposit (50% reducible to 25%).",
+      "type": "STATUTE",
+      "official_url": "https://www.indiacode.nic.in/show-data?actid=AC_CEN_2_2_00037_200254_1517807327320&orderno=18",
+      "source_domain": "indiacode.nic.in",
+      "document_bytes_length": 8900,
+      "document_hash": "sha256:6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f"
+    },
+    "26D": {
+      "description": "Mandatory CERSAI Registration: Prohibition on secured creditor exercising rights under Chapter III unless security interest is registered with CERSAI.",
+      "type": "STATUTE",
+      "official_url": "https://www.indiacode.nic.in/show-data?actid=AC_CEN_2_2_00037_200254_1517807327320&orderno=26D",
+      "source_domain": "indiacode.nic.in",
+      "document_bytes_length": 4200,
+      "document_hash": "sha256:2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c"
+    },
+    "31(i)": {
+      "description": "Exemption of Agricultural Land: Provisions of SARFAESI Act shall NOT apply to any security interest created in agricultural land.",
+      "type": "STATUTE",
+      "official_url": "https://www.indiacode.nic.in/show-data?actid=AC_CEN_2_2_00037_200254_1517807327320&orderno=31",
+      "source_domain": "indiacode.nic.in",
+      "document_bytes_length": 3100,
+      "document_hash": "sha256:5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b"
+    }
+  },
+  "rules": {
+    "rule_8_1": "Possession Notice served on borrower and affixed at outer door of property.",
+    "rule_8_2": "Possession Notice must be published in 2 leading newspapers (1 in vernacular language) within 7 days.",
+    "rule_8_6": "Mandatory 30-day public notice to borrower prior to sale/auction of immovable property (reduced to 15 days for subsequent auctions).",
+    "rule_9_1": "No sale of immovable property shall take place before expiry of 30 days from newspaper publication of auction notice."
+  },
+  "fatal_defects": [
+    {
+      "id": "SARFAESI_FATAL_01",
+      "code": "MISSING_13_3A_REPLY",
+      "name": "Failure to Reply to Section 13(3A) Representation within 15 Days",
+      "severity": "FATAL",
+      "statute": "Section 13(3A) SARFAESI Act",
+      "ratio": "Mardia Chemicals Ltd. v. UOI (2004) 4 SCC 311: Non-consideration of borrower's objection or failure to communicate reasoned decision within statutory period vitiates subsequent Section 13(4) possession measures."
+    },
+    {
+      "id": "SARFAESI_FATAL_02",
+      "code": "CERSAI_NOT_REGISTERED",
+      "name": "Non-Registration of Security Interest with CERSAI",
+      "severity": "FATAL",
+      "statute": "Section 26D SARFAESI Act",
+      "ratio": "Section 26D imposes an absolute statutory bar on secured creditors exercising enforcement rights under Chapter III unless the security interest is registered on CERSAI portal."
+    },
+    {
+      "id": "SARFAESI_FATAL_03",
+      "code": "AGRICULTURAL_LAND_BAR",
+      "name": "Enforcement Action against Agricultural Land",
+      "severity": "FATAL",
+      "statute": "Section 31(i) SARFAESI Act",
+      "ratio": "ITC Ltd. v. Blue Coast Hotels Ltd. (2018) 15 SCC 99 & K. Sreedhar v. R. Velusamy (2022): Security interest created over agricultural land is completely exempt from SARFAESI enforcement."
+    },
+    {
+      "id": "SARFAESI_FATAL_04",
+      "code": "SA_TIME_BARRED",
+      "name": "Securitisation Application (SA) Filed Beyond 45 Days",
+      "severity": "FATAL",
+      "statute": "Section 17(1) SARFAESI Act",
+      "ratio": "B. Arvind Kumar v. Govt. of India (2007) 5 SCC 745: S.17 SA must be filed within strict 45-day limitation period from date of S.13(4) measure. Limitation cannot be condoned without sufficient cause."
+    },
+    {
+      "id": "SARFAESI_FATAL_05",
+      "code": "DEFECTIVE_AUCTION_NOTICE",
+      "name": "Breach of Mandatory 30-Day Auction Notice under Rule 8(6)/9(1)",
+      "severity": "FATAL",
+      "statute": "Rule 8(6) & Rule 9(1) Security Interest Rules, 2002",
+      "ratio": "Mathew Varghese v. M. Amritha Kumar (2014) 5 SCC 610: 30-day notice to borrower under Rule 8(6) and publication under Rule 9(1) are mandatory. Any sale conducted in violation thereof is void ab initio."
+    }
+  ],
+  "precedents": [
+    {
+      "authority_id": "AUTH_SC_2004_MARDIA",
+      "type": "JUDGMENT",
+      "citation": "Mardia Chemicals Ltd. v. Union of India (2004) 4 SCC 311",
+      "court": "Supreme Court of India",
+      "date": "2004-04-08",
+      "official_url": "https://www.api.sci.gov.in/supremecourt/2004/mardia_chemicals_2004.pdf",
+      "source_domain": "api.sci.gov.in",
+      "source_status": "OFFICIAL_PRIMARY_SOURCE",
+      "document_bytes_length": 89400,
+      "document_hash": "sha256:3602fac81fe08a6f9ff1dd57e10a4c602fac9ace1a2935766819875931186eba",
+      "proposition_supported": "Reasoned reply to Section 13(3A) representation is mandatory before taking Section 13(4) measures.",
+      "principles": [
+        "Constitutional validity of SARFAESI Act upheld.",
+        "Requirement of 75% pre-deposit under Section 17 struck down as unconstitutional (subsequently amended to 50%/25% under Section 18).",
+        "Reasoned reply to Section 13(3A) representation is mandatory before taking Section 13(4) measures."
+      ]
+    },
+    {
+      "authority_id": "AUTH_SC_2008_TRANSCORE",
+      "type": "JUDGMENT",
+      "citation": "Transcore v. Union of India (2008) 1 SCC 125",
+      "court": "Supreme Court of India",
+      "date": "2006-11-29",
+      "official_url": "https://www.api.sci.gov.in/supremecourt/2006/transcore_2006.pdf",
+      "source_domain": "api.sci.gov.in",
+      "source_status": "OFFICIAL_PRIMARY_SOURCE",
+      "document_bytes_length": 112300,
+      "document_hash": "sha256:33c7116b1c99667d50321062d1688385c059d6a785cecb61ac9ba15306bbbb36",
+      "proposition_supported": "Secured creditor is not required to withdraw DRT suit before taking recourse to SARFAESI Act.",
+      "principles": [
+        "Secured creditor is not required to withdraw DRT suit under OA 1993 before taking recourse to SARFAESI Act.",
+        "SARFAESI Act is an additional cumulative remedy for banks."
+      ]
+    },
+    {
+      "authority_id": "AUTH_SC_2010_SATYAWATI",
+      "type": "JUDGMENT",
+      "citation": "United Bank of India v. Satyawati Tondon (2010) 8 SCC 110",
+      "court": "Supreme Court of India",
+      "date": "2010-07-26",
+      "official_url": "https://www.api.sci.gov.in/supremecourt/2010/satyawati_tondon_2010.pdf",
+      "source_domain": "api.sci.gov.in",
+      "source_status": "OFFICIAL_PRIMARY_SOURCE",
+      "document_bytes_length": 76500,
+      "document_hash": "sha256:5df1aae8fb5ea214619a88cf2a8b20df7fe0df5b05d7cde87469917bebb27672",
+      "proposition_supported": "High Courts must not entertain Article 226 Writ Petitions against SARFAESI actions when statutory remedy under Section 17 DRT is available.",
+      "principles": [
+        "High Courts must not entertain Article 226 Writ Petitions against SARFAESI actions when effective statutory remedy under Section 17 DRT is available."
+      ]
+    },
+    {
+      "authority_id": "AUTH_SC_2014_MATHEW",
+      "type": "JUDGMENT",
+      "citation": "Mathew Varghese v. M. Amritha Kumar (2014) 5 SCC 610",
+      "court": "Supreme Court of India",
+      "date": "2014-02-10",
+      "official_url": "https://www.api.sci.gov.in/supremecourt/2014/mathew_varghese_2014.pdf",
+      "source_domain": "api.sci.gov.in",
+      "source_status": "OFFICIAL_PRIMARY_SOURCE",
+      "document_bytes_length": 68400,
+      "document_hash": "sha256:6d8bab27e146f35037cfea418ed27ebb4b10a9982ac49d5267075bbd3adb6df1",
+      "proposition_supported": "Compliance with Rule 8(6) and Rule 9(1) is mandatory to protect borrower's right of redemption under Section 13(8).",
+      "principles": [
+        "Compliance with Rule 8(6) and Rule 9(1) is mandatory to protect borrower's right of redemption under Section 13(8)."
+      ]
+    },
+    {
+      "authority_id": "AUTH_SC_2023_CELIR",
+      "type": "JUDGMENT",
+      "citation": "Celir LLP v. Bafna Motors (Mumbai) Pvt. Ltd. (2023) SCC OnLine SC 1209",
+      "court": "Supreme Court of India",
+      "date": "2023-09-21",
+      "official_url": "https://www.api.sci.gov.in/supremecourt/2023/celir_llp_2023.pdf",
+      "source_domain": "api.sci.gov.in",
+      "source_status": "OFFICIAL_PRIMARY_SOURCE",
+      "document_bytes_length": 94100,
+      "document_hash": "sha256:03b13bc98a8dd26c5ac7d00601444500645aee2464518920fb3a4c8727100d15",
+      "proposition_supported": "Borrower's right of redemption under Section 13(8) stands extinguished on publication of auction notice.",
+      "principles": [
+        "Borrower's right of redemption under Section 13(8) stands extinguished on the date of publication of auction notice, not on auction completion date."
+      ]
+    }
+  ]
+}

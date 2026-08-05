@@ -420,6 +420,8 @@ class ResponseBuilder:
                 "breakdown": breakdown
             },
             "defence_strategy":          defences_list,
+            "fatal_defect":              case_data.get("fatal_defect") or engine_result.get("fatal_defect"),
+            "failure_point":            case_data.get("failure_point_injected") or engine_result.get("failure_point"),
             "draft":                     enhanced_draft,
             "draft_raw":                 base_draft,
             "draft_type":                engine_result.get("draft_type", "LEGAL_OPINION"),
@@ -493,4 +495,14 @@ class ResponseBuilder:
             "supporting_precedents": engine_result.get("precedent_intelligence", {}).get("supporting", []),
             "opposing_precedents": engine_result.get("precedent_intelligence", {}).get("opposing", []),
             "distinguishable_precedents": engine_result.get("precedent_intelligence", {}).get("distinguishable", []),
+            "evidence_gaps": engine_result.get("evidence_gaps", []),
+            "cross_document_contradictions": engine_result.get("cross_document_contradictions", []),
+            "procedural_graph": engine_result.get("procedural_graph", {}),
+            "verified_authority": engine_result.get("verified_authority", {}),
+            "detailed_assessment": engine_result.get("detailed_assessment", {}),
+            "next_best_actions": engine_result.get("next_best_actions", []),
+            "abstain_recommended": case_data.get("abstain_recommended") or engine_result.get("abstain_recommended", False),
+            "decision_status": case_data.get("decision_status") or engine_result.get("decision_status", "EVALUATED"),
+            "lawyer_review_required": case_data.get("lawyer_review_required", False),
+            "audit_entry": engine_result.get("audit_entry", {})
         }

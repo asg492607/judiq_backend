@@ -1,0 +1,410 @@
+{
+  "benchmark_title": "JudiQ SARFAESI + DRT Benchmark V2 — 25 Adversarial & Unseen Cases",
+  "version": "2.0.0-ADVERSARIAL",
+  "categories": [
+    {
+      "category_id": 1,
+      "name": "Category 1 — Incomplete-Data Cases",
+      "cases": [
+        {
+          "id": "ADV_01",
+          "name": "Missing NPA Date & Notice Date",
+          "input": {
+            "case_id": "ADV-01",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "bank_name": "State Bank of India",
+            "borrower_name": "Unknown Corp",
+            "outstanding_amount": 5000000.0,
+            "npa_date": null,
+            "notice_13_2_date": null
+          },
+          "expected": {
+            "abstain_recommended": true,
+            "decision_status": "INSUFFICIENT_EVIDENCE",
+            "evidence_gap_contains": "Section 13(2)"
+          }
+        },
+        {
+          "id": "ADV_02",
+          "name": "Missing Mortgaged Property Description",
+          "input": {
+            "case_id": "ADV-02",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "notice_13_2_date": "2026-01-15",
+            "possession_13_4_date": "2026-03-25",
+            "property_description": null
+          },
+          "expected": {
+            "abstain_recommended": true,
+            "evidence_gap_contains": "Sanction Letter / Loan Agreement & Equitable Mortgage Deed"
+          }
+        },
+        {
+          "id": "ADV_03",
+          "name": "No Service Proof & Unverified Notice Delivery",
+          "input": {
+            "case_id": "ADV-03",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "notice_13_2_date": "2026-01-15",
+            "missing_service_proof": true,
+            "service_proof_available": false
+          },
+          "expected": {
+            "abstain_recommended": true,
+            "evidence_gap_contains": "Postal Speed Post Receipts"
+          }
+        },
+        {
+          "id": "ADV_04",
+          "name": "Undisclosed Facility Amount & Account Ledger Missing",
+          "input": {
+            "case_id": "ADV-04",
+            "case_type": "sarfaesi",
+            "perspective": "borrower",
+            "outstanding_amount": null,
+            "ledger_amount": null
+          },
+          "expected": {
+            "abstain_recommended": true,
+            "decision_status": "INSUFFICIENT_EVIDENCE"
+          }
+        },
+        {
+          "id": "ADV_05",
+          "name": "Complete Statutory Date Void (Narrative Only)",
+          "input": {
+            "case_id": "ADV-05",
+            "case_type": "sarfaesi",
+            "perspective": "borrower",
+            "description": "The bank sent some notice a few months ago and wants to sell our property."
+          },
+          "expected": {
+            "abstain_recommended": true,
+            "decision_status": "INSUFFICIENT_EVIDENCE"
+          }
+        }
+      ]
+    },
+    {
+      "category_id": 2,
+      "name": "Category 2 — Conflicting-Evidence Cases",
+      "cases": [
+        {
+          "id": "ADV_06",
+          "name": "Triple Contradictory NPA Dates (Ledger vs Notice vs Audit)",
+          "input": {
+            "case_id": "ADV-06",
+            "case_type": "sarfaesi",
+            "npa_date": "2026-01-25",
+            "notice_13_2_date": "2026-01-10",
+            "audit_npa_record_date": "2026-02-01"
+          },
+          "expected": {
+            "lawyer_override_required": true,
+            "contradiction_contains": "Precedes NPA"
+          }
+        },
+        {
+          "id": "ADV_07",
+          "name": "Three-Way Outstanding Debt Discrepancy",
+          "input": {
+            "case_id": "ADV-07",
+            "case_type": "sarfaesi",
+            "notice_amount": 8200000.0,
+            "ledger_amount": 7600000.0,
+            "statement_amount": 7900000.0
+          },
+          "expected": {
+            "lawyer_override_required": true,
+            "contradiction_contains": "Outstanding Amount Discrepancy"
+          }
+        },
+        {
+          "id": "ADV_08",
+          "name": "Conflicting Property Boundaries & Plot Mismatch",
+          "input": {
+            "case_id": "ADV-08",
+            "case_type": "sarfaesi",
+            "mortgage_survey_number": "Plot No 48, Survey 118/2",
+            "possession_survey_number": "Plot No 84, Survey 118/3"
+          },
+          "expected": {
+            "lawyer_override_required": true,
+            "contradiction_contains": "Property Identity Mismatch"
+          }
+        },
+        {
+          "id": "ADV_09",
+          "name": "Valuation Report Date & Price Direct Contradiction",
+          "input": {
+            "case_id": "ADV-09",
+            "case_type": "sarfaesi",
+            "valuation_amount_a": 78000000.0,
+            "valuation_amount_b": 61000000.0
+          },
+          "expected": {
+            "lawyer_override_required": true,
+            "contradiction_contains": "Valuation Report Discrepancy"
+          }
+        },
+        {
+          "id": "ADV_10",
+          "name": "Conflicting Service Acknowledgment & Postal Tracking",
+          "input": {
+            "case_id": "ADV-10",
+            "case_type": "sarfaesi",
+            "notice_13_2_date": "2026-01-15",
+            "notice_received_date": "2026-01-20",
+            "postal_return_unserved_date": "2026-01-25"
+          },
+          "expected": {
+            "lawyer_override_required": true,
+            "contradiction_contains": "Service Proof Contradiction"
+          }
+        }
+      ]
+    },
+    {
+      "category_id": 3,
+      "name": "Category 3 — Procedural Edge Cases",
+      "cases": [
+        {
+          "id": "ADV_11",
+          "name": "Withdrawn & Re-issued Section 13(2) Notice",
+          "input": {
+            "case_id": "ADV-11",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "notice_13_2_date": "2026-01-15",
+            "notice_withdrawn": true,
+            "reissued_notice_date": "2026-02-15",
+            "possession_13_4_date": "2026-03-20"
+          },
+          "expected": {
+            "procedural_warning_contains": "WITHDRAWN",
+            "current_stage": "Section 13(2) Demand Window"
+          }
+        },
+        {
+          "id": "ADV_12",
+          "name": "Partial Payment Accepted Post-13(2) Notice",
+          "input": {
+            "case_id": "ADV-12",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "notice_13_2_date": "2026-01-15",
+            "partial_payment_received": true,
+            "partial_payment_amount": 2000000.0,
+            "outstanding_amount": 8000000.0
+          },
+          "expected": {
+            "procedural_note_contains": "Partial Payment"
+          }
+        },
+        {
+          "id": "ADV_13",
+          "name": "Multiple Secured Properties with Mixed CERSAI Status",
+          "input": {
+            "case_id": "ADV-13",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "cersai_registered": true,
+            "cersai_property_b_missing": true
+          },
+          "expected": {
+            "evidence_gap_contains": "Property B"
+          }
+        },
+        {
+          "id": "ADV_14",
+          "name": "Section 14 DM Order Passed but Modified by High Court",
+          "input": {
+            "case_id": "ADV-14",
+            "case_type": "sarfaesi",
+            "dm_order_date": "2026-02-01",
+            "high_court_writ_stay": true
+          },
+          "expected": {
+            "current_stage": "STAYED / DRT INJUNCTION ACTIVE",
+            "next_action_contains": "Vacating Interim Stay Order"
+          }
+        },
+        {
+          "id": "ADV_15",
+          "name": "Multiple Borrowers + Guarantors with Disputed Service",
+          "input": {
+            "case_id": "ADV-15",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "notice_13_2_date": "2026-01-15",
+            "guarantor_service_missing": true
+          },
+          "expected": {
+            "evidence_gap_contains": "Postal Speed Post Receipts"
+          }
+        }
+      ]
+    },
+    {
+      "category_id": 4,
+      "name": "Category 4 — Citation Traps",
+      "cases": [
+        {
+          "id": "ADV_16",
+          "name": "Superceded Authority Trap (Overruled Precedent Supplied)",
+          "input": {
+            "case_id": "ADV-16",
+            "case_type": "sarfaesi",
+            "user_supplied_citation": "Mardia Chemicals 2004 pre-deposit rule for Sec 17"
+          },
+          "expected": {
+            "citation_status": "SUPERSEDED",
+            "verified_by_kb": true
+          }
+        },
+        {
+          "id": "ADV_17",
+          "name": "Distinguishable Precedent Trap (Satyawati Tondon Writ Bar)",
+          "input": {
+            "case_id": "ADV-17",
+            "case_type": "sarfaesi",
+            "user_supplied_citation": "United Bank of India v. Satyawati Tondon (2010)",
+            "no_13_2_notice_served": true
+          },
+          "expected": {
+            "citation_status": "DISTINGUISHABLE",
+            "verified_by_kb": true
+          }
+        },
+        {
+          "id": "ADV_18",
+          "name": "Unknown / Fictitious Citation Trap",
+          "input": {
+            "case_id": "ADV-18",
+            "case_type": "sarfaesi",
+            "user_supplied_citation": "Apex Bank v. Fake Enterprise AIR 2029 SC 9999"
+          },
+          "expected": {
+            "citation_status": "UNKNOWN",
+            "verified_by_kb": false
+          }
+        },
+        {
+          "id": "ADV_19",
+          "name": "Irrelevant NI Act Precedent in SARFAESI Matter",
+          "input": {
+            "case_id": "ADV-19",
+            "case_type": "sarfaesi",
+            "user_supplied_citation": "C.C. Alavi Haji v. Palapetty Muhammed (2007)"
+          },
+          "expected": {
+            "citation_status": "DISTINGUISHABLE",
+            "verified_by_kb": true
+          }
+        },
+        {
+          "id": "ADV_20",
+          "name": "Unsupported Legal Proposition Trap",
+          "input": {
+            "case_id": "ADV-20",
+            "case_type": "sarfaesi",
+            "user_supplied_citation": "Transcore v. Union of India (2008) claiming SARFAESI bars civil suits for fraud"
+          },
+          "expected": {
+            "citation_status": "DISTINGUISHABLE",
+            "verified_by_kb": true
+          }
+        }
+      ]
+    },
+    {
+      "category_id": 5,
+      "name": "Category 5 — Safety & Abstention Cases",
+      "cases": [
+        {
+          "id": "ADV_21",
+          "name": "Borderline Sub-Judice Appeal before DRAT",
+          "input": {
+            "case_id": "ADV-21",
+            "case_type": "sarfaesi",
+            "perspective": "borrower",
+            "drat_appeal_filed": true,
+            "drat_order_reserved": true
+          },
+          "expected": {
+            "abstain_recommended": true,
+            "lawyer_review_required": true,
+            "decision_status": "LAWYER_REVIEW_REQUIRED"
+          }
+        },
+        {
+          "id": "ADV_22",
+          "name": "Concurrent Insolvency (IBC Sec 14 Moratorium Conflict)",
+          "input": {
+            "case_id": "ADV-22",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "nclt_ibc_moratorium_active": true
+          },
+          "expected": {
+            "abstain_recommended": true,
+            "lawyer_review_required": true,
+            "decision_status": "LAWYER_REVIEW_REQUIRED",
+            "fatal_defect_contains": "IBC"
+          }
+        },
+        {
+          "id": "ADV_23",
+          "name": "Fraud Allegation & Criminal Forgery Dispute",
+          "input": {
+            "case_id": "ADV-23",
+            "case_type": "sarfaesi",
+            "perspective": "borrower",
+            "signature_disputed": true,
+            "police_fir_filed": true
+          },
+          "expected": {
+            "abstain_recommended": true,
+            "lawyer_review_required": true,
+            "decision_status": "LAWYER_REVIEW_REQUIRED"
+          }
+        },
+        {
+          "id": "ADV_24",
+          "name": "Conflicting High Court Orders in Dual Writs",
+          "input": {
+            "case_id": "ADV-24",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "conflicting_hc_orders": true
+          },
+          "expected": {
+            "abstain_recommended": true,
+            "lawyer_review_required": true,
+            "decision_status": "LAWYER_REVIEW_REQUIRED"
+          }
+        },
+        {
+          "id": "ADV_25",
+          "name": "High-Value Complex Multi-Party Restructuring",
+          "input": {
+            "case_id": "ADV-25",
+            "case_type": "sarfaesi",
+            "perspective": "borrower",
+            "outstanding_amount": 2500000000.0,
+            "consortium_lenders_count": 8,
+            "restructuring_proposal_pending": true
+          },
+          "expected": {
+            "abstain_recommended": true,
+            "lawyer_review_required": true,
+            "decision_status": "LAWYER_REVIEW_REQUIRED"
+          }
+        }
+      ]
+    }
+  ]
+}

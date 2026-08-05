@@ -26,3 +26,8 @@ uploads/
 
 # Duplicate/versioned downloads or backup copies
 *(*).py
+
+# Environment variables
+.env
+.env.*
+

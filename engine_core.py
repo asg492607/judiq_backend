@@ -23,7 +23,10 @@ class EngineRegistry:
             "simulator":   "simulator_engine.SimulatorEngine",
             "defence":     "defence_engine.DefenceEngineV12",
             "decision":    "decision_support_engine.DecisionSupportEngine",
-            "document_intelligence": "document_intelligence.DocumentIntelligence"
+            "document_intelligence": "document_intelligence.DocumentIntelligence",
+            "sarfaesi_scoring": "sarfaesi_scoring_engine.SarfaesiScoringEngine",
+            "sarfaesi_adversarial": "sarfaesi_adversarial_engine.SarfaesiAdversarialEngine",
+            "sarfaesi_timeline": "sarfaesi_timeline_engine.SarfaesiTimelineEngine"
         }
         self._instances = {}
     def get(self, module_name: str):
@@ -175,12 +178,18 @@ class JudiQEngine:
             })
         text_lower = text.lower()
         explicit_type = str(case_data.get("case_type", "")).lower()
+        is_sarfaesi = explicit_type == "sarfaesi" or "sarfaesi" in text_lower or "securitisation" in text_lower
         is_criminal = explicit_type == "criminal"
         is_cheque_bounce = explicit_type in ("cheque bounce", "cheque_bounce")
-        if not is_criminal and not is_cheque_bounce:
+        if not is_criminal and not is_cheque_bounce and not is_sarfaesi:
             is_criminal = "criminal" in text_lower or "fir" in text_lower or case_data.get("offense_type") is not None
             is_cheque_bounce = "cheque" in text_lower or case_data.get("cheque_present")
-        if is_criminal and is_cheque_bounce:
+        if is_sarfaesi:
+            logger.info("SARFAESI & DRT case type detected. Routing to SARFAESI Engine suite.")
+            adv_modules = ["sarfaesi_adversarial"]
+            strat_modules = ["strategy"]
+            scoring_modules = ["sarfaesi_scoring"]
+        elif is_criminal and is_cheque_bounce:
             logger.info("Mixed case detected (Criminal + Cheque Bounce). Orchestrating combined analysis.")
             adv_modules = ["adversarial", "criminal_adversarial"]
             strat_modules = ["strategy", "criminal_strategy"]
@@ -233,13 +242,13 @@ class JudiQEngine:
             fallback={},
             context="WitnessPressure"
         )
-        timeline_engine = registry.get("timeline")
+        timeline_engine = registry.get("sarfaesi_timeline") if is_sarfaesi else registry.get("timeline")
         timeline = _safe_call(
             timeline_engine.generate_timeline, case_data,
             fallback=[],
             context="TimelineEngine.generate"
         )
-        limitation_checker = timeline_engine.check_criminal_limitation if is_criminal and not is_cheque_bounce else timeline_engine.check_limitation
+        limitation_checker = timeline_engine.check_limitation if is_sarfaesi else (timeline_engine.check_criminal_limitation if is_criminal and not is_cheque_bounce else timeline_engine.check_limitation)
         limitation = _safe_call(
             limitation_checker, case_data,
             fallback={"is_barred": False, "status": "CALCULATION_ERROR"},
@@ -442,6 +451,70 @@ class JudiQEngine:
             "confidence": f"{int(final_score)}%",
             "one_liner": f"Case is {outcome_prediction.get('prediction', 'stable')} with {len(contradictions)} logical inconsistencies detected."
         }
+        from evidence.evidence_intelligence import EvidenceIntelligenceEngine
+        from procedural.procedural_graph_engine import ProceduralGraphEngine
+        from citation.citation_verifier import CitationVerifierEngine
+        from audit.audit_ledger import AuditLedger
+
+        evidence_gaps = EvidenceIntelligenceEngine.evaluate_evidence_gaps(case_data)
+        cross_doc_contradictions = EvidenceIntelligenceEngine.detect_cross_document_contradictions(case_data)
+        procedural_graph = ProceduralGraphEngine.build_graph(case_data) if is_sarfaesi else {"nodes": [], "current_stage": "Active Litigation"}
+
+        detailed_assessment = {}
+        if is_sarfaesi:
+            perspective = str(case_data.get("perspective", "creditor")).lower()
+            if perspective in ["borrower", "debtor", "applicant"]:
+                from sarfaesi.sarfaesi_borrower_engine import SarfaesiBorrowerEngine
+                detailed_assessment = SarfaesiBorrowerEngine.evaluate_borrower_position(case_data)
+            else:
+                from sarfaesi.sarfaesi_bank_engine import SarfaesiBankEngine
+                detailed_assessment = SarfaesiBankEngine.evaluate_bank_position(case_data)
+        # Citation Trap Verification
+        user_citation = case_data.get("user_supplied_citation")
+        if user_citation:
+            verified_authority = CitationVerifierEngine.verify_citation(user_citation)
+        else:
+            verified_authority = CitationVerifierEngine.verify_citation("Mardia Chemicals Ltd. v. Union of India (2004)") if is_sarfaesi else CitationVerifierEngine.verify_citation("Sunil Todi v. State of Gujarat (2021)")
+
+        # Incomplete-Data Guarding Check
+        has_dates = bool(case_data.get("notice_13_2_date") or case_data.get("npa_date") or case_data.get("possession_13_4_date"))
+        has_property = bool(case_data.get("property_description") or case_data.get("mortgage_survey_number"))
+        has_text = len(case_data.get("description", "").strip()) > 80
+
+        abstain_recommended = False
+        decision_status = "EVALUATED"
+
+        if not has_dates or not has_property or (not has_dates and not has_text):
+            abstain_recommended = True
+            decision_status = "INSUFFICIENT_EVIDENCE"
+            scoring_result["verdict"] = "INSUFFICIENT_EVIDENCE"
+        elif case_data.get("missing_service_proof") or case_data.get("service_proof_available") == False:
+            abstain_recommended = True
+
+        # Safety & Abstention Check (High-Complexity / Sub-Judice / Moratorium)
+        if case_data.get("nclt_ibc_moratorium_active") or case_data.get("drat_order_reserved") or case_data.get("signature_disputed") or case_data.get("conflicting_hc_orders") or (case_data.get("consortium_lenders_count") and case_data.get("consortium_lenders_count") > 3):
+            abstain_recommended = True
+            decision_status = "LAWYER_REVIEW_REQUIRED"
+            case_data["lawyer_review_required"] = True
+            scoring_result["verdict"] = "LAWYER_REVIEW_REQUIRED"
+
+        case_data["abstain_recommended"] = abstain_recommended
+        case_data["decision_status"] = decision_status
+
+        # Record Audit Entry
+        audit_entry = AuditLedger.record_entry(
+            case_id=case_data.get("case_id", "ANON"),
+            finding_id="JUDIQ_EVAL_01",
+            finding_text=f"Analyzed {explicit_type or 'cheque_bounce'} case. Score: {final_score}.",
+            evidence_relied=f"User input narrative & {len(concepts)} detected concepts.",
+            rule_applied=f"Statutory pillars for {explicit_type or 'cheque_bounce'}.",
+            authority=verified_authority["citation"],
+            confidence=final_score / 100.0,
+            verdict=scoring_result.get("verdict", "MODERATE")
+        )
+
+        next_best_actions = ProceduralGraphEngine.determine_next_best_actions(case_data, scoring_result) if is_sarfaesi else []
+
         engine_output = {
             "final_score": judicially_adjusted_score,
             "theoretical_score": final_score,
@@ -449,6 +522,15 @@ class JudiQEngine:
             "jurisdiction_info": jurisdiction_info,
             "precedent_intelligence": precedent_intelligence,
             "tldr": tldr,
+            "evidence_gaps": evidence_gaps,
+            "cross_document_contradictions": cross_doc_contradictions,
+            "procedural_graph": procedural_graph,
+            "verified_authority": verified_authority,
+            "detailed_assessment": detailed_assessment,
+            "next_best_actions": next_best_actions,
+            "abstain_recommended": abstain_recommended,
+            "decision_status": decision_status,
+            "audit_entry": audit_entry,
             "reasoning_trace": scoring_result.get("reasoning_trace", []),
             "reasoning_trail": reasoning_trail,
             "causal_story": causal_story,

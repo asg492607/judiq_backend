@@ -1,0 +1,415 @@
+{
+  "benchmark_title": "JudiQ SARFAESI + DRT 25-Case Institutional Benchmark Dataset",
+  "version": "1.0.0",
+  "levels": [
+    {
+      "level": 1,
+      "name": "Level 1 — Basic / Clean Cases",
+      "cases": [
+        {
+          "id": "CASE_01",
+          "name": "Clean 13(2) Case",
+          "input": {
+            "case_id": "BENCH-01",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "bank_name": "State Bank of India",
+            "borrower_name": "Apex Industries",
+            "npa_date": "2026-01-01",
+            "notice_13_2_date": "2026-01-15",
+            "cersai_registered": true,
+            "is_agricultural_land": false,
+            "outstanding_amount": 10000000.0
+          },
+          "expected": {
+            "verdict_contains": ["ENFORCEMENT READY", "STRONG"],
+            "current_stage": "Section 13(2) Demand Window",
+            "next_action_contains": "Section 13(4) Possession Notice",
+            "fatal_defect": null
+          }
+        },
+        {
+          "id": "CASE_02",
+          "name": "60 Days Not Completed",
+          "input": {
+            "case_id": "BENCH-02",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "notice_13_2_date": "2026-01-15",
+            "possession_13_4_date": "2026-02-20",
+            "cersai_registered": true
+          },
+          "expected": {
+            "fatal_defect_contains": "PREMATURE_POSSESSION",
+            "is_barred": true
+          }
+        },
+        {
+          "id": "CASE_03",
+          "name": "Borrower Representation Pending",
+          "input": {
+            "case_id": "BENCH-03",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "notice_13_2_date": "2026-01-15",
+            "borrower_representation_date": "2026-02-05",
+            "bank_reply_13_3a_date": null,
+            "cersai_registered": true
+          },
+          "expected": {
+            "next_action_contains": "13(3A)"
+          }
+        },
+        {
+          "id": "CASE_04",
+          "name": "Clean Possession Stage",
+          "input": {
+            "case_id": "BENCH-04",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "notice_13_2_date": "2026-01-01",
+            "borrower_representation_date": "2026-01-20",
+            "bank_reply_13_3a_date": "2026-01-28",
+            "possession_13_4_date": "2026-03-10",
+            "cersai_registered": true
+          },
+          "expected": {
+            "current_stage": "Section 13(4) Possession",
+            "next_action_contains": "Section 14 Application"
+          }
+        },
+        {
+          "id": "CASE_05",
+          "name": "Straightforward DRT Challenge",
+          "input": {
+            "case_id": "BENCH-05",
+            "case_type": "sarfaesi",
+            "perspective": "borrower",
+            "possession_13_4_date": "2026-03-01",
+            "sa_filing_date": "2026-03-21"
+          },
+          "expected": {
+            "limitation_status": "COMPLIANT",
+            "limitation_remaining_days": 25
+          }
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "name": "Level 2 — Procedural Defects",
+      "cases": [
+        {
+          "id": "CASE_06",
+          "name": "Missing CERSAI Registration",
+          "input": {
+            "case_id": "BENCH-06",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "cersai_registered": false
+          },
+          "expected": {
+            "fatal_defect_contains": "NON_REGISTRATION_CERSAI",
+            "evidence_gap_contains": "CERSAI"
+          }
+        },
+        {
+          "id": "CASE_07",
+          "name": "Agricultural Land",
+          "input": {
+            "case_id": "BENCH-07",
+            "case_type": "sarfaesi",
+            "perspective": "borrower",
+            "is_agricultural_land": true
+          },
+          "expected": {
+            "strongest_ground_contains": "Agricultural Land",
+            "sa_readiness_min_score": 75
+          }
+        },
+        {
+          "id": "CASE_08",
+          "name": "Defective 13(3A) Handling",
+          "input": {
+            "case_id": "BENCH-08",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "borrower_representation_date": "2026-02-01",
+            "bank_reply_13_3a_date": "2026-02-26",
+            "possession_13_4_date": "2026-03-10"
+          },
+          "expected": {
+            "fatal_defect_contains": "SECTION_13_3A_BREACH"
+          }
+        },
+        {
+          "id": "CASE_09",
+          "name": "Premature Possession",
+          "input": {
+            "case_id": "BENCH-09",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "notice_13_2_date": "2026-01-15",
+            "possession_13_4_date": "2026-02-15"
+          },
+          "expected": {
+            "fatal_defect_contains": "PREMATURE_POSSESSION"
+          }
+        },
+        {
+          "id": "CASE_10",
+          "name": "Possession Publication Problem",
+          "input": {
+            "case_id": "BENCH-10",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "possession_13_4_date": "2026-03-01",
+            "newspaper_publication_done": false
+          },
+          "expected": {
+            "evidence_gap_contains": "Rule 8(2) Newspaper Tear-sheets"
+          }
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "name": "Level 3 — Evidence Intelligence Cases",
+      "cases": [
+        {
+          "id": "CASE_11",
+          "name": "Contradictory NPA Dates",
+          "input": {
+            "case_id": "BENCH-11",
+            "case_type": "sarfaesi",
+            "npa_date": "2026-01-25",
+            "notice_13_2_date": "2026-01-10"
+          },
+          "expected": {
+            "contradiction_contains": "Notice Precedes NPA Classification Date"
+          }
+        },
+        {
+          "id": "CASE_12",
+          "name": "Outstanding Amount Conflict",
+          "input": {
+            "case_id": "BENCH-12",
+            "case_type": "sarfaesi",
+            "notice_amount": 8200000.0,
+            "ledger_amount": 7600000.0
+          },
+          "expected": {
+            "contradiction_contains": "Outstanding Amount Discrepancy"
+          }
+        },
+        {
+          "id": "CASE_13",
+          "name": "Missing Service Proof",
+          "input": {
+            "case_id": "BENCH-13",
+            "case_type": "sarfaesi",
+            "notice_13_2_date": "2026-01-15",
+            "missing_service_proof": true
+          },
+          "expected": {
+            "evidence_gap_contains": "Postal Speed Post Receipts"
+          }
+        },
+        {
+          "id": "CASE_14",
+          "name": "Property Identity Mismatch",
+          "input": {
+            "case_id": "BENCH-14",
+            "case_type": "sarfaesi",
+            "mortgage_survey_number": "Survey 118/2",
+            "possession_survey_number": "Survey 118/3"
+          },
+          "expected": {
+            "contradiction_contains": "Property Identity Mismatch"
+          }
+        },
+        {
+          "id": "CASE_15",
+          "name": "Valuation Conflict",
+          "input": {
+            "case_id": "BENCH-15",
+            "case_type": "sarfaesi",
+            "valuation_amount_a": 78000000.0,
+            "valuation_amount_b": 61000000.0
+          },
+          "expected": {
+            "contradiction_contains": "Valuation Report Discrepancy"
+          }
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "name": "Level 4 — DRT / Litigation Cases",
+      "cases": [
+        {
+          "id": "CASE_16",
+          "name": "S.17 Limitation Edge",
+          "input": {
+            "case_id": "BENCH-16",
+            "case_type": "sarfaesi",
+            "perspective": "borrower",
+            "possession_13_4_date": "2026-02-01",
+            "sa_filing_date": "2026-03-17"
+          },
+          "expected": {
+            "limitation_remaining_days": 1,
+            "limitation_status": "COMPLIANT"
+          }
+        },
+        {
+          "id": "CASE_17",
+          "name": "Apparent Late SA",
+          "input": {
+            "case_id": "BENCH-17",
+            "case_type": "sarfaesi",
+            "perspective": "borrower",
+            "possession_13_4_date": "2026-02-01",
+            "sa_filing_date": "2026-03-25"
+          },
+          "expected": {
+            "limitation_status": "EXPIRED"
+          }
+        },
+        {
+          "id": "CASE_18",
+          "name": "DRT Stay Active",
+          "input": {
+            "case_id": "BENCH-18",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "drt_stay_active": true
+          },
+          "expected": {
+            "current_stage": "STAYED / DRT INJUNCTION ACTIVE",
+            "next_action_contains": "Vacating Interim Stay Order"
+          }
+        },
+        {
+          "id": "CASE_19",
+          "name": "Bank Defending SA",
+          "input": {
+            "case_id": "BENCH-19",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "sa_filing_date": "2026-03-01"
+          },
+          "expected": {
+            "draft_type": "SARFAESI_WRITTEN_STATEMENT"
+          }
+        },
+        {
+          "id": "CASE_20",
+          "name": "DRAT Stage",
+          "input": {
+            "case_id": "BENCH-20",
+            "case_type": "sarfaesi",
+            "drat_appeal_filed": true,
+            "pre_deposit_percent": 50.0
+          },
+          "expected": {
+            "pre_deposit_percent": 50.0
+          }
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "name": "Level 5 — Institutional / Adversarial Cases",
+      "cases": [
+        {
+          "id": "CASE_21",
+          "name": "Multiple Borrowers + Guarantors",
+          "input": {
+            "case_id": "BENCH-21",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "notice_13_2_date": "2026-01-15",
+            "guarantor_service_missing": true
+          },
+          "expected": {
+            "evidence_gap_contains": "Postal Speed Post Receipts"
+          }
+        },
+        {
+          "id": "CASE_22",
+          "name": "Multiple Secured Assets",
+          "input": {
+            "case_id": "BENCH-22",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "cersai_registered": true,
+            "cersai_property_b_missing": true
+          },
+          "expected": {
+            "evidence_gap_contains": "Property B"
+          }
+        },
+        {
+          "id": "CASE_23",
+          "name": "Auction Challenge",
+          "input": {
+            "case_id": "BENCH-23",
+            "case_type": "sarfaesi",
+            "perspective": "borrower",
+            "possession_13_4_date": "2026-03-01",
+            "valuation_amount_a": 78000000.0,
+            "valuation_amount_b": 61000000.0,
+            "auction_notice_date": "2026-03-15"
+          },
+          "expected": {
+            "contradiction_contains": "Valuation Report Discrepancy"
+          }
+        },
+        {
+          "id": "CASE_24",
+          "name": "Conflicting Court/Tribunal State",
+          "input": {
+            "case_id": "BENCH-24",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "possession_13_4_date": "2026-03-01",
+            "drt_stay_active": true
+          },
+          "expected": {
+            "current_stage": "STAYED / DRT INJUNCTION ACTIVE",
+            "next_action_contains": "Vacating Interim Stay Order"
+          }
+        },
+        {
+          "id": "CASE_25",
+          "name": "Full Institutional Nightmare Case (Boss Test)",
+          "input": {
+            "case_id": "BENCH-25-BOSS",
+            "case_type": "sarfaesi",
+            "perspective": "creditor",
+            "borrower_name": "ABC Manufacturing Pvt Ltd",
+            "bank_name": "Consortium Secured Creditor Bank",
+            "outstanding_amount": 54600000.0,
+            "npa_date": "2026-01-08",
+            "notice_13_2_date": "2026-01-02",
+            "mortgage_survey_number": "Survey 118/2",
+            "possession_survey_number": "Survey 118/3",
+            "valuation_amount_a": 78000000.0,
+            "valuation_amount_b": 61000000.0,
+            "guarantor_service_missing": true,
+            "cersai_property_b_missing": true,
+            "newspaper_publication_done": false,
+            "drt_stay_active": true
+          },
+          "expected": {
+            "current_stage": "STAYED / DRT INJUNCTION ACTIVE",
+            "contradiction_contains": "Notice Precedes NPA Classification Date",
+            "evidence_gap_contains": "CERSAI",
+            "next_action_contains": "Vacating Interim Stay Order"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -24,7 +24,20 @@ def _get_criminal_precedent(offense_type: str) -> dict:
 def decide_draft_type(score: int, concepts: List[Dict], case_data: Dict) -> str:
     concept_names = {c.get("concept", "") for c in concepts if isinstance(c, dict)}
     case_type = str(case_data.get("case_type", "")).upper()
-    role = case_data.get("client_role", "Accused")
+    role = case_data.get("client_role", case_data.get("perspective", "creditor"))
+    if case_type == "SARFAESI":
+        perspective = str(case_data.get("perspective", "creditor")).lower()
+        if perspective in ["borrower", "debtor", "applicant"]:
+            return "SARFAESI_SEC_17_SA_PETITION"
+        if case_data.get("sa_filing_date"):
+            return "SARFAESI_WRITTEN_STATEMENT"
+        if case_data.get("seek_section_14"):
+            return "SARFAESI_SEC_14_APPLICATION"
+        if case_data.get("borrower_representation_date") and not case_data.get("bank_reply_13_3a_date"):
+            return "SARFAESI_13_3A_REPLY"
+        if case_data.get("notice_13_2_date") and not case_data.get("possession_13_4_date"):
+            return "SARFAESI_13_4_POSSESSION_NOTICE"
+        return "SARFAESI_13_2_NOTICE"
     if case_type == "CRIMINAL":
         if case_data.get("seek_quashing"):
             return "QUASHING_PETITION"
@@ -751,6 +764,18 @@ class DraftEngine:
             return generate_defence_strategy(case_data, concepts, score)
         elif draft_type == "SETTLEMENT":
             return generate_settlement_draft(case_data, score)
+        elif draft_type == "SARFAESI_13_2_NOTICE":
+            return generate_sarfaesi_13_2_notice(case_data)
+        elif draft_type == "SARFAESI_13_3A_REPLY":
+            return generate_sarfaesi_13_3a_reply(case_data)
+        elif draft_type == "SARFAESI_13_4_POSSESSION_NOTICE":
+            return generate_sarfaesi_13_4_possession(case_data)
+        elif draft_type == "SARFAESI_SEC_14_APPLICATION":
+            return generate_sarfaesi_sec_14_app(case_data)
+        elif draft_type == "SARFAESI_SEC_17_SA_PETITION":
+            return generate_sarfaesi_sec_17_sa(case_data)
+        elif draft_type == "SARFAESI_WRITTEN_STATEMENT":
+            return generate_sarfaesi_written_statement(case_data)
         elif draft_type == "DELAY_CONDONATION":
             return generate_delay_condonation(case_data)
         elif draft_type == "APPLICATION_143A":
@@ -788,3 +813,182 @@ Subject: Strategic Assessment of Cheque Dishonour Case involving {amount_str}
 DISCLAIMER: This is an AI-generated preliminary strategy document. Consult a qualified advocate before taking any legal action.
 WARNING: Do NOT file raw AI output. You MUST 'humanize' the draft to avoid 'Cookie-Cutter' objections from the Magistrate, and verify ALL citations to prevent 'Phantom Precedent' penalties (Professional Misconduct/₹50k fine).
 """
+
+def generate_sarfaesi_13_2_notice(case_data: Dict) -> str:
+    today, amount_str = _case_meta(case_data)
+    borrower = case_data.get("borrower_name", case_data.get("accused_name", "Borrower/Guarantor"))
+    bank = case_data.get("bank_name", case_data.get("complainant_name", "Secured Creditor Bank"))
+    loan_acc = case_data.get("loan_account_number", case_data.get("account_number", "L-XXXXXXXX"))
+    npa_date = case_data.get("npa_date", "[NPA Classification Date]")
+
+    return f"""{_header("DEMAND NOTICE UNDER SECTION 13(2) OF THE SARFAESI ACT, 2002")}
+
+BY REGISTERED AD / SPEED POST WITH ACKNOWLEDGEMENT DUE
+
+Date: {today}
+
+TO:
+{borrower} (Borrower / Mortgagor / Guarantor)
+
+FROM:
+Authorized Officer, {bank}
+
+SUBJECT: DEMAND NOTICE UNDER SECTION 13(2) READ WITH RULE 3 OF THE SECURITY INTEREST (ENFORCEMENT) RULES, 2002 IN RESPECT OF LOAN ACCOUNT NO. {loan_acc}.
+
+Sir / Madam,
+
+1. We act for and on behalf of {bank} ("Secured Creditor").
+2. You, the Borrower/Guarantor, availed credit facilities from the Secured Creditor against the creation of equitable mortgage / security interest over the secured asset(s).
+3. Due to persistent defaults in repayment of principal and interest, your credit account was classified as a Non-Performing Asset (NPA) on {npa_date} in strict compliance with Reserve Bank of India (RBI) Income Recognition and Asset Classification (IRAC) guidelines.
+4. As of {today}, the total outstanding liabilities due and payable by you stand at {amount_str}, along with further interest, penal charges, and costs.
+5. NOTICE IS HEREBY GIVEN U/S 13(2) OF THE SARFAESI ACT calling upon you to discharge in full your liabilities within SIXTY (60) DAYS from the date of service of this notice.
+6. TAKE NOTICE that failing payment within 60 days, the Secured Creditor shall exercise all or any of the rights under Section 13(4) of the SARFAESI Act, 2002, including taking possession of the mortgaged secured assets.
+
+AUTHORIZED OFFICER
+{bank}
+"""
+
+def generate_sarfaesi_13_3a_reply(case_data: Dict) -> str:
+    today, _ = _case_meta(case_data)
+    borrower = case_data.get("borrower_name", "Borrower")
+    bank = case_data.get("bank_name", "Secured Creditor Bank")
+    rep_date = case_data.get("borrower_representation_date", "[Representation Date]")
+
+    return f"""{_header("REASONED DECISION / REPLY UNDER SECTION 13(3A) OF THE SARFAESI ACT, 2002")}
+
+Date: {today}
+
+TO:
+{borrower}
+
+FROM:
+Authorized Officer, {bank}
+
+SUBJECT: DECISION ON REPRESENTATION / OBJECTION DATED {rep_date} SUBMITTED UNDER SECTION 13(3A) OF SARFAESI ACT, 2002.
+
+1. We acknowledge receipt of your representation / objection dated {rep_date} against the Section 13(2) Demand Notice.
+2. The Secured Creditor has duly considered your objections in compliance with Section 13(3A) of the SARFAESI Act and the principles laid down by the Hon'ble Supreme Court in Mardia Chemicals Ltd. v. Union of India (2004) 4 SCC 311.
+3. UPON CAREFUL CONSIDERATION, YOUR OBJECTIONS ARE FOUND TO BE UNTENABLE AND STAND REJECTED FOR THE FOLLOWING REASONS:
+   a) NPA classification was strictly executed per RBI guidelines upon continuous 90-day default.
+   b) The security interest is duly registered on CERSAI portal (Section 26D).
+   c) Claims of financial distress do not legally suspend statutory enforcement under Chapter III of the Act.
+4. Consequently, the Demand Notice dated under Section 13(2) remains valid and operative.
+
+AUTHORIZED OFFICER
+{bank}
+"""
+
+def generate_sarfaesi_13_4_possession(case_data: Dict) -> str:
+    today, amount_str = _case_meta(case_data)
+    borrower = case_data.get("borrower_name", "Borrower")
+    bank = case_data.get("bank_name", "Secured Creditor Bank")
+
+    return f"""{_header("POSSESSION NOTICE UNDER RULE 8(1) / SECTION 13(4) OF SARFAESI ACT, 2002")}
+
+POSSESSION NOTICE (FOR IMMOVABLE PROPERTY)
+
+WHEREAS the undersigned being the Authorized Officer of {bank} under the SARFAESI Act, 2002 and in exercise of powers conferred under Section 13(12) read with Rule 3 of the Security Interest (Enforcement) Rules, 2002 issued Demand Notice U/S 13(2) calling upon {borrower} to repay the amount of {amount_str}.
+
+The Borrower having failed to repay the amount, notice is hereby given to the Borrower and the public in general that the undersigned has taken SYMBOLIC / PHYSICAL POSSESSION of the property described herein below in exercise of powers conferred U/S 13(4) of the said Act read with Rule 8 of the said Rules on this {today}.
+
+The Borrower in particular and the public in general is hereby cautioned not to deal with the property and any dealings with the property will be subject to the charge of {bank}.
+
+DESCRIPTION OF THE IMMOVABLE PROPERTY:
+[Detail of Mortgaged Property / Boundaries / CERSAI Security Asset ID]
+
+AUTHORIZED OFFICER
+{bank}
+"""
+
+def generate_sarfaesi_sec_14_app(case_data: Dict) -> str:
+    today, amount_str = _case_meta(case_data)
+    bank = case_data.get("bank_name", "Secured Creditor Bank")
+    borrower = case_data.get("borrower_name", "Borrower")
+
+    return f"""{_header("APPLICATION UNDER SECTION 14 OF THE SARFAESI ACT, 2002")}
+
+BEFORE THE HON'BLE CHIEF METROPOLITAN MAGISTRATE / DISTRICT MAGISTRATE
+
+IN THE MATTER OF:
+{bank} ... Applicant / Secured Creditor
+VERSUS
+{borrower} ... Respondent / Borrower
+
+APPLICATION ON BEHALF OF SECURED CREDITOR UNDER SECTION 14 OF THE SARFAESI ACT, 2002 FOR SEEKING ASSISTANCE IN TAKING PHYSICAL POSSESSION OF THE SECURED ASSET.
+
+MOST RESPECTFULLY SHOWETH:
+1. The Applicant is a Bank / Financial Institution & Secured Creditor under Section 2(1)(zd) of the SARFAESI Act.
+2. The Respondent defaulted on loan repayments of {amount_str}, leading to NPA classification and issuance of Section 13(2) Demand Notice.
+3. Section 13(4) Possession Notice was issued and duly published in 2 newspapers in compliance with Rule 8(2).
+4. An affidavit affirming statutory compliance with Section 14 provisions is attached hereto.
+
+PRAYER:
+It is most respectfully prayed that this Hon'ble Court may be pleased to:
+a) Pass an order directing the concerned Sub-Divisional Magistrate / Police Authority to take physical possession of the secured asset and hand over the same to the Applicant.
+b) Provide necessary police assistance for execution of possession.
+
+APPLICANT / SECURED CREDITOR
+THROUGH COUNSEL
+"""
+
+def generate_sarfaesi_sec_17_sa(case_data: Dict) -> str:
+    today, amount_str = _case_meta(case_data)
+    borrower = case_data.get("borrower_name", "Borrower")
+    bank = case_data.get("bank_name", "Secured Creditor Bank")
+
+    return f"""{_header("SECURITISATION APPLICATION (SA) UNDER SECTION 17 OF SARFAESI ACT, 2002")}
+
+BEFORE THE DEBT RECOVERY TRIBUNAL (DRT)
+
+S.A. NO. ______ OF {datetime.now().year}
+
+IN THE MATTER OF:
+{borrower} ... Applicant / Debtor
+VERSUS
+{bank} ... Respondent / Secured Creditor
+
+APPLICATION UNDER SECTION 17(1) OF THE SARFAESI ACT, 2002 CHALLENGING THE ILLEGAL POSSESSION MEASURES TAKEN BY THE RESPONDENT BANK UNDER SECTION 13(4).
+
+MOST RESPECTFULLY SHOWETH:
+1. The Applicant is the lawful owner and mortgagor of the subject property.
+2. The Respondent Bank has acted in gross violation of mandatory statutory provisions under the SARFAESI Act and Security Interest Rules, 2002.
+3. GROUNDS FOR INTERIM STAY AND QUASHING OF MEASURES:
+   a) Non-compliance with Section 13(3A): The Respondent Bank failed to consider and communicate a reasoned decision on Applicant's objections within statutory 15 days (Mardia Chemicals Ltd. v. UOI).
+   b) Violation of Section 26D: Security interest is not registered on CERSAI portal.
+   c) Procedural defect under Rule 8(1) and 8(2) regarding non-publication of possession notice.
+   d) Property constitutes Agricultural Land exempt under Section 31(i).
+
+PRAYER:
+It is prayed that this Hon'ble Tribunal be pleased to:
+a) Set aside and quash Section 13(4) Possession Notice dated ______;
+b) Restrain Respondent Bank from taking physical possession or auctioning the secured asset.
+
+APPLICANT
+THROUGH COUNSEL
+"""
+
+def generate_sarfaesi_written_statement(case_data: Dict) -> str:
+    return f"""{_header("WRITTEN STATEMENT / REPLY ON BEHALF OF SECURED CREDITOR BEFORE DRT")}
+
+BEFORE THE DEBT RECOVERY TRIBUNAL (DRT)
+
+IN S.A. NO. ______ OF {datetime.now().year}
+
+IN THE MATTER OF:
+Borrower ... Applicant
+VERSUS
+Secured Creditor Bank ... Respondent
+
+REPLY ON BEHALF OF RESPONDENT BANK TO SECURITISATION APPLICATION FILED U/S 17.
+
+PRELIMINARY OBJECTIONS:
+1. The Securitisation Application is barred by limitation under Section 17(1) having been filed beyond 45 days.
+2. All measures under Section 13(2), 13(3A), and 13(4) were strictly executed in compliance with statutory rules and Supreme Court precedents (Transcore v. UOI, Satyawati Tondon v. UBI).
+3. CERSAI registration is validly subsisting under Section 26D.
+
+PRAYER: Dismiss the SA with exemplary costs.
+
+RESPONDENT BANK
+THROUGH COUNSEL
+"""
+

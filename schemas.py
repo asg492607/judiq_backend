@@ -42,7 +42,19 @@ class CaseInput(BaseModel):
     no_sexual_intent: bool = False
     soon_before_death_nexus: bool = False
     essential_ceremonies_proven: bool = False
-    mere_bystander: bool = False
+    # SARFAESI & DRT specific fields
+    npa_date: Optional[str] = Field(None, max_length=20)
+    notice_13_2_date: Optional[str] = Field(None, max_length=20)
+    borrower_representation_date: Optional[str] = Field(None, max_length=20)
+    bank_reply_13_3a_date: Optional[str] = Field(None, max_length=20)
+    possession_13_4_date: Optional[str] = Field(None, max_length=20)
+    auction_notice_date: Optional[str] = Field(None, max_length=20)
+    sa_filing_date: Optional[str] = Field(None, max_length=20)
+    cersai_registered: bool = False
+    is_agricultural_land: bool = False
+    perspective: str = Field(default="creditor", max_length=20) # creditor or borrower
+    outstanding_amount: Optional[float] = Field(default=None, ge=0.0, le=10000000000.0)
+
     model_config = {
         "extra": "allow",
         "json_schema_extra": {

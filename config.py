@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8          
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./analytics.db")
     BACKEND_CORS_ORIGINS: list = [
+        "*",
+        "https://cold-smoke-f63f.judiqai.workers.dev",
         "https://judiq.netlify.app",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
