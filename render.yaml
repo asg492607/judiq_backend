@@ -7,6 +7,8 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn -w 1 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:$PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
       - key: GDRIVE_FILE_ID
         value: 1DfejIbgRXco3Tpp_aTBfarIm7h3t32EVykJGkEFdee4
       - key: GDRIVE_API_KEY
