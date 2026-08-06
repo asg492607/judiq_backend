@@ -1,0 +1,46 @@
+{
+  "_meta": "Demo Case 1: Strong Cheque Bounce — Retail Loan",
+  "case_type": "cheque_bounce_ni_act",
+  "case_identity": {
+    "case_id": "DEMO-CB-001",
+    "case_type": "cheque_bounce_ni_act",
+    "court": "JMFC Pune",
+    "jurisdiction": "Maharashtra",
+    "stage": "Pre-Filing"
+  },
+  "parties": {
+    "complainant": "Rajesh Mehta",
+    "accused": "Kiran Patil",
+    "accused_entity_type": "individual"
+  },
+  "transaction": {
+    "amount": 450000,
+    "transaction_type": "Personal Loan",
+    "loan_date": "2024-01-15",
+    "loan_mode": "Bank Transfer",
+    "has_written_agreement": true
+  },
+  "cheque": {
+    "cheque_number": "005421",
+    "bank": "HDFC Bank",
+    "branch": "FC Road Pune",
+    "cheque_date": "2024-03-01",
+    "cheque_proof_type": "original",
+    "has_return_memo": true
+  },
+  "dishonour": {
+    "dishonour_date": "2024-03-05",
+    "dishonour_reason": "Insufficient Funds",
+    "dishonour_memo_present": true
+  },
+  "notice": {
+    "notice_date": "2024-03-20",
+    "notice_sent_by": "Registered Post AD",
+    "notice_delivered": true,
+    "delivery_date": "2024-03-24",
+    "reply_received": false,
+    "payment_made_after_notice": false
+  },
+  "judicial_temperament": "Balanced",
+  "advocate_notes": "Straightforward recovery. Cheque is original. Notice was delivered and uncontested. Strong case for conviction."
+}

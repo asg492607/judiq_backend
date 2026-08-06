@@ -1,0 +1,35 @@
+{
+  "baseline_manifest": "JudiQ SARFAESI/DRT — Validation Baseline Manifesto",
+  "version_identifier": "v12.0.0-JUDIQ-PRO-SARFAESI-FROZEN",
+  "role": "EXPERIMENTAL_SUBJECT",
+  "timestamp_locked": "2026-08-04T21:26:26+05:30",
+  "programmatic_asset_hashes": {
+    "knowledge_base_sha256": "sha256:115a208b83b69fc59b5a768640abcabec9cfbe497e52572a10218fabae96df3d",
+    "engine_core_sha256": "sha256:bae8a80a090360792a18f1f3f0b9534a28c5ede2f5c5b144d6c8e83344eba0b6",
+    "benchmark_v1_sha256": "sha256:6b575a9f355b582b93067fb620ead12b5d8c70244bf68cbdccd69d18e9d940be",
+    "benchmark_v2_sha256": "sha256:7cc0157cddfd1ffb51a74b03f8788f60408546108def3eba188e277538d80e78"
+  },
+  "internal_evidence": {
+    "software_tests_passing": "95/95",
+    "benchmark_v1_passing": "25/25",
+    "benchmark_v2_adversarial_passing": "25/25",
+    "total_regression_coverage": "50/50"
+  },
+  "protocol": {
+    "target": "Blind Practitioner Validation Round 1",
+    "matters_count": 30,
+    "double_blind_enforced": true,
+    "live_tuning_permitted": false,
+    "disagreement_logging_mandatory": true,
+    "reporting_standards": [
+      "Stage Identification Accuracy (%)",
+      "Evidence Gap Precision & Recall (%)",
+      "Defect Recall (%)",
+      "Limitation Calculation Accuracy (%)",
+      "Citation Validity (%)",
+      "Next-Action Directive Agreement (%)",
+      "False Critical Alert Rate (%)",
+      "Critical Error Count & Severity Breakdown (Reported Separately)"
+    ]
+  }
+}

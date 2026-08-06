@@ -1,0 +1,17 @@
+{
+  "case_id": "SARFAESI-DEMO-002",
+  "case_title": "Ramesh Kumar vs National Bank",
+  "case_type": "sarfaesi",
+  "perspective": "borrower",
+  "bank_name": "National Bank",
+  "borrower_name": "Ramesh Kumar",
+  "loan_account_number": "AGRI-LOAN-4421",
+  "outstanding_amount": 7500000.0,
+  "npa_date": "2026-01-10",
+  "notice_13_2_date": "2026-01-25",
+  "borrower_representation_date": "2026-02-15",
+  "possession_13_4_date": "2026-03-25",
+  "cersai_registered": false,
+  "is_agricultural_land": true,
+  "description": "Borrower challenging Section 13(4) possession before DRT under Section 17 SA. Property is agricultural land and security interest was not registered on CERSAI portal. Bank failed to answer Section 13(3A) representation."
+}

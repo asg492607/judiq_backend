@@ -1,0 +1,18 @@
+{
+  "case_id": "SARFAESI-DEMO-001",
+  "case_title": "State Bank of India vs M/s Zenith Enterprises",
+  "case_type": "sarfaesi",
+  "perspective": "creditor",
+  "bank_name": "State Bank of India",
+  "borrower_name": "M/s Zenith Enterprises",
+  "loan_account_number": "LOAN-CC-99812",
+  "outstanding_amount": 25000000.0,
+  "npa_date": "2026-01-05",
+  "notice_13_2_date": "2026-01-20",
+  "borrower_representation_date": "2026-02-10",
+  "bank_reply_13_3a_date": "2026-02-22",
+  "possession_13_4_date": "2026-04-01",
+  "cersai_registered": true,
+  "is_agricultural_land": false,
+  "description": "Default of Rs 2.5 Crores in cash credit facility. Account classified as NPA on 05-Jan-2026. Demand notice under Section 13(2) served and 13(3A) objections answered in 12 days."
+}

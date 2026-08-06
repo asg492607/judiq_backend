@@ -1,0 +1,23 @@
+{
+  "legal_concepts": {
+    "debt_acknowledgment": {
+      "patterns": ["debt acknowledged", "admitted liability", "promised to pay"],
+      "weight": 0.9,
+      "legal_impact": "Strongly triggers presumption under Section 139 NI Act"
+    },
+    "security_cheque": {
+      "patterns": ["given as security", "blank cheque", "security purpose"],
+      "weight": 0.6,
+      "legal_impact": "Common defence; countered by Sripati Singh precedent"
+    },
+    "financial_capacity_challenge": {
+      "patterns": ["financial capacity", "source of funds", "itr", "income tax"],
+      "weight": 0.8,
+      "legal_impact": "Invokes Basalingappa rule; requires complainant to prove source of funds"
+    }
+  },
+  "knowledge_base": {},
+  "scoring_catalogue": {},
+  "defence_templates": {},
+  "defence_legal_weights": {}
+}

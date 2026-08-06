@@ -14,13 +14,6 @@ venv/
 env/
 ENV/
 
-# Node dependencies
-node_modules/
-
-# Production builds
-dist/
-build/
-
 # Databases
 *.db
 judiq.db
@@ -31,13 +24,10 @@ uploads/
 # Log files
 *.log
 
+# Duplicate/versioned downloads or backup copies
+*(*).py
+
 # Environment variables
 .env
 .env.*
-.env.local
 
-# IDE & OS generated files
-.idea/
-.vscode/
-.DS_Store
-Thumbs.db

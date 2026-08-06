@@ -1,0 +1,41 @@
+{
+  "_meta": "Demo Case 5: POCSO — Defence (Accused) Analysis",
+  "case_type": "criminal_general",
+  "case_identity": {
+    "case_id": "DEMO-CR-003",
+    "case_type": "criminal_general",
+    "court": "Special POCSO Court, Pune",
+    "jurisdiction": "Maharashtra",
+    "stage": "Trial — Prosecution Evidence Stage"
+  },
+  "parties": {
+    "accused": "Anonymous (Accused)",
+    "complainant": "Minor Victim (via Guardian)"
+  },
+  "offence": {
+    "sections": ["POCSO S.4", "POCSO S.8", "IPC 376"],
+    "fir_number": "CR 34/2024",
+    "police_station": "Hadapsar PS, Pune",
+    "offence_date": "2024-01-20",
+    "arrest_date": "2024-01-22",
+    "days_in_custody": 120
+  },
+  "prosecution_evidence": {
+    "medical_examination_done": true,
+    "medical_report_supports_offence": false,
+    "dna_evidence": false,
+    "s65b_certificate_for_digital": false,
+    "sole_testimony_of_child": true,
+    "corroborating_witnesses": 0,
+    "statement_under_164_crpc": true,
+    "inconsistencies_in_164_statement": true
+  },
+  "defence_arguments": {
+    "false_implication_plea": true,
+    "enmity_with_complainant_family": true,
+    "alibi_available": true,
+    "alibi_witnesses": 2,
+    "delay_in_fir_days": 10
+  },
+  "advocate_notes": "POCSO case with significant defence leverage: medical report non-corroborative, no DNA, digital evidence without S.65B, inconsistencies in 164 statement, 10-day FIR delay, alibi witnesses available."
+}

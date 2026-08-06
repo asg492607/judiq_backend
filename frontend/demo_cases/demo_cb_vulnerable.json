@@ -1,0 +1,47 @@
+{
+  "_meta": "Demo Case 2: Vulnerable Cheque Bounce — Cash Loan, No ITR",
+  "case_type": "cheque_bounce_ni_act",
+  "case_identity": {
+    "case_id": "DEMO-CB-002",
+    "case_type": "cheque_bounce_ni_act",
+    "court": "JMFC Mumbai",
+    "jurisdiction": "Maharashtra",
+    "stage": "Pre-Filing"
+  },
+  "parties": {
+    "complainant": "Suresh Kamble",
+    "accused": "Priya Enterprises Pvt Ltd",
+    "accused_entity_type": "company",
+    "director_averments_made": false
+  },
+  "transaction": {
+    "amount": 2500000,
+    "transaction_type": "Business Loan (Cash)",
+    "loan_date": "2023-11-01",
+    "loan_mode": "Cash",
+    "has_written_agreement": false
+  },
+  "cheque": {
+    "cheque_number": "009882",
+    "bank": "Axis Bank",
+    "branch": "Andheri Mumbai",
+    "cheque_date": "2024-02-01",
+    "cheque_proof_type": "photocopy",
+    "has_return_memo": true
+  },
+  "dishonour": {
+    "dishonour_date": "2024-02-05",
+    "dishonour_reason": "Account Closed",
+    "dishonour_memo_present": true
+  },
+  "notice": {
+    "notice_date": "2024-02-22",
+    "notice_sent_by": "WhatsApp + Email",
+    "notice_delivered": false,
+    "reply_received": true,
+    "reply_denies_debt": true,
+    "payment_made_after_notice": false
+  },
+  "judicial_temperament": "Skeptical",
+  "advocate_notes": "Multiple risk factors: Cash loan >20L without ITR (Basalingappa risk), photocopy cheque, company accused without director averments (S.141 fatal risk), WhatsApp notice questionable. Expect aggressive defence."
+}

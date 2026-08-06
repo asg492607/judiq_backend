@@ -1,0 +1,2356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob:; connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 ws://localhost:8000 wss://* https://*; frame-src 'self';">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JudiQ – AI Litigation Strategist</title>
+    <!-- TEMPORARY ERROR CATCHER FOR DEBUGGING -->
+    <script src="js/modules/error_handler.js"></script>
+    <meta name="description" content="JudiQ AI Litigation Strategist finds legal weaknesses before the courtroom does. Simulate opponent attacks and predict judge challenges.">
+    <meta property="og:title" content="JudiQ – AI Litigation Strategist">
+    <meta property="og:description" content="Adversarial litigation simulation, weakness detection, and courtroom strategy for law firms and in-house counsel.">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Initializing JUDIQ AI...</p>
+        </div>
+    </div>
+    <!-- Toast Notification System -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Analysis Loading Overlay -->
+    <div id="analysisLoading" class="analysis-loading hidden">
+        <div class="analysis-loading-content">
+            <div class="analysis-spinner"></div>
+            <h3>Analyzing Your Case</h3>
+            <p id="analysisLoadingText">Processing legal data with AI...</p>
+            <div class="analysis-progress">
+                <div class="analysis-progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div id="app" class="app-container">
+        
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- LANDING PAGE SECTION -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div id="landingScreen" class="landing-screen">
+            <header class="landing-header">
+                <div class="landing-logo">
+                    <i class="fas fa-balance-scale"></i>
+                    <span>JUDIQ AI</span>
+                </div>
+                <div class="landing-nav-links">
+                    <a href="#aboutUsSection">About</a>
+                    <a href="#pricingSection">Pricing</a>
+                    <a href="#testimonialsSection">Testimonials</a>
+                    <a href="#faqSection">FAQ</a>
+                    <a href="#contactSection">Contact</a>
+                    <a href="#" onclick="openLegalModal('documentationModal', event)">Docs</a>
+                </div>
+                <div class="landing-nav">
+                    <button class="theme-toggle-btn" title="Toggle Light/Dark Mode" onclick="toggleTheme()">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button id="navLoginBtn" class="btn btn-outline">Sign In</button>
+                    <button id="navRegisterBtn" class="btn btn-primary">Get Started</button>
+                </div>
+            </header>
+            
+            <section class="hero-section">
+                <div class="hero-content">
+                    <h1>Find the Weakness<br><span class="highlight">Before the Courtroom Does.</span></h1>
+                    <p>Adversarial litigation simulation, automated weakness detection, and institutional-grade courtroom strategy for top-tier law firms.</p>
+                    <div class="hero-actions">
+                        <button id="heroGetStartedBtn" class="btn btn-primary btn-large">Start Free Trial</button>
+                        <button id="heroLoginBtn" class="btn btn-outline btn-large">Sign In to Dashboard</button>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="judiq_hero_adversarial.png" alt="JudiQ Adversarial AI">
+                </div>
+            </section>
+            
+            <section id="featuresSection" class="features-section reveal-on-scroll">
+                <div class="section-heading">
+                    <h2>Advanced Legal Intelligence</h2>
+                    <p>Stop guessing. Start calculating your courtroom survivability.</p>
+                </div>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <img src="judiq_attack_simulation.png" alt="Attack Simulation">
+                        <h3>Simulate Opponent Attacks</h3>
+                        <p>Map every cross-examination vector before the hearing begins.</p>
+                    </div>
+                    <div class="feature-card">
+                        <img src="judiq_weakness_detection.png" alt="Weakness Detection">
+                        <h3>Detect Fatal Flaws</h3>
+                        <p>Scan for procedural defects, limitation breaches, and evidentiary gaps automatically.</p>
+                    </div>
+                    <div class="feature-card">
+                        <img src="judiq_survivability_graph.png" alt="Survivability Graph">
+                        <h3>Survivability Mapping</h3>
+                        <p>Stage-by-stage success probability from initial filing to Supreme Court appeal.</p>
+                    </div>
+                    <div class="feature-card">
+                        <img src="judiq_courtroom_strategy.png" alt="Courtroom Strategy">
+                        <h3>Judge & Courtroom Strategy</h3>
+                        <p>Actionable courtroom strategy including judge challenge prediction and precedent routing.</p>
+                    </div>
+                </div>
+
+                <!-- Feature Explorer Widget -->
+                <div class="feature-explorer">
+                    <div class="explorer-tabs">
+                        <div class="explorer-tab active" onclick="switchExplorerTab('adversarial', this)">
+                            <i class="fas fa-bolt"></i>
+                            <span>Adversarial Sim</span>
+                        </div>
+                        <div class="explorer-tab" onclick="switchExplorerTab('contradiction', this)">
+                            <i class="fas fa-search"></i>
+                            <span>Evidence Check</span>
+                        </div>
+                        <div class="explorer-tab" onclick="switchExplorerTab('strategy', this)">
+                            <i class="fas fa-gavel"></i>
+                            <span>Courtroom Strategy</span>
+                        </div>
+                    </div>
+                    <div class="explorer-display">
+                        <div class="explorer-title" id="explorerTitle">Adversarial Opponent Simulation</div>
+                        <div class="explorer-desc" id="explorerDesc">Simulate critical opposing counsel cross-examination routes and see how the AI evaluates and flags vulnerabilities in real-time.</div>
+                        <div class="explorer-preview-box" id="explorerPreview">
+                            <p style="color: #6b7280;">// Running Adversarial Opponent Simulation...</p>
+                            <p style="color: #60a5fa;">[INFO] Parsing complainant statement &amp; matching against Indian Evidence Act Sec 45...</p>
+                            <p style="color: #fbbf24;">[WARNING] Found high risk vulnerability in Sec 138 demand notice delivery timeline.</p>
+                            <p style="color: #f87171;">[VULNERABILITY] Delivery occurred on day 32 (Statutory limit: 30 days).</p>
+                            <p style="color: #34d399;">[RECOMMENDED COUNTER] Invoke General Clauses Act Sec 10 to plead court holiday exemption.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Interactive Deadline Sandbox Section -->
+            <section id="deadlineSandbox" class="sandbox-section reveal-on-scroll">
+                <div class="section-heading">
+                    <h2>Interactive Deadline Sandbox</h2>
+                    <p>Input your transaction dates to instantly calculate statutory timelines and compliance alerts.</p>
+                </div>
+                <div class="sandbox-grid">
+                    <div class="sandbox-input-box">
+                        <h3>Compliance Calculator</h3>
+                        <div class="form-group">
+                            <label for="sandboxMemoDate">Bank Dishonour Memo Date</label>
+                            <input type="date" id="sandboxMemoDate" value="2026-06-01" onchange="calculateSandboxTimelines()">
+                        </div>
+                        <div class="form-group">
+                            <label for="sandboxNoticeDate">Demand Notice Delivery Date</label>
+                            <input type="date" id="sandboxNoticeDate" value="2026-06-15" onchange="calculateSandboxTimelines()">
+                        </div>
+                    </div>
+                    <div class="sandbox-results-panel">
+                        <div class="timeline-status-header">
+                            <h4>Timeline Status</h4>
+                            <span id="sandboxStatusBadge" class="status-badge compliant">Compliant</span>
+                        </div>
+                        <div class="timeline-step-list">
+                            <div class="timeline-step-item success" id="step1Item">
+                                <div class="timeline-step-icon"></div>
+                                <div class="timeline-step-title">1. Notice Serving Window</div>
+                                <div class="timeline-step-desc" id="step1Desc">Demand notice must be sent within 30 days of the Bank Return Memo.</div>
+                                <div class="timeline-step-date" id="step1Date">Interval: 14 days (Compliant)</div>
+                            </div>
+                            <div class="timeline-step-item success" id="step2Item">
+                                <div class="timeline-step-icon"></div>
+                                <div class="timeline-step-title">2. Repayment Notice Period</div>
+                                <div class="timeline-step-desc" id="step2Desc">Opponent is given 15 days to repay after receiving the notice. No case can be filed during this time.</div>
+                                <div class="timeline-step-date" id="step2Date">Filing becomes legal on: June 31, 2026</div>
+                            </div>
+                            <div class="timeline-step-item success" id="step3Item">
+                                <div class="timeline-step-icon"></div>
+                                <div class="timeline-step-title">3. Statutory Filing Window</div>
+                                <div class="timeline-step-desc" id="step3Desc">If the opponent fails to pay, the case must be filed in court within 30 days.</div>
+                                <div class="timeline-step-date" id="step3Date">Filing deadline: July 31, 2026</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Litigation Readiness Suite Section -->
+            <section id="readinessSection" class="readiness-section reveal-on-scroll">
+                <div class="section-heading">
+                    <h2>Litigation Readiness Suite</h2>
+                    <p>Prepare your filings with absolute certainty using our interactive court checklists and landmark precedent lookup.</p>
+                </div>
+                <div class="readiness-grid">
+                    <!-- Column 1: Document Checklist -->
+                    <div class="checklist-card">
+                        <h3>Courtroom Filing Checklist</h3>
+                        <p style="color: var(--gray-400); font-size: 0.9rem; margin: 0 0 1rem 0;">Check off elements you have ready to calculate your case filing viability score:</p>
+                        
+                        <div class="checklist-item-list">
+                            <label class="checklist-checkbox-label">
+                                <input type="checkbox" class="readiness-check" onchange="updateReadinessProgress()">
+                                <span>Original Dishonoured Cheque (signed by debtor)</span>
+                            </label>
+                            <label class="checklist-checkbox-label">
+                                <input type="checkbox" class="readiness-check" onchange="updateReadinessProgress()">
+                                <span>Bank Return / Dishour Memo (confirming reason for dishonour)</span>
+                            </label>
+                            <label class="checklist-checkbox-label">
+                                <input type="checkbox" class="readiness-check" onchange="updateReadinessProgress()">
+                                <span>Copy of Statutory Legal Demand Notice (sent within 30 days)</span>
+                            </label>
+                            <label class="checklist-checkbox-label">
+                                <input type="checkbox" class="readiness-check" onchange="updateReadinessProgress()">
+                                <span>Speed Post / Courier Registered Booking Receipt</span>
+                            </label>
+                            <label class="checklist-checkbox-label">
+                                <input type="checkbox" class="readiness-check" onchange="updateReadinessProgress()">
+                                <span>Official Postal Acknowledgment Card or Online Delivery Tracking Log</span>
+                            </label>
+                        </div>
+                        
+                        <div class="readiness-gauge-box">
+                            <div class="readiness-progress">
+                                <svg class="progress-svg" width="100" height="100">
+                                    <circle class="progress-circle-bg" cx="50" cy="50" r="40"></circle>
+                                    <circle id="readinessCircleBar" class="progress-circle-bar" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                                </svg>
+                                <span id="readinessProgressText" class="progress-text">0%</span>
+                            </div>
+                            <div style="text-align: left; max-width: 140px;">
+                                <div style="font-weight: 700; color: white; font-size: 0.95rem;">Readiness Score</div>
+                                <div id="readinessStatusText" style="font-size: 0.8rem; color: var(--gray-400); margin-top: 0.25rem;">Insufficient data to file.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Column 2: Precedent Finder -->
+                    <div class="precedent-card">
+                        <h3>Landmark Precedent Finder</h3>
+                        <p style="color: var(--gray-400); font-size: 0.9rem; margin: 0 0 1rem 0;">Query essential Supreme Court Section 138 check bounce precedents by typing search keywords:</p>
+                        
+                        <div class="search-wrapper">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="precedentSearchInput" class="precedent-search-bar" placeholder="Try typing: notice, signature, delay, stop payment..." oninput="filterPrecedentsList()">
+                        </div>
+                        
+                        <div id="precedentsListContainer" class="citations-list-container">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="aboutUsSection" class="about-section reveal-on-scroll">
+                <div class="section-heading">
+                    <h2>About JudiQ AI</h2>
+                    <p>Built for the Modern Courtroom.</p>
+                </div>
+                <div class="about-content">
+                    <p>JudiQ was forged at the intersection of deep legal expertise and advanced artificial intelligence. We saw a systemic flaw in how legal strategy was prepared: too often, critical weaknesses were discovered only when the opposing counsel pointed them out in open court.</p>
+                    <p>Our mission is to arm top-tier law firms and in-house counsel with an adversarial engine that ruthlessly attacks their own case files before the trial begins. By automatically detecting procedural defects, limitation breaches, and evidentiary gaps, JudiQ ensures that you never walk into a courtroom blind.</p>
+                    <div class="about-stats">
+                        <div class="stat-box">
+                            <h4>10,000+</h4>
+                            <span>Precedents Mapped</span>
+                        </div>
+                        <div class="stat-box">
+                            <h4>0.01s</h4>
+                            <span>Flaw Detection</span>
+                        </div>
+                        <div class="stat-box">
+                            <h4>100%</h4>
+                            <span>Objective Analysis</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="pricingSection" class="pricing-section reveal-on-scroll">
+                <div class="section-heading">
+                    <h2>Transparent &amp; Predictable Pricing</h2>
+                    <p>Choose the plan that fits your litigation pipeline.</p>
+                </div>
+                <div class="pricing-toggle-container">
+                    <span class="pricing-toggle-label active" id="billingMonthlyLabel">Monthly</span>
+                    <label class="pricing-switch">
+                        <input type="checkbox" id="pricingPeriodToggle" onchange="togglePricingPeriod(this.checked)">
+                        <span class="slider-switch"></span>
+                    </label>
+                    <span class="pricing-toggle-label" id="billingAnnualLabel">Annual (Save 20%)</span>
+                </div>
+                <div class="pricing-grid">
+                    <!-- Basic / Citizen Card -->
+                    <div class="pricing-card">
+                        <div class="pricing-header">
+                            <h3>Citizen</h3>
+                            <p>For individuals and basic claims</p>
+                        </div>
+                        <div class="pricing-price">
+                            $ <span id="priceCitizen">49</span> <span>/mo</span>
+                        </div>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check-circle"></i> 3 Active Case Rooms</li>
+                            <li><i class="fas fa-check-circle"></i> Basic Adversarial Simulation</li>
+                            <li><i class="fas fa-check-circle"></i> Evidentiary Contradiction Scan</li>
+                            <li><i class="fas fa-check-circle"></i> Email Support</li>
+                            <li class="disabled"><i class="fas fa-times-circle"></i> Pro Drafting Templates</li>
+                            <li class="disabled"><i class="fas fa-times-circle"></i> Priority Courtroom Strategy</li>
+                        </ul>
+                        <button class="btn btn-outline" onclick="document.getElementById('navRegisterBtn').click()">Start Free Trial</button>
+                    </div>
+
+                    <!-- Professional Card (Popular) -->
+                    <div class="pricing-card popular">
+                        <span class="pricing-badge">MOST POPULAR</span>
+                        <div class="pricing-header">
+                            <h3>Professional</h3>
+                            <p>For independent attorneys &amp; mid-sized firms</p>
+                        </div>
+                        <div class="pricing-price">
+                            $ <span id="pricePro">149</span> <span>/mo</span>
+                        </div>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check-circle"></i> 15 Active Case Rooms</li>
+                            <li><i class="fas fa-check-circle"></i> Deep Adversarial Opponent Simulation</li>
+                            <li><i class="fas fa-check-circle"></i> Cross-examination Predictor</li>
+                            <li><i class="fas fa-check-circle"></i> Evidence Timeline Mapping</li>
+                            <li><i class="fas fa-check-circle"></i> Pro Drafting Templates</li>
+                            <li><i class="fas fa-check-circle"></i> Priority Courtroom Strategy</li>
+                            <li><i class="fas fa-check-circle"></i> 24/7 Priority Support</li>
+                        </ul>
+                        <button class="btn btn-primary" onclick="document.getElementById('navRegisterBtn').click()">Start Free Trial</button>
+                    </div>
+
+                    <!-- Enterprise Card -->
+                    <div class="pricing-card">
+                        <div class="pricing-header">
+                            <h3>Enterprise</h3>
+                            <p>For large firms &amp; corporate legal depts</p>
+                        </div>
+                        <div class="pricing-price">
+                            $ <span id="priceEnterprise">499</span> <span>/mo</span>
+                        </div>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check-circle"></i> Unlimited Case Rooms</li>
+                            <li><i class="fas fa-check-circle"></i> Custom AI Model Isolation</li>
+                            <li><i class="fas fa-check-circle"></i> Full Courtroom &amp; Appeal Simulation</li>
+                            <li><i class="fas fa-check-circle"></i> Dedicated Account Counsel</li>
+                            <li><i class="fas fa-check-circle"></i> Custom Document Templates</li>
+                            <li><i class="fas fa-check-circle"></i> API Access &amp; Single Sign-On (SSO)</li>
+                        </ul>
+                        <button class="btn btn-outline" onclick="document.getElementById('navRegisterBtn').click()">Contact Sales</button>
+                    </div>
+                </div>
+
+                <!-- Pricing Comparison Matrix -->
+                <div class="matrix-section">
+                    <h3>Detailed Plan Comparison</h3>
+                    <div class="comparison-table-wrapper">
+                        <table class="comparison-table">
+                            <thead>
+                                <tr>
+                                    <th>Features</th>
+                                    <th style="text-align: center; width: 20%;">Citizen</th>
+                                    <th style="text-align: center; width: 20%;">Professional</th>
+                                    <th style="text-align: center; width: 20%;">Enterprise</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="feature-title">Active Case Rooms</td>
+                                    <td class="col-citizen">3</td>
+                                    <td class="col-pro">15</td>
+                                    <td class="col-enterprise">Unlimited</td>
+                                </tr>
+                                <tr>
+                                    <td class="feature-title">Adversarial Simulation</td>
+                                    <td class="col-citizen">Basic</td>
+                                    <td class="col-pro">Deep</td>
+                                    <td class="col-enterprise">Full &amp; Appeal</td>
+                                </tr>
+                                <tr>
+                                    <td class="feature-title">Evidentiary Contradiction Scan</td>
+                                    <td class="col-citizen"><i class="fas fa-check"></i></td>
+                                    <td class="col-pro"><i class="fas fa-check"></i></td>
+                                    <td class="col-enterprise"><i class="fas fa-check"></i></td>
+                                </tr>
+                                <tr>
+                                    <td class="feature-title">Cross-examination Predictor</td>
+                                    <td class="col-citizen"><i class="fas fa-times"></i></td>
+                                    <td class="col-pro"><i class="fas fa-check"></i></td>
+                                    <td class="col-enterprise"><i class="fas fa-check"></i></td>
+                                </tr>
+                                <tr>
+                                    <td class="feature-title">Evidence Timeline Mapping</td>
+                                    <td class="col-citizen"><i class="fas fa-times"></i></td>
+                                    <td class="col-pro"><i class="fas fa-check"></i></td>
+                                    <td class="col-enterprise"><i class="fas fa-check"></i></td>
+                                </tr>
+                                <tr>
+                                    <td class="feature-title">Pro Drafting Templates</td>
+                                    <td class="col-citizen"><i class="fas fa-times"></i></td>
+                                    <td class="col-pro"><i class="fas fa-check"></i></td>
+                                    <td class="col-enterprise"><i class="fas fa-check"></i></td>
+                                </tr>
+                                <tr>
+                                    <td class="feature-title">Priority Courtroom Strategy</td>
+                                    <td class="col-citizen"><i class="fas fa-times"></i></td>
+                                    <td class="col-pro"><i class="fas fa-check"></i></td>
+                                    <td class="col-enterprise"><i class="fas fa-check"></i></td>
+                                </tr>
+                                <tr>
+                                    <td class="feature-title">Custom AI Model Isolation</td>
+                                    <td class="col-citizen"><i class="fas fa-times"></i></td>
+                                    <td class="col-pro"><i class="fas fa-times"></i></td>
+                                    <td class="col-enterprise"><i class="fas fa-check"></i></td>
+                                </tr>
+                                <tr>
+                                    <td class="feature-title">API Access &amp; SSO</td>
+                                    <td class="col-citizen"><i class="fas fa-times"></i></td>
+                                    <td class="col-pro"><i class="fas fa-times"></i></td>
+                                    <td class="col-enterprise"><i class="fas fa-check"></i></td>
+                                </tr>
+                                <tr>
+                                    <td class="feature-title">Support Level</td>
+                                    <td class="col-citizen">Email Only</td>
+                                    <td class="col-pro">24/7 Priority</td>
+                                    <td class="col-enterprise">Dedicated Account Counsel</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="testimonialsSection" class="testimonials-section reveal-on-scroll">
+                <div class="section-heading">
+                    <h2>Trusted by Legal Professionals</h2>
+                    <p>Discover how top-tier litigators are securing advantages with JudiQ.</p>
+                </div>
+                <div class="testimonials-grid">
+                    <div class="testimonial-card">
+                        <p class="testimonial-content">"JudiQ identified a critical limitation period mismatch in a contract breach filing that could have cost us the case. It's an indispensable part of our pre-filing workflow."</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">SJ</div>
+                            <div class="author-info">
+                                <h4>Sarah Jenkins, Esq.</h4>
+                                <p>Senior Litigation Partner, Nexus Legal Group</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial-card">
+                        <p class="testimonial-content">"The adversarial opponent simulation is remarkably accurate. It prepares our team for the exact challenges judges raise during oral arguments."</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">DV</div>
+                            <div class="author-info">
+                                <h4>David Vance</h4>
+                                <p>In-House General Counsel, Apex Tech Corp</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial-card">
+                        <p class="testimonial-content">"For complex cheque bounce matters, the evidentiary contradiction scan catches discrepancies in witness accounts with outstanding speed. Highly recommend."</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">MT</div>
+                            <div class="author-info">
+                                <h4>Marcus Thorne, Esq.</h4>
+                                <p>Managing Partner, Thorne &amp; Associates</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="faqSection" class="faq-section reveal-on-scroll">
+                <div class="section-heading">
+                    <h2>Frequently Asked Questions</h2>
+                    <p>Everything you need to know about the JudiQ AI legal intelligence engine.</p>
+                </div>
+                <div class="faq-container">
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaqItem(this)">
+                            <span>Is my case data kept safe and confidential?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes, security is our core priority. All uploaded case documents, facts, and drafts are fully encrypted using AES-256 at rest and TLS 1.3 in transit. We enforce strict data isolation; your client data is never used to train or fine-tune public models.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaqItem(this)">
+                            <span>Does JudiQ AI replace professional legal counsel?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Absolutely not. JudiQ is designed as an advanced decision-support tool to assist licensed advocates and in-house legal departments. All AI-generated analyses, strategies, and draft notices must be reviewed and verified by a qualified attorney.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaqItem(this)">
+                            <span>How does the 14-day free trial work?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Our free trial gives you full access to the Professional tier for 14 days, including 3 active case simulations. No credit card is required to sign up, and you can cancel anytime.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaqItem(this)">
+                            <span>What jurisdictions are currently supported?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>JudiQ is optimized for common law systems (including India, the United States, United Kingdom, and Canada), with deep knowledge of local civil procedures, limitation acts, and precedent routing algorithms.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Resource Hub Section -->
+            <section id="resourceSection" class="resource-section reveal-on-scroll">
+                <div class="section-heading">
+                    <h2>Legal Tech Resource Hub</h2>
+                    <p>Stay ahead with expert insights on litigation strategy, compliance, and legal AI.</p>
+                </div>
+                <div class="blog-grid">
+                    <a href="#" class="blog-card" onclick="event.preventDefault(); if (window.ui) { window.ui.toast('Resource opening soon!', 'info'); }">
+                        <div class="blog-image">
+                            <i class="fas fa-microchip"></i>
+                            <span class="blog-badge">AI Prep</span>
+                        </div>
+                        <div class="blog-content">
+                            <h3>How Generative AI is Transforming Trial Preparation</h3>
+                            <p>Discover how modern litigators use AI-powered simulation engines to find evidentiary gaps before setting foot in the courtroom.</p>
+                            <div class="blog-footer">
+                                <div><i class="far fa-calendar-alt"></i> June 15, 2026</div>
+                                <div><i class="far fa-clock"></i> 5 min read</div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="#" class="blog-card" onclick="event.preventDefault(); if (window.ui) { window.ui.toast('Resource opening soon!', 'info'); }">
+                        <div class="blog-image">
+                            <i class="fas fa-project-diagram"></i>
+                            <span class="blog-badge">RAG Pipeline</span>
+                        </div>
+                        <div class="blog-content">
+                            <h3>Securing Case Confidentiality with RAG Architectures</h3>
+                            <p>An in-depth look at retrieval-augmented generation models and how they protect sensitive litigation documents from training leaks.</p>
+                            <div class="blog-footer">
+                                <div><i class="far fa-calendar-alt"></i> June 10, 2026</div>
+                                <div><i class="far fa-clock"></i> 8 min read</div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="#" class="blog-card" onclick="event.preventDefault(); if (window.ui) { window.ui.toast('Resource opening soon!', 'info'); }">
+                        <div class="blog-image">
+                            <i class="fas fa-gavel"></i>
+                            <span class="blog-badge">Statutory Law</span>
+                        </div>
+                        <div class="blog-content">
+                            <h3>Mastering Statutory Limitation Clocks under Section 138</h3>
+                            <p>A comprehensive guide to calculating notice periods and courtroom deadlines to prevent procedural dismissal of check dishonour complaints.</p>
+                            <div class="blog-footer">
+                                <div><i class="far fa-calendar-alt"></i> June 05, 2026</div>
+                                <div><i class="far fa-clock"></i> 6 min read</div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Contact Us Section -->
+            <section id="contactSection" class="contact-section reveal-on-scroll">
+                <div class="contact-grid">
+                    <div class="contact-info">
+                        <h2>Contact Our Legal Tech Experts</h2>
+                        <p class="contact-subtitle">Have questions about our adversarial engine, API integration, or enterprise plans? Get in touch with us.</p>
+                        <div class="contact-details">
+                            <div class="contact-card">
+                                <i class="fas fa-envelope"></i>
+                                <div>
+                                    <h4>Email Support</h4>
+                                    <p>support@judiq.ai</p>
+                                </div>
+                            </div>
+                            <div class="contact-card">
+                                <i class="fas fa-phone-alt"></i>
+                                <div>
+                                    <h4>Phone / Hotline</h4>
+                                    <p>+1 (800) 555-JUDI (5834)</p>
+                                </div>
+                            </div>
+                            <div class="contact-card">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <div>
+                                    <h4>Headquarters</h4>
+                                    <p>Connaught Place, New Delhi, India</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="social-icons-row">
+                            <a href="#" class="social-icon-btn" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                            <a href="#" class="social-icon-btn" title="Twitter/X"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-icon-btn" title="GitHub"><i class="fab fa-github"></i></a>
+                            <a href="#" class="social-icon-btn" title="YouTube"><i class="fab fa-youtube"></i></a>
+                            <a href="#" class="social-icon-btn" title="Discord"><i class="fab fa-discord"></i></a>
+                            <a href="#" class="social-icon-btn" title="Facebook"><i class="fab fa-facebook"></i></a>
+                        </div>
+                    </div>
+                    <div class="contact-form-container">
+                        <form id="contactUsForm" class="contact-form" onsubmit="submitContactForm(event)">
+                            <div class="form-group">
+                                <label for="contactName">Full Name</label>
+                                <input type="text" id="contactName" required placeholder="Alexander Stone" minlength="2" autocomplete="name">
+                            </div>
+                            <div class="form-group">
+                                <label for="contactEmail">Work Email</label>
+                                <input type="email" id="contactEmail" required placeholder="alex@stone-partners.com" autocomplete="email">
+                            </div>
+                            <div class="form-group">
+                                <label for="contactSubject">Subject</label>
+                                <input type="text" id="contactSubject" required placeholder="Enterprise Pricing &amp; Custom RAG Setup" minlength="4" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="contactMessage">Message</label>
+                                <textarea id="contactMessage" required placeholder="Tell us about your litigation case load and API requirements..." rows="5" minlength="10"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full" style="padding: 1rem 0; font-weight: 700;">
+                                <span class="btn-text">Send Message</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+            
+            <footer class="landing-footer">
+                <div class="footer-content">
+                    <div class="footer-col brand-col">
+                        <div class="footer-brand">
+                            <i class="fas fa-balance-scale"></i>
+                            <span>JUDIQ AI</span>
+                        </div>
+                        <p class="footer-desc">Institutional-grade adversarial litigation simulation and weakness detection for top-tier law firms.</p>
+                        <div class="social-links">
+                            <a href="#" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                            <a href="#" title="Twitter/X"><i class="fab fa-twitter"></i></a>
+                            <a href="#" title="GitHub"><i class="fab fa-github"></i></a>
+                            <a href="#" title="YouTube"><i class="fab fa-youtube"></i></a>
+                            <a href="#" title="Discord"><i class="fab fa-discord"></i></a>
+                            <a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>
+                        </div>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Platform</h4>
+                        <a href="#" onclick="document.getElementById('navLoginBtn').click(); return false;">Dashboard</a>
+                        <a href="#featuresSection">Attack Simulation</a>
+                        <a href="#featuresSection">Survivability Mapping</a>
+                        <a href="#featuresSection">Draft Generation</a>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Company</h4>
+                        <a href="#aboutUsSection">About Us</a>
+                        <a href="#pricingSection">Pricing</a>
+                        <a href="#testimonialsSection">Testimonials</a>
+                        <a href="#faqSection">FAQ</a>
+                        <a href="#contactSection">Contact Us</a>
+                        <a href="#" onclick="openLegalModal('documentationModal', event)">Documentation</a>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Legal</h4>
+                        <a href="#" onclick="openLegalModal('privacyPolicyModal', event)">Privacy Policy</a>
+                        <a href="#" onclick="openLegalModal('termsConditionsModal', event)">Terms of Service</a>
+                        <a href="#" onclick="openLegalModal('disclaimerModal', event)">Legal Disclaimer</a>
+                        <a href="#" onclick="openLegalModal('refundPolicyModal', event)">Refund &amp; Cancellation</a>
+                    </div>
+                    <div class="footer-col newsletter-col">
+                        <h4>Newsletter</h4>
+                        <div class="newsletter-box">
+                            <p>Subscribe to receive legal tech insights and compliance updates.</p>
+                            <form class="newsletter-form" onsubmit="submitNewsletterForm(event)">
+                                <input type="email" placeholder="attorney@firm.com" required id="newsletterEmail">
+                                <button type="submit" class="btn btn-primary">Subscribe</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2026 JUDIQ AI Legal Intelligence Platform. All Rights Reserved.</p>
+                </div>
+            </footer>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- AUTHENTICATION SECTION -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        
+        <!-- Login Screen -->
+        <div id="loginScreen" class="auth-screen hidden">
+            <div class="auth-container">
+                <div class="auth-brand">
+                    <div class="brand-icon">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <h1>JUDIQ AI</h1>
+                    <p class="brand-tagline">AI Litigation Strategist</p>
+                </div>
+                
+                <div class="auth-box">
+                    <h2>Welcome Back</h2>
+                    <p class="auth-subtitle">Sign in to access your legal dashboard</p>
+                    
+                    <form id="loginForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="loginEmail">Email Address</label>
+                            <input type="email" id="loginEmail" required placeholder="your@email.com" autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" id="loginPassword" required placeholder="••••••••" autocomplete="current-password">
+                        </div>
+                        <div id="loginError" class="error-message"></div>
+                        <button type="submit" class="btn btn-primary btn-full">
+                            <span class="btn-text">Sign In</span>
+                            <span class="btn-loader"></span>
+                        </button>
+                    </form>
+                    
+                    <div class="auth-footer">
+                        <p>Don't have an account? <a href="#" id="showRegister">Create one</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Screen -->
+        <div id="registerScreen" class="auth-screen hidden">
+            <div class="auth-container">
+                <div class="auth-brand">
+                    <div class="brand-icon">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <h1>JUDIQ AI</h1>
+                    <p class="brand-tagline">AI Litigation Strategist</p>
+                </div>
+                
+                <div class="auth-box">
+                    <h2>Create Account</h2>
+                    <p class="auth-subtitle">Start your legal intelligence journey</p>
+                    
+                    <form id="registerForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="registerEmail">Email Address</label>
+                            <input type="email" id="registerEmail" required placeholder="your@email.com" autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="registerPassword">Password</label>
+                            <input type="password" id="registerPassword" required placeholder="••••••••" minlength="6" autocomplete="new-password">
+                        </div>
+                        <div class="form-group">
+                            <label for="registerConfirmPassword">Confirm Password</label>
+                            <input type="password" id="registerConfirmPassword" required placeholder="••••••••" autocomplete="new-password">
+                        </div>
+
+                        <!-- Domain Picker — selected once at registration, permanently locked -->
+                        <div class="domain-picker-section">
+                            <div class="domain-picker-label">Select Your Legal Domain <span style="color:#ef4444;">*</span></div>
+                            <div class="domain-picker" id="domainPickerGrid">
+                                <div class="domain-card" id="domainCard_ni" onclick="selectRegisterDomain('ni_act')">
+                                    <span class="dc-check" id="domainCheck_ni"><i class="fas fa-check"></i></span>
+                                    <span class="dc-icon">⚖️</span>
+                                    <span class="dc-title">NI Act — Section 138</span>
+                                    <span class="dc-sub">Cheque Bounce, Negotiable Instruments, Criminal Complaints</span>
+                                </div>
+                                <div class="domain-card" id="domainCard_sarfaesi" onclick="selectRegisterDomain('sarfaesi')">
+                                    <span class="dc-check" id="domainCheck_sarfaesi"><i class="fas fa-check"></i></span>
+                                    <span class="dc-icon">🏦</span>
+                                    <span class="dc-title">SARFAESI / DRT</span>
+                                    <span class="dc-sub">Secured Asset Recovery, Bank Enforcement, NPA Proceedings</span>
+                                </div>
+                            </div>
+                            <div class="domain-picker-error" id="domainPickerError">Please select your legal domain to continue.</div>
+                            <input type="hidden" id="registerDomain" value="">
+                        </div>
+
+                        <div class="form-group checkbox-group" style="display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 1.5rem; text-align: left;">
+                            <input type="checkbox" id="termsCheckbox" required style="width: auto; margin-top: 0.2rem; cursor: pointer; accent-color: var(--primary-500);">
+                            <label for="termsCheckbox" style="margin-bottom: 0; font-size: 0.85rem; color: var(--gray-600); cursor: pointer; font-weight: 500; line-height: 1.4;">
+                                I agree to the <a href="#" onclick="openLegalModal('termsConditionsModal'); return false;" style="color: var(--primary-600); text-decoration: underline;">Terms & Conditions</a> and <a href="#" onclick="openLegalModal('privacyPolicyModal'); return false;" style="color: var(--primary-600); text-decoration: underline;">Privacy Policy</a>.
+                            </label>
+                        </div>
+
+                        <div id="registerError" class="error-message"></div>
+                        <button type="submit" class="btn btn-primary btn-full">
+                            <span class="btn-text">Create Account</span>
+                            <span class="btn-loader"></span>
+                        </button>
+                    </form>
+                    
+                    <div class="auth-footer">
+                        <p>Already have an account? <a href="#" id="showLogin">Sign in</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Selection Screen -->
+        <div id="roleScreen" class="auth-screen hidden">
+            <div class="role-container">
+                <div class="role-header">
+                    <h2>Choose Your Role</h2>
+                    <p>Select how you'll be using JUDIQ AI</p>
+                </div>
+                
+                <div class="role-grid">
+                    <div class="role-card role-card-featured" data-role="law_firm">
+                        <div class="role-badge">Popular</div>
+                        <div class="role-icon">
+                            <i class="fas fa-balance-scale-right"></i>
+                        </div>
+                        <h3>Law Firm Partner</h3>
+                        <p>Adversarial simulation, attack graphs, and cross-exam vectors</p>
+                        <ul class="role-features">
+                            <li><i class="fas fa-check"></i> Opponent Attack Simulation</li>
+                            <li><i class="fas fa-check"></i> Judge Challenge Prediction</li>
+                            <li><i class="fas fa-check"></i> Survivability Graph</li>
+                        </ul>
+                        <button class="btn btn-primary" onclick="selectRole('law_firm')">Select</button>
+                    </div>
+                    
+                    <div class="role-card" data-role="in_house">
+                        <div class="role-icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <h3>In-House Counsel</h3>
+                        <p>Evaluate litigation risk and trial economics before proceeding</p>
+                        <ul class="role-features">
+                            <li><i class="fas fa-check"></i> Settlement Probability</li>
+                            <li><i class="fas fa-check"></i> Trial Economics</li>
+                            <li><i class="fas fa-check"></i> Strategic Audit</li>
+                        </ul>
+                        <button class="btn btn-outline" onclick="selectRole('in_house')">Select</button>
+                    </div>
+                    
+                    <div class="role-card" data-role="corporate_legal">
+                        <div class="role-icon">
+                            <i class="fas fa-users-cog"></i>
+                        </div>
+                        <h3>Corporate Legal Team</h3>
+                        <p>Scale weakness detection and standardize litigation strategy</p>
+                        <ul class="role-features">
+                            <li><i class="fas fa-check"></i> Batch Risk Assessment</li>
+                            <li><i class="fas fa-check"></i> Legal Triage</li>
+                            <li><i class="fas fa-check"></i> Document Review</li>
+                        </ul>
+                        <button class="btn btn-outline" onclick="selectRole('corporate_legal')">Select</button>
+                    </div>
+                    
+                    <div class="role-card" data-role="research">
+                        <div class="role-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h3>Legal Research Team</h3>
+                        <p>Access semantic and precedential analysis of case facts</p>
+                        <ul class="role-features">
+                            <li><i class="fas fa-check"></i> Precedent Alignment</li>
+                            <li><i class="fas fa-check"></i> Statutory Interpretation</li>
+                            <li><i class="fas fa-check"></i> Case Summarization</li>
+                        </ul>
+                        <button class="btn btn-outline" onclick="selectRole('research')">Select</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- DASHBOARD SECTION -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        
+        <div id="dashboardScreen" class="main-screen hidden">
+            <!-- Top Navigation -->
+            <nav class="top-nav">
+                <div class="nav-brand">
+                    <span>AI Litigation Strategist</span>
+                    <div style="display: flex; gap: 0.5rem; margin-left: 1rem;">
+                        <button class="btn btn-outline btn-sm" style="font-size: 0.8rem; padding: 0.3rem 0.6rem; border-radius: 4px; display: flex; align-items: center; gap: 0.4rem; background: var(--primary-50); color: var(--primary-700); border-color: var(--primary-200);" onclick="loadDemoCase()">
+                            <i class="fas fa-bolt" style="color: var(--primary-500);"></i> Load Demo Case
+                        </button>
+                    </div>
+                </div>
+                <div class="nav-user">
+                    <button class="theme-toggle-btn" title="Toggle Light/Dark Mode" onclick="toggleTheme()" style="margin-right: var(--spacing-3);">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div class="user-role-badge" id="userRoleBadge"></div>
+                    <div class="user-menu">
+                        <span id="userEmail" style="margin-right: 0.5rem;"></span>
+                        <button class="btn btn-text" onclick="openProfileModal(event)" style="margin-right: 0.5rem; display: inline-flex; align-items: center; gap: 0.3rem;">
+                            <i class="fas fa-user-cog"></i> Settings
+                        </button>
+                        <button class="btn btn-text" onclick="logout()" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <div class="dashboard-header" style="display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <h1 id="dashboardGreeting">Litigation Command Center</h1>
+                        <p class="dashboard-subtitle" id="dashboardSubtitle">Find the weakness before the courtroom does.</p>
+                    </div>
+                    <div class="kb-status-badge" style="background: var(--primary-50); border: 1px solid var(--primary-200); padding: 0.5rem 1rem; border-radius: var(--radius-lg); display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="pulse-indicator" style="width: 10px; height: 10px; background: var(--success-500); border-radius: 50%; box-shadow: 0 0 0 rgba(16, 185, 129, 0.4); animation: pulse 2s infinite;"></div>
+                        <div>
+                            <div style="font-size: 10px; font-weight: 700; color: var(--primary-700); text-transform: uppercase; letter-spacing: 0.05em;">Knowledge Base</div>
+                            <div style="font-size: 12px; font-weight: 600; color: var(--gray-700);">Updated: June 2026 (Live)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Cards Grid -->
+                <div id="actionCardsGrid" class="action-cards-grid"></div>
+
+                <!-- Recent Cases Section -->
+                <div class="recent-section">
+                    <h3>Recent Activity</h3>
+                    <div id="recentCases" class="recent-cases"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- QUICK ANALYSIS MODE -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        
+        <div id="quickAnalysisScreen" class="main-screen hidden">
+            <nav class="top-nav">
+                <div class="nav-brand"><span>Quick Analysis</span></div>
+                <div class="nav-actions">
+                    <button class="btn btn-text" onclick="showDashboard()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                </div>
+            </nav>
+            <div class="wizard-container">
+                <div class="wizard-content">
+                    <div class="wizard-header">
+                        <div class="step-badge">Quick Mode</div>
+                        <h2>Fast Case Analysis</h2>
+                        <p>Enter minimal details for instant overview</p>
+                    </div>
+                    <div style="max-width: 800px; margin: 0 auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="margin-bottom: 2rem;">
+                            <h3 style="margin-bottom: 1rem; color: #1f2937;">Basic Details</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                <div><label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Cheque Amount (₹)</label><input type="number" id="qAmount" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="50000" required></div>
+                                <div><label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Cheque Date</label><input type="date" id="qChequeDate" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;" required></div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                <div><label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Notice Date</label><input type="date" id="qNoticeDate" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;" required></div>
+                                <div><label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Filing Date</label><input type="date" id="qFilingDate" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;" required></div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div><label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Complainant Name</label><input type="text" id="qComplainant" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="Your Name" required></div>
+                                <div><label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Accused Name</label><input type="text" id="qAccused" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="Other Party" required></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 2rem;">
+                            <h3 style="margin-bottom: 1rem; color: #1f2937;">Proof Check</h3>
+                            <div style="display: grid; gap: 0.75rem;">
+                                <label style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #f9fafb; border-radius: 6px; cursor: pointer;"><input type="checkbox" id="qChequePresent" style="width: 18px; height: 18px;"><span>Original Cheque Available</span></label>
+                                <label style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #f9fafb; border-radius: 6px; cursor: pointer;"><input type="checkbox" id="qDishonourMemo" style="width: 18px; height: 18px;"><span>Bank Dishonour Memo Available</span></label>
+                                <label style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #f9fafb; border-radius: 6px; cursor: pointer;"><input type="checkbox" id="qNoticeSent" style="width: 18px; height: 18px;"><span>Legal Notice Sent</span></label>
+                                <label style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #f9fafb; border-radius: 6px; cursor: pointer;"><input type="checkbox" id="qDebtProof" style="width: 18px; height: 18px;"><span>Debt Proof Documents Available</span></label>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 1rem; justify-content: center;">
+                            <button class="btn btn-primary btn-lg" onclick="runQuickAnalysis()" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                                <i class="fas fa-bolt"></i> Analyze Now
+                            </button>
+                            <button class="btn btn-outline" onclick="expandToFullMode()">
+                                <i class="fas fa-expand"></i> Switch to Full Mode
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- CASE WIZARD SECTION -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        
+        <div id="caseWizardScreen" class="main-screen hidden">
+            <nav class="top-nav">
+                <div class="nav-brand">
+                    <span>AI Litigation Strategist</span>
+                    <div style="display: flex; gap: 0.5rem; margin-left: 1rem; flex-wrap: wrap;">
+                        <button class="btn btn-outline btn-sm" style="font-size: 0.8rem; padding: 0.3rem 0.6rem; border-radius: 4px; display: flex; align-items: center; gap: 0.4rem; background: var(--primary-50); color: var(--primary-700); border-color: var(--primary-200);" onclick="loadDemoCase()">
+                            <i class="fas fa-bolt" style="color: var(--primary-500);"></i> Load Full Case
+                        </button>
+                        <button class="btn btn-primary btn-sm" style="font-size: 0.8rem; padding: 0.3rem 0.75rem; border-radius: 4px; display: flex; align-items: center; gap: 0.4rem; background: var(--grad-primary); box-shadow: var(--shadow-glow);" onclick="loadSampleCaseData()">
+                            <i class="fas fa-magic"></i> ⚡ 1-Click Load Sample S.138 Case
+                        </button>
+                    </div>
+                </div>
+                <div class="nav-actions">
+                    <button class="btn btn-text" onclick="showDashboard()">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </button>
+                </div>
+            </nav>
+
+            <div class="wizard-container">
+                <!-- Enhanced Progress Bar -->
+                <div class="wizard-progress">
+                    <div class="progress-bar-wrapper">
+                        <div class="progress-bar">
+                            <div id="progressFill" class="progress-fill"></div>
+                        </div>
+                        <div class="progress-percentage">
+                            <span id="progressPercentage">10%</span>
+                        </div>
+                    </div>
+                    <div class="progress-steps" id="progressSteps"></div>
+                </div>
+
+                <!-- Dashboard Content -->
+                <div class="wizard-content">
+                    <div class="wizard-header">
+                        <div class="step-badge">Section <span id="stepBadgeNumber">1</span> of <span id="totalBadgeNumber">9</span></div>
+                        <h2 id="wizardTitle">Case Information</h2>
+                        <p id="wizardSubtitle">Provide case details for strategic profiling</p>
+                    </div>
+
+                    <!-- Validation Feedback -->
+                    <div id="wizardValidationFeedback" class="wizard-validation hidden"></div>
+
+                    <!-- Step Forms Container -->
+                    <div id="wizardStepsContainer" class="wizard-steps"></div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="wizard-navigation">
+                        <button id="prevBtn" class="btn btn-outline" onclick="previousStep()" disabled>
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </button>
+                        <div class="wizard-step-indicator">
+                            Section <span id="currentStepDisplay">1</span> of <span id="totalStepsDisplay">10</span>
+                        </div>
+                        <button id="nextBtn" class="btn btn-primary" onclick="nextStep()">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button id="submitBtn" class="btn btn-danger hidden" onclick="submitCase()">
+                            <span class="btn-text"><i class="fas fa-gavel"></i> Simulate Opponent Attack</span>
+                            <span class="btn-loader"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- ANALYSIS RESULTS SECTION -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        
+        <div id="resultsScreen" class="main-screen hidden">
+            <nav class="top-nav">
+                <div class="nav-brand" style="display:flex;align-items:center;">
+                    <span>AI Litigation Strategist</span>
+                    <span id="resultsDomainBadge" class="domain-badge domain-badge--ni" style="display:none;"></span>
+                </div>
+                <div class="nav-actions">
+                    <button class="btn btn-outline" onclick="editAndReanalyze()">
+                        <i class="fas fa-edit"></i> Edit Case
+                    </button>
+                    <button class="btn btn-outline" onclick="showDashboard()">
+                        <i class="fas fa-home"></i> Dashboard
+                    </button>
+                    <button class="btn btn-primary" onclick="generateReport()">
+                        <i class="fas fa-file-pdf"></i> Generate Report
+                    </button>
+                </div>
+            </nav>
+
+            <div class="results-container">
+                <!-- NI Act (138) Tab Group -->
+                <div class="results-tabs" id="niActTabs">
+                    <button class="tab-button active" data-tab="overview" onclick="switchResultTab('overview')">
+                        <i class="fas fa-tachometer-alt"></i> Overview
+                    </button>
+                    <button class="tab-button" data-tab="detailed" onclick="switchResultTab('detailed')">
+                        <i class="fas fa-list-ul"></i> Detailed Analysis
+                    </button>
+                    <button class="tab-button" data-tab="strategy" onclick="switchResultTab('strategy')">
+                        <i class="fas fa-chess"></i> Strategy
+                    </button>
+                    <button class="tab-button" data-tab="draft" onclick="switchResultTab('draft')">
+                        <i class="fas fa-file-alt"></i> Draft
+                    </button>
+                </div>
+                <!-- SARFAESI / DRT Tab Group (hidden until domain applies) -->
+                <div class="results-tabs hidden" id="sarfaesiTabs">
+                    <button class="tab-button active" data-tab="sarfaesi_overview" onclick="switchResultTab('sarfaesi_overview')">
+                        <i class="fas fa-tachometer-alt"></i> Overview
+                    </button>
+                    <button class="tab-button" data-tab="sarfaesi_enforcement" onclick="switchResultTab('sarfaesi_enforcement')">
+                        <i class="fas fa-gavel"></i> Enforcement Timeline
+                    </button>
+                    <button class="tab-button" data-tab="sarfaesi_graph" onclick="switchResultTab('sarfaesi_graph')">
+                        <i class="fas fa-network-wired"></i> Procedural Graph
+                    </button>
+                    <button class="tab-button" data-tab="sarfaesi_strategy" onclick="switchResultTab('sarfaesi_strategy')">
+                        <i class="fas fa-chess"></i> Strategy
+                    </button>
+                    <button class="tab-button" data-tab="draft" onclick="switchResultTab('draft')">
+                        <i class="fas fa-file-alt"></i> Draft
+                    </button>
+                </div>
+
+
+                <!-- ADVOCATE-GRADE FATAL ALERTS -->
+                <div id="fatalDefectAlert" class="fatal-alert-container hidden"></div>
+
+                <!-- Tab: Overview -->
+                <div id="tabOverview" class="tab-content active">
+                
+                <!-- RULES ENGINE (STATUTORY BARS) -->
+                <div id="statutoryRulesContainer"></div>
+
+                <!-- Executive Summary Card -->
+                <div class="result-card result-card-hero">
+                    <div class="result-verdict" id="resultVerdict">
+                        <div class="verdict-icon" id="verdictIcon"></div>
+                        <div class="verdict-content">
+                            <div id="cynicalModeBadge" class="cynical-badge hidden">
+                                <i class="fas fa-user-tie"></i> CYNICAL ADVOCATE MODE ACTIVE
+                            </div>
+                            <h1 id="verdictTitle">Strong Case</h1>
+                            <p id="verdictDescription">Your case has strong legal merit</p>
+                            <div id="failurePointContainer" class="failure-point-container hidden" style="margin-top: 15px; background: rgba(239,68,68,0.1); border-left: 4px solid #ef4444; padding: 12px; border-radius: 4px; width: 100%; box-sizing: border-box; word-break: break-word; display: flex; flex-direction: column; gap: 6px;">
+                                <strong style="color: #ef4444; font-size: 0.9rem;"><i class="fas fa-bolt"></i> CASE WILL BREAK HERE:</strong>
+                                <p id="failurePointText" style="color: #f87171; margin: 0; font-weight: 500; font-size: 0.9rem; line-height: 1.4;"></p>
+                            </div>
+                        </div>
+                        <div class="verdict-score">
+                            <div class="score-circle" id="scoreCircle">
+                                <svg viewBox="0 0 200 200">
+                                    <circle cx="100" cy="100" r="90" fill="none" stroke="#e5e7eb" stroke-width="12"/>
+                                    <circle id="scoreProgress" cx="100" cy="100" r="90" fill="none" stroke="#10b981" stroke-width="12" stroke-dasharray="565.48" stroke-dashoffset="565.48" transform="rotate(-90 100 100)"/>
+                                </svg>
+                                <div class="score-value">
+                                    <span id="scoreNumber">0</span>
+                                    <span class="score-unit">/100</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key Metrics Grid -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h4>Defence Risk</h4>
+                            <p id="defenceRisk">Medium</p>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h4>Critical Issues</h4>
+                            <p id="criticalIssues">0</p>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h4>Strong Points</h4>
+                            <p id="strongPoints">0</p>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h4>Concepts Detected</h4>
+                            <p id="conceptsDetected">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════════ -->
+                <!-- WHAT-IF DASHBOARD (SCENARIO MODELING)               -->
+                <!-- ═══════════════════════════════════════════════════ -->
+                <div class="result-card" style="margin-top: 1.5rem; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #cbd5e1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div>
+                            <h3 style="margin-bottom: 0;"><i class="fas fa-sliders-h" style="color:#4f46e5;"></i> "What-If" Scenario Modeler</h3>
+                            <p class="card-subtitle" style="margin-top: 0.2rem;">Toggle parameters below to instantly re-analyze the case without navigating the wizard.</p>
+                        </div>
+                        <button onclick="window.runAnalysis()" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;"><i class="fas fa-sync-alt"></i> Re-Calculate</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <!-- Condonation Toggle -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: #334155; margin: 0;">Condonation Attached (S.142)</label>
+                            <label class="switch" style="margin: 0;">
+                                <input type="checkbox" id="whatif_condonation" onchange="window.updateWhatIf('condonation_attached', this.checked)">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <!-- BSA Certificate Toggle -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: #334155; margin: 0;">BSA S.63(4) Included</label>
+                            <label class="switch" style="margin: 0;">
+                                <input type="checkbox" id="whatif_bsa" onchange="window.updateWhatIf('bsa_certificate', this.checked ? 'Yes' : 'No')">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <!-- Directors Named Toggle -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: #334155; margin: 0;">Specific Directors Averred (S.141)</label>
+                            <label class="switch" style="margin: 0;">
+                                <input type="checkbox" id="whatif_directors" onchange="window.updateWhatIf('directors_named', this.checked ? 'Yes' : 'No')">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <!-- Transaction Type Dropdown -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: #334155; margin: 0;">Transaction Type</label>
+                            <select id="whatif_transaction" onchange="window.updateWhatIf('agreement_type', this.value)" style="padding: 0.25rem; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 0.8rem;">
+                                <option value="Personal Loan">Personal Loan</option>
+                                <option value="Commercial Invoice">Commercial Invoice</option>
+                                <option value="Investment/Business">Investment/Business</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Explainable Score Breakdown (Trust Layer) -->
+                <div class="result-card" style="margin-top: 1.5rem;">
+                    <h3><i class="fas fa-calculator"></i> Score Breakdown <span style="font-size:0.75rem; font-weight:500; color:#6b7280; margin-left:0.5rem; background:#f3f4f6; padding:0.2rem 0.6rem; border-radius:99px;">Explainable AI</span></h3>
+                    <p class="card-subtitle">Why your score is what it is — every point attributed to a legal factor</p>
+                    <div id="explainableScorePanel" style="margin-top:1rem;">
+                        <p style="color:#9ca3af; font-size:0.88rem;">Run an analysis to see the detailed score breakdown.</p>
+                    </div>
+                </div>
+
+                <!-- Evidence Sufficiency Meter -->
+                <div class="result-card" style="margin-top: 1.5rem;">
+                    <h3><i class="fas fa-tachometer-alt"></i> Evidence Sufficiency Meter</h3>
+                    <p class="card-subtitle">How ready is your evidence across all critical pillars?</p>
+                    <div id="evidenceSufficiencyMeter" style="margin-top:1rem;">
+                        <p style="color:#9ca3af; font-size:0.88rem;">Run an analysis to see evidence readiness.</p>
+                    </div>
+                </div>
+
+                <!-- Error banner (shown on API/network failures) -->
+                <div id="analysisErrorBanner" class="hidden"></div>
+
+                <!-- ═══════════════════════════════════════════════════ -->
+                <!-- AI REASONING LAYER — Explainability & Intelligence  -->
+                <!-- ═══════════════════════════════════════════════════ -->
+                <div id="aiReasoningLayer" class="ai-reasoning-layer">
+
+                    <!-- Row 1: Case Summary + Outcome Prediction -->
+                    <div class="rl-row-2">
+                        <div class="result-card rl-card">
+                            <div class="rl-card-header">
+                                <div class="rl-icon-wrap rl-blue"><i class="fas fa-file-contract"></i></div>
+                                <div>
+                                    <h4>AI Case Summary</h4>
+                                    <p class="card-subtitle">Auto-generated from case facts</p>
+                                </div>
+                                <div id="translatedVerdictBadge" class="rl-lang-badge"></div>
+                            </div>
+                            <div id="aiCaseSummary" class="rl-content-box"></div>
+                        </div>
+
+                        <div class="result-card rl-card">
+                            <div class="rl-card-header">
+                                <div class="rl-icon-wrap rl-purple"><i class="fas fa-chart-pie"></i></div>
+                                <div>
+                                    <h4>Outcome Prediction</h4>
+                                    <p class="card-subtitle">AI-assessed probability</p>
+                                </div>
+                            </div>
+                            <div id="aiOutcomePrediction" class="rl-outcome-box"></div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Statutory Interpretation (full width) -->
+                    <div class="result-card rl-card" style="margin-top:1.5rem;">
+                        <div class="rl-card-header">
+                            <div class="rl-icon-wrap rl-amber"><i class="fas fa-gavel"></i></div>
+                            <div>
+                                <h4>Statutory Interpretation</h4>
+                                <p class="card-subtitle">Section-by-section analysis against relevant Statutes (IPC/BNS/CrPC/NI Act)</p>
+                            </div>
+                        </div>
+                        <div id="aiStatutoryInterpretation" class="rl-statutes-grid"></div>
+                    </div>
+
+                    <!-- Row 3: Matched Precedents -->
+                    <div class="result-card rl-card" style="margin-top:1.5rem;">
+                        <div class="rl-card-header">
+                            <div class="rl-icon-wrap rl-teal"><i class="fas fa-landmark"></i></div>
+                            <div>
+                                <h4>Landmark Precedents &amp; Citations</h4>
+                                <p class="card-subtitle">Relevant Supreme Court &amp; High Court judgments</p>
+                            </div>
+                        </div>
+                        <div id="aiMatchedPrecedents" class="rl-precedents-grid"></div>
+                    </div>
+
+                    <!-- Row 4: Risks & Rebuttals -->
+                    <div class="result-card rl-card" style="margin-top:1.5rem;">
+                        <div class="rl-card-header">
+                            <div class="rl-icon-wrap rl-red"><i class="fas fa-shield-virus"></i></div>
+                            <div>
+                                <h4>Risk Analysis &amp; AI-Suggested Rebuttals</h4>
+                                <p class="card-subtitle">Identified vulnerabilities with case-law-backed counter-strategies</p>
+                            </div>
+                        </div>
+                        <div id="aiRisksRebuttals" class="rl-risks-list"></div>
+                    </div>
+
+                    <!-- Row 5: Evidence Gaps -->
+                    <div class="result-card rl-card" style="margin-top:1.5rem;">
+                        <div class="rl-card-header">
+                            <div class="rl-icon-wrap rl-orange"><i class="fas fa-search-plus"></i></div>
+                            <div>
+                                <h4>Evidence Gaps &amp; Suggestions</h4>
+                                <p class="card-subtitle">Documents you should gather to strengthen your case</p>
+                            </div>
+                        </div>
+                        <div id="aiEvidenceSuggestions" class="rl-evidence-list"></div>
+                    </div>
+
+                    <!-- Row 6: Reasoning Trail -->
+                    <div class="result-card rl-card" style="margin-top:1.5rem;">
+                        <div class="rl-card-header">
+                            <div class="rl-icon-wrap rl-green"><i class="fas fa-route"></i></div>
+                            <div>
+                                <h4>AI Reasoning Trail <span class="rl-xai-badge">Explainable AI</span></h4>
+                                <p class="card-subtitle">Step-by-step logic path from input to verdict — no black boxes</p>
+                            </div>
+                        </div>
+                        <div id="aiReasoningTrail" class="rl-trail-list"></div>
+                    </div>
+
+                </div>
+                <!-- END: AI Reasoning Layer -->
+
+                <!-- Improvement Suggestions (existing) -->
+                <div id="improvementSuggestions"></div>
+                <div id="scoreExplanation"></div>
+                <div id="confidenceIndicator"></div>
+
+                </div>
+                <!-- End Tab: Overview -->
+
+
+                <!-- Tab: Detailed Analysis -->
+                <div id="tabDetailed" class="tab-content hidden">
+                
+                <!-- Limitation Countdown (Expert Fix) -->
+                <div id="limitationCountdown" class="result-card hidden" style="border-left: 5px solid var(--error-500);">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <h3 style="color: var(--error-600); margin-bottom: 0.25rem;">
+                                <i class="fas fa-hourglass-half"></i> Statutory Limitation Clock
+                            </h3>
+                            <p id="limitationMessage" style="font-size: 0.9rem; color: var(--gray-600);">Calculating remaining filing window...</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <div id="countdownDays" style="font-size: 2rem; font-weight: 800; color: var(--error-600);">--</div>
+                            <div style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Days Remaining</div>
+                        </div>
+                    </div>
+                    <div id="limitationStatusBar" style="height: 6px; background: var(--gray-100); border-radius: 99px; margin-top: 1rem; overflow: hidden;">
+                        <div id="limitationStatusFill" style="height: 100%; width: 0%; background: var(--error-500); transition: width 0.5s ease;"></div>
+                    </div>
+                </div>
+
+                <!-- Corporate Liability Alert (Expert Fix) -->
+                <div id="corporateAlert" class="result-card hidden" style="border-left: 5px solid var(--warning-500); background: var(--warning-50);">
+                    <h3 style="color: var(--warning-700);">
+                        <i class="fas fa-building"></i> Section 141 Corporate Warning
+                    </h3>
+                    <p style="font-size: 0.9rem; color: var(--warning-800); margin-top: 0.5rem;">
+                        Accused is a corporate entity. <strong>Failure to name Directors/Authorized Officers</strong> in charge of daily affairs will lead to dismissal of the complaint.
+                    </p>
+                </div>
+
+                <!-- Issues & Strengths -->
+                <div class="results-grid">
+                    <div class="result-card">
+                        <h3><i class="fas fa-exclamation-circle"></i> Issues Detected</h3>
+                        <div id="issuesList" class="issues-list"></div>
+                    </div>
+                    <div class="result-card">
+                        <h3><i class="fas fa-check-circle"></i> Strengths</h3>
+                        <div id="strengthsList" class="strengths-list"></div>
+                    </div>
+                </div>
+
+                <!-- Weaknesses Section (NEW) -->
+                <div class="result-card">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Weaknesses</h3>
+                    <p class="card-subtitle">Areas that may require attention or mitigation</p>
+                    <div id="weaknessesList" class="weaknesses-list"></div>
+                </div>
+
+                <!-- Timeline Section (NEW) -->
+                <div class="result-card">
+                    <h3><i class="fas fa-calendar-alt"></i> Case Timeline</h3>
+                    <p class="card-subtitle">Important dates and milestones in your case</p>
+                    <div id="timelineList" class="timeline-list"></div>
+                </div>
+
+                <!-- Trial Economics & Bail Mechanics (NEW) -->
+                <div class="result-card">
+                    <h3><i class="fas fa-rupee-sign"></i> Trial Economics & Bail Mechanics</h3>
+                    <p class="card-subtitle">Financial assessment and settlement leverage</p>
+                    <div id="economicsList" class="economics-list" style="display: grid; gap: 1rem; margin-top: 1rem;"></div>
+                </div>
+                
+                </div>
+                <!-- End Tab: Detailed Analysis -->
+
+                <!-- Tab: Strategy -->
+                <div id="tabStrategy" class="tab-content hidden">
+
+                <!-- Survivability Graph (NEW) -->
+                <div class="result-card">
+                    <h3><i class="fas fa-chart-line"></i> Litigation Survivability Graph</h3>
+                    <p class="card-subtitle">Probability of survival across procedural stages</p>
+                    <div style="position: relative; height:300px; width:100%; margin-top: 1rem;">
+                        <canvas id="survivabilityChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Attack & Weakness Graphs (NEW) -->
+                <div class="result-card">
+                    <h3><i class="fas fa-project-diagram"></i> Opponent Attack Vectors & Weakness Graph</h3>
+                    <p class="card-subtitle">Simulated cross-examination vectors targeting your narrative flaws</p>
+                    <div style="position: relative; height:300px; width:100%; margin-top: 1rem;">
+                        <canvas id="attackChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Overall Strategy Section (NEW) -->
+                <div class="result-card">
+                    <h3><i class="fas fa-chess"></i> Legal Strategy</h3>
+                    <p class="card-subtitle">Recommended approach and tactical considerations</p>
+                    <div id="strategyContent" class="strategy-content"></div>
+                    <div id="strategyList" class="strategy-list"></div>
+                </div>
+                
+                <!-- Top Defences -->
+                <div class="result-card">
+                    <h3><i class="fas fa-shield-alt"></i> Predicted Defences</h3>
+                    <p class="card-subtitle">Opponent's likely strategies with success probability</p>
+                    <div id="defencesList" class="defences-list"></div>
+                </div>
+
+                <!-- Semantic Analysis -->
+                <div class="result-card">
+                    <h3><i class="fas fa-brain"></i> Semantic Analysis</h3>
+                    <p class="card-subtitle">Legal concepts detected in your case</p>
+                    <div id="semanticAnalysis" class="semantic-analysis"></div>
+                </div>
+
+                <!-- Next Actions -->
+                <div class="result-card">
+                    <h3><i class="fas fa-tasks"></i> Recommended Actions</h3>
+                    <div id="actionsList" class="actions-list"></div>
+                </div>
+
+                <!-- Reasoning Trace (Collapsible) -->
+                <div class="result-card">
+                    <div class="collapsible-header" onclick="toggleReasoning()">
+                        <h3><i class="fas fa-stream"></i> Reasoning Trace</h3>
+                        <i id="reasoningToggle" class="fas fa-chevron-down"></i>
+                    </div>
+                    <div id="reasoningTrace" class="reasoning-trace hidden">
+                        <div id="reasoningList"></div>
+                    </div>
+                </div>
+
+                <!-- Contradictions Section (NEW) -->
+                <div class="result-card">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Contradictions Detected</h3>
+                    <p class="card-subtitle">Internal inconsistencies or conflicts in the case</p>
+                    <div id="contradictionsList" class="contradictions-list"></div>
+                </div>
+
+                <!-- Legal Analysis Section (NEW) -->
+                <div class="result-card">
+                    <h3><i class="fas fa-gavel"></i> Legal Analysis</h3>
+                    <p class="card-subtitle">Detailed legal commentary and case assessment</p>
+                    <div id="legalAnalysis" class="legal-analysis" style="background: var(--gray-50); padding: 1.5rem; border-radius: 0.5rem; white-space: pre-wrap; line-height: 1.6;"></div>
+                </div>
+                
+                </div>
+                <!-- End Tab: Strategy -->
+
+                <!-- Tab: Draft -->
+                <div id="tabDraft" class="tab-content hidden">
+                    <div class="result-card">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--gray-200); padding-bottom: 1rem;">
+                            <div>
+                                <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-file-contract" style="color: var(--primary-500);"></i> Interactive Legal Draft Generator</h3>
+                                <p class="card-subtitle" style="margin: 0.25rem 0 0 0;">Select court pleadings and notice templates auto-populated with case metadata</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                                <label for="draftTemplateSelector" style="font-size: var(--font-size-sm); font-weight: 600; color: var(--gray-700);">Template:</label>
+                                <select id="draftTemplateSelector" onchange="window.onSelectDraftTemplate(this.value)" style="padding: 0.5rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--gray-300); background: var(--gray-100); color: var(--gray-800); font-weight: 600; font-family: var(--font-family); cursor: pointer;">
+                                    <optgroup label="Section 138 (NI Act)">
+                                        <option value="demand_notice">📋 Legal Demand Notice (S.138 NI Act)</option>
+                                        <option value="CERTIFICATE_BSA">🔐 S.63(4) BSA Digital Evidence Certificate</option>
+                                        <option value="COMPLAINT_S138">⚖️ Section 138 Criminal Complaint Petition</option>
+                                        <option value="DEFENCE_REPLY">🛡️ Reply to Statutory Demand Notice</option>
+                                        <option value="CONDONATION_DELAY">⏳ Application for Condonation of Delay</option>
+                                    </optgroup>
+                                    <optgroup label="SARFAESI / DRT">
+                                        <option value="SARFAESI_13_2_NOTICE">🏛️ S.13(2) Demand Notice</option>
+                                        <option value="SARFAESI_13_3A_REPLY">📝 S.13(3A) Reasoned Reply / Decision</option>
+                                        <option value="SARFAESI_13_4_POSSESSION_NOTICE">🏢 S.13(4) Possession Notice</option>
+                                        <option value="SARFAESI_SEC_14_APPLICATION">⚖️ S.14 Magistrate Possession Application</option>
+                                        <option value="SARFAESI_SEC_14_AFFIDAVIT">📜 S.14 9-Point Mandatory Affidavit</option>
+                                        <option value="SARFAESI_RULE_8_6_AUCTION_NOTICE">📢 Rule 8(6)/9(1) 30-Day Auction Notice</option>
+                                        <option value="SARFAESI_SEC_17_SA_PETITION">🏛️ S.17 Securitisation Application (DRT)</option>
+                                        <option value="SARFAESI_WRITTEN_STATEMENT">🛡️ DRT Written Statement / Bank Reply</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Draft Customization Toolbar -->
+                        <div class="draft-customization-bar" style="background: var(--gray-100); padding: 0.75rem 1.25rem; border-radius: var(--radius-lg); margin-bottom: 1.25rem; border: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                                <span style="font-size: var(--font-size-sm); font-weight: 700; color: var(--gray-700); text-transform: uppercase; letter-spacing: 0.05em;"><i class="fas fa-sliders-h"></i> Argument Tone:</span>
+                                <div class="tone-selector" style="display: flex; gap: 0.5rem;">
+                                    <button class="btn-tone active" id="toneBtnStandard" onclick="window.setDraftTone('standard', this)" title="Balanced & Formal Courtroom Language">Standard Formal</button>
+                                    <button class="btn-tone" id="toneBtnAggressive" onclick="window.setDraftTone('aggressive', this)" title="Firm & Assertive Litigation Warning">Assertive</button>
+                                    <button class="btn-tone" id="toneBtnConciliatory" onclick="window.setDraftTone('conciliatory', this)" title="Polite & Negotiable Pre-Trial Settlement">Conciliatory</button>
+                                </div>
+                            </div>
+                            <div class="draft-live-badge" style="background: var(--primary-100); color: var(--primary-700); border: 1px solid var(--primary-200); padding: 0.35rem 0.85rem; border-radius: var(--radius-full); font-size: 11px; font-weight: 700; text-transform: uppercase; display: flex; align-items: center; gap: 0.4rem;">
+                                <i class="fas fa-check-circle" style="color: var(--success-500);"></i> Live Court Formatting Ready
+                            </div>
+                        </div>
+
+                        <div class="draft-preview-container" style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius-lg); border: 1px solid var(--gray-200);">
+                            <textarea id="draftPreviewContent" class="draft-preview-textarea" placeholder="Draft will appear here after analysis..." style="width: 100%; min-height: 520px; font-family: 'Courier New', Courier, monospace; font-size: 0.95rem; line-height: 1.6; padding: 1.5rem; background: var(--gray-900); color: var(--gray-100); border: 1px solid var(--gray-700); border-radius: var(--radius-md); resize: vertical; box-sizing: border-box;"></textarea>
+                        </div>
+                        
+                        <div class="draft-actions" style="margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end; align-items: center;">
+                            <button class="btn btn-outline" onclick="window.copyDraftFromPreview()">
+                                <i class="fas fa-copy"></i> Copy Text
+                            </button>
+                            <button class="btn btn-outline" onclick="window.downloadDraftWord()">
+                                <i class="fas fa-file-word"></i> Download .DOC
+                            </button>
+                            <button class="btn btn-outline" onclick="window.downloadDraftText()">
+                                <i class="fas fa-download"></i> Download .TXT
+                            </button>
+                            <button class="btn btn-primary" onclick="window.printDraft()">
+                                <i class="fas fa-print"></i> Print Letterhead
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Tab: Draft -->
+
+                <!-- ═══ SARFAESI DOMAIN TABS (hidden by default — activated by applyDomainTheme) ═══ -->
+
+                <!-- Tab: SARFAESI Overview -->
+                <div id="tabSarfaesi_overview" class="tab-content hidden">
+                    <!-- SARFAESI fatal/abstain alerts -->
+                    <div id="sarfaesiAbstainAlert" class="fatal-alert-container hidden"></div>
+                    <!-- Score hero card reused via JS -->
+                    <div id="sarfaesiScoreHero"></div>
+                    <!-- Enforcement Stage + CERSAI Status Panel -->
+                    <div class="sarfaesi-enforcement-panel" id="sarfaesiEnforcementOverview">
+                        <h3><i class="fas fa-landmark"></i> Enforcement Status</h3>
+                        <div id="sarfaesiStageDisplay" style="margin-bottom:1rem;"></div>
+                        <div id="sarfaesiCersaiStatus"></div>
+                    </div>
+                    <!-- SARFAESI Metric Cards -->
+                    <div class="metrics-grid" id="sarfaesiMetricsGrid">
+                        <div class="metric-card">
+                            <div class="metric-icon"><i class="fas fa-network-wired"></i></div>
+                            <div class="metric-content"><h4>Enforcement Stage</h4><p id="sarfaesiStageMetric">—</p></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon"><i class="fas fa-shield-check"></i></div>
+                            <div class="metric-content"><h4>CERSAI Status</h4><p id="sarfaesiCersaiMetric">—</p></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                            <div class="metric-content"><h4>Evidence Gaps</h4><p id="sarfaesiGapsMetric">0</p></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon"><i class="fas fa-tasks"></i></div>
+                            <div class="metric-content"><h4>Next Actions</h4><p id="sarfaesiActionsMetric">0</p></div>
+                        </div>
+                    </div>
+                    <!-- Evidence Gaps -->
+                    <div class="result-card" style="margin-top:1.5rem;">
+                        <h3><i class="fas fa-folder-open" style="color:#f59e0b;"></i> Evidence Gaps Detected</h3>
+                        <div id="sarfaesiEvidenceGapsList"></div>
+                    </div>
+                    <!-- Next Best Actions -->
+                    <div class="result-card" style="margin-top:1rem;">
+                        <h3><i class="fas fa-list-check" style="color:#f59e0b;"></i> Next Best Actions</h3>
+                        <div id="sarfaesiNextActionsList"></div>
+                    </div>
+                </div>
+                <!-- End Tab: SARFAESI Overview -->
+
+                <!-- Tab: SARFAESI Enforcement Timeline -->
+                <div id="tabSarfaesi_enforcement" class="tab-content hidden">
+                    <div class="result-card">
+                        <h3><i class="fas fa-gavel" style="color:#f59e0b;"></i> Enforcement Milestone Timeline</h3>
+                        <p class="card-subtitle">Statutory milestones under SARFAESI Act, 2002 mapped to your case facts</p>
+                        <div id="sarfaesiTimelineList"></div>
+                    </div>
+                    <div class="result-card" style="margin-top:1rem;">
+                        <h3><i class="fas fa-exclamation-circle" style="color:#ef4444;"></i> Procedural Defects &amp; Contradictions</h3>
+                        <div id="sarfaesiContradictionsList"></div>
+                    </div>
+                </div>
+                <!-- End Tab: SARFAESI Enforcement -->
+
+                <!-- Tab: SARFAESI Procedural Graph -->
+                <div id="tabSarfaesi_graph" class="tab-content hidden">
+                    <div class="result-card">
+                        <h3><i class="fas fa-network-wired" style="color:#f59e0b;"></i> Procedural Stage Graph</h3>
+                        <p class="card-subtitle">Current litigation stage and all upstream/downstream statutory milestones</p>
+                        <div id="sarfaesiProceduralGraph"></div>
+                    </div>
+                    <div class="result-card" style="margin-top:1rem;">
+                        <h3><i class="fas fa-shield-alt" style="color:#f59e0b;"></i> Verified Legal Authority</h3>
+                        <div id="sarfaesiAuthorityCard"></div>
+                    </div>
+                </div>
+                <!-- End Tab: SARFAESI Graph -->
+
+                <!-- Tab: SARFAESI Strategy -->
+                <div id="tabSarfaesi_strategy" class="tab-content hidden">
+                    <div class="result-card">
+                        <h3><i class="fas fa-chess" style="color:#f59e0b;"></i> Litigation Strategy</h3>
+                        <div id="sarfaesiStrategyList"></div>
+                    </div>
+                    <div class="result-card" style="margin-top:1rem;">
+                        <h3><i class="fas fa-user-shield" style="color:#f59e0b;"></i> Predicted Defence Vectors</h3>
+                        <div id="sarfaesiDefencesList"></div>
+                    </div>
+                    <div class="result-card" style="margin-top:1rem;">
+                        <h3><i class="fas fa-brain" style="color:#f59e0b;"></i> AI Reasoning Trace</h3>
+                        <div id="sarfaesiReasoningList"></div>
+                    </div>
+                </div>
+                <!-- End Tab: SARFAESI Strategy -->
+
+                <!-- Action Buttons -->
+                <div class="results-actions">
+                    <button class="btn btn-primary" onclick="showDraftGenerator()">
+                        <i class="fas fa-file-alt"></i> Generate Legal Draft
+                    </button>
+                    <button class="btn btn-primary" onclick="viewFullReport()">
+                        <i class="fas fa-file-invoice"></i> View Full Report
+                    </button>
+                    <button class="btn btn-outline" onclick="downloadPDF()">
+                        <i class="fas fa-download"></i> Download PDF
+                    </button>
+                    <button class="btn btn-outline" onclick="startNewCase()">
+                        <i class="fas fa-plus"></i> New Case
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- DRAFT GENERATOR SECTION -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        
+        <div id="draftScreen" class="main-screen hidden">
+            <nav class="top-nav">
+                <div class="nav-brand">
+                    <span>AI Litigation Strategist</span>
+                </div>
+                <div class="nav-actions">
+                    <button class="btn btn-text" onclick="backToResults()">
+                        <i class="fas fa-arrow-left"></i> Back to Results
+                    </button>
+                    <button class="btn btn-outline" onclick="showDashboard()">
+                        <i class="fas fa-home"></i> Dashboard
+                    </button>
+                </div>
+            </nav>
+
+            <div class="draft-container">
+                <div class="draft-header">
+                    <h2>Legal Draft</h2>
+                    <p>Court-ready complaint generated from your case analysis</p>
+                </div>
+
+                <div class="draft-toolbar">
+                    <button class="btn btn-outline" onclick="copyDraft()">
+                        <i class="fas fa-copy"></i> Copy to Clipboard
+                    </button>
+                    <button class="btn btn-outline" onclick="downloadDraft()">
+                        <i class="fas fa-download"></i> Download as Text
+                    </button>
+                    <button class="btn btn-primary" onclick="printDraft()">
+                        <i class="fas fa-print"></i> Print Draft
+                    </button>
+                </div>
+
+                <div class="draft-editor">
+                    <textarea id="draftContent" class="draft-textarea" placeholder="Draft will appear here..."></textarea>
+                </div>
+
+                <div class="draft-info">
+                    <div class="info-badge">
+                        <i class="fas fa-info-circle"></i>
+                        This draft is generated based on your case analysis. Review and customize as needed.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- DRAFT GENERATOR (12-TYPE) SECTION -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        
+        <div id="draftGeneratorScreen" class="main-screen hidden">
+            <nav class="top-nav">
+                <div class="nav-brand">
+                    <i class="fas fa-balance-scale"></i>
+                    <span>Draft Generator</span>
+                </div>
+                <div class="nav-actions">
+                    <button class="btn btn-text" id="draftGenBackBtn" onclick="draftGenGoBack()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button class="btn btn-outline" onclick="showDashboard()">
+                        <i class="fas fa-home"></i> Dashboard
+                    </button>
+                </div>
+            </nav>
+        <!-- Smart Upload Modal -->
+        <div id="uploadModal" class="modal hidden">
+            <div class="modal-overlay" onclick="closeUploadModal()"></div>
+            <div class="modal-container">
+                <div class="modal-header">
+                    <h2><i class="fas fa-file-upload"></i> Smart Document Ingestion</h2>
+                    <button class="modal-close" onclick="closeUploadModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-subtitle">Upload PDFs, Bank Memos, or WhatsApp exports for AI analysis.</p>
+                    
+                    <div class="upload-zone" id="uploadZone">
+                        <input type="file" id="fileInput" class="hidden" accept=".pdf,.txt">
+                        <div class="upload-content" onclick="document.getElementById('fileInput').click()">
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <h3>Drag & Drop Files Here</h3>
+                            <p>or click to browse from your computer</p>
+                            <span class="file-limit">Supported: PDF, TXT (Max 10MB)</span>
+                        </div>
+                    </div>
+                    
+                    <div id="uploadProgress" class="upload-progress hidden">
+                        <div class="progress-bar">
+                            <div id="uploadProgressFill" class="progress-fill"></div>
+                        </div>
+                        <p id="uploadStatus">Uploading and analyzing...</p>
+                    </div>
+
+                    <div id="extractionResults" class="extraction-results hidden">
+                        <h3><i class="fas fa-check-circle"></i> Extracted Legal Data</h3>
+                        <div class="results-preview">
+                            <textarea id="extractedTextPreview" readonly></textarea>
+                        </div>
+                        <div class="results-actions">
+                            <button class="btn btn-primary" onclick="proceedWithExtractedText()">
+                                <i class="fas fa-brain"></i> Analyze This Content
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+            <div class="draft-gen-container">
+
+                <!-- STEP 1: Select Draft Type -->
+                <div id="draftTypeSelection" class="draft-gen-step">
+                    <div class="draft-gen-header">
+                        <div class="draft-gen-badge">Comprehensive Legal Drafts</div>
+                        <h2>Select Draft Type</h2>
+                        <p>Choose the legal document you want to generate</p>
+                    </div>
+                    <div class="draft-type-grid" id="draftTypeGrid"></div>
+                </div>
+
+                <!-- STEP 2: Input Form -->
+                <div id="draftInputForm" class="draft-gen-step hidden">
+                    <div class="draft-gen-header">
+                        <button class="draft-back-link" onclick="showDraftTypeSelection()">
+                            <i class="fas fa-arrow-left"></i> Change Draft Type
+                        </button>
+                        <div class="draft-selected-badge" id="draftSelectedBadge"></div>
+                        <h2 id="draftFormTitle">Fill Case Details</h2>
+                        <p id="draftFormSubtitle">All fields will be used to generate your draft</p>
+                    </div>
+                    <div class="draft-form-body" id="draftFormBody"></div>
+                    <div class="draft-form-actions">
+                        <button class="btn btn-primary btn-lg" onclick="generateDraftFromForm()">
+                            <i class="fas fa-magic"></i> Generate Draft
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Generated Draft -->
+                <div id="draftOutputView" class="draft-gen-step hidden">
+                    <div class="draft-gen-header">
+                        <button class="draft-back-link" onclick="showDraftInputForm()">
+                            <i class="fas fa-arrow-left"></i> Edit Details
+                        </button>
+                        <div class="draft-output-badge" id="draftOutputBadge"></div>
+                        <h2 id="draftOutputTitle">Generated Draft</h2>
+                        <p>Review, edit, copy or download your court-ready document</p>
+                    </div>
+                    <div class="draft-output-toolbar">
+                        <button class="btn btn-outline" onclick="copyGeneratedDraft()">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button class="btn btn-outline" onclick="downloadGeneratedDraft()">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                        <button class="btn btn-outline" onclick="printGeneratedDraft()">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                        <div class="dashboard-header-right" style="display: flex; align-items: center; gap: 1.5rem;">
+                        <div class="kb-status-badge" style="background: var(--primary-50); border: 1px solid var(--primary-200); padding: 0.5rem 1rem; border-radius: var(--radius-lg); display: flex; align-items: center; gap: 0.75rem;">
+                            <div class="pulse-indicator" style="width: 10px; height: 10px; background: var(--success-500); border-radius: 50%; box-shadow: 0 0 0 rgba(16, 185, 129, 0.4); animation: pulse 2s infinite;"></div>
+                            <div>
+                                <div style="font-size: 10px; font-weight: 700; color: var(--primary-700); text-transform: uppercase; letter-spacing: 0.05em;">Knowledge Base</div>
+                                <div style="font-size: 12px; font-weight: 600; color: var(--gray-700);">Updated: June 2026 (Live)</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="startNewAnalysis()">
+                            <i class="fas fa-plus"></i> New Analysis
+                        </button>
+                    </div>
+                </div>
+                <div class="draft-output-wrapper" style="display: grid; gap: 1.5rem; margin-top: 1rem;">
+                        <textarea id="generatedDraftContent" class="draft-output-textarea" spellcheck="false" style="height: 500px;"></textarea>
+                        <div class="draft-history-panel" style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; max-height: 500px; overflow-y: auto;">
+                            <h4 style="margin: 0; font-size: 0.95rem; color: #1f2937; display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-history"></i> Version History</h4>
+                            <div id="draftHistoryList" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <p style="color: #9ca3af; font-size: 0.8rem; margin: 0; text-align: center; padding: 1rem 0;">No versions saved yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="draft-legal-note">
+                        <i class="fas fa-info-circle"></i>
+                        This draft is generated based on your inputs. Review all details, verify dates and amounts, and have it vetted by a qualified advocate before filing.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- REPORT VIEWER SECTION -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        
+        <div id="reportScreen" class="main-screen hidden">
+            <nav class="top-nav no-print">
+                <div class="nav-brand">
+                    <span>AI Litigation Strategist</span>
+                </div>
+                <div class="nav-actions">
+                    <button class="btn btn-text" onclick="backToResults()">
+                        <i class="fas fa-arrow-left"></i> Back to Results
+                    </button>
+                    <button class="btn btn-primary" onclick="window.print()">
+                        <i class="fas fa-print"></i> Print Report
+                    </button>
+                </div>
+            </nav>
+
+            <div class="report-container">
+                <div class="report-header">
+                    <div class="report-logo">
+                        <i class="fas fa-balance-scale"></i>
+                        <h1>JUDIQ AI</h1>
+                    </div>
+                    <div class="report-meta">
+                        <h2>Legal Analysis Report</h2>
+                        <p>Case ID: <span id="reportCaseId"></span></p>
+                        <p>Generated: <span id="reportDate"></span></p>
+                    </div>
+                </div>
+
+                <div id="reportContent" class="report-content">
+                    <!-- Report sections will be dynamically generated -->
+                </div>
+
+                <div class="report-footer no-print">
+                    <p>This report was generated by JUDIQ AI Legal Intelligence Platform</p>
+                    <p>© 2024 JUDIQ AI - All Rights Reserved</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- LEGAL MODALS -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    
+    <!-- Privacy Policy Modal -->
+    <div id="privacyPolicyModal" class="legal-modal hidden">
+        <div class="legal-modal-content">
+            <span class="close-modal" onclick="closeLegalModal('privacyPolicyModal')">&times;</span>
+            <div class="legal-modal-header">
+                <h2>Privacy Policy (DPDP Act Compliant)</h2>
+                <p class="effective-date">Last Updated: June 29, 2026</p>
+            </div>
+            <div class="legal-text">
+                <p>Welcome to <strong>JUDIQ AI</strong> ("we", "us", "our"). We act as a Data Fiduciary and are fully committed to protecting your personal data in strict compliance with the Digital Personal Data Protection (DPDP) Act, 2023 of India, as well as global standards (GDPR, CCPA).</p>
+                
+                <h3>1. Personal Data We Collect</h3>
+                <p>Under the DPDP Act, we only collect personal data necessary for providing our service:</p>
+                <ul>
+                    <li><strong>Account Data:</strong> Name, email address, password hash, phone number, and professional credentials.</li>
+                    <li><strong>Case & Document Data:</strong> Confidential case facts, evidence files, and court files which may contain sensitive personal data of your clients or opposing parties.</li>
+                </ul>
+
+                <h3>2. Purpose & Grounds of Processing</h3>
+                <p>We process your data exclusively based on your explicit consent and to deliver our adversarial litigation services:</p>
+                <ul>
+                    <li>To generate courtroom strategy and auto-draft legal notices.</li>
+                    <li><strong>Strict AI Isolation:</strong> We <em>do not</em> use your confidential case data or personal data to train our global AI models. Your workspace data remains siloed.</li>
+                </ul>
+
+                <h3>3. Data Principals' Rights (DPDP Act)</h3>
+                <p>As a Data Principal, you have the following rights under the DPDP Act:</p>
+                <ul>
+                    <li><strong>Right to Information:</strong> You may request a summary of the personal data processed by us.</li>
+                    <li><strong>Right to Correction & Erasure:</strong> You can correct inaccurate data or request erasure of your data when it is no longer necessary for the purpose it was collected.</li>
+                    <li><strong>Right to Grievance Redressal:</strong> You have the right to readily available means of grievance redressal provided by us.</li>
+                    <li><strong>Right to Nominate:</strong> You may nominate an individual to exercise your rights in the event of your death or incapacity.</li>
+                </ul>
+
+                <h3>4. Data Security & Retention</h3>
+                <p>We implement institutional-grade security (AES-256 encryption, TLS 1.3) to prevent personal data breaches. Data is retained only as long as necessary to fulfill the stated purpose, after which it is irreversibly deleted.</p>
+
+                <h3>5. Consent Manager & Grievance Officer</h3>
+                <p>You may manage, review, or withdraw your consent at any time via your dashboard. For any data protection inquiries, please contact our designated Data Protection Officer / Grievance Officer at <strong>privacy@judiq.ai</strong>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms of Service Modal -->
+    <div id="termsConditionsModal" class="legal-modal hidden">
+        <div class="legal-modal-content">
+            <span class="close-modal" onclick="closeLegalModal('termsConditionsModal')">&times;</span>
+            <div class="legal-modal-header">
+                <h2>Terms of Service</h2>
+                <p class="effective-date">Last Updated: June 29, 2026</p>
+            </div>
+            <div class="legal-text">
+                <p>By accessing or using the <strong>JUDIQ AI</strong> platform, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our service.</p>
+                
+                <h3>1. Nature of the Service</h3>
+                <p>JUDIQ AI provides an advanced legal research, litigation simulation, evidence analysis, and document drafting software-as-a-service (SaaS) platform using Artificial Intelligence. We provide <em>productivity tools</em> for legal professionals; JUDIQ AI is not a law firm and does not provide legal advice or attorney representation.</p>
+
+                <h3>2. User Accounts & Responsibilities</h3>
+                <p>To use our services, you must register a user account. You represent and warrant that:</p>
+                <ul>
+                    <li>You are a qualified legal professional, or are using the platform under the direct supervision of one.</li>
+                    <li>You are solely responsible for maintaining the confidentiality of your account credentials.</li>
+                    <li>You possess all necessary rights, client consents under the DPDP Act (2023), and legal authority to upload the case data and documents you input into the system. You agree to indemnify JUDIQ AI against any DPDP or privacy claims arising from unauthorized data uploads.</li>
+                </ul>
+
+                <h3>3. Pricing, Billing, and Subscriptions</h3>
+                <p>Access to certain features requires a paid subscription or pay-as-you-go analysis tokens:</p>
+                <ul>
+                    <li><strong>Payments:</strong> All payments are processed securely through our authorized payment processors (Stripe/Razorpay).</li>
+                    <li><strong>Billing Cycle:</strong> Subscriptions are billed on a recurring monthly or annual basis, automatic renewal applies unless cancelled by the user prior to the billing date.</li>
+                    <li><strong>Taxes:</strong> Prices are subject to applicable GST/Sales taxes depending on user location.</li>
+                </ul>
+
+                <h3>4. Intellectual Property</h3>
+                <p>The algorithms, scoring engines, UX designs, codebase, visual graphs, and proprietary workflows of JUDIQ AI remain our exclusive intellectual property. You retain all rights to the specific case data you input and the final legal drafts generated for your clients.</p>
+
+                <h3>5. Limitation of Liability</h3>
+                <p>To the maximum extent permitted by law, JUDIQ AI and its affiliates shall not be liable for any direct, indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, legal standing, or adverse court outcomes resulting from:</p>
+                <ul>
+                    <li>Your use or inability to use the platform.</li>
+                    <li>Any legal outcomes, judgments, default orders, or settlements resulting from strategies or drafts generated by the platform.</li>
+                    <li>Errors, omissions, or "hallucinations" present in the AI-generated analysis.</li>
+                </ul>
+                <p><strong>You are solely responsible for reviewing and verifying all AI-generated output before relying upon it.</strong></p>
+
+                <h3>6. Governing Law & Dispute Resolution</h3>
+                <p>These Terms of Service shall be governed by and construed in accordance with the laws of India, without regard to its conflict of law principles. Any dispute arising out of or in connection with these Terms shall be subject to the exclusive jurisdiction of the courts located in New Delhi, India.</p>
+
+                <h3>7. Contact Us</h3>
+                <p>If you have any questions or feedback regarding these Terms, please contact us at <strong>legal@judiq.ai</strong>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disclaimer Modal -->
+    <div id="disclaimerModal" class="legal-modal hidden">
+        <div class="legal-modal-content">
+            <span class="close-modal" onclick="closeLegalModal('disclaimerModal')">&times;</span>
+            <div class="legal-modal-header">
+                <h2>Legal Disclaimer</h2>
+                <p class="effective-date">Important Notice for All Users</p>
+            </div>
+            <div class="legal-text">
+                <div class="warning-box" style="background: #fff5f5; border-left: 4px solid #ef4444; padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: flex-start; color: #991b1b; font-size: 0.9rem; font-weight: 600;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 1.1rem; margin-top: 2px;"></i>
+                    <span>JUDIQ AI IS NOT A LAW FIRM, DOES NOT PROVIDE LEGAL REPRESENTATION, AND DOES NOT OFFER LEGAL ADVICE.</span>
+                </div>
+                
+                <h3>1. No Attorney-Client Relationship</h3>
+                <p>The use of JUDIQ AI, including the submission of case details, uploading of evidence documents, generation of notices, or review of litigation survivability scores, does not create an attorney-client relationship between you and JUDIQ AI or any of its employees.</p>
+
+                <h3>2. Independent Verification Required</h3>
+                <p>Artificial Intelligence models are subject to errors, omission of local procedural nuances, and reliance on historical data that may have been superceded by recent statutory amendments or Supreme Court rulings. All outputs—including contradiction lists, timeline mapping, and drafted notices—must be independently verified, vetted, and signed by a licensed advocate before being served or filed in court.</p>
+
+                <h3>3. Predictive Limitations</h3>
+                <p>The "Survivability Scores" and "Courtroom Strategies" generated by the platform are probabilistic models based on statistical patterns in historical case law. They are <strong>not</strong> guarantees or warranties of actual courtroom outcomes. The ultimate decision rests with the presiding judge and the specific, unquantifiable dynamics of a live trial.</p>
+
+                <h3>4. Support Contact</h3>
+                <p>For support and queries, please email us at <strong>support@judiq.ai</strong>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Refund and Cancellation Policy Modal -->
+    <div id="refundPolicyModal" class="legal-modal hidden">
+        <div class="legal-modal-content">
+            <span class="close-modal" onclick="closeLegalModal('refundPolicyModal')">&times;</span>
+            <div class="legal-modal-header">
+                <h2>Refund &amp; Cancellation Policy</h2>
+                <p class="effective-date">Last Updated: June 15, 2026</p>
+            </div>
+            <div class="legal-text">
+                <p>Thank you for choosing <strong>JUDIQ AI</strong>. We aim to provide top-tier legal intelligence tools. This Refund &amp; Cancellation Policy outlines user rights regarding subscription cancellations and payment refunds.</p>
+                
+                <h3>1. Cancellation Policy</h3>
+                <p>You can cancel your subscription at any time. To cancel:</p>
+                <ul>
+                    <li>Navigate to your billing dashboard, click "Cancel Subscription", and confirm.</li>
+                    <li>Alternatively, send an email request to <strong>billing@judiq.ai</strong> at least 48 hours prior to your next renewal date.</li>
+                    <li>Upon cancellation, your subscription will remain active until the end of the current billing cycle. You will not be charged again.</li>
+                </ul>
+
+                <h3>2. Refund Policy</h3>
+                <p>Due to the digital nature of the services, resources consumed, and the instant availability of AI analysis and draft generation:</p>
+                <ul>
+                    <li><strong>No Standard Refunds:</strong> Payments for monthly or annual subscriptions, and purchases of individual analysis credits/tokens, are non-refundable. We do not provide prorated refunds for mid-cycle cancellations.</li>
+                    <li><strong>Technical Failures:</strong> If you are charged for an analysis but do not receive the output due to a system error or server downtime on our end, please email <strong>billing@judiq.ai</strong> within 7 days. Once verified, we will either credit your account with the missing tokens or issue a full refund.</li>
+                    <li><strong>Duplicate Charges:</strong> In case of double-billing or duplicate transactions caused by payment gateway lag, please contact us immediately with payment receipts to initiate a charge reversal.</li>
+                </ul>
+
+                <h3>3. Refund Processing</h3>
+                <p>Approved refunds are processed back to the original payment source (credit card, net banking, UPI) within 5 to 7 working days, subject to payment gateway policies.</p>
+
+                <h3>4. Contact Us</h3>
+                <p>For all billing, payment, and refund queries, please reach out to our billing team at <strong>billing@judiq.ai</strong>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile & Settings Modal -->
+    <div id="profileSettingsModal" class="legal-modal hidden">
+        <div class="legal-modal-content" style="max-width: 650px;">
+            <span class="close-modal" onclick="closeLegalModal('profileSettingsModal')">&times;</span>
+            <div class="legal-modal-header">
+                <h2>Profile &amp; Account Settings</h2>
+                <p class="effective-date">Personalize your Litigation workspace &amp; manage credentials</p>
+            </div>
+            <div class="legal-text" style="padding: 2.5rem 3rem;">
+                <form id="profileSettingsForm" onsubmit="saveUserProfile(event)">
+                    <h3 style="margin-top: 0; color: white; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; font-size: 1.2rem;">Personalization Settings</h3>
+                    
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label for="profileDisplayName" style="display: block; margin-bottom: 0.4rem; font-size: 0.9rem; color: var(--gray-300); font-weight: 600;">Display Name / Counsel Title</label>
+                        <input type="text" id="profileDisplayName" placeholder="Counsel Rajesh Sharma" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: var(--gray-900); color: white;" required>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label for="profileFirmName" style="display: block; margin-bottom: 0.4rem; font-size: 0.9rem; color: var(--gray-300); font-weight: 600;">Law Firm / Organization Name</label>
+                        <input type="text" id="profileFirmName" placeholder="BuildTech Partners" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: var(--gray-900); color: white;">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label for="profileRole" style="display: block; margin-bottom: 0.4rem; font-size: 0.9rem; color: var(--gray-300); font-weight: 600;">Practice Classification</label>
+                        <select id="profileRole" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: var(--gray-900); color: white;" onchange="window.state.currentRole = this.value;">
+                            <option value="individual">Citizen (Individual Claims)</option>
+                            <option value="law_firm">Law Firm / Attorney</option>
+                            <option value="corporate_counsel">Corporate Counsel / Enterprise</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem; margin-bottom: 2rem;">Save Profile Settings</button>
+                </form>
+
+                <h3 style="color: white; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; font-size: 1.2rem; margin-top: 1.5rem;">Security &amp; Credentials</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div>
+                            <div style="font-weight: 700; color: white; font-size: 0.95rem;">Email Verification</div>
+                            <div style="font-size: 0.8rem; color: var(--gray-400);">Resend the validation confirmation link to your registered email.</div>
+                        </div>
+                        <button class="btn btn-outline btn-sm" onclick="resendVerificationEmail(event)" style="white-space: nowrap;">Resend Email</button>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div>
+                            <div style="font-weight: 700; color: white; font-size: 0.95rem;">Send Reset Link</div>
+                            <div style="font-size: 0.8rem; color: var(--gray-400);">Trigger a password reset email link to update credentials via email.</div>
+                        </div>
+                        <button class="btn btn-outline btn-sm" onclick="triggerPasswordResetEmail(event)" style="white-space: nowrap;">Send Link</button>
+                    </div>
+                </div>
+
+                <form id="changePasswordForm" onsubmit="changeUserPasswordDirect(event)">
+                    <h4 style="color: white; margin-bottom: 0.75rem; font-size: 1rem;">Direct Password Update</h4>
+                    
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="changePassNew" style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--gray-300);">New Password</label>
+                        <input type="password" id="changePassNew" required style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); background: var(--gray-900); color: white;" minlength="6" autocomplete="new-password">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label for="changePassConfirm" style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; color: var(--gray-300);">Confirm New Password</label>
+                        <input type="password" id="changePassConfirm" required style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); background: var(--gray-900); color: white;" minlength="6" autocomplete="new-password">
+                    </div>
+
+                    <button type="submit" class="btn btn-outline" style="width: 100%;">Update Password Immediately</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documentation Modal (User Manual & Platform Guide) -->
+    <div id="documentationModal" class="legal-modal hidden">
+        <div class="legal-modal-content" style="max-width: 850px;">
+            <span class="close-modal" onclick="closeLegalModal('documentationModal')">&times;</span>
+            <div class="legal-modal-header">
+                <h2>JudiQ User Manual &amp; Strategy Guide</h2>
+                <p class="effective-date">Comprehensive Platform Guide for Litigators</p>
+            </div>
+            <div class="legal-text" style="padding: 2rem;">
+                <div class="docs-modal-container" style="grid-template-columns: 220px 1fr;">
+                    <div class="docs-modal-sidebar">
+                        <button class="docs-tab-btn active" onclick="switchDocsTab('quickstart', this)">
+                            <i class="fas fa-play"></i> Getting Started
+                        </button>
+                        <button class="docs-tab-btn" onclick="switchDocsTab('analysis', this)">
+                            <i class="fas fa-magic"></i> Case Wizard
+                        </button>
+                        <button class="docs-tab-btn" onclick="switchDocsTab('drafts', this)">
+                            <i class="fas fa-file-contract"></i> Legal Drafting
+                        </button>
+                        <button class="docs-tab-btn" onclick="switchDocsTab('confidentiality', this)">
+                            <i class="fas fa-shield-alt"></i> Data Security
+                        </button>
+                    </div>
+                    <div class="docs-modal-content">
+                        <!-- Getting Started Pane -->
+                        <div id="docs-quickstart" class="docs-content-pane active">
+                            <h3>Getting Started with JudiQ</h3>
+                            <p>JudiQ is an adversarial legal intelligence platform designed to stress-test case files, find procedural loopholes, and map court survivability.</p>
+                            
+                            <h4>Litigation Workflow Overview</h4>
+                            <p>Traditional legal prep revolves around finding matching precedents. JudiQ reverses this process by actively attempting to dismantle your case using standard opposing counsel defense strategies, allowing you to patch weaknesses before the courtroom trial.</p>
+                            
+                            <h4>Navigating Your Dashboard</h4>
+                            <ul>
+                                <li><strong>Start New Case:</strong> Launches the interactive case wizard to input facts, timelines, and evidence files.</li>
+                                <li><strong>Quick Mode:</strong> Minimal form entry to get immediate probability projections.</li>
+                                <li><strong>Smart Upload:</strong> Secure batch uploader for OCR document ingestion.</li>
+                                <li><strong>Notice/Reply Generator:</strong> Opens templates for demand notices, complaints, and responses.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Analysis Wizard Pane -->
+                        <div id="docs-analysis" class="docs-content-pane">
+                            <h3>Case Analysis Wizard</h3>
+                            <p>Our step-by-step wizard is explicitly optimized for Section 138 Cheque Bounce matters.</p>
+                            
+                            <h4>1. Step 1: Core Litigation Facts</h4>
+                            <p>Select case classifications, fill in filing dates, court names, and basic details. Correct date indexing is crucial for calculating statute limitation periods.</p>
+                            
+                            <h4>2. Step 2: Smart Document Upload</h4>
+                            <p>Upload document scans. The built-in OCR scans for matching cheque amounts, bank dishonour reasons (e.g. signature mismatch, insufficient funds), and demand notice postal delivery receipts.</p>
+                            
+                            <h4>3. Step 3: Evidentiary Verification</h4>
+                            <p>Specify transaction histories and confirm that the statutory 15-day notice period was given before proceeding with case filing.</p>
+                        </div>
+
+                        <!-- Legal Drafting Pane -->
+                        <div id="docs-drafts" class="docs-content-pane">
+                            <h3>Legal Drafting &amp; Templates</h3>
+                            <p>Automatically generate compliant notice drafts and response letters based on case analysis results.</p>
+                            
+                            <h4>Drafting Procedure</h4>
+                            <p>Upon completing a case analysis, navigate to the **Drafts** tab on your results page. Select the template type (e.g. Legal Notice Sec 138, Complaint Petition, or Reply Brief). The generator will automatically populate client names, dates, amounts, and citations.</p>
+                            
+                            <h4>Custom Tone Adjustments</h4>
+                            <p>Toggle between different argument tones (e.g., Assertive, Professional, or Conciliatory) in the preview side-panel to match your firm's presentation style. You can copy the generated text or print directly to your firm's letterhead.</p>
+                        </div>
+                        
+                        <!-- Confidentiality Pane -->
+                        <div id="docs-confidentiality" class="docs-content-pane">
+                            <h3>Confidentiality &amp; Data Security</h3>
+                            <p>Legal data demands bank-grade protection. We isolate user workspaces and keep confidential case files secure.</p>
+                            
+                            <h4>Data Protection Standards</h4>
+                            <ul>
+                                <li><strong>Full Encryption:</strong> All uploaded files, memos, and case logs are encrypted using symmetric AES-256 before saving to disk.</li>
+                                <li><strong>Zero Model Training:</strong> We enforce strict tenancy isolation. Your case data is never used to train global AI models.</li>
+                                <li><strong>Complete Deletion:</strong> Clicking "Delete Case" permanently and irreversibly wipes the files and generated data from all servers.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guided Tour Overlay -->
+    <div id="guidedTourOverlay" class="tour-overlay">
+        <div class="tour-card">
+            <i class="fas fa-balance-scale tour-icon" id="tourIcon"></i>
+            <h3 id="tourTitle">Welcome to JudiQ AI</h3>
+            <p id="tourText">Let's take a quick 1-minute guided tour of your litigation center.</p>
+            <div class="tour-steps-indicator" id="tourSteps">
+                <span class="tour-dot active"></span>
+                <span class="tour-dot"></span>
+                <span class="tour-dot"></span>
+                <span class="tour-dot"></span>
+            </div>
+            <div class="tour-actions-row">
+                <button class="btn btn-outline" id="tourPrevBtn" onclick="prevTourStep()">Skip Tour</button>
+                <button class="btn btn-primary" id="tourNextBtn" onclick="nextTourStep()">Next</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Floating Mock AI Chat Assistant -->
+    <div id="aiChatToggle" class="ai-chat-toggle" onclick="toggleChatWindow()">
+        <i class="fas fa-comments"></i>
+        <span class="pulse-ring"></span>
+    </div>
+    
+    <div id="aiChatWindow" class="ai-chat-window">
+        <div class="chat-header">
+            <div class="chat-header-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="chat-header-info">
+                <h4>JudiQ Legal Assistant</h4>
+                <p>Online | Virtual Agent</p>
+            </div>
+            <button class="chat-close-btn" onclick="toggleChatWindow()">&times;</button>
+        </div>
+        
+        <div id="chatMessages" class="chat-messages">
+            <div class="chat-bubble ai">
+                Hello! I am your virtual JudiQ assistant. I can answer general questions about cheque bounce procedures, Section 138 limitations, and case strategy. How can I help you today?
+            </div>
+        </div>
+        
+        <div class="chat-presets">
+            <div class="chat-presets-title">Section 138 FAQ</div>
+            <button class="chat-preset-btn" onclick="askPresetQuestion('What are the essential ingredients of a Section 138 offence?')">
+                What are the core elements of S.138?
+            </button>
+            <button class="chat-preset-btn" onclick="askPresetQuestion('What is the statutory timeline to serve a demand notice?')">
+                What is the statutory notice timeline?
+            </button>
+            <button class="chat-preset-btn" onclick="askPresetQuestion('What is the strict limitation period for filing the complaint in court?')">
+                What is the timeline for filing a complaint?
+            </button>
+            <button class="chat-preset-btn" onclick="askPresetQuestion('Can company directors be prosecuted under Section 141 for a bounced cheque?')">
+                Are directors liable under S.141?
+            </button>
+            <button class="chat-preset-btn" onclick="askPresetQuestion('What is the maximum penalty and punishment under Section 138?')">
+                What is the maximum penalty?
+            </button>
+            <button class="chat-preset-btn" onclick="askPresetQuestion('What happens if the drawer fails to pay after the notice period expires?')">
+                What if the drawer fails to pay?
+            </button>
+        </div>
+    </div>
+
+    <!-- Cookie Consent Banner -->
+    <div id="cookieConsentBanner" class="cookie-banner hidden">
+        <div class="cookie-content">
+            <h4>We Value Your Privacy <i class="fas fa-cookie-bite"></i></h4>
+            <p>We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking "Accept All", you consent to our use of cookies. <a href="#" style="color: var(--primary-400);">Read Policy</a></p>
+        </div>
+        <div class="cookie-actions">
+            <button class="btn btn-outline btn-sm" onclick="acceptCookies('essential')">Reject Non-Essential</button>
+            <button class="btn btn-primary btn-sm" onclick="acceptCookies('all')">Accept All</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <!-- DOMPurify for XSS Protection -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+
+    <!-- Chart.js for Visualizations --><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Main Application Script (ES6 Module) -->
+    <script type="module" src="js/main.js?v=8"></script>
+</body>
+</html>
+
+

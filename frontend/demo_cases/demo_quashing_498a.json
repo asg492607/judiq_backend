@@ -1,0 +1,33 @@
+{
+  "_meta": "Demo Case 4: FIR Quashing — IPC 498A (Matrimonial Dispute)",
+  "case_type": "criminal_general",
+  "case_identity": {
+    "case_id": "DEMO-CR-002",
+    "case_type": "criminal_general",
+    "court": "High Court of Bombay",
+    "jurisdiction": "Maharashtra",
+    "stage": "Quashing Petition (S.482/S.528 BNSS)"
+  },
+  "parties": {
+    "accused": "Vikram Sinha",
+    "complainant": "Sunita Sinha (Wife)"
+  },
+  "offence": {
+    "sections": ["IPC 498A", "IPC 406", "Dowry Prohibition Act S.3"],
+    "fir_number": "CR 78/2024",
+    "police_station": "Borivali PS, Mumbai",
+    "offence_date": "Disputed",
+    "arrest_date": null,
+    "chargesheet_filed": false
+  },
+  "quashing_grounds": {
+    "settlement_reached": true,
+    "divorce_decree_passed": true,
+    "allegations_vague_omnibus": true,
+    "no_specific_act_of_cruelty_pleaded": true,
+    "delay_in_filing_fir": true,
+    "delay_years": 4,
+    "counter_case_pending": true
+  },
+  "advocate_notes": "Classic S.482 quashing matter. Omnibus allegations, 4-year delay in FIR, divorce settled, allegations not specific. Strong chance of quashing at High Court."
+}

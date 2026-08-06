@@ -1,0 +1,45 @@
+{
+  "validation_suite": "JudiQ SARFAESI/DRT — Blind Practitioner Validation v1",
+  "methodology": "Double-Blind Legal Assessment: Practitioner records ground truth BEFORE viewing JudiQ output. Disagreements are preserved as evaluation telemetry rather than forced code changes.",
+  "evaluators": [
+    {
+      "evaluator_id": "PRACTITIONER_01",
+      "role": "Senior Advocate / Debt Recovery Specialist",
+      "experience_years": 18,
+      "organization": "High Court / DRT Bar"
+    },
+    {
+      "evaluator_id": "PRACTITIONER_02",
+      "role": "Head of Legal & Recovery",
+      "experience_years": 14,
+      "organization": "Leading Bank / NBFC"
+    }
+  ],
+  "matters": [
+    {
+      "matter_id": "BLIND_MATTER_01",
+      "anonymized_title": "Consortium Bank vs Real Estate Mortgagor",
+      "case_input": {
+        "case_type": "sarfaesi",
+        "perspective": "creditor",
+        "npa_date": "2025-11-10",
+        "notice_13_2_date": "2025-11-25",
+        "borrower_representation_date": "2025-12-10",
+        "bank_reply_13_3a_date": "2025-12-20",
+        "possession_13_4_date": "2026-02-05",
+        "cersai_registered": true,
+        "is_agricultural_land": false,
+        "outstanding_amount": 145000000.0,
+        "newspaper_publication_done": true
+      },
+      "practitioner_ground_truth": {
+        "expected_stage": "Section 13(4) Possession",
+        "expected_defects": [],
+        "expected_evidence_gaps": [],
+        "expected_limitation_status": "COMPLIANT",
+        "expected_next_action": "Section 14 Application before DM / Rule 8 Auction",
+        "critical_alert_justified": false
+      }
+    }
+  ]
+}

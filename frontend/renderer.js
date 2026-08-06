@@ -1,0 +1,1836 @@
+import { ui, switchScreen } from './ui.js?v=8';
+import { api } from './api.js?v=8';
+import { escapeHtml } from './js/modules/utils.js?v=8';
+
+// Helper: isTruthy check
+function isTruthy(val) {
+    if (!val) return false;
+    if (typeof val === 'string') {
+        const v = val.toLowerCase().trim();
+        return v === 'yes' || v === 'true' || v === '1' || v.startsWith('yes');
+    }
+    return !!val;
+}
+
+// Map verdict keys
+export function mapVerdict(v) {
+    const map = {
+        WEAK: "Weak Case",
+        MODERATE: "Moderate Case",
+        STRONG: "Strong Case"
+    };
+    return map[v] || v || "Unknown";
+}
+
+// Get verdict description based on score
+export function getVerdictDescription(score) {
+    if (score >= 70) return 'Your case has strong legal merit and good chances of success';
+    if (score >= 40) return 'Your case has moderate strength with some concerns to address';
+    return 'Your case has significant weaknesses that need attention';
+}
+
+// Animate score display
+export function animateScore(targetScore) {
+    const scoreElement = document.getElementById('scoreNumber');
+    const progressCircle = document.getElementById('scoreProgress');
+    if (!scoreElement || !progressCircle) return;
+
+    const circumference = 2 * Math.PI * 90;
+
+    let currentScore = 0;
+    const duration = 2000;
+    const increment = targetScore / (duration / 16);
+
+    const animate = () => {
+        currentScore += increment;
+        if (currentScore >= targetScore) currentScore = targetScore;
+
+        scoreElement.textContent = Math.round(currentScore);
+        progressCircle.style.strokeDashoffset = circumference - (currentScore / 100) * circumference;
+
+        if (currentScore < targetScore) requestAnimationFrame(animate);
+    };
+
+    progressCircle.style.strokeDasharray = circumference;
+    progressCircle.style.strokeDashoffset = circumference;
+    progressCircle.style.transition = 'stroke-dashoffset 0.1s linear';
+    animate();
+}
+
+// Generic list renderer
+export function renderList(id, items, fallback = "No data available") {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    if (!items || items.length === 0) {
+        el.innerHTML = `<p style="color: var(--gray-500);">${escapeHtml(String(fallback))}</p>`;
+        return;
+    }
+
+    el.innerHTML = items.map(item => {
+        let parsedItem = item;
+        if (typeof item === 'string' && item.trim().startsWith('{')) {
+            try { parsedItem = JSON.parse(item); } catch(e) {}
+        }
+        
+        let text = "";
+        let trustedMarkup = false;
+        if (typeof parsedItem === 'object' && parsedItem !== null) {
+            if (parsedItem.risk && parsedItem.severity && parsedItem.detail) {
+                const badgeColor = parsedItem.severity === 'FATAL' ? '#ef4444' : (parsedItem.severity === 'CRITICAL' ? '#f97316' : (parsedItem.severity === 'HIGH' ? '#eab308' : '#3b82f6'));
+                text = `<div style="display:flex; flex-direction:column; gap:0.3rem; width:100%;">
+                    <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                        <span style="font-weight:700; color:var(--gray-100);">${escapeHtml(String(parsedItem.risk))}</span>
+                        <span style="background-color:${badgeColor}22; color:${badgeColor}; font-size:0.7rem; font-weight:700; padding:0.15rem 0.4rem; border-radius:0.25rem; text-transform:uppercase; border:1px solid ${badgeColor}44;">${escapeHtml(String(parsedItem.severity))}</span>
+                    </div>
+                    <div style="color:var(--gray-400); font-size:0.85rem; line-height:1.4;">${escapeHtml(String(parsedItem.detail))}</div>
+                </div>`;
+                trustedMarkup = true;
+            } else {
+                text = parsedItem.text || parsedItem.title || parsedItem.description || parsedItem.risk || parsedItem.issue || parsedItem.weakness || parsedItem.strength || JSON.stringify(parsedItem);
+            }
+        } else {
+            text = String(parsedItem);
+        }
+
+        const safeText = trustedMarkup ? text : escapeHtml(String(text));
+        return `<div class="list-item" style="align-items: flex-start; padding: 0.6rem 0.8rem; margin-bottom: 0.5rem; background: var(--gray-900); border: 1px solid var(--gray-800); border-radius: 0.5rem;"><i class="fas fa-chevron-right" style="color: var(--primary-500); margin-right: 0.5rem; margin-top: 0.25rem;"></i><div style="flex:1; width: 100%; color: var(--gray-100);">${safeText}</div></div>`;
+    }).join('');
+}
+
+// Display predicted defences
+export function displayDefences(defences) {
+    const container = document.getElementById('defencesList');
+    if (!container) return;
+
+    if (!defences || defences.length === 0) {
+        container.innerHTML = '<p style="color: var(--gray-500);">No defences simulated</p>';
+        return;
+    }
+
+    container.innerHTML = defences.map(defence => {
+        const argument = String(defence.argument || defence.defence || defence.title || 'Defence Strategy');
+        const strength = (defence.strength || 'Medium').toLowerCase();
+        const probability = defence.success_probability || defence.probability || 50;
+        
+        // Determine graph metric mapping
+        const risk = argument.toLowerCase();
+        let targetCat = 'Procedural Compliance';
+        if (risk.includes('cheque') || risk.includes('proof') || risk.includes('evidence') || risk.includes('bsa') || risk.includes('admissibility') || risk.includes('itr') || risk.includes('financial')) {
+            targetCat = 'Evidence Strength';
+        } else if (risk.includes('jurisdiction') || risk.includes('court')) {
+            targetCat = 'Jurisdictional Veracity';
+        } else if (risk.includes('statute') || risk.includes('statutory') || risk.includes('act') || risk.includes('veracity') || risk.includes('pleading')) {
+            targetCat = 'Statutory Compliance';
+        } else if (risk.includes('witness') || risk.includes('credibility')) {
+            targetCat = 'Witness Credibility';
+        }
+
+        return `
+            <div class="defence-item">
+                <div class="defence-header">
+                    <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                        <h4>${escapeHtml(argument)}</h4>
+                        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                            <span class="defence-strength ${strength}">${defence.strength || 'Medium'}</span>
+                            <span class="defence-metric"><i class="fas fa-chart-pie"></i> Metric: ${targetCat}</span>
+                        </div>
+                    </div>
+                    <div class="defence-probability-badge">
+                        ${probability}%
+                    </div>
+                </div>
+                ${defence.trigger_reason ? `<p class="defence-details"><strong>Triggered by:</strong> ${escapeHtml(String(defence.trigger_reason))}</p>` : ''}
+                ${defence.rebuttal ? `<div class="defence-rebuttal"><strong>Counter Strategy:</strong> ${escapeHtml(String(defence.rebuttal))}</div>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+// Display semantic analysis
+export function displaySemanticAnalysis(semantic) {
+    const container = document.getElementById('semanticAnalysis');
+    if (!container) return;
+
+    const concepts = semantic.concepts_detected || [];
+    if (concepts.length === 0) {
+        container.innerHTML = '<p style="color: var(--gray-500);">No specific legal concepts detected</p>';
+        return;
+    }
+
+    container.innerHTML = concepts.map(concept => `
+        <div class="concept-item">
+            <div class="concept-header">
+                <h4>${escapeHtml(String(concept.concept || 'Legal Concept').replace(/_/g, ' '))}</h4>
+                <span class="concept-confidence">${Math.round((concept.confidence || 0) * 100)}%</span>
+            </div>
+            ${concept.matched_phrases ? `<p class="concept-phrases">Matched: ${escapeHtml(concept.matched_phrases.join(', '))}</p>` : ''}
+        </div>
+    `).join('');
+}
+
+// Display reasoning trace
+export function displayReasoningTrace(trace) {
+    const container = document.getElementById('reasoningList');
+    if (!container) return;
+
+    if (!trace || trace.length === 0) {
+        container.innerHTML = '<p style="color: var(--gray-500);">No reasoning trace available</p>';
+        return;
+    }
+    container.innerHTML = trace.map((step, idx) => {
+        let text = step;
+        let details = '';
+        try {
+            if (typeof step === 'string' && step.trim().startsWith('{')) {
+                const parsed = JSON.parse(step);
+                text = parsed.text || step;
+                if (parsed.provenance) details += `<span style="font-size:0.75rem; background:#f3f4f6; padding:2px 6px; border-radius:4px; margin-right:5px;">${parsed.provenance}</span>`;
+                if (parsed.confidence) details += `<span style="font-size:0.75rem; color:#6b7280;">Conf: ${parsed.confidence}</span>`;
+            } else if (typeof step === 'object' && step !== null) {
+                text = step.text || JSON.stringify(step);
+                if (step.provenance) details += `<span style="font-size:0.75rem; background:#f3f4f6; padding:2px 6px; border-radius:4px; margin-right:5px;">${step.provenance}</span>`;
+                if (step.confidence) details += `<span style="font-size:0.75rem; color:#6b7280;">Conf: ${step.confidence}</span>`;
+            }
+        } catch(e) {}
+        
+        return `<div class="reasoning-step">
+            <div>${escapeHtml(String(text))}</div>
+            ${details ? `<div style="margin-top:6px;">${details}</div>` : ''}
+        </div>`;
+    }).join('');
+}
+
+// Render decision panel
+export function renderDecisionPanel(decision) {
+    const actionsContainer = document.getElementById('actionsList');
+    if (!actionsContainer) return;
+
+    const label = decision.decision_label || decision.recommended_action || "Review Case";
+    const detail = decision.detail || "Based on the analysis, please review the recommendations below.";
+    const nextSteps = decision.next_steps || [];
+    const topRisks = decision.top_3_risks || [];
+
+    const actionType = decision.recommended_action || "REVIEW";
+    let actionClass = "info";
+    let actionIcon = "fa-info-circle";
+
+    if (actionType.includes("FILE_COMPLAINT") || actionType.includes("FILE")) {
+        actionClass = "success";
+        actionIcon = "fa-check-circle";
+    } else if (actionType.includes("SEND_NOTICE") || actionType.includes("NOTICE")) {
+        actionClass = "warning";
+        actionIcon = "fa-exclamation-triangle";
+    } else if (actionType.includes("HIGH_RISK") || actionType.includes("DEFEND")) {
+        actionClass = "error";
+        actionIcon = "fa-times-circle";
+    } else if (actionType.includes("SETTLEMENT")) {
+        actionClass = "warning";
+        actionIcon = "fa-handshake";
+    } else if (actionType.includes("FIX")) {
+        actionClass = "warning";
+        actionIcon = "fa-wrench";
+    }
+
+    let html = `
+        <div class="decision-panel decision-${actionClass}">
+            <div class="decision-header">
+                <div class="decision-icon">
+                    <i class="fas ${actionIcon}"></i>
+                </div>
+                <div class="decision-title-area">
+                    <h4>${label}</h4>
+                    <p>${detail}</p>
+                </div>
+            </div>
+    `;
+
+    if (topRisks.length > 0) {
+        html += `
+            <div class="decision-risks">
+                <h5><i class="fas fa-flag"></i> Top Identified Risks:</h5>
+                <ul>
+                    ${topRisks.map(risk => {
+            const riskText = typeof risk === 'string' ? risk : (risk.risk || risk.title || 'Risk identified');
+            const severity = typeof risk === 'object' ? (risk.severity || 'MEDIUM') : 'MEDIUM';
+            return `<li class="risk-item risk-${severity.toLowerCase()}">${riskText}</li>`;
+        }).join('')}
+                </ul>
+            </div>
+        `;
+    }
+
+    if (nextSteps.length > 0) {
+        html += `
+            <div class="decision-steps">
+                <h5><i class="fas fa-list-ol"></i> Next Steps:</h5>
+                <ol>
+                    ${nextSteps.map(step => `<li>${escapeHtml(String(step))}</li>`).join('')}
+                </ol>
+            </div>
+        `;
+    }
+
+    html += `</div>`;
+    actionsContainer.innerHTML = html;
+}
+
+// Render economics engine
+export function renderEconomicsEngine(economicsData) {
+    const container = document.getElementById('economicsList');
+    if (!container) return;
+
+    if (!economicsData) {
+        container.innerHTML = '<p style="color: var(--gray-500);"><i class="fas fa-info-circle"></i> No economic data available.</p>';
+        return;
+    }
+
+    if (Array.isArray(economicsData)) {
+        renderList("economicsList", economicsData, "No economic data available");
+        return;
+    }
+
+    let html = '';
+    for (const [key, value] of Object.entries(economicsData)) {
+        const displayKey = key.replace(/_/g, ' ');
+        const displayValue = typeof value === 'object' && value !== null ? JSON.stringify(value) : value;
+        html += `
+            <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius-md); border-left: 3px solid var(--primary-500);">
+                <strong style="color: var(--primary-700); text-transform: capitalize;">${displayKey}:</strong>
+                <span style="display: block; margin-top: 0.25rem; font-size: 0.95rem; color: var(--gray-800);">${displayValue}</span>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html || '<p style="color: var(--gray-500);"><i class="fas fa-info-circle"></i> No economic data available.</p>';
+}
+
+// Render timeline engine & procedural graph
+export function renderTimelineEngine(timelineData) {
+    const container = document.getElementById('timelineList');
+    if (!container) return;
+
+    if (!timelineData) {
+        container.innerHTML = '<p style="color: var(--gray-500);"><i class="fas fa-info-circle"></i> No timeline data available.</p>';
+        return;
+    }
+
+    if (timelineData.nodes && Array.isArray(timelineData.nodes)) {
+        let html = `<div style="margin-bottom: 1rem; padding: 0.75rem 1rem; background: var(--gray-900); border-radius: 0.5rem; border: 1px solid var(--gray-800); display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-weight: 700; color: var(--primary-400);"><i class="fas fa-network-wired"></i> Stage: ${escapeHtml(timelineData.current_stage || 'Litigation')}</span>
+            <span style="font-size: 0.8rem; color: var(--gray-400);">${timelineData.completed_nodes || 0} of ${timelineData.total_nodes || 0} Milestones Completed</span>
+        </div>`;
+
+        html += timelineData.nodes.map((node, idx) => {
+            const isDone = node.completed;
+            const hasDefect = !!node.defect;
+            const badgeColor = hasDefect ? '#ef4444' : (isDone ? '#10b981' : '#6b7280');
+            const badgeText = hasDefect ? 'DEFECT DETECTED' : (isDone ? 'COMPLETED' : 'PENDING');
+            const icon = hasDefect ? 'fa-exclamation-triangle' : (isDone ? 'fa-check-circle' : 'fa-clock');
+
+            return `
+                <div class="timeline-item" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="width: 2px; background: ${badgeColor}66; position: relative;">
+                        <div style="position: absolute; top: 0; left: -6px; width: 14px; height: 14px; border-radius: 50%; background: ${badgeColor}; border: 3px solid #0f172a;"></div>
+                    </div>
+                    <div style="flex: 1; background: var(--gray-900); border: 1px solid ${hasDefect ? '#ef444466' : 'var(--gray-800)'}; padding: 1rem; border-radius: 0.5rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem;">
+                            <div style="font-weight: 700; color: var(--gray-100); font-size: 0.95rem;">${idx + 1}. ${escapeHtml(node.name)}</div>
+                            <span style="background: ${badgeColor}22; color: ${badgeColor}; border: 1px solid ${badgeColor}44; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 0.25rem;">
+                                <i class="fas ${icon}"></i> ${badgeText}
+                            </span>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--gray-400); margin-bottom: 0.4rem;">
+                            <strong>Statute:</strong> ${escapeHtml(node.statute || '')} &bull; <strong>Authority:</strong> <em>${escapeHtml(node.authority || '')}</em>
+                        </div>
+                        ${node.date ? `<div style="font-size: 0.8rem; color: var(--primary-400);">Milestone Date: ${escapeHtml(node.date)}</div>` : ''}
+                        ${hasDefect ? `<div style="margin-top: 0.5rem; background: #ef444415; border: 1px solid #ef444444; color: #f87171; padding: 0.5rem; border-radius: 0.35rem; font-size: 0.85rem;"><i class="fas fa-ban"></i> ${escapeHtml(node.defect)}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = html;
+        return;
+    }
+
+    if (Array.isArray(timelineData)) {
+        renderList("timelineList", timelineData, "No timeline available");
+        return;
+    }
+
+    let html = '';
+
+    if (timelineData.opportunities && timelineData.opportunities.length > 0) {
+        html += timelineData.opportunities.map(opp => `
+            <div style="background: var(--error-50); border-left: 4px solid var(--error-600); padding: 1rem; margin-bottom: 1rem; border-radius: var(--radius-md); box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);">
+                <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; font-weight: 800; color: var(--error-700); text-transform: uppercase; animation: pulse 2s infinite;">
+                    <i class="fas fa-bolt"></i> CRITICAL OPPORTUNITY
+                </div>
+                <div style="font-size: 1rem; font-weight: 600; color: var(--gray-900); margin-top: 0.5rem;">${opp.opportunity}</div>
+                <div style="font-size: 0.85rem; color: var(--error-800); margin-top: 0.25rem;"><strong>Action:</strong> ${opp.action}</div>
+            </div>
+        `).join('');
+    }
+
+    if (timelineData.anomalies && timelineData.anomalies.length > 0) {
+        html += timelineData.anomalies.map(anom => {
+            const isFatal = String(anom.anomaly || anom).toUpperCase().includes("BARRED");
+            const color = isFatal ? 'error' : 'warning';
+            const icon = isFatal ? 'fa-ban' : 'fa-exclamation-triangle';
+            
+            return `
+                <div class="timeline-item" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="width: 2px; background: var(--${color}-300); position: relative;">
+                        <div style="position: absolute; top: 0; left: -6px; width: 14px; height: 14px; border-radius: 50%; background: var(--${color}-500); border: 3px solid white; box-shadow: 0 0 0 1px var(--${color}-200);"></div>
+                    </div>
+                    <div style="flex: 1; background: var(--gray-50); border: 1px solid var(--gray-200); padding: 1rem; border-radius: var(--radius-md);">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--${color}-700); font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                            <i class="fas ${icon}"></i> ${isFatal ? 'FATAL ANOMALY' : 'PROCEDURAL ANOMALY'}
+                        </div>
+                        <div style="font-size: 0.95rem; color: var(--gray-800);">${anom.anomaly || anom}</div>
+                        ${anom.precedent ? `<div style="margin-top: 0.5rem; font-size: 0.8rem; background: var(--gray-100); padding: 0.5rem; border-radius: var(--radius-sm); border-left: 2px solid var(--gray-400); font-family: monospace;">${anom.precedent}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    if (html === '') {
+        html = '<p style="color: var(--gray-500);"><i class="fas fa-check-circle"></i> Timeline is clean. No anomalies detected.</p>';
+    }
+
+    container.innerHTML = html;
+}
+
+// Render limitation clock
+export function renderLimitationClock(data) {
+    const clockEl = document.getElementById('limitationCountdown');
+    const daysEl = document.getElementById('countdownDays');
+    const msgEl = document.getElementById('limitationMessage');
+    const fillEl = document.getElementById('limitationStatusFill');
+
+    if (!clockEl || !daysEl || !msgEl || !fillEl) return;
+
+    let daysRemaining = null;
+    let message = "";
+
+    if (data.limitation) {
+        daysRemaining = data.limitation.days_remaining;
+        message = data.limitation.limitation_date
+            ? `Your statutory window for filing expires on ${data.limitation.limitation_date}.`
+            : (data.limitation.message || "");
+    }
+
+    // Check if condonation is active via global state or response payload
+    const rawCondonation = String(
+        (window.state && window.state.caseData && window.state.caseData.condonation_attached) ||
+        (data.case_data && data.case_data.condonation_attached) ||
+        (data.limitation && data.limitation.condonation_attached) || ''
+    ).trim().toLowerCase();
+
+    const condonationActive = rawCondonation === 'yes' || rawCondonation.startsWith('yes') || rawCondonation === 'true' || rawCondonation === '1' || (data.limitation && data.limitation.status === 'CONDONED');
+
+    if (condonationActive) {
+        clockEl.classList.remove('hidden');
+        clockEl.style.borderLeft = "5px solid var(--primary-500)";
+        clockEl.style.background = "var(--primary-50)";
+        daysEl.textContent = "CONDONED";
+        daysEl.style.fontSize = "1.2rem";
+        daysEl.style.color = "var(--primary-600)";
+        msgEl.innerHTML = "<strong><i class='fas fa-clock-rotate-left'></i> DELAY CONDONED:</strong> Section 142(1)(b) Condonation of Delay Application attached. Statutory clock extension active.";
+        fillEl.style.width = "100%";
+        fillEl.style.background = "var(--primary-500)";
+    } else if (daysRemaining !== null) {
+        clockEl.classList.remove('hidden');
+        clockEl.style.background = "var(--white)";
+        
+        if (daysRemaining <= 0) {
+            clockEl.style.borderLeft = "5px solid var(--error-500)";
+            daysEl.textContent = "EXPIRED";
+            daysEl.style.fontSize = "1.3rem";
+            daysEl.style.color = "var(--error-600)";
+            msgEl.innerHTML = "<strong>CRITICAL: Limitation period has expired.</strong> Case may be time-barred unless Condonation of Delay (S.142(1)(b)) is attached.";
+            fillEl.style.width = "100%";
+            fillEl.style.background = "var(--error-600)";
+        } else if (daysRemaining <= 7) {
+            clockEl.style.borderLeft = "5px solid var(--warning-500)";
+            daysEl.textContent = daysRemaining;
+            daysEl.style.fontSize = "2rem";
+            daysEl.style.color = "var(--warning-600)";
+            msgEl.textContent = message;
+            fillEl.style.width = `${((30 - daysRemaining) / 30) * 100}%`;
+            fillEl.style.background = "var(--warning-500)";
+        } else {
+            clockEl.style.borderLeft = "5px solid var(--primary-500)";
+            daysEl.textContent = daysRemaining;
+            daysEl.style.fontSize = "2rem";
+            daysEl.style.color = "var(--primary-600)";
+            msgEl.textContent = message;
+            fillEl.style.width = `${((30 - daysRemaining) / 30) * 100}%`;
+            fillEl.style.background = "var(--primary-500)";
+        }
+    } else {
+        clockEl.classList.add('hidden');
+    }
+}
+
+// Render corporate warning / compliance card
+export function renderCorporateWarning(data) {
+    const alertEl = document.getElementById('corporateAlert');
+    if (!alertEl) return;
+
+    const caseData = (window.state && window.state.caseData) || (data && data.case_data) || {};
+    const accusedName = caseData.accused_name || "";
+    const accusedType = (caseData.accused_type || "").toLowerCase();
+    const isCompany = /pvt|ltd|corp|inc|co\.|company/i.test(accusedName) || accusedType.includes('pvt') || accusedType.includes('company') || accusedType.includes('firm');
+
+    const directorsNamedRaw = String(caseData.directors_named || '').trim().toLowerCase();
+    const directorsNamed = directorsNamedRaw.startsWith('yes') || directorsNamedRaw === 'true' || directorsNamedRaw === '1' || (caseData.accused_directors && caseData.accused_directors.length > 2);
+
+    if (isCompany) {
+        alertEl.classList.remove('hidden');
+        if (directorsNamed) {
+            alertEl.style.borderLeft = "5px solid var(--success-500)";
+            alertEl.style.background = "var(--success-50)";
+            alertEl.innerHTML = `
+                <h3 style="color: var(--success-700); margin: 0 0 0.25rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-check-circle" style="color: var(--success-600);"></i> Section 141 Vicarious Liability Compliant
+                </h3>
+                <p style="font-size: 0.9rem; color: var(--success-800); margin: 0;">
+                    Corporate accused identified and Directors / Authorized Officers in charge of day-to-day operations are properly named.
+                </p>
+            `;
+        } else {
+            alertEl.style.borderLeft = "5px solid var(--warning-500)";
+            alertEl.style.background = "var(--warning-50)";
+            alertEl.innerHTML = `
+                <h3 style="color: var(--warning-700); margin: 0 0 0.25rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-building" style="color: var(--warning-600);"></i> Section 141 Corporate Warning
+                </h3>
+                <p style="font-size: 0.9rem; color: var(--warning-800); margin: 0;">
+                    Accused is a corporate entity. <strong>Failure to name Directors / Authorized Officers</strong> in charge of daily affairs will lead to threshold dismissal under the <em>Aneeta Hada</em> precedent.
+                </p>
+            `;
+        }
+    } else {
+        alertEl.classList.add('hidden');
+    }
+}
+
+// Render case summary card
+export function renderCaseSummaryCard(data) {
+    const score = data.score || 0;
+    const summaryContainer = document.getElementById('scoreExplanation');
+    if (!summaryContainer) return;
+
+    const oldCard = summaryContainer.querySelector('.case-summary-card');
+    if (oldCard) oldCard.remove();
+
+    let strengthLevel, strengthColor, strengthIcon, actionText;
+    if (score >= 70) {
+        strengthLevel = 'STRONG';
+        strengthColor = 'success';
+        strengthIcon = 'fa-shield-alt';
+        actionText = 'Your case has solid legal merit. Proceed with confidence.';
+    } else if (score >= 50) {
+        strengthLevel = 'MODERATE';
+        strengthColor = 'warning';
+        strengthIcon = 'fa-balance-scale';
+        actionText = 'Your case has potential but can be strengthened with additional evidence.';
+    } else {
+        strengthLevel = 'WEAK';
+        strengthColor = 'error';
+        strengthIcon = 'fa-exclamation-triangle';
+        actionText = 'Your case needs significant improvement before proceeding.';
+    }
+
+    const keyFactors = [];
+    if (data.strengths && data.strengths.length > 0) {
+        keyFactors.push(`${data.strengths.length} strength${data.strengths.length > 1 ? 's' : ''} identified`);
+    }
+    if (data.weaknesses && data.weaknesses.length > 0) {
+        keyFactors.push(`${data.weaknesses.length} weakness${data.weaknesses.length > 1 ? 'es' : ''} detected`);
+    }
+    if (data.issues && data.issues.length > 0) {
+        keyFactors.push(`${data.issues.length} critical issue${data.issues.length > 1 ? 's' : ''} found`);
+    }
+
+    const summaryHTML = `
+        <div class="case-summary-card case-${strengthColor}" style="background: linear-gradient(135deg, var(--${strengthColor}-50) 0%, white 100%); border: 2px solid var(--${strengthColor}-500); border-radius: var(--radius-xl); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-lg);">
+            <div style="display: flex; align-items: start; gap: 1.5rem;">
+                <div class="summary-icon" style="width: 64px; height: 64px; background: var(--${strengthColor}-100); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas ${strengthIcon}" style="font-size: 2rem; color: var(--${strengthColor}-600);"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                        <h3 style="margin: 0; font-size: var(--font-size-2xl); font-weight: 700; color: var(--gray-900);">
+                            ${strengthLevel} Case
+                        </h3>
+                        <span style="background: var(--${strengthColor}-100); color: var(--${strengthColor}-700); padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: var(--font-size-sm); font-weight: 600;">
+                            ${score.toFixed(1)}/100
+                        </span>
+                    </div>
+                    <p style="color: var(--gray-700); font-size: var(--font-size-base); line-height: 1.6; margin-bottom: 1rem;">
+                        ${actionText}
+                    </p>
+                    ${keyFactors.length > 0 ? `
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+                            ${keyFactors.map(factor => `
+                                <span style="background: white; padding: 0.5rem 1rem; border-radius: var(--radius-md); font-size: var(--font-size-sm); color: var(--gray-700); border: 1px solid var(--gray-200);">
+                                    <i class="fas fa-check-circle" style="color: var(--${strengthColor}-500); margin-right: 0.25rem;"></i>
+                                    ${factor}
+                                </span>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+
+    summaryContainer.insertAdjacentHTML('afterbegin', summaryHTML);
+}
+
+// Render score explanation
+export function renderScoreExplanation(data) {
+    const score = data.score || 0;
+    const explanationContainer = document.getElementById('scoreExplanation');
+    if (!explanationContainer) return;
+
+    let explanation = '';
+    let missingElements = [];
+    let detectedWeaknesses = [];
+
+    const caseData = (window.state && window.state.caseData) || {};
+
+    if (score < 50) {
+        explanation = '<strong>Low Score Analysis:</strong> Your case received a low score due to the following factors:';
+
+        if (!data.strengths || data.strengths.length === 0) {
+            missingElements.push('No strong legal arguments detected');
+        }
+
+        if (data.issues && data.issues.length > 3) {
+            missingElements.push(`${data.issues.length} critical issues identified`);
+        }
+
+        if (data.weaknesses && data.weaknesses.length > 0) {
+            data.weaknesses.forEach(w => {
+                const text = typeof w === 'string' ? w : (w.weakness || w.title || w.description);
+                if (text) detectedWeaknesses.push(text);
+            });
+        }
+
+        if (!isTruthy(caseData.notice_sent)) {
+            missingElements.push('Legal notice not sent (mandatory requirement)');
+        }
+
+        if (!isTruthy(caseData.dishonour_memo) && !isTruthy(caseData.agreement_documents)) {
+            missingElements.push('No supporting documents provided');
+        }
+
+        if (!caseData.transaction_date) {
+            missingElements.push('Incomplete timeline information');
+        }
+
+    } else if (score < 70) {
+        explanation = '<strong>Moderate Score Analysis:</strong> Your case shows some merit but has areas for improvement:';
+
+        if (data.weaknesses && data.weaknesses.length > 0) {
+            data.weaknesses.slice(0, 3).forEach(w => {
+                const text = typeof w === 'string' ? w : (w.weakness || w.title || w.description);
+                if (text) detectedWeaknesses.push(text);
+            });
+        }
+
+    } else {
+        explanation = '<strong>Strong Score Analysis:</strong> Your case demonstrates solid legal merit with:';
+        const summaryCardHTML = explanationContainer.querySelector('.case-summary-card')?.outerHTML || '';
+        explanationContainer.innerHTML = summaryCardHTML + `
+            <div class="insight-panel insight-success">
+                <div class="insight-header">
+                    <i class="fas fa-check-circle"></i>
+                    <h4>Why This Score?</h4>
+                </div>
+                <p>${explanation}</p>
+                <ul class="insight-list">
+                    ${(data.strengths || []).slice(0, 3).map(s => {
+            const text = typeof s === 'string' ? s : (s.strength || s.title || s.description);
+            return `<li><i class="fas fa-check"></i> ${text}</li>`;
+        }).join('')}
+                </ul>
+            </div>
+        `;
+        return;
+    }
+
+    const summaryCardHTML = explanationContainer.querySelector('.case-summary-card')?.outerHTML || '';
+    explanationContainer.innerHTML = summaryCardHTML + `
+        <div class="insight-panel ${score < 50 ? 'insight-danger' : 'insight-warning'}">
+            <div class="insight-header">
+                <i class="fas fa-info-circle"></i>
+                <h4>Why This Score?</h4>
+            </div>
+            <p>${explanation}</p>
+            
+            ${missingElements.length > 0 ? `
+                <div class="insight-section">
+                    <h5><i class="fas fa-exclamation-triangle"></i> Missing Critical Elements:</h5>
+                    <ul class="insight-list">
+                        ${missingElements.map(item => `<li><i class="fas fa-times"></i> ${item}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+            
+            ${detectedWeaknesses.length > 0 ? `
+                <div class="insight-section">
+                    <h5><i class="fas fa-flag"></i> Detected Weaknesses:</h5>
+                    <ul class="insight-list">
+                        ${detectedWeaknesses.map(item => `<li><i class="fas fa-arrow-right"></i> ${item}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+// Render case completeness / validation check
+export function validateCaseCompleteness() {
+    const validation = {
+        isValid: true,
+        criticalMissing: [],
+        warnings: [],
+        dataCompleteness: 0,
+        confidenceLevel: 'LOW'
+    };
+
+    const caseData = (window.state && window.state.caseData) || {};
+
+    const caseDescription = caseData.case_title || '';
+    const dishonourDate = caseData.dishonour_date || '';
+    const hasEvidence = isTruthy(caseData.original_cheque) || isTruthy(caseData.dishonour_memo) || isTruthy(caseData.agreement_documents);
+
+    if (!caseDescription || caseDescription.trim() === '') {
+        validation.criticalMissing.push('Case description/title is required');
+        validation.isValid = false;
+    }
+
+    if (!dishonourDate || dishonourDate.trim() === '') {
+        validation.criticalMissing.push('Cheque dishonour date is required');
+        validation.isValid = false;
+    }
+
+    if (!hasEvidence) {
+        validation.criticalMissing.push('At least one piece of evidence is required');
+        validation.isValid = false;
+    }
+
+    const noticeSent = isTruthy(caseData.notice_sent);
+    const hasDocuments = isTruthy(caseData.dishonour_memo) || isTruthy(caseData.agreement_documents);
+    const hasTimeline = caseData.transaction_date;
+
+    let completenessScore = 0;
+    const totalChecks = 10;
+
+    if (caseDescription) completenessScore++;
+    if (dishonourDate) completenessScore++;
+    if (hasEvidence) completenessScore++;
+    if (noticeSent) completenessScore++;
+    if (hasDocuments) completenessScore++;
+    if (hasTimeline) completenessScore++;
+    if (caseData.cheque_amount) completenessScore++;
+    if (caseData.complainant_name) completenessScore++;
+    if (caseData.accused_name) completenessScore++;
+    if (caseData.debt_amount) completenessScore++;
+
+    validation.dataCompleteness = Math.round((completenessScore / totalChecks) * 100);
+
+    if (validation.dataCompleteness >= 70) {
+        validation.confidenceLevel = 'HIGH';
+    } else if (validation.dataCompleteness >= 40) {
+        validation.confidenceLevel = 'MEDIUM';
+    } else {
+        validation.confidenceLevel = 'LOW';
+    }
+
+    if (!noticeSent) {
+        validation.warnings.push('Legal notice not sent - This significantly weakens your case (required within 30 days of dishonour)');
+    }
+
+    if (!hasDocuments) {
+        validation.warnings.push('No supporting documents (bank memo, transaction proof) - Evidence strengthens your case');
+    }
+
+    if (!hasTimeline) {
+        validation.warnings.push('Transaction date missing - Timeline helps establish the case chronology');
+    }
+
+    return validation;
+}
+
+// Render confidence indicator
+export function renderConfidenceIndicator(data) {
+    const confidenceContainer = document.getElementById('confidenceIndicator');
+    if (!confidenceContainer) return;
+
+    const validation = validateCaseCompleteness();
+    const dataCompleteness = validation.dataCompleteness;
+    const score = data.score || 0;
+
+    let confidenceLevel = 'LOW';
+    let confidenceColor = 'error';
+    let confidenceIcon = 'fa-exclamation-triangle';
+    let confidenceText = '';
+
+    if (dataCompleteness >= 70 && score > 0) {
+        confidenceLevel = 'HIGH';
+        confidenceColor = 'success';
+        confidenceIcon = 'fa-check-circle';
+        confidenceText = 'The analysis is based on comprehensive case data with all critical information provided.';
+    } else if (dataCompleteness >= 40) {
+        confidenceLevel = 'MEDIUM';
+        confidenceColor = 'warning';
+        confidenceIcon = 'fa-info-circle';
+        confidenceText = 'The analysis is based on moderate case data. Adding more information may improve accuracy.';
+    } else {
+        confidenceLevel = 'LOW';
+        confidenceColor = 'error';
+        confidenceIcon = 'fa-exclamation-triangle';
+        confidenceText = 'The analysis is based on limited case data. Results may not be fully accurate.';
+    }
+
+    confidenceContainer.innerHTML = `
+        <div class="confidence-panel confidence-${confidenceColor}">
+            <div class="confidence-badge-large">
+                <i class="fas ${confidenceIcon}"></i>
+                <div>
+                    <span class="confidence-label">Analysis Confidence</span>
+                    <span class="confidence-value">${confidenceLevel}</span>
+                </div>
+            </div>
+            <div class="confidence-meter">
+                <div class="confidence-meter-fill confidence-${confidenceColor}" style="width: ${dataCompleteness}%"></div>
+            </div>
+            <p class="confidence-description">${confidenceText}</p>
+            <div class="confidence-stats">
+                <div class="confidence-stat">
+                    <span class="stat-value">${dataCompleteness}%</span>
+                    <span class="stat-label">Data Completeness</span>
+                </div>
+                <div class="confidence-stat">
+                    <span class="stat-value">${(data.strengths || []).length + (data.issues || []).length}</span>
+                    <span class="stat-label">Factors Analyzed</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Render improvement suggestions
+export function renderImprovementSuggestions(data) {
+    const score = data.score || 0;
+    const suggestionsContainer = document.getElementById('improvementSuggestions');
+    if (!suggestionsContainer) return;
+
+    if (score >= 80) {
+        suggestionsContainer.innerHTML = `
+            <div class="suggestions-panel suggestions-minimal">
+                <p style="color: var(--success-700); font-weight: 500;">
+                    <i class="fas fa-check-circle"></i> Your case is already strong. Consider reviewing the recommended actions to proceed.
+                </p>
+            </div>
+        `;
+        return;
+    }
+
+    const suggestions = [];
+    const caseData = (window.state && window.state.caseData) || {};
+
+    if (!isTruthy(caseData.notice_sent)) {
+        suggestions.push({
+            icon: 'fa-file-alt',
+            title: 'Send Legal Notice',
+            description: 'Issue a legal notice within 30 days of cheque dishonour. This is a mandatory legal requirement.',
+            impact: 'High Impact',
+            color: 'error'
+        });
+    }
+
+    if (!isTruthy(caseData.bank_memo_received) && !isTruthy(caseData.dishonour_memo)) {
+        suggestions.push({
+            icon: 'fa-university',
+            title: 'Obtain Bank Memo',
+            description: 'Get the official bank memo showing "Insufficient Funds" or dishonour reason.',
+            impact: 'High Impact',
+            color: 'error'
+        });
+    }
+
+    if (!isTruthy(caseData.agreement_documents) && !caseData.transaction_date) {
+        suggestions.push({
+            icon: 'fa-receipt',
+            title: 'Gather Transaction Proof',
+            description: 'Collect invoices, agreements, or receipts proving the underlying debt.',
+            impact: 'Medium Impact',
+            color: 'warning'
+        });
+    }
+
+    if (data.weaknesses && data.weaknesses.length > 0) {
+        suggestions.push({
+            icon: 'fa-shield-alt',
+            title: 'Address Identified Weaknesses',
+            description: `${data.weaknesses.length} weakness(es) found in your case. Review the weaknesses section for details.`,
+            impact: 'Medium Impact',
+            color: 'warning'
+        });
+    }
+
+    if (!isTruthy(caseData.witness_available)) {
+        suggestions.push({
+            icon: 'fa-users',
+            title: 'Consider Witness Statements',
+            description: 'Gather witness statements or affidavits if available to strengthen your case.',
+            impact: 'Low Impact',
+            color: 'info'
+        });
+    }
+
+    if (suggestions.length === 0) {
+        suggestionsContainer.innerHTML = `
+            <div class="suggestions-panel">
+                <p style="color: var(--gray-600);">
+                    <i class="fas fa-info-circle"></i> No specific improvements needed at this time.
+                </p>
+            </div>
+        `;
+        return;
+    }
+
+    suggestionsContainer.innerHTML = `
+        <div class="suggestions-panel">
+            <div class="suggestions-header">
+                <i class="fas fa-lightbulb"></i>
+                <h4>How to Improve This Case</h4>
+            </div>
+            <div class="suggestions-grid">
+                ${suggestions.map(sug => `
+                    <div class="suggestion-card suggestion-${sug.color}">
+                        <div class="suggestion-icon">
+                            <i class="fas ${sug.icon}"></i>
+                        </div>
+                        <div class="suggestion-content">
+                            <h5>${sug.title}</h5>
+                            <p>${sug.description}</p>
+                            <span class="suggestion-impact impact-${sug.color}">${sug.impact}</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+// Render explainable score
+export function renderExplainableScore(data) {
+    const container = document.getElementById('explainableScorePanel');
+    if (!container) return;
+
+    const score = data.score ?? 0;
+    const causality = data.causality_map || [];
+    const landmarks = [
+        { name: 'Basalingappa v. Mudibasappa', year: '2019', area: 'Financial Capacity' },
+        { name: 'Rangappa v. Srikanth', year: '2010', area: 'Presumption under S.139' },
+        { name: 'Aneeta Hada v. Godfather', year: '2012', area: 'S.141 Vicarious Liability' }
+    ];
+
+    const positives = causality.filter(c => (c.impact || 0) > 0);
+    const negatives = causality.filter(c => (c.impact || 0) < 0);
+
+    const caseData = window.state?.caseData || window.state?.currentCaseData || {};
+    const condonationAttached = ['yes', 'true', true].includes((String(caseData.condonation_attached) || '').toLowerCase());
+    const bsaAttached = ['yes', 'true', true].includes((String(caseData.bsa_certificate || caseData.has_bsa_certificate || caseData.has_65b_certificate) || '').toLowerCase());
+
+    const filteredCausality = causality.map(c => {
+        if (condonationAttached && (c.fact === "Limitation Delay" || c.fact === "Notice Delay")) {
+            return { ...c, impact: 0, fact: "Limitation Delay (Cured via Condonation)" };
+        }
+        if (bsaAttached && (c.fact === "Missing S.63(4) BSA Certificate" || c.fact === "Missing S.65B Certificate")) {
+            return { ...c, impact: 0, fact: "BSA S.63(4) Certificate (Attached)" };
+        }
+        return c;
+    });
+
+    const breakdownRows = filteredCausality.map(c => {
+        const impact = c.impact || 0;
+        const color = impact > 0 ? '#22c55e' : impact === 0 ? '#10b981' : '#ef4444';
+        const sign = impact > 0 ? '+' : '';
+        return `<div style="display:flex; justify-content:space-between; align-items:center; 
+            padding: 0.6rem 1rem; border-radius:8px; margin-bottom:0.4rem; 
+            background: ${impact >= 0 ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)'}; 
+            border-left: 3px solid ${color};">
+            <span style="color:#374151; font-size:0.88rem;">${c.fact || 'Factor'}</span>
+            <span style="font-weight:700; color:${color};">${impact === 0 ? '<i class="fas fa-check-circle"></i> Cured' : sign + impact}</span>
+        </div>`;
+    }).join('');
+
+    const landmarkBadges = landmarks.slice(0, 3).map(l => `
+        <span style="display:inline-flex; align-items:center; gap:0.4rem; 
+            background:rgba(99,102,241,0.1); color:#4f46e5; border:1px solid rgba(99,102,241,0.2);
+            padding:0.3rem 0.7rem; border-radius:20px; font-size:0.78rem; font-weight:600; margin:0.2rem;">
+            <i class="fas fa-gavel"></i> ${l.name} (${l.year})
+        </span>`).join('');
+
+    container.innerHTML = `
+        <div style="display:flex; gap:2rem; flex-wrap:wrap; margin-bottom:1.5rem; align-items:stretch;">
+            <div style="text-align:center; padding: 2rem 1.5rem; background: linear-gradient(145deg, var(--gray-50) 0%, var(--gray-100) 100%); border-radius: 16px; border: 1px solid var(--gray-200); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.05); min-width: 160px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                <div style="display:flex; align-items:baseline; justify-content:center; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">
+                    <div style="font-size:3.5rem; font-weight:800; color:${score >= 70 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444'}; line-height:1;">${score}</div>
+                    <div style="font-size:1.2rem; color:#6b7280; font-weight:700; margin-left: 4px;">/100</div>
+                </div>
+                <div style="font-size:0.85rem; color:#9ca3af; font-weight:700; margin-top: 0.75rem; text-transform:uppercase; letter-spacing: 1px;">Final Score</div>
+            </div>
+            <div style="flex:1; min-width:200px;">
+                <div style="font-size:0.82rem; color:#6b7280; font-weight:600; margin-bottom:0.5rem; text-transform:uppercase;">Score Attribution</div>
+                ${breakdownRows || '<p style="color:#9ca3af;">Run case analysis to see breakdown</p>'}
+            </div>
+        </div>
+        <div>
+            <div style="font-size:0.82rem; color:#6b7280; font-weight:600; margin-bottom:0.6rem; text-transform:uppercase;">
+                <i class="fas fa-balance-scale"></i> Supported Precedents
+            </div>
+            <div>${landmarkBadges}</div>
+        </div>
+    `;
+}
+
+// Render evidence sufficiency meter
+export function renderEvidenceSufficiencyMeter(data) {
+    const container = document.getElementById('evidenceSufficiencyMeter');
+    if (!container) return;
+
+    const reliability = data.evidence_reliability || {};
+    
+    const pillars = [
+        { label: 'Cheque / Primary Instrument', key: 'Cheque Original', fallback: 90, icon: 'fa-file-invoice' },
+        { label: 'Notice Compliance', key: 'Notice (Registered Post)', fallback: 75, icon: 'fa-envelope' },
+        { label: 'Debt Proof / Financial Capacity', key: 'Financial Capacity (Basalingappa)', fallback: 60, icon: 'fa-rupee-sign' },
+        { label: 'Bank / Dishonour Memo', key: 'Dishonour Memo', fallback: 80, icon: 'fa-university' },
+        { label: 'Witness Support', key: 'Witness', fallback: 40, icon: 'fa-users' },
+    ];
+
+    const bars = pillars.map(p => {
+        let pct = p.fallback;
+        const relData = reliability[p.key];
+        if (relData) {
+            pct = Math.round((relData.score || 0.5) * 100);
+        }
+        const color = pct >= 75 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
+        const status = pct >= 75 ? 'Strong' : pct >= 50 ? 'Partial' : 'Weak';
+        return `
+            <div style="margin-bottom:1rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+                    <span style="font-size:0.85rem; color:#374151; font-weight:500;">
+                        <i class="fas ${p.icon}" style="color:${color}; margin-right:0.4rem;"></i>${p.label}
+                    </span>
+                    <span style="font-size:0.82rem; font-weight:700; color:${color};">${pct}% <span style="font-weight:400; color:#9ca3af;">(${status})</span></span>
+                </div>
+                <div style="height:8px; background:#f3f4f6; border-radius:99px; overflow:hidden;">
+                    <div style="height:100%; width:${pct}%; background:${color}; border-radius:99px; transition:width 0.6s ease;"></div>
+                </div>
+            </div>`;
+    }).join('');
+
+    const total = pillars.reduce((acc, p) => {
+        const relData = reliability[p.key];
+        return acc + (relData ? Math.round((relData.score || 0.5) * 100) : p.fallback);
+    }, 0);
+    const overall = Math.round(total / pillars.length);
+    const overallColor = overall >= 70 ? '#22c55e' : overall >= 50 ? '#f59e0b' : '#ef4444';
+
+    container.innerHTML = `
+        <div style="margin-bottom:1.5rem;">
+            <div style="display:flex; align-items:center; gap:1rem; padding:1rem; 
+                background:${overall >= 70 ? 'rgba(34,197,94,0.08)' : 'rgba(245,158,11,0.08)'}; 
+                border-radius:12px; border:1px solid ${overallColor}30; margin-bottom:1.2rem;">
+                <div style="font-size:2.5rem; font-weight:800; color:${overallColor};">${overall}%</div>
+                <div>
+                    <div style="font-weight:700; color:#111827;">Overall Case Readiness</div>
+                    <div style="font-size:0.82rem; color:#6b7280;">Based on evidence pillar analysis</div>
+                </div>
+            </div>
+            ${bars}
+        </div>
+        <div style="font-size:0.78rem; color:#9ca3af; border-top:1px solid #f3f4f6; padding-top:0.8rem;">
+            <i class="fas fa-info-circle"></i> Scores are derived from your submitted evidence types and case data.
+        </div>
+    `;
+}
+
+// Render AI reasoning layer
+export function renderAIReasoningLayer(data) {
+    if (!data) return;
+
+    const summaryEl = document.getElementById('aiCaseSummary');
+    if (summaryEl) {
+        let summaryText = data.case_summary || 'No automated summary generated.';
+        // Convert newlines to HTML paragraphs for proper styling
+        summaryEl.innerHTML = summaryText.split('\n').filter(p => p.trim()).map(p => `<p style="margin-bottom: 0.8rem; line-height: 1.6; color: var(--gray-700);">${escapeHtml(p)}</p>`).join('');
+    }
+
+    const badgeEl = document.getElementById('translatedVerdictBadge');
+    if (badgeEl) {
+        if (data.translated_verdict && data.translated_verdict !== data.verdict) {
+            badgeEl.innerHTML = `<i class="fas fa-language"></i>&nbsp;${escapeHtml(String(data.translated_verdict))}`;
+            badgeEl.classList.remove('hidden');
+        } else {
+            badgeEl.classList.add('hidden');
+        }
+    }
+
+    const predEl = document.getElementById('aiOutcomePrediction');
+    if (predEl) {
+        const op = data.outcome_prediction || {};
+        if (op.prediction) {
+            const probText = String(op.probability || '0%');
+            const probValue = parseFloat(probText) || 0;
+            const band = (op.score_band || 'WEAK').toUpperCase();
+            
+            predEl.innerHTML = `
+                <div class="rl-outcome-box rl-band-${band}">
+                    <div class="rl-outcome-header">
+                        <span class="rl-outcome-prediction">${op.prediction}</span>
+                        <span class="rl-outcome-prob">${probText}</span>
+                    </div>
+                    <div class="rl-outcome-bar-wrap">
+                        <div class="rl-outcome-bar" style="width:${Math.min(probValue, 100)}%"></div>
+                    </div>
+                    <p class="rl-outcome-rationale">${op.rationale || ''}</p>
+                </div>`;
+        } else {
+            predEl.innerHTML = '<p class="rl-empty">No outcome prediction available.</p>';
+        }
+    }
+
+    const statuteEl = document.getElementById('aiStatutoryInterpretation');
+    if (statuteEl) {
+        const interps = data.statutory_interpretation || [];
+        if (!interps.length) {
+            statuteEl.innerHTML = '<p class="rl-empty">No statutory analysis available.</p>';
+        } else {
+            statuteEl.innerHTML = interps.map(interp => {
+                const rawStatus = (interp.status || 'NOTE').toUpperCase();
+                const statusClass = rawStatus.replace(/\s+/g, '_');
+                const failList = (interp.conditions_failed || []).map(c => `• ${c}`).join('<br>');
+                
+                return `
+                <div class="rl-statute-card status-${statusClass}">
+                    <div class="rl-statute-section">Section ${interp.section}</div>
+                    <div class="rl-statute-title">${interp.title || ''}</div>
+                    <span class="rl-statute-status-badge">${interp.status}</span>
+                    <div class="rl-statute-finding">${interp.finding || ''}</div>
+                    ${failList ? `<div style="margin-top:.6rem;font-size:.78rem;color:#b91c1c;"><strong>Unmet Conditions:</strong><br>${failList}</div>` : ''}
+                    ${interp.punishment ? `<div style="margin-top:.5rem;font-size:.78rem;color:var(--gray-500);">Penalty: ${interp.punishment}</div>` : ''}
+                    ${interp.limit ? `<div style="margin-top:.5rem;font-size:.78rem;color:#6d28d9;">${interp.limit}</div>` : ''}
+                </div>`;
+            }).join('');
+        }
+    }
+
+    const precEl = document.getElementById('aiMatchedPrecedents');
+    if (precEl) {
+        const precedentsData = data.precedents || [];
+        const supporting = data.supporting_precedents || [];
+        const opposing = data.opposing_precedents || [];
+        const distinguishable = data.distinguishable_precedents || [];
+        
+        const formatCard = (p, badgeClass, badgeText) => {
+            const title = p.title || p.case || p.citation || 'Unknown Case';
+            const citation = p.citation || '';
+            const summary = p.summary || p.principle || p.precedent || '';
+            const court = p.court || '';
+            const link = p.link || p.document_url || `https://indiankanoon.org/search/?formInput=${encodeURIComponent(title)}`;
+            
+            return `
+                <div class="rl-precedent-card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; gap: 0.5rem;">
+                        <span class="rl-status-badge ${badgeClass}">${badgeText}</span>
+                        ${p.binding ? '<span style="font-size: 0.65rem; color: #1e3a8a; background: #dbeafe; padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: 600; text-transform: uppercase;">Binding</span>' : ''}
+                    </div>
+                    <div class="rl-precedent-case" style="font-size: 1.05rem; font-weight: 600;">
+                        <a href="${link}" target="_blank" style="color: var(--primary-600); text-decoration: none; border-bottom: 1px dashed var(--primary-400);">
+                            ${title}
+                        </a>
+                    </div>
+                    <div class="rl-precedent-citation" style="margin-top: 0.3rem; font-size: 0.85rem; color: var(--gray-600); font-weight: 500;">${citation}</div>
+                    ${court ? `<div style="font-size: .78rem; color: var(--gray-400); margin-top: 0.1rem; margin-bottom: .4rem;">${court}</div>` : ''}
+                    <div class="rl-precedent-principle" style="margin-top: 0.5rem; font-size: 0.85rem; line-height: 1.4; color: var(--gray-700);">${summary}</div>
+                </div>`;
+        };
+
+        let cardsHtml = [];
+        
+        // Add supporting
+        supporting.forEach(p => cardsHtml.push(formatCard(p, 'rl-success-badge', 'Supporting (Payee)')));
+        // Add opposing
+        opposing.forEach(p => cardsHtml.push(formatCard(p, 'rl-danger-badge', 'Opposing (Drawer)')));
+        // Add distinguishable
+        distinguishable.forEach(p => cardsHtml.push(formatCard(p, 'rl-info-badge', 'Distinguishable')));
+        
+        // Add statute precedents (deduping if already added)
+        precedentsData.forEach(p => {
+            const title = (p.case || p.title || p.citation || '').toLowerCase();
+            const isAlreadyAdded = [...supporting, ...opposing, ...distinguishable].some(ex => {
+                const exTitle = (ex.title || ex.case || ex.citation || '').toLowerCase();
+                return exTitle === title || (title && exTitle && (exTitle.includes(title) || title.includes(exTitle)));
+            });
+            if (!isAlreadyAdded) {
+                cardsHtml.push(formatCard(p, 'rl-warning-badge', 'Landmark Statute'));
+            }
+        });
+        
+        if (cardsHtml.length === 0) {
+            precEl.innerHTML = '<p class="rl-empty">No precedents matched for detected concepts.</p>';
+        } else {
+            precEl.innerHTML = cardsHtml.join('');
+        }
+    }
+
+    const risksEl = document.getElementById('aiRisksRebuttals');
+    if (risksEl) {
+        const risks = data.risks_and_rebuttals || [];
+        if (!risks.length) {
+            risksEl.innerHTML = '<p class="rl-empty">No specific risks identified for current case configuration.</p>';
+        } else {
+            risksEl.innerHTML = risks.map(r => `
+                <div class="rl-risk-item sev-${r.severity}">
+                    <div class="rl-risk-header sev-${r.severity}">
+                        <span class="rl-sev-badge">${r.severity}</span>
+                        <span class="rl-risk-title">${r.risk}</span>
+                    </div>
+                    <div class="rl-risk-desc">${r.description || ''}</div>
+                    <div class="rl-rebuttal-box">
+                        <strong><i class="fas fa-reply"></i> AI-Suggested Rebuttal</strong>
+                        <div class="rl-rebuttal-text">${r.rebuttal || ''}</div>
+                        ${r.case_law ? `<div class="rl-case-law"><i class="fas fa-book-open"></i> ${r.case_law}</div>` : ''}
+                    </div>
+                </div>`).join('');
+        }
+    }
+
+    const evEl = document.getElementById('aiEvidenceSuggestions');
+    if (evEl) {
+        const suggestions = data.evidence_suggestions || [];
+        if (!suggestions.length) {
+            evEl.innerHTML = '<p class="rl-empty" style="color:var(--success-600);"><i class="fas fa-check-circle"></i> No critical evidence gaps detected.</p>';
+        } else {
+            evEl.innerHTML = suggestions.map(s => `
+                <div class="rl-evidence-item">
+                    <i class="fas fa-file-search"></i>
+                    <span>${s}</span>
+                </div>`).join('');
+        }
+    }
+
+    const trailEl = document.getElementById('aiReasoningTrail');
+    if (trailEl) {
+        const trail = data.reasoning_trail || [];
+        if (!trail.length) {
+            trailEl.innerHTML = '<p class="rl-empty">No reasoning trail available.</p>';
+        } else {
+            trailEl.innerHTML = trail.map((step, i) => {
+                let parsedStep = null;
+                if (typeof step === 'string') {
+                    if (step.trim().startsWith('{')) {
+                        try {
+                            parsedStep = JSON.parse(step);
+                        } catch (e) {
+                            // not valid json
+                        }
+                    }
+                } else if (step !== null && typeof step === 'object') {
+                    parsedStep = step;
+                }
+
+                let textValue = '';
+                let customLabel = null;
+                let metadataHTML = '';
+
+                if (parsedStep) {
+                    textValue = parsedStep.text || parsedStep.description || parsedStep.action || parsedStep.content || JSON.stringify(parsedStep);
+                    customLabel = parsedStep.step || parsedStep.label || null;
+
+                    // Build premium badges and details
+                    let badges = [];
+                    if (parsedStep.provenance) {
+                        badges.push(`<span class="xai-badge provenance-${parsedStep.provenance.toLowerCase()}"><i class="fas fa-fingerprint"></i> ${parsedStep.provenance}</span>`);
+                    }
+                    if (parsedStep.confidence !== undefined) {
+                        const confVal = typeof parsedStep.confidence === 'number' ? (parsedStep.confidence <= 1 ? Math.round(parsedStep.confidence * 100) : parsedStep.confidence) : parsedStep.confidence;
+                        badges.push(`<span class="xai-badge confidence-badge"><i class="fas fa-chart-line"></i> ${confVal}% Confidence</span>`);
+                    }
+
+                    let details = [];
+                    if (parsedStep.authority) {
+                        details.push(`<strong>Authority:</strong> ${parsedStep.authority}`);
+                    }
+                    if (parsedStep.logic_engine) {
+                        details.push(`<strong>Engine:</strong> ${parsedStep.logic_engine}`);
+                    }
+                    if (parsedStep.citation) {
+                        details.push(`<strong>Citation:</strong> <em>${parsedStep.citation}</em>`);
+                    }
+                    if (parsedStep.rationale) {
+                        details.push(`<strong>Rationale:</strong> ${parsedStep.rationale}`);
+                    }
+
+                    metadataHTML = `
+                        <div class="xai-meta-container" style="margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                            ${badges.length ? `<div class="xai-badges" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.2rem;">${badges.join(' ')}</div>` : ''}
+                            ${details.length ? `<div class="xai-details" style="font-size: 0.8rem; color: #475569; border-top: 1px dashed #e2e8f0; padding-top: 0.4rem; line-height: 1.4;">${details.join(' &bull; ')}</div>` : ''}
+                        </div>
+                    `;
+                } else {
+                    textValue = typeof step === 'string' ? step : String(step);
+                }
+
+                const match = textValue.match(/^(STEP[\s\S]*?(?:—[^:]*)?)\s*[—:]\s*([\s\S]+)/i);
+                const label   = customLabel || (match ? match[1].trim() : `Step ${i + 1}`);
+                const content = match ? match[2].trim() : textValue;
+                
+                return `
+                <div class="rl-trail-item">
+                    <div class="rl-trail-step">${label}</div>
+                    <div class="rl-trail-content" style="font-weight: 500; color: #1e293b;">${content}</div>
+                    ${metadataHTML}
+                </div>`;
+            }).join('');
+        }
+    }
+}
+
+// Comprehensive Render Results function
+// ═══════════════════════════════════════════════════════════════
+// DOMAIN THEME SYSTEM
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Apply domain-specific theme to the results screen.
+ * Swaps CSS class, domain badge, and tab group visibility.
+ */
+export function applyDomainTheme(domain) {
+    const screen = document.getElementById('resultsScreen');
+    if (!screen) return;
+
+    const isSarfaesi = domain === 'sarfaesi';
+
+    // Swap CSS theme class
+    screen.classList.remove('dashboard--138', 'dashboard--sarfaesi');
+    screen.classList.add(isSarfaesi ? 'dashboard--sarfaesi' : 'dashboard--138');
+
+    // Domain badge in results nav
+    const badge = document.getElementById('resultsDomainBadge');
+    if (badge) {
+        badge.style.display = 'inline-flex';
+        badge.className = `domain-badge ${isSarfaesi ? 'domain-badge--sarfaesi' : 'domain-badge--ni'}`;
+        badge.innerHTML = isSarfaesi
+            ? '<i class="fas fa-university"></i> SARFAESI / DRT'
+            : '<i class="fas fa-balance-scale"></i> NI Act — S.138';
+    }
+
+    // Swap tab groups
+    const niTabs = document.getElementById('niActTabs');
+    const sarfaesiTabs = document.getElementById('sarfaesiTabs');
+    if (isSarfaesi) {
+        if (niTabs) niTabs.classList.add('hidden');
+        if (sarfaesiTabs) sarfaesiTabs.classList.remove('hidden');
+        // Hide NI Act tab panels, show SARFAESI ones
+        ['tabOverview','tabDetailed','tabStrategy'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.classList.add('hidden'); el.classList.remove('active'); }
+        });
+        // Activate SARFAESI overview by default
+        const defTab = document.getElementById('tabSarfaesi_overview');
+        if (defTab) { defTab.classList.remove('hidden'); defTab.classList.add('active'); }
+    } else {
+        if (sarfaesiTabs) sarfaesiTabs.classList.add('hidden');
+        if (niTabs) niTabs.classList.remove('hidden');
+        // Hide SARFAESI tab panels
+        ['tabSarfaesi_overview','tabSarfaesi_enforcement','tabSarfaesi_graph','tabSarfaesi_strategy'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.classList.add('hidden'); el.classList.remove('active'); }
+        });
+        // Activate NI Act overview by default
+        const defTab = document.getElementById('tabOverview');
+        if (defTab) { defTab.classList.remove('hidden'); defTab.classList.add('active'); }
+    }
+}
+
+/**
+ * Render all SARFAESI-specific result panels.
+ * Called by renderResults() when domain === 'sarfaesi'.
+ */
+export function renderSarfaesiResultsPanels(data) {
+    // Enforcement stage
+    const graph = data.procedural_graph || data.timeline_analysis || data.timeline || {};
+    const currentStage = graph.current_stage || data.enforcement_stage || 'Pre-Enforcement';
+    const stageMetricEl = document.getElementById('sarfaesiStageMetric');
+    if (stageMetricEl) stageMetricEl.textContent = currentStage;
+
+    const stageDisplayEl = document.getElementById('sarfaesiStageDisplay');
+    if (stageDisplayEl) {
+        stageDisplayEl.innerHTML = `
+            <span class="enforcement-stage-badge">
+                <i class="fas fa-network-wired"></i> ${escapeHtml(currentStage)}
+            </span>
+            <span style="font-size:0.8rem; color:var(--gray-400); margin-left:0.75rem;">
+                ${graph.completed_nodes || 0} of ${graph.total_nodes || 0} statutory milestones completed
+            </span>
+        `;
+    }
+
+    // CERSAI status
+    const caseData = (window.state && window.state.caseData) || {};
+    const cersaiReg = String(caseData.cersai_registered || data.cersai_registered || '').toLowerCase();
+    const cersaiOk = cersaiReg === 'yes' || cersaiReg === 'true';
+    const cersaiMetricEl = document.getElementById('sarfaesiCersaiMetric');
+    if (cersaiMetricEl) cersaiMetricEl.textContent = cersaiOk ? 'Registered' : 'Not Confirmed';
+    const cersaiEl = document.getElementById('sarfaesiCersaiStatus');
+    if (cersaiEl) {
+        cersaiEl.innerHTML = `
+            <div class="cersai-status-row">
+                <span style="font-size:0.88rem; font-weight:600; color:var(--gray-200);"><i class="fas fa-database"></i> CERSAI Security Interest Registration</span>
+                <span class="${cersaiOk ? 'cersai-ok' : 'cersai-fail'}" style="font-weight:700; font-size:0.85rem;">
+                    <i class="fas ${cersaiOk ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                    ${cersaiOk ? 'REGISTERED' : 'NOT CONFIRMED'}
+                </span>
+            </div>
+        `;
+    }
+
+    // Evidence gaps metric + list
+    const gaps = data.evidence_gaps || [];
+    const gapsMetricEl = document.getElementById('sarfaesiGapsMetric');
+    if (gapsMetricEl) gapsMetricEl.textContent = gaps.length;
+    const gapsListEl = document.getElementById('sarfaesiEvidenceGapsList');
+    if (gapsListEl) {
+        if (gaps.length === 0) {
+            gapsListEl.innerHTML = '<p style="color:var(--gray-500);"><i class="fas fa-check-circle"></i> No critical evidence gaps detected.</p>';
+        } else {
+            gapsListEl.innerHTML = gaps.map(g => {
+                const doc = typeof g === 'string' ? g : (g.document_required || 'Document required');
+                const csq = typeof g === 'object' ? (g.consequence || '') : '';
+                return `
+                    <div style="background:rgba(245,158,11,0.07); border:1px solid rgba(245,158,11,0.2); border-radius:10px; padding:0.9rem 1.1rem; margin-bottom:0.6rem;">
+                        <div style="font-weight:700; color:#fcd34d; font-size:0.88rem;"><i class="fas fa-folder-open"></i> ${escapeHtml(doc)}</div>
+                        ${csq ? `<div style="font-size:0.8rem; color:var(--gray-400); margin-top:0.25rem;">${escapeHtml(csq)}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    // Next best actions metric + list
+    const actions = data.next_best_actions || [];
+    const actionsMetricEl = document.getElementById('sarfaesiActionsMetric');
+    if (actionsMetricEl) actionsMetricEl.textContent = actions.length;
+    const actionsListEl = document.getElementById('sarfaesiNextActionsList');
+    if (actionsListEl) {
+        if (actions.length === 0) {
+            actionsListEl.innerHTML = '<p style="color:var(--gray-500);">No priority actions returned.</p>';
+        } else {
+            actionsListEl.innerHTML = actions.map((a, i) => {
+                const action = typeof a === 'string' ? a : (a.action || a.title || String(a));
+                const reason = typeof a === 'object' ? (a.reason || '') : '';
+                const priority = typeof a === 'object' ? (a.priority || i + 1) : i + 1;
+                return `
+                    <div style="background:var(--gray-900); border:1px solid var(--gray-800); border-left:3px solid #f59e0b; border-radius:10px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; display:flex; gap:1rem; align-items:flex-start;">
+                        <span style="min-width:28px; height:28px; background:rgba(245,158,11,0.15); color:#f59e0b; font-weight:800; font-size:0.8rem; border-radius:6px; display:flex; align-items:center; justify-content:center;">${priority}</span>
+                        <div style="flex:1;">
+                            <div style="font-weight:700; color:var(--gray-100); font-size:0.9rem;">${escapeHtml(action)}</div>
+                            ${reason ? `<div style="font-size:0.78rem; color:var(--gray-400); margin-top:0.2rem;">${escapeHtml(reason)}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    // Timeline list (enforcement milestones)
+    renderTimelineEngine(graph);
+    const sarfaesiTimeline = document.getElementById('sarfaesiTimelineList');
+    const origTimeline = document.getElementById('timelineList');
+    if (sarfaesiTimeline && origTimeline) sarfaesiTimeline.innerHTML = origTimeline.innerHTML;
+
+    // Contradictions
+    const contraListEl = document.getElementById('sarfaesiContradictionsList');
+    if (contraListEl) {
+        const contras = data.contradictions || [];
+        if (contras.length === 0) {
+            contraListEl.innerHTML = '<p style="color:var(--gray-500);"><i class="fas fa-check-circle"></i> No procedural contradictions found.</p>';
+        } else {
+            contraListEl.innerHTML = contras.map(c => `
+                <div style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:10px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; font-size:0.88rem; color:#f87171;">
+                    <i class="fas fa-exclamation-triangle"></i> ${escapeHtml(String(c))}
+                </div>`).join('');
+        }
+    }
+
+    // Procedural graph panel
+    const graphPanelEl = document.getElementById('sarfaesiProceduralGraph');
+    if (graphPanelEl && origTimeline) graphPanelEl.innerHTML = origTimeline.innerHTML;
+
+    // Authority card
+    const authPanelEl = document.getElementById('sarfaesiAuthorityCard');
+    const origAuth = document.getElementById('verifiedAuthorityContainer') || document.getElementById('precedentsList');
+    if (authPanelEl && origAuth) authPanelEl.innerHTML = origAuth.innerHTML;
+
+    // Strategy
+    const strategyEl = document.getElementById('sarfaesiStrategyList');
+    const origStrategy = document.getElementById('strategyList');
+    if (strategyEl && origStrategy) strategyEl.innerHTML = origStrategy.innerHTML;
+
+    // Defences
+    const defencesEl = document.getElementById('sarfaesiDefencesList');
+    const origDefences = document.getElementById('defencesList');
+    if (defencesEl && origDefences) defencesEl.innerHTML = origDefences.innerHTML;
+
+    // Reasoning trace
+    const reasoningEl = document.getElementById('sarfaesiReasoningList');
+    const origReasoning = document.getElementById('reasoningList');
+    if (reasoningEl && origReasoning) reasoningEl.innerHTML = origReasoning.innerHTML;
+}
+
+export function renderResults(data) {
+    if (!data) return;
+
+    // Apply domain theme FIRST — swaps CSS class, tabs, domain badge
+    const domain = (window.state && window.state.userDomain) ||
+        (data.case_data && data.case_data.case_type === 'SARFAESI' ? 'sarfaesi' : 'ni_act') ||
+        'ni_act';
+    applyDomainTheme(domain);
+
+    const resContainer = document.querySelector('.results-container');
+    if (resContainer) resContainer.scrollTop = 0;
+
+    if (data.caseroom_id && window.startCaseroomSync) {
+        window.startCaseroomSync();
+    }
+
+    const fatalContainer = document.getElementById('fatalDefectAlert');
+    if (fatalContainer) {
+        let fatalHTML = '';
+        const score = data.score || 0;
+        
+        if (data.limitation && data.limitation.is_premature) {
+            fatalHTML += `
+                <div class="fatal-banner">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>FATAL DEFECT: PREMATURE FILING DETECTED</strong>
+                        <p>The 15-day statutory 'cure period' for the accused has not expired. Filing today will lead to mandatory dismissal as per <em>Yogendra Pratap Singh vs. Savitri Pandey</em>. <strong>DO NOT FILE UNTIL ${data.limitation.earliest_filing_date || 'the period expires'}.</strong></p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        const caseData = (window.state && window.state.caseData) || {};
+        if (caseData.within_30_days === "No" || (data.limitation && data.limitation.notice_delay_days > 0)) {
+            fatalHTML += `
+                <div class="fatal-banner fatal-warning">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <strong>JURISDICTIONAL BAR: LATE STATUTORY NOTICE</strong>
+                        <p>The legal notice was sent beyond the 30-day limit. The case is non-maintainable unless a robust Condonation of Delay application is filed under Section 142(1)(b).</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        const communicationDetected = (data.weaknesses || []).some(w => String(w).includes("65B") || String(w).includes("digital evidence"));
+        if (communicationDetected) {
+            fatalHTML += `
+                <div class="fatal-banner fatal-info">
+                    <i class="fas fa-microchip"></i>
+                    <div>
+                        <strong>ADMISSIBILITY REQUIREMENT: SECTION 65B CERTIFICATE</strong>
+                        <p>Digital evidence (WhatsApp/Email) is inadmissible without a mandatory certificate under Section 65B of the Indian Evidence Act. Ensure this is filed with the complaint.</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        fatalContainer.innerHTML = fatalHTML;
+        fatalContainer.classList.toggle('hidden', fatalHTML === '');
+    }
+
+    const score = data.score || 0;
+    const scoreEl = document.getElementById("scoreNumber");
+    if (scoreEl) scoreEl.innerText = score;
+
+    const verdict = mapVerdict(data.verdict);
+    const verdictTitleEl = document.getElementById("verdictTitle");
+    const verdictDescEl = document.getElementById("verdictDescription");
+    const cynicalBadge = document.getElementById("cynicalModeBadge");
+
+    if (verdictTitleEl) verdictTitleEl.textContent = verdict;
+    if (verdictDescEl) verdictDescEl.textContent = getVerdictDescription(score);
+    
+    if (cynicalBadge) {
+        const isCynical = score < 65 || (data.reasoning_trace || []).some(t => String(t).includes('CYNICAL'));
+        cynicalBadge.classList.toggle('hidden', !isCynical);
+    }
+
+    const riskEl = document.getElementById("defenceRisk");
+    if (riskEl) riskEl.innerText = data.risk_level || data.defence_risk || "Unknown";
+
+    const issuesCountEl = document.getElementById("criticalIssues");
+    const strengthsCountEl = document.getElementById("strongPoints");
+    const conceptsCountEl = document.getElementById("conceptsDetected");
+
+    if (issuesCountEl) issuesCountEl.innerText = (data.issues || []).length || 0;
+    if (strengthsCountEl) strengthsCountEl.innerText = (data.strengths || []).length || 0;
+
+    const semanticAnalysis = data.semantic_analysis || {};
+    const conceptsCount = (semanticAnalysis.concepts_detected || []).length || 0;
+    if (conceptsCountEl) conceptsCountEl.innerText = conceptsCount;
+
+    const verdictCard = document.querySelector('.result-card-hero');
+    const verdictIcon = document.getElementById('verdictIcon');
+
+    if (verdictCard && verdictIcon) {
+        if (score >= 70) {
+            verdictCard.className = 'result-card result-card-hero verdict-strong';
+            verdictIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
+        } else if (score >= 50) {
+            verdictCard.className = 'result-card result-card-hero verdict-moderate';
+            verdictIcon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+        } else {
+            verdictCard.className = 'result-card result-card-hero verdict-weak';
+            verdictIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
+        }
+    }
+
+    animateScore(score);
+
+    renderList("issuesList", data.issues, "No critical issues detected");
+    renderList("strengthsList", data.strengths, "No strong points identified");
+
+    const weaknesses = (data.evidence_gaps && data.evidence_gaps.length > 0)
+        ? data.evidence_gaps.map(g => `[EVIDENCE GAP] ${g.document_required}: ${g.consequence}`)
+        : (data.weaknesses || []);
+    renderList("weaknessesList", weaknesses, "No significant weaknesses identified");
+    
+    renderTimelineEngine(data.procedural_graph || data.timeline_analysis || data.timeline);
+    renderEconomicsEngine(data.economics || data.bail_economics);
+    renderExplainableScore(data);
+    renderEvidenceSufficiencyMeter(data);
+    
+    const recommendedActions = (data.next_best_actions && data.next_best_actions.length > 0)
+        ? data.next_best_actions.map(a => `[PRIORITY ${a.priority}] ${a.action} — ${a.reason} (${a.authority})`)
+        : ((data.decision && data.decision.next_steps) || data.recommended_actions || data.next_steps || []);
+    renderList("actionsList", recommendedActions, "No recommended actions");
+    renderList("contradictionsList", data.contradictions || [], "No contradictions detected");
+
+    if (Array.isArray(data.legal_strategy)) {
+        renderList("strategyList", data.legal_strategy, "No strategy available");
+    } else if (data.legal_strategy) {
+        const strategyListEl = document.getElementById("strategyList");
+        if (strategyListEl) {
+            strategyListEl.innerHTML = `<div class="list-item">${escapeHtml(String(data.legal_strategy))}</div>`;
+        }
+    } else {
+        renderList("strategyList", [], "No strategy available");
+    }
+
+    const defences = data.defence_strategy || data.predicted_defences || data.defence || data.top_defences || data.defences_ranked || [];
+    displayDefences(defences);
+
+    displaySemanticAnalysis(data.semantic_analysis || {});
+
+    if (data.decision) {
+        renderDecisionPanel(data.decision);
+    }
+
+    displayReasoningTrace(data.reasoning_trace || data.reasoning || []);
+
+    const draftText = data.draft || data.legal_draft || data.generated_draft 
+                   || (data.data && (data.data.draft || data.data.legal_draft))
+                   || "";
+    const draftPreviewEl = document.getElementById("draftPreviewContent");
+    const draftContentEl = document.getElementById("draftContent");
+
+    if (draftPreviewEl) draftPreviewEl.value = draftText || "Legal draft is being generated. Please try 'Generate Report' to download the full draft.";
+    if (draftContentEl) draftContentEl.value = draftText || "Legal draft is being generated. Please try 'Generate Report' to download the full draft.";
+
+    const legalAnalysisEl = document.getElementById("legalAnalysis");
+    if (legalAnalysisEl) {
+        legalAnalysisEl.innerText = data.legal_analysis || "No legal analysis available";
+    }
+
+    renderLimitationClock(data);
+    renderCorporateWarning(data);
+    if (data.statutory_rules) {
+        renderRulesEngine(data.statutory_rules);
+    }
+
+    // renderScoreExplanation(data); // Disabled: Redundant with AI Case Summary
+    renderImprovementSuggestions(data);
+    renderConfidenceIndicator(data);
+    renderCaseSummaryCard(data);
+    renderAIReasoningLayer(data);
+    renderVerifiedAuthorityCard(data);
+
+    if (domain === 'sarfaesi') {
+        renderSarfaesiResultsPanels(data);
+    }
+}
+
+// Render Rich Clickable Primary Source Authority Card
+export function renderVerifiedAuthorityCard(data) {
+    const auth = data.verified_authority || data.authority;
+    if (!auth || typeof auth !== 'object' || !auth.citation) return;
+
+    const container = document.getElementById('verifiedAuthorityContainer') || document.getElementById('precedentsList');
+    if (!container) return;
+
+    const src = auth.source || {};
+    const ver = auth.verification || {};
+    const checks = ver.verification_checks || {};
+    const status = auth.status || auth.treatment || "VERIFIED";
+
+    let statusColor = "#16a34a"; // green
+    if (status === "SUPERSEDED") statusColor = "#dc2626"; // red
+    if (status === "DISTINGUISHABLE" || status === "DISTINGUISHED") statusColor = "#d97706"; // amber
+    if (status === "UNKNOWN") statusColor = "#6b7280"; // gray
+
+    const officialUrl = src.official_url || "#";
+    const docHash = src.document_hash ? src.document_hash.substring(0, 18) + "..." : "sha256:verified";
+
+    const isPrimary = ver.primary_source_verified;
+    const isIntegrity = ver.document_integrity_verified;
+    const isPropMapped = ver.proposition_mapped;
+    const isTreat = ver.current_treatment_checked;
+
+    const cardHTML = `
+        <div class="verified-authority-card" style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; margin-top: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); font-family: inherit;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 0.75rem;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                        <span style="background: #eff6ff; color: #1d4ed8; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 4px;">
+                            ${auth.type || 'PRIMARY_AUTHORITY'}
+                        </span>
+                        <span style="background: ${statusColor}15; color: ${statusColor}; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.3rem;">
+                            <i class="fas fa-shield-alt"></i> ${status}
+                        </span>
+                    </div>
+                    <h4 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #0f172a;">${auth.title || auth.citation}</h4>
+                    <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.2rem;">
+                        <i class="fas fa-university"></i> ${auth.court || auth.issuing_authority || 'Supreme Court of India'} &bull; ${auth.date || 'Verified Statutory Authority'}
+                    </div>
+                </div>
+                ${src.official_url ? `
+                    <a href="${officialUrl}" target="_blank" rel="noopener noreferrer" style="background: #2563eb; color: #ffffff; font-size: 0.8rem; font-weight: 700; padding: 0.5rem 0.85rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; transition: background 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+                        <i class="fas fa-external-link-alt"></i> VIEW OFFICIAL SOURCE
+                    </a>
+                ` : ''}
+            </div>
+
+            <div style="font-size: 0.88rem; color: #334155; line-height: 1.5; margin-bottom: 0.85rem;">
+                <strong>Proposition Mapped:</strong> ${auth.proposition_supported || (auth.principles && auth.principles[0]) || 'Legal principles mapped to statutory posture.'}
+            </div>
+
+            <!-- Distinct 4-Badge Verification Grid -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; font-size: 0.78rem; color: #475569;">
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fas fa-check-circle" style="color: ${isPrimary ? '#16a34a' : '#cbd5e1'};"></i> Official Source Verified
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fas fa-check-circle" style="color: ${isIntegrity ? '#16a34a' : '#cbd5e1'};"></i> Document Integrity (${docHash})
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fas fa-check-circle" style="color: ${isPropMapped ? '#16a34a' : '#d97706'};"></i> Proposition Mapped to KB Ratio
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fas fa-check-circle" style="color: ${isTreat ? '#16a34a' : '#cbd5e1'};"></i> Treatment Checked (${status})
+                </div>
+            </div>
+        </div>
+    `;
+
+    if (container.id === 'verifiedAuthorityContainer') {
+        container.innerHTML = cardHTML;
+    } else {
+        container.insertAdjacentHTML('afterbegin', cardHTML);
+    }
+}
+
+// Render statutory rules engine
+export function renderRulesEngine(rulesData) {
+    const container = document.getElementById('statutoryRulesContainer');
+    if (!container) return;
+
+    if (!rulesData || rulesData.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    let html = `
+        <div style="background: var(--error-50); border: 2px solid var(--error-600); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.1);">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; color: var(--error-700); border-bottom: 1px solid var(--error-200); padding-bottom: 0.75rem;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem; animation: pulse 2s infinite;"></i>
+                <h3 style="margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Statutory Bars Detected</h3>
+            </div>
+    `;
+
+    html += rulesData.map(rule => `
+        <div style="background: white; border-left: 4px solid var(--error-500); padding: 1rem; margin-bottom: 1rem; border-radius: var(--radius-sm); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <div style="font-weight: 700; color: var(--gray-900); font-size: 1.1rem;">${rule.rule_name}</div>
+                <div style="background: var(--error-100); color: var(--error-800); font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.5rem; border-radius: 4px;">${rule.status}</div>
+            </div>
+            <div style="font-size: 0.95rem; color: var(--gray-700); margin-bottom: 0.75rem;"><strong>Trigger:</strong> ${rule.description}</div>
+            <div style="font-size: 0.95rem; color: var(--error-700); font-weight: 600; margin-bottom: 0.75rem;"><i class="fas fa-gavel"></i> <strong>Legal Effect:</strong> ${rule.legal_effect}</div>
+            <div style="font-size: 0.9rem; background: var(--gray-50); padding: 0.5rem; border-radius: 4px; border: 1px solid var(--gray-200);">
+                <i class="fas fa-arrow-right" style="color: var(--primary-500);"></i> <strong>Action Required:</strong> ${rule.action}
+            </div>
+        </div>
+    `).join('');
+
+    html += `</div>`;
+    container.innerHTML = html;
+}
+
+// Switch result tabs
+export function switchResultTab(tabName) {
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-tab') === tabName) {
+            btn.classList.add('active');
+        }
+    });
+
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+        content.classList.remove('active');
+    });
+
+    const tabId = `tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
+    const targetTab = document.getElementById(tabId);
+    if (targetTab) {
+        targetTab.classList.remove('hidden');
+        targetTab.classList.add('active');
+        if (tabName === 'strategy' && window.renderAdversarialCharts) {
+            setTimeout(() => {
+                window.renderAdversarialCharts(window.state.analysisResult);
+            }, 150);
+        }
+        if (tabName === 'draft' && typeof window.renderSelectedDraft === 'function') {
+            window.renderSelectedDraft();
+        }
+    }
+}
+
+
+

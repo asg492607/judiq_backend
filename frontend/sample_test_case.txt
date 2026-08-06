@@ -1,0 +1,69 @@
+========================================================================
+SAMPLE 1: MANDATORY LEGAL DEMAND NOTICE (SECTION 138 NI ACT)
+========================================================================
+LEGAL NOTICE UNDER SECTION 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881
+
+Date: May 02, 2026
+
+To,
+BuildTech Industries Pvt. Ltd.
+Through its Managing Director, Mr. Anil Kumar
+45 Cyber Hub, Gurgaon, Haryana
+
+Subject: Legal Notice under Section 138 of the Negotiable Instruments Act, 1881 for dishonour of Cheque No. 000456 dated April 15, 2026, for Rs. 5,00,000/- (Rupees Five Lakhs Only).
+
+Sir,
+
+Under the instructions and authority of my client, Mr. Rajesh Sharma, residing at 123 South Extension, New Delhi (hereinafter referred to as "my Client"), I hereby serve you with this Legal Notice:
+
+1. That you, Mr. Anil Kumar, in your capacity as Managing Director of BuildTech Industries Pvt. Ltd., approached my Client in November 2025 for a friendly loan to meet business expansion requirements. In mutual agreement, my Client advanced a sum of Rs. 5,00,000/- (Rupees Five Lakhs Only) to your bank account via bank transfer on November 10, 2025.
+
+2. That towards the discharge of your legally enforceable liability, you issued Cheque No. 000456 dated April 15, 2026, for Rs. 5,00,000/- drawn on HDFC Bank, Cyber City Branch, Gurgaon.
+
+3. That the said cheque was presented by my Client to his bank, ICICI Bank, South Ex Branch, on April 18, 2026, within its validity period. However, the said cheque was returned dishonoured by your bank with the remark "Funds Insufficient" vide Bank Return Memo dated April 20, 2026.
+
+4. That my Client received the official Bank Return Memo on April 22, 2026. Thus, you have failed to maintain sufficient balance in your account to clear the cheque.
+
+5. Therefore, I hereby call upon you to make the payment of the cheque amount of Rs. 5,00,000/- (Rupees Five Lakhs Only) to my Client within 15 (fifteen) days from the receipt of this legal notice.
+
+6. Please note that if you fail to make the said payment within the stipulated 15-day period, my Client shall be constrained to initiate criminal proceedings against you under Section 138 of the Negotiable Instruments Act, 1881, as well as civil proceedings, at your entire cost and risk.
+
+Yours faithfully,
+
+Devendra Singh
+Advocate, Delhi High Court
+
+
+========================================================================
+SAMPLE 2: BANK DISHONOUR MEMO (RETURN MEMO)
+========================================================================
+HDFC BANK LTD.
+CYBER CITY BRANCH, GURGAON
+TEL: 0124-4900123
+
+CHEQUE RETURN MEMO
+
+Date of Return: April 20, 2026
+
+Presented By: ICICI Bank Ltd., South Extension, New Delhi
+Drawer Account: BuildTech Industries Pvt. Ltd. (A/C No. 5020008492011)
+
+We return herewith the following instrument unpaid for the reason(s) indicated below:
+
+Instrument Details:
+------------------------------------------------------------------------
+Cheque No.   Cheque Date    Cheque Amount (INR)     Dishonour Date
+000456       2026-04-15     5,00,000.00             2026-04-20
+------------------------------------------------------------------------
+
+Reason for Return Code: 
+[X] 01 - FUNDS INSUFFICIENT / INSUFFICIENT FUNDS
+[ ] 02 - SIGNATURE DIFFERS / SIGNATURE MISMATCH
+[ ] 03 - ACCOUNT CLOSED
+[ ] 04 - REFER TO DRAWER
+[ ] 05 - POST-DATED INSTRUMENT
+
+Please note that charges of INR 500/- have been debited to the drawer's account for this cheque return.
+
+This is a computer-generated memo and does not require a signature.
+========================================================================

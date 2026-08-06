@@ -1,0 +1,39 @@
+{
+  "_meta": "Demo Case 3: Regular Bail — IPC 420 Cheating",
+  "case_type": "criminal_general",
+  "case_identity": {
+    "case_id": "DEMO-CR-001",
+    "case_type": "criminal_general",
+    "court": "Sessions Court Nagpur",
+    "jurisdiction": "Maharashtra",
+    "stage": "Bail Application"
+  },
+  "parties": {
+    "accused": "Amit Sharma",
+    "complainant": "State of Maharashtra"
+  },
+  "offence": {
+    "sections": ["IPC 420", "IPC 406"],
+    "fir_number": "CR 112/2024",
+    "police_station": "Sitabuldi PS, Nagpur",
+    "offence_date": "2023-12-10",
+    "arrest_date": "2024-01-05",
+    "days_in_custody": 45
+  },
+  "accused_profile": {
+    "prior_criminal_record": false,
+    "has_fixed_address": true,
+    "local_roots": true,
+    "occupation": "Software Engineer",
+    "flight_risk": "Low"
+  },
+  "bail_factors": {
+    "custodial_interrogation_required": false,
+    "investigation_complete": true,
+    "chargesheet_filed": true,
+    "max_punishment_years": 7,
+    "co_accused_granted_bail": true,
+    "surety_available": true
+  },
+  "advocate_notes": "Standard regular bail. Chargesheet filed. Investigation complete. No flight risk. Co-accused already on bail. Strong grounds for release."
+}
