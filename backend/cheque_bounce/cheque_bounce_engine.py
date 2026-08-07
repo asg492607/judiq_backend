@@ -22,13 +22,22 @@ class ChequeBounceEngine(BaseDomainEngine):
         complaint_date = case_data.get("date_of_complaint") or case_data.get("complaint_date")
 
         notice_defect = None
-        if dishonour_date and notice_date:
+        notice_days = case_data.get("notice_days")
+        if notice_days is not None and notice_days > 30:
+            notice_defect = f"Statutory Notice delayed to {notice_days} days post-dishonour (Limit: 30 days u/s 138(b))."
+        elif dishonour_date and notice_date:
             d = days_between(dishonour_date, notice_date)
             if d is not None and d > 30:
                 notice_defect = f"Statutory Notice delayed to {d} days post-dishonour (Limit: 30 days u/s 138(b))."
 
         complaint_defect = None
-        if notice_date and complaint_date:
+        days_post_notice = case_data.get("days_post_notice")
+        if days_post_notice is not None:
+            if days_post_notice < 15:
+                complaint_defect = f"Complaint filed prematurely on day {days_post_notice}. Cause of action arises only on 16th day post notice receipt."
+            elif days_post_notice > 45:
+                complaint_defect = f"Complaint filed after {days_post_notice} days. Exceeds 1-month statutory window u/s 142(1)(b). Condonation application required."
+        elif notice_date and complaint_date:
             d = days_between(notice_date, complaint_date)
             if d is not None and d < 15:
                 complaint_defect = f"Complaint filed prematurely on day {d}. Cause of action arises only on 16th day post notice receipt."
@@ -71,7 +80,7 @@ class ChequeBounceEngine(BaseDomainEngine):
                 "name": "Section 142 Criminal Complaint before Magistrate (1 Month)",
                 "statute": "Section 142(1)(b) NI Act",
                 "authority": "Yogendra Pratap Singh v. Savitri Pandey (2014)",
-                "completed": bool(complaint_date) or case_data.get("complaint_filed", False),
+                "completed": bool(complaint_date) or case_data.get("complaint_filed", False) or days_post_notice is not None,
                 "date": complaint_date,
                 "defect": complaint_defect,
                 "severity": "FATAL" if complaint_defect else "NONE"
@@ -89,7 +98,7 @@ class ChequeBounceEngine(BaseDomainEngine):
         ]
 
         current_stage = "Pre-Notice Stage"
-        if complaint_date:
+        if complaint_date or days_post_notice is not None:
             current_stage = "Magistrate Trial / Summons Stage"
         elif notice_date:
             current_stage = "Statutory Demand Window / Cause of Action"
@@ -139,7 +148,7 @@ class ChequeBounceEngine(BaseDomainEngine):
                 "authority": "Section 143A NI Act"
             })
 
-        if case_data.get("accused_type") == "Pvt Ltd/Ltd Company" and not case_data.get("directors_named"):
+        if case_data.get("accused_type") == "Pvt Ltd/Ltd Company" and (not case_data.get("directors_named") or case_data.get("company_arrayed") is False):
             actions.append({
                 "priority": 1,
                 "action": "Implead Company & Active In-Charge Directors under Section 141",
