@@ -19,7 +19,8 @@ class SarfaesiDomainEngine(BaseDomainEngine):
     def domain_name(self) -> str:
         return "sarfaesi"
 
-    def analyze(self, case_data: Dict[str, Any], concepts: List[Dict[str, Any]] = None) -> Dict[str, Any]:
+    @classmethod
+    def analyze(cls, case_data: Dict[str, Any], concepts: List[Dict[str, Any]] = None) -> Dict[str, Any]:
         perspective = str(case_data.get("perspective", "creditor")).lower()
         is_borrower = perspective in ["borrower", "debtor", "applicant"]
 
@@ -48,12 +49,12 @@ class SarfaesiDomainEngine(BaseDomainEngine):
             "score": score,
             "final_score": float(score),
             "verdict": verdict,
-            "domain": self.domain_name,
+            "domain": "sarfaesi",
             "perspective": eval_result["perspective"],
             "fatal_defect": eval_result.get("fatal_defect"),
             "detailed_assessment": eval_result,
             "procedural_graph": eval_result.get("procedural_graph", {}),
-            "next_actions": self.get_next_actions(case_data, eval_result)
+            "next_actions": cls().get_next_actions(case_data, eval_result)
         }
 
     def build_procedural_graph(self, case_data: Dict[str, Any]) -> Dict[str, Any]:
