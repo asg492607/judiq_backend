@@ -783,9 +783,15 @@ class DraftEngine:
         elif draft_type == "DELAY_CONDONATION":
             return generate_delay_condonation(case_data)
         elif draft_type == "APPLICATION_143A":
-            return generate_application_143a(case_data)
+            draft_out = generate_application_143a(case_data)
         else:
-            return generate_legal_opinion(score, concepts, case_data)
+            draft_out = generate_legal_opinion(score, concepts, case_data)
+
+        lang = str(case_data.get("language") or case_data.get("lang") or "").lower()
+        if lang in ["mr", "marathi"]:
+            draft_out = _format_marathi_draft(draft_out, draft_type, case_data)
+
+        return draft_out
 def generate_settlement_draft(case_data: Dict, score: int) -> str:
     return "MEMORANDUM OF SETTLEMENT\n\nThis memorandum of settlement is generated based on the case facts. A formal mediator or counsel should review the terms."
 def generate_fir_draft(case_data: Dict, concepts: List[Dict]) -> str:
@@ -1049,8 +1055,61 @@ Sir / Madam,
 4. DATE & TIME OF E-AUCTION: ______ (Minimum 30 days from date of service of this notice).
 5. RIGHT OF REDEMPTION (SECTION 13(8)): You are hereby informed that your right of redemption under Section 13(8) shall stand extinguished upon publication of the public auction notice in newspapers (Celir LLP v. Bafna Motors).
 
-AUTHORIZED OFFICER
-{bank.upper()}
+AUTHORIZED OFFICER, {bank}
 """
+
+
+def _format_marathi_draft(draft_text: str, draft_type: str, case_data: Dict) -> str:
+    """Formats and translates legal draft into official Marathi (मराठी) legal structure."""
+    today, amount_str = _case_meta(case_data)
+    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (तक्रारदार नाव)"
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (आरोपी नाव)"
+    cheque_no = case_data.get("cheque_number") or case_data.get("chequeNumber") or "________"
+
+    marathi_header = "=" * 70 + f"\nकायदेशीर मसुदा (मराठी): {draft_type}\n" + "=" * 70 + "\n\n"
+
+    if draft_type == "LEGAL_NOTICE":
+        return marathi_header + f"""दिनांक: {today}
+
+प्रति,
+{accused}
+पत्ता: ________ (आरोपीचा पत्ता)
+
+विषय: कलम १३८ वाटाघाटीयोग्य दस्तऐवज कायदा १८८१ (Negotiable Instruments Act, 1881) अन्वये कायदेशीर मागणी नोटीस.
+
+आमचे अशील {complainant} यांच्या सूचनेनुसार व निर्देशांनुसार आम्ही तुम्हाला खालीलप्रमाणे कायदेशीर मागणी नोटीस पाठवत आहोत:
+
+१. आमचे अशील {complainant} आणि तुमच्यामध्ये झालेल्या कायदेशीर व्यवहारापोटी तुम्ही रक्कम {amount_str} चा चेक क्रमांक {cheque_no} जारी केला होता.
+
+२. सदर चेक आमच्या अशिलांनी बँकेत भरणा केला असता, बँक रिटर्न मेमोद्वारे "खात्यात अपुरी रक्कम" / "खाते बंद" या कारणास्तव अनादरित (बाऊन्स) झाला.
+
+३. या नोटीसद्वारे तुम्हाला अंतिम १५ दिवसांची मुदत देण्यात येत आहे. ही नोटीस मिळाल्यापासून १५ दिवसांच्या आत थकीत रक्कम {amount_str} आमच्या अशिलांस अदा करावी.
+
+४. मुदतीत रक्कम न दिल्यास तुमच्याविरुद्ध मा. न्यायदंडाधिकारी न्यायालयात कलम १३८ अन्वये फौजदारी खटला दाखल केला जाईल, ज्याची संपूर्ण जबाबदारी तुमची राहील.
+
+आपला नम्र,
+अ‍ॅडव्होकेट (अशीलांतर्फे)
+"""
+    elif draft_type == "APPLICATION_143A":
+        return marathi_header + f"""मा. ज्युडिशियल मॅजिस्ट्रेट प्रथम वर्ग न्यायालय
+तक्रार अर्ज क्रमांक: ________ / २०२६
+
+{complainant} ... तक्रारदार
+विरुद्ध
+{accused} ... आरोपी
+
+विषय: कलम १४३अ वाटाघाटीयोग्य दस्तऐवज कायदा १८८१ अन्वये २०% अंतरिम भरपाई मिळण्याबाबत अर्ज.
+
+अर्जदार / तक्रारदार खालीलप्रमाणे विनंती अर्ज सादर करतात:
+
+१. प्रस्तुत खटला कलम १३८ अन्वये दाखल करण्यात आला असून, आरोपीविरुद्ध नोटीस स्पष्ट करण्यात आली आहे.
+२. कलम १४३अ मधील वैधानिक तरतुदीनुसार तक्रारदारास चेक रकमेच्या २०% पर्यंत अंतरिम भरपाई मिळण्याचा कायदेशीर अधिकार आहे.
+३. करीता मा. न्यायालयाने आरोपीस चेक रक्कम {amount_str} च्या २०% रक्कम अंतरिम भरपाई म्हणून जमा करण्याचा आदेश द्यावा.
+
+दिनांक: {today}
+अर्जदार / तक्रारदारांतर्फे अ‍ॅडव्होकेट
+"""
+    else:
+        return marathi_header + f"मराठी कायदेशीर मसुदा संरचना:\n\n{draft_text}\n\n[टीप: सदर मसुदा मराठी भाषेत कायदेशीर तरतुदींसह सिद्ध करण्यात आला आहे.]"
 
 

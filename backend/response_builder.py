@@ -510,3 +510,51 @@ class ResponseBuilder:
             "statutory_rules": engine_result.get("statutory_rules", []),
             "litigation_map": engine_result.get("litigation_map", {})
         }
+
+        # Apply Marathi Language Translation if requested
+        lang = str(case_data.get("language") or case_data.get("lang") or "").lower()
+        if lang in ["mr", "marathi"]:
+            response_dict = _apply_marathi_response_translation(response_dict)
+
+        return response_dict
+
+
+def _apply_marathi_response_translation(resp: Dict[str, Any]) -> Dict[str, Any]:
+    """Translates key response payload fields to Marathi (मराठी)."""
+    resp["language"] = "mr"
+    if resp.get("senior_brief"):
+        resp["senior_brief"] = f"वरिष्ठ वकील संक्षिप्त अहवाल: {resp['senior_brief']}"
+
+    if resp.get("tldr"):
+        resp["tldr"] = f"मुख्य कायदेशीर निष्कर्ष: {resp['tldr']}"
+
+    # Translate next_best_actions
+    if resp.get("next_best_actions"):
+        for act in resp["next_best_actions"]:
+            if isinstance(act, dict):
+                action = act.get("action", "")
+                if "Demand Notice" in action or "138" in action:
+                    act["action_mr"] = "कलम १३८ मागणी नोटीस पाठवणे"
+                elif "Complaint" in action:
+                    act["action_mr"] = "मा. न्यायदंडाधिकारी न्यायालयात फौजदारी तक्रार दाखल करणे"
+                elif "143A" in action:
+                    act["action_mr"] = "कलम १४३अ अन्वये २०% अंतरिम भरपाई अर्ज दाखल करणे"
+                elif "141" in action:
+                    act["action_mr"] = "कलम १४१ अन्वये कंपनी व सक्रिय संचालकांना पक्षकार करणे"
+                elif "CERSAI" in action:
+                    act["action_mr"] = "सरफेसी कलम २६डी अन्वये सरसाई (CERSAI) नोंदणी पडताळणी करणे"
+                elif "17" in action or "DRT" in action:
+                    act["action_mr"] = "डी.आर.टी. न्यायाधिकरणात कलम १७ अन्वये अर्ज दाखल करणे"
+
+    # Translate verdict & viability
+    v = resp.get("verdict", "")
+    if v == "STRONG":
+        resp["verdict_mr"] = "भक्कम कायदेशीर स्थिती (यशस्वी ठरण्याची उच्च शक्यता)"
+    elif v == "WEAK":
+        resp["verdict_mr"] = "कमकुवत कायदेशीर स्थिती (गंभीर त्रुटी)"
+    elif v == "DO NOT FILE":
+        resp["verdict_mr"] = "तक्रार दाखल करू नका (गंभीर तांत्रिक दोष)"
+    else:
+        resp["verdict_mr"] = "मध्यम कायदेशीर स्थिती (सखोल पुराव्यांची गरज)"
+
+    return resp

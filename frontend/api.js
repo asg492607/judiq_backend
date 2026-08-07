@@ -73,10 +73,16 @@ export async function fetchWithRetry(url, options = {}, maxRetries = 2, baseDela
 
 export const api = {
     async analyze(data) {
+        const currentLang = (window.i18n && window.i18n.currentLang) || localStorage.getItem('judiq_lang') || 'en';
+        const payload = {
+            language: currentLang,
+            lang: currentLang,
+            ...data
+        };
         const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/analyze`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            body: JSON.stringify(payload)
         });
         let responseBody; try { responseBody = await response.json(); } catch (e) { throw new Error("Invalid JSON from server."); }
         return responseBody.data !== undefined
