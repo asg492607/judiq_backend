@@ -15,6 +15,7 @@ import threading
 from jurisdiction_engine import map_jurisdiction
 router = APIRouter()
 logger = logging.getLogger("JudiQ.Analysis")
+from pydantic import BaseModel, Field, ConfigDict
 class CaseAnalysisRequest(BaseModel):
     description: Optional[str] = Field(None, max_length=10000)
     amount: Optional[float] = 0.0
@@ -24,8 +25,7 @@ class CaseAnalysisRequest(BaseModel):
     debt_proven: Optional[bool] = False
     accused_type: Optional[str] = "Individual"
     analysis_mode: Optional[str] = "detailed"
-    class Config:
-        extra = "ignore"
+    model_config = ConfigDict(extra="ignore")
 ANALYSIS_CACHE = {}
 CACHE_LOCK = threading.Lock()
 def get_cache_key(data: dict):

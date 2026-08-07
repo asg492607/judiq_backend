@@ -24,7 +24,7 @@ export const wizardSteps = [
             { name: 'filing_date', label: 'Filing Date', type: 'date', required: true },
             { name: 'court_name', label: 'Court Name', type: 'text', required: false, placeholder: 'e.g., District Court, Mumbai' },
             { name: 'condonation_attached', label: 'Condonation of Delay App Attached? (S.142)', type: 'select', options: ['Yes', 'No', 'Not Applicable'], required: false },
-            { name: 'case_type', label: 'Case Type', type: 'select', options: ['Cheque Bounce', 'SARFAESI'], required: true },
+            { name: 'case_type', label: 'Case Type', type: 'select', options: ['Cheque Bounce', 'SARFAESI', 'Criminal', 'Civil'], required: true },
             { name: 'judicial_temperament', label: 'Judicial Temperament / Courtroom Mood', type: 'select', options: ['Balanced', 'Pro-Complainant', 'Pro-Accused'], required: false }
         ]
     },
