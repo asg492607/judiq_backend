@@ -511,10 +511,12 @@ class ResponseBuilder:
             "litigation_map": engine_result.get("litigation_map", {})
         }
 
-        # Apply Marathi Language Translation if requested
+        # Apply Marathi or Hindi Language Translation if requested
         lang = str(case_data.get("language") or case_data.get("lang") or "").lower()
         if lang in ["mr", "marathi"]:
             response_dict = _apply_marathi_response_translation(response_dict)
+        elif lang in ["hi", "hindi"]:
+            response_dict = _apply_hindi_response_translation(response_dict)
 
         return response_dict
 
@@ -556,5 +558,46 @@ def _apply_marathi_response_translation(resp: Dict[str, Any]) -> Dict[str, Any]:
         resp["verdict_mr"] = "तक्रार दाखल करू नका (गंभीर तांत्रिक दोष)"
     else:
         resp["verdict_mr"] = "मध्यम कायदेशीर स्थिती (सखोल पुराव्यांची गरज)"
+
+    return resp
+
+
+def _apply_hindi_response_translation(resp: Dict[str, Any]) -> Dict[str, Any]:
+    """Translates key response payload fields to Hindi (हिंदी)."""
+    resp["language"] = "hi"
+    if resp.get("senior_brief"):
+        resp["senior_brief"] = f"वरिष्ठ अधिवक्ता संक्षिप्त रिपोर्ट: {resp['senior_brief']}"
+
+    if resp.get("tldr"):
+        resp["tldr"] = f"मुख्य कानूनी निष्कर्ष: {resp['tldr']}"
+
+    # Translate next_best_actions to Hindi
+    if resp.get("next_best_actions"):
+        for act in resp["next_best_actions"]:
+            if isinstance(act, dict):
+                action = act.get("action", "")
+                if "Demand Notice" in action or "138" in action:
+                    act["action_hi"] = "धारा 138 के तहत विधिक मांग नोटिस जारी करना"
+                elif "Complaint" in action:
+                    act["action_hi"] = "माननीय न्यायिक मजिस्ट्रेट न्यायालय में आपराधिक परिवाद पत्र दाखिल करना"
+                elif "143A" in action:
+                    act["action_hi"] = "धारा 143A के तहत 20% अंतरिम मुआवजा आवेदन प्रस्तुत करना"
+                elif "141" in action:
+                    act["action_hi"] = "धारा 141 के तहत कंपनी तथा सक्रिय निदेशकों को पक्षकार बनाना"
+                elif "CERSAI" in action:
+                    act["action_hi"] = "सरफेसी धारा 26D के तहत सरसाई (CERSAI) पंजीकरण सत्यापन करना"
+                elif "17" in action or "DRT" in action:
+                    act["action_hi"] = "डीआरटी (DRT) अधिकरण में धारा 17 के तहत आवेदन पत्र दाखिल करना"
+
+    # Translate verdict & viability to Hindi
+    v = resp.get("verdict", "")
+    if v == "STRONG":
+        resp["verdict_hi"] = "मजबूत कानूनी स्थिति (सफलता की उच्च संभावना)"
+    elif v == "WEAK":
+        resp["verdict_hi"] = "कमजोर कानूनी स्थिति (गंभीर कमियां)"
+    elif v == "DO NOT FILE":
+        resp["verdict_hi"] = "केस दाखिल न करें (गंभीर प्रक्रियात्मक दोष)"
+    else:
+        resp["verdict_hi"] = "मध्यम कानूनी स्थिति (साक्ष्य सुदृढ़ीकरण की आवश्यकता)"
 
     return resp

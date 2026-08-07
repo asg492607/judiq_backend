@@ -1,5 +1,5 @@
 /**
- * JudiQ AI — Internationalization (i18n) Engine for English & Marathi (मराठी)
+ * JudiQ AI — Internationalization (i18n) Engine for English, Marathi (मराठी) & Hindi (हिंदी)
  * Enables seamless instant switching across landing page, input forms, dashboard, results, and draft generation.
  */
 
@@ -46,7 +46,7 @@ window.i18n = {
             next_best_actions: "Recommended Next Actions",
             adversarial_vectors: "Adversarial Attack Vectors & Weaknesses",
             export_pdf: "Export Analysis PDF",
-            lang_btn: "मराठी"
+            lang_label: "English"
         },
         mr: {
             brand_name: "ज्युरिक आय (JudiQ AI)",
@@ -87,7 +87,48 @@ window.i18n = {
             next_best_actions: "महत्त्वाच्या पुढील कृती",
             adversarial_vectors: "विरोधी पक्षाचे संभाव्य युक्तिवाद आणि त्रुटी",
             export_pdf: "विश्लेषण पीडीएफ डाऊनलोड करा",
-            lang_btn: "English"
+            lang_label: "मराठी"
+        },
+        hi: {
+            brand_name: "न्यायिक एआई (JudiQ AI)",
+            brand_subtitle: "न्यायालीन एआई रणनीतिकार",
+            nav_about: "परिचय",
+            nav_pricing: "शुल्क योजना",
+            nav_testimonials: "समीक्षाएं",
+            nav_faq: "सामान्य प्रश्न",
+            nav_contact: "संपर्क",
+            nav_docs: "दस्तावेज़",
+            nav_settings: "सेटिंग्स",
+            nav_logout: "लॉगआउट",
+            load_demo_case: "डेमो केस लोड करें",
+            hero_title: "अदालत में सुनवाई से पहले गंभीर कानूनी कमियां और त्रुटियां खोजें",
+            hero_sub: "धारा 138 चेक बाउंस विश्लेषण, सरफेसी बैंक कार्रवाई, विपक्षी तर्क परीक्षण और स्वचालित कानूनी प्रारूप निर्माता।",
+            start_analysis: "केस विश्लेषण शुरू करें",
+            select_domain: "कानूनी क्षेत्र चुनें",
+            domain_ni: "चेक बाउंस (धारा 138 एनआई एक्ट)",
+            domain_sarfaesi: "सरफेसी एवं डीआरटी कानून",
+            domain_criminal: "आपराधिक कानून (आईपीसी / बीएनएस)",
+            domain_civil: "दीवानी मुकदमा (सीपीसी)",
+            account_overview: "खाता विहंगम दृष्टि",
+            quick_actions: "त्वरित कार्रवाई",
+            cases_analysed: "विश्लेषित मुकदमे",
+            fatal_defects: "गंभीर कानूनी कमियां",
+            strong_cases: "मजबूत मुकदमे",
+            analyse_s138: "धारा 138 केस विश्लेषण",
+            s138_sub: "वैधानिक नोटिस, समय-सीमा, चेक राशि और नोटिस कमियों की जांच करें",
+            generate_draft: "कानूनी ड्राफ्ट तैयार करें",
+            generate_draft_sub: "मांग नोटिस, परिवाद पत्र या बचाव जवाब स्वचालित रूप से बनाएं",
+            cheque_amount: "चेक राशि (₹)",
+            dishonour_date: "चेक अनादर (बाउंस) तिथि",
+            notice_date: "कानूनी नोटिस भेजने की तिथि",
+            complainant_type: "शिकायतकर्ता का प्रकार",
+            analyze_now: "अभी विश्लेषण करें",
+            viability_score: "मुकदमे की सफलता की संभावना (%)",
+            procedural_timeline: "प्रक्रियात्मक समय-सीमा आरेख",
+            next_best_actions: "अनुशंसित आगामी कार्रवाई",
+            adversarial_vectors: "विपक्षी पक्ष के संभावित तर्क और कमियां",
+            export_pdf: "विश्लेषण पीडीएफ डाउनलोड करें",
+            lang_label: "हिंदी"
         }
     },
 
@@ -115,14 +156,16 @@ window.i18n = {
         });
 
         // Update language toggle buttons
+        const labelMap = { en: 'English', mr: 'मराठी', hi: 'हिंदी' };
         document.querySelectorAll('.lang-toggle-btn').forEach(btn => {
-            btn.innerHTML = `<i class="fas fa-globe"></i> <span>${lang === 'en' ? 'मराठी' : 'English'}</span>`;
+            btn.innerHTML = `<i class="fas fa-globe"></i> <span>${labelMap[lang] || 'English'}</span>`;
         });
     }
 };
 
 window.toggleLanguage = function() {
-    window.i18n.currentLang = window.i18n.currentLang === 'en' ? 'mr' : 'en';
+    const cycle = { en: 'mr', mr: 'hi', hi: 'en' };
+    window.i18n.currentLang = cycle[window.i18n.currentLang] || 'en';
     localStorage.setItem('judiq_lang', window.i18n.currentLang);
     window.i18n.updatePageText();
     
@@ -131,11 +174,14 @@ window.toggleLanguage = function() {
         window.renderDashboard();
     }
     
+    const toastMsgMap = {
+        mr: 'भाषा मराठीत बदलली आहे.',
+        hi: 'भाषा बदलकर हिंदी कर दी गई है।',
+        en: 'Language switched to English.'
+    };
+
     if (window.showToast) {
-        window.showToast(
-            window.i18n.currentLang === 'mr' ? 'भाषा मराठीत बदलली आहे.' : 'Language switched to English.',
-            'info'
-        );
+        window.showToast(toastMsgMap[window.i18n.currentLang] || 'Language updated.', 'info');
     }
 };
 
