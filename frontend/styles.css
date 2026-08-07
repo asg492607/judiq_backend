@@ -6170,6 +6170,8 @@ button.primary:hover,
 }
 .domain-badge--ni { background: linear-gradient(135deg, #4338ca, #6366f1); }
 .domain-badge--sarfaesi { background: linear-gradient(135deg, #b45309, #f59e0b); color: #0f172a; }
+.domain-badge--criminal { background: linear-gradient(135deg, #b91c1c, #ef4444); color: #ffffff; }
+.domain-badge--civil { background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: #ffffff; }
 
 /* ── Results Screen — NI Act Theme (dashboard--138) ──────────────── */
 .dashboard--138 #scoreProgress { stroke: #6366f1 !important; }

@@ -236,26 +236,106 @@ window.selectRole = (role) => {
 
 function renderDashboard() {
     const role = window.state.currentRole || 'citizen';
-    const domain = window.state.userDomain || 'ni_act';
-    const isSarfaesi = domain === 'sarfaesi';
+    const domain = (window.state.userDomain || 'ni_act').toLowerCase();
 
     // Domain badge in dashboard nav
     const dashNav = document.querySelector('#dashboardScreen .nav-brand');
-    if (dashNav && !dashNav.querySelector('.domain-badge')) {
-        const badge = document.createElement('span');
-        badge.className = `domain-badge ${isSarfaesi ? 'domain-badge--sarfaesi' : 'domain-badge--ni'}`;
-        badge.innerHTML = isSarfaesi
-            ? '<i class="fas fa-university"></i> SARFAESI / DRT'
-            : '<i class="fas fa-balance-scale"></i> NI Act — S.138';
-        dashNav.appendChild(badge);
+    if (dashNav) {
+        let badge = dashNav.querySelector('.domain-badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            dashNav.appendChild(badge);
+        }
+        if (domain === 'criminal') {
+            badge.className = 'domain-badge domain-badge--criminal';
+            badge.innerHTML = '<i class="fas fa-user-shield"></i> Criminal Law (IPC/BNS)';
+        } else if (domain === 'civil') {
+            badge.className = 'domain-badge domain-badge--civil';
+            badge.innerHTML = '<i class="fas fa-balance-scale"></i> Civil / CPC Litigation';
+        } else if (domain === 'sarfaesi') {
+            badge.className = 'domain-badge domain-badge--sarfaesi';
+            badge.innerHTML = '<i class="fas fa-university"></i> SARFAESI / DRT';
+        } else {
+            badge.className = 'domain-badge domain-badge--ni';
+            badge.innerHTML = '<i class="fas fa-file-invoice-dollar"></i> NI Act — S.138';
+        }
     }
 
     // Domain-specific stats and actions
     const grid = document.getElementById('actionCardsGrid');
     if (grid) {
-        if (isSarfaesi) {
-            // Load SARFAESI domain counts from localStorage
-            const allCases = JSON.parse(localStorage.getItem('judiq_recent_cases_v1') || '[]');
+        const allCases = JSON.parse(localStorage.getItem('judiq_recent_cases_v1') || '[]');
+        
+        if (domain === 'criminal') {
+            const domainCases = allCases.filter(c => c.domain === 'criminal' || (c.case_data && c.case_data.case_type === 'criminal'));
+            const total = domainCases.length;
+            const highBail = domainCases.filter(c => c.analysis_result && c.analysis_result.bail_assessment && c.analysis_result.bail_assessment.probability === 'HIGH').length;
+
+            grid.innerHTML = `
+                <div class="domain-section-header" style="grid-column:1/-1;">
+                    <i class="fas fa-user-shield" style="color:#ef4444;"></i>
+                    <h3>Criminal Law Intelligence Overview</h3>
+                </div>
+                <div class="domain-stats-grid" style="grid-column:1/-1;">
+                    <div class="domain-stat-card domain-stat-card--criminal" style="border-left: 4px solid #ef4444;">
+                        <div class="dsc-icon"><i class="fas fa-gavel" style="color:#ef4444;"></i></div>
+                        <div class="dsc-content"><div class="dsc-value">${total}</div><div class="dsc-label">Criminal Cases Analyzed</div></div>
+                    </div>
+                    <div class="domain-stat-card domain-stat-card--criminal" style="border-left: 4px solid #10b981;">
+                        <div class="dsc-icon"><i class="fas fa-key" style="color:#10b981;"></i></div>
+                        <div class="dsc-content"><div class="dsc-value">${highBail}</div><div class="dsc-label">High Bail Probability</div></div>
+                    </div>
+                </div>
+                <div class="domain-section-header" style="grid-column:1/-1;">
+                    <i class="fas fa-bolt" style="color:#f59e0b;"></i>
+                    <h3>Quick Actions</h3>
+                </div>
+                <div class="domain-actions-grid" style="grid-column:1/-1;">
+                    <div class="domain-action-card" onclick="startCaseAnalysis({case_type:'Criminal'})">
+                        <div class="dac-icon" style="color:#ef4444;"><i class="fas fa-search"></i></div>
+                        <div class="dac-title">Analyse Criminal Case</div>
+                        <div class="dac-sub">IPC/BNS & CrPC/BNSS audit, S.438 Bail & S.482 Bhajan Lal Quashing</div>
+                    </div>
+                    <div class="domain-action-card" onclick="startCaseAnalysis({case_type:'Criminal', offense_type:'420', contract_exists:true})">
+                        <div class="dac-icon" style="color:#f59e0b;"><i class="fas fa-balance-scale"></i></div>
+                        <div class="dac-title">S.420 / Civil Dispute Audit</div>
+                        <div class="dac-sub">Test civil dispute quashing grounds under Bhajan Lal & Hridaya Ranjan precedent</div>
+                    </div>
+                    <div class="domain-action-card" onclick="startCaseAnalysis({case_type:'Criminal'})">
+                        <div class="dac-icon" style="color:#3b82f6;"><i class="fas fa-file-contract"></i></div>
+                        <div class="dac-title">Bail & Quashing Petition Draft</div>
+                        <div class="dac-sub">Auto-generate Anticipatory Bail application or S.482 Quashing petition</div>
+                    </div>
+                </div>
+            `;
+        } else if (domain === 'civil') {
+            const domainCases = allCases.filter(c => c.domain === 'civil' || (c.case_data && c.case_data.case_type === 'civil'));
+            const total = domainCases.length;
+
+            grid.innerHTML = `
+                <div class="domain-section-header" style="grid-column:1/-1;">
+                    <i class="fas fa-balance-scale" style="color:#3b82f6;"></i>
+                    <h3>Civil & Commercial Litigation Overview</h3>
+                </div>
+                <div class="domain-stats-grid" style="grid-column:1/-1;">
+                    <div class="domain-stat-card" style="border-left: 4px solid #3b82f6;">
+                        <div class="dsc-icon"><i class="fas fa-file-alt" style="color:#3b82f6;"></i></div>
+                        <div class="dsc-content"><div class="dsc-value">${total}</div><div class="dsc-label">Civil Suits Analyzed</div></div>
+                    </div>
+                </div>
+                <div class="domain-section-header" style="grid-column:1/-1;">
+                    <i class="fas fa-bolt" style="color:#f59e0b;"></i>
+                    <h3>Quick Actions</h3>
+                </div>
+                <div class="domain-actions-grid" style="grid-column:1/-1;">
+                    <div class="domain-action-card" onclick="startCaseAnalysis({case_type:'Civil'})">
+                        <div class="dac-icon" style="color:#3b82f6;"><i class="fas fa-search"></i></div>
+                        <div class="dac-title">Analyse Civil Suit</div>
+                        <div class="dac-sub">CPC Plaint, Written Statement, Order 39 Injunction & Limitation Audit</div>
+                    </div>
+                </div>
+            `;
+        } else if (domain === 'sarfaesi') {
             const domainCases = allCases.filter(c => c.domain === 'sarfaesi');
             const npaCases = domainCases.length;
             const cersaiIssues = domainCases.filter(c => c.case_data && c.case_data.cersai_registered === false).length;
@@ -304,7 +384,6 @@ function renderDashboard() {
             `;
         } else {
             // NI Act domain
-            const allCases = JSON.parse(localStorage.getItem('judiq_recent_cases_v1') || '[]');
             const domainCases = allCases.filter(c => !c.domain || c.domain === 'ni_act');
             const totalCases = domainCases.length;
             const fatalCases = domainCases.filter(c => c.verdict === 'DO NOT FILE').length;
