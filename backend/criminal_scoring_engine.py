@@ -110,6 +110,7 @@ class CriminalScoringEngine(BaseScoringEngine):
             verdict = "STRONG PROSECUTION" if final_client_score > 70 else ("WEAK PROSECUTION" if final_client_score > 40 else "FATAL DEFECTS - WILL FAIL")
         return {
             "score": int(final_client_score),
+            "final_score": int(final_client_score),
             "prosecution_conviction_probability": int(final_score),
             "accused_acquittal_probability": 100 - int(final_score),
             "verdict": verdict,

@@ -26,7 +26,8 @@ class EngineRegistry:
             "document_intelligence": "document_intelligence.DocumentIntelligence",
             "sarfaesi_scoring": "sarfaesi_scoring_engine.SarfaesiScoringEngine",
             "sarfaesi_adversarial": "sarfaesi_adversarial_engine.SarfaesiAdversarialEngine",
-            "sarfaesi_timeline": "sarfaesi_timeline_engine.SarfaesiTimelineEngine"
+            "sarfaesi_timeline": "sarfaesi_timeline_engine.SarfaesiTimelineEngine",
+            "criminal_timeline": "criminal_timeline_engine.CriminalTimelineEngine"
         }
         self._instances = {}
     def get(self, module_name: str):
@@ -242,13 +243,13 @@ class JudiQEngine:
             fallback={},
             context="WitnessPressure"
         )
-        timeline_engine = registry.get("sarfaesi_timeline") if is_sarfaesi else registry.get("timeline")
+        timeline_engine = registry.get("criminal_timeline") if is_criminal else (registry.get("sarfaesi_timeline") if is_sarfaesi else registry.get("timeline"))
         timeline = _safe_call(
             timeline_engine.generate_timeline, case_data,
             fallback=[],
             context="TimelineEngine.generate"
         )
-        limitation_checker = timeline_engine.check_limitation if is_sarfaesi else (timeline_engine.check_criminal_limitation if is_criminal and not is_cheque_bounce else timeline_engine.check_limitation)
+        limitation_checker = timeline_engine.check_limitation if (is_sarfaesi or is_criminal) else timeline_engine.check_limitation
         limitation = _safe_call(
             limitation_checker, case_data,
             fallback={"is_barred": False, "status": "CALCULATION_ERROR"},
@@ -561,7 +562,12 @@ class JudiQEngine:
             "timeline": timeline,
             "limitation": limitation,
             "strategy_result": strategy_result,
-            "adversarial_risk": adversarial_risk
+            "adversarial_risk": adversarial_risk,
+            "bail_assessment": strategy_result.get("bail_assessment", {}),
+            "criminal_economics": strategy_result.get("economics", {}),
+            "statutory_rules": strategy_result.get("statutory_rules", []),
+            "advocate_checkpoints": strategy_result.get("checkpoints", []),
+            "litigation_map": strategy_result.get("litigation_map", {})
         }
         full_result = {**scoring_result, **adversarial_result, **engine_output}
         return ResponseBuilder.build_final_response(full_result, case_data)

@@ -74,8 +74,9 @@ async def health_check():
 async def root_endpoint():
     return {"status": "online", "service": settings.PROJECT_NAME, "version": settings.VERSION}
 app.include_router(api_router, prefix="/api/v1")
-import analysis, verification, documents
+import analysis, verification, documents, criminal
 app.include_router(analysis.router, prefix="/analyze", tags=["Legacy Analysis"])
+app.include_router(criminal.router, prefix="/criminal", tags=["Legacy Criminal Engine"])
 app.include_router(verification.router, prefix="/verify-memo", tags=["Legacy Verification"])
 app.include_router(documents.router, prefix="/generate-pdf", tags=["Legacy Documents"])
 if __name__ == "__main__":

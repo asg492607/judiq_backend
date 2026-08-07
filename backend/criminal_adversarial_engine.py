@@ -41,6 +41,11 @@ class CriminalAdversarialEngine(AdversarialEngine):
             current_risk_multiplier *= 0.95
         return roadmap
     @classmethod
+    def detect_timeline_anomalies(cls, case_data: Dict) -> List[Dict]:
+        from criminal_timeline_engine import CriminalTimelineEngine
+        return CriminalTimelineEngine.detect_timeline_anomalies(case_data)
+
+    @classmethod
     def detect_contradictions(cls, case_data: Dict, concepts: List[Dict]) -> List[Dict]:
         contradictions = []
         concept_names = [c["concept"] for c in concepts]

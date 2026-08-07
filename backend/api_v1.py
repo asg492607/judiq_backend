@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-import analysis, caseroom, verification, documents, cases, telemetry
+import analysis, caseroom, verification, documents, cases, telemetry, criminal
 from security import SecurityManager
 import uuid
 api_router = APIRouter()
@@ -9,6 +9,7 @@ def create_anonymous_session():
     token = SecurityManager.create_access_token(data={"sub": user_id})
     return {"access_token": token, "token_type": "bearer", "user_id": user_id}
 api_router.include_router(analysis.router, prefix="/analyze", tags=["Analysis"])
+api_router.include_router(criminal.router, prefix="/criminal", tags=["Criminal Engine"])
 api_router.include_router(caseroom.router, prefix="/caseroom", tags=["Caseroom"])
 api_router.include_router(verification.router, prefix="/verify", tags=["Verification"])
 api_router.include_router(documents.router, prefix="/documents", tags=["Documents"])

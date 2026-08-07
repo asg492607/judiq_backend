@@ -504,5 +504,9 @@ class ResponseBuilder:
             "abstain_recommended": case_data.get("abstain_recommended") or engine_result.get("abstain_recommended", False),
             "decision_status": case_data.get("decision_status") or engine_result.get("decision_status", "EVALUATED"),
             "lawyer_review_required": case_data.get("lawyer_review_required", False),
-            "audit_entry": engine_result.get("audit_entry", {})
+            "audit_entry": engine_result.get("audit_entry", {}),
+            "bail_assessment": engine_result.get("bail_assessment", {}),
+            "criminal_economics": engine_result.get("criminal_economics") or engine_result.get("economics", {}),
+            "statutory_rules": engine_result.get("statutory_rules", []),
+            "litigation_map": engine_result.get("litigation_map", {})
         }
