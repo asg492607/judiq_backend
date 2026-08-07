@@ -148,7 +148,7 @@ class ChequeBounceEngine(BaseDomainEngine):
                 "authority": "Section 143A NI Act"
             })
 
-        if case_data.get("accused_type") == "Pvt Ltd/Ltd Company" and (not case_data.get("directors_named") or case_data.get("company_arrayed") is False):
+        if case_data.get("accused_type") in ["Pvt Ltd/Ltd Company", "Pvt Ltd", "Public Ltd", "LLP", "Partnership Firm", "Trust", "Society"] and (not case_data.get("directors_named") or case_data.get("company_arrayed") is False):
             actions.append({
                 "priority": 1,
                 "action": "Implead Company & Active In-Charge Directors under Section 141",
