@@ -17,15 +17,57 @@ class CriminalEngine(BaseDomainEngine):
     def domain_name(self) -> str:
         return "criminal"
 
+    def build_procedural_graph(self, case_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Returns stateful graph of criminal litigation procedural milestones."""
+        severity_score = case_data.get("severity_score", 50)
+        roadmap = CriminalAdversarialEngine.calculate_stage_survivability(severity_score, 0.5)
+        return {
+            "current_stage": case_data.get("procedural_stage", "Investigation / Pre-Trial"),
+            "nodes": roadmap,
+            "total_nodes": len(roadmap),
+            "completed_nodes": 0
+        }
+
+    def get_next_actions(self, case_data: Dict[str, Any], evaluation_result: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+        """Returns prioritized next best actions for criminal litigation."""
+        rules = CriminalRulesEngine.evaluate_rules(case_data)
+        actions = []
+        for r in rules:
+            actions.append({
+                "priority": 1 if "ABSOLUTE" in r.get("severity", "") or "FATAL" in r.get("status", "") else 2,
+                "action": r.get("action", ""),
+                "reason": r.get("legal_effect", ""),
+                "authority": r.get("rule_name", "")
+            })
+        if not actions:
+            role = case_data.get("client_role", "Accused")
+            if role == "Accused":
+                actions.append({
+                    "priority": 1,
+                    "action": "File Section 438 CrPC / Section 484 BNSS Anticipatory Bail Application",
+                    "reason": "Protect against custodial detention during ongoing investigation.",
+                    "authority": "Section 438 CrPC / Section 484 BNSS"
+                })
+            else:
+                actions.append({
+                    "priority": 1,
+                    "action": "Ensure Custodial Interrogation and Recovery u/s 27 IEA / S.23 BSA",
+                    "reason": "Expedite investigation and recovery of material evidence.",
+                    "authority": "Section 27 Evidence Act / Section 23 BSA"
+                })
+        return actions
+
     @classmethod
-    def analyze(cls, case_data: Dict[str, Any]) -> Dict[str, Any]:
-        concepts = case_data.get("concepts", [])
+    def analyze(cls, case_data: Dict[str, Any], concepts: List[Dict[str, Any]] = None) -> Dict[str, Any]:
+        if concepts is None:
+            concepts = case_data.get("concepts", [])
         contradictions = CriminalAdversarialEngine.detect_contradictions(case_data, concepts)
         scoring_data = CriminalScoringEngine.calculate_score(case_data, concepts, contradictions)
         strategy = cls.generate_strategy(case_data, concepts, scoring_data["score"], 0.5)
 
         return {
             **scoring_data,
+            "domain": "criminal",
             "strategy": strategy,
             "contradictions": contradictions
         }
