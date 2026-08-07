@@ -23,13 +23,42 @@ class CaseRegistry:
         if key in self._engines:
             return self._engines[key]
         # Fallback aliases
-        if key in ("cheque bounce", "cheque_bounce", "ni_act", "section_138"):
+        if key in ("cheque bounce", "cheque_bounce", "ni_act", "section_138", "138 ni act"):
             return self._engines.get("cheque_bounce")
         if key in ("sarfaesi", "drt", "securitisation"):
             return self._engines.get("sarfaesi")
+        if key in ("criminal", "ipc", "bns", "crpc", "bnss"):
+            return self._engines.get("criminal")
+        if key in ("civil", "cpc", "commercial"):
+            return self._engines.get("civil")
         return None
 
     def list_registered_domains(self) -> List[str]:
         return list(self._engines.keys())
 
 case_registry = CaseRegistry()
+
+# Initialize built-in domain engines
+try:
+    from criminal.criminal_engine import CriminalEngine
+    case_registry.register("criminal", CriminalEngine())
+except Exception as _e:
+    logger.warning(f"Could not auto-register CriminalEngine: {_e}")
+
+try:
+    from sarfaesi.sarfaesi_domain_engine import SarfaesiDomainEngine
+    case_registry.register("sarfaesi", SarfaesiDomainEngine())
+except Exception as _e:
+    logger.warning(f"Could not auto-register SarfaesiDomainEngine: {_e}")
+
+try:
+    from cheque_bounce.cheque_bounce_engine import ChequeBounceEngine
+    case_registry.register("cheque_bounce", ChequeBounceEngine())
+except Exception as _e:
+    logger.warning(f"Could not auto-register ChequeBounceEngine: {_e}")
+
+try:
+    from civil.civil_engine import CivilEngine
+    case_registry.register("civil", CivilEngine())
+except Exception as _e:
+    logger.warning(f"Could not auto-register CivilEngine: {_e}")

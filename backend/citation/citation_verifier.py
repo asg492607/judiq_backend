@@ -18,7 +18,9 @@ class CitationVerifierEngine:
     def _load_kb(cls):
         if cls._KNOWLEDGE_BASE:
             return
-        kb_path = os.path.join(os.path.dirname(__file__), "..", "sarfaesi_knowledge_base.json")
+        kb_path = os.path.join(os.path.dirname(__file__), "..", "sarfaesi", "sarfaesi_knowledge_base.json")
+        if not os.path.exists(kb_path):
+            kb_path = os.path.join(os.path.dirname(__file__), "..", "sarfaesi_knowledge_base.json")
         if os.path.exists(kb_path):
             try:
                 with open(kb_path, 'r', encoding='utf-8') as f:
