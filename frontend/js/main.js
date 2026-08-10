@@ -2426,18 +2426,25 @@ window.filterPrecedentsList = () => {
     });
     
     if (filtered.length === 0) {
-        container.innerHTML = `<p style="color: var(--gray-500); font-size: 0.9rem; text-align: center; margin-top: 2rem;">No matching precedents found.</p>`;
+        container.innerHTML = `<p style="color: var(--gray-500); font-size: 0.9rem; text-align: center; margin-top: 2rem;">No matching precedent authorities found.</p>`;
         return;
     }
     
     container.innerHTML = filtered.map(item => `
-        <div class="citation-result-card">
-            <div class="citation-result-header">
-                <h4 class="citation-result-title">${item.title}</h4>
-                <span class="citation-result-tag">${item.tag}</span>
+        <div class="citation-result-card" style="border-left: 3px solid var(--primary-500); transition: var(--transition-fast); margin-bottom: 0.75rem; padding: 0.85rem; background: var(--gray-900); border-radius: 0.5rem; border: 1px solid var(--gray-800);">
+            <div class="citation-result-header" style="display:flex; align-items:center; justify-content:space-between; gap:0.5rem; margin-bottom:0.4rem;">
+                <h4 class="citation-result-title" style="font-family: var(--font-serif); font-size:0.95rem; font-weight:700; color: var(--gray-100); margin:0;">
+                    <i class="fas fa-gavel" style="color: #f59e0b; margin-right: 0.4rem; font-size: 0.8rem;"></i> ${item.title}
+                </h4>
+                <span class="citation-result-tag" style="background: rgba(14,165,233,0.12); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 12px; text-transform: uppercase;">${item.tag}</span>
             </div>
-            <p class="citation-result-text">${item.text}</p>
-            <div class="citation-result-source">Citation Reference: ${item.source}</div>
+            <p class="citation-result-text" style="font-size:0.83rem; color: var(--gray-300); line-height: 1.45; margin-bottom: 0.5rem;">${item.text}</p>
+            <div style="display:flex; align-items:center; justify-content:space-between; font-size: 0.75rem; color: var(--gray-400); border-top: 1px solid var(--gray-800); padding-top: 0.4rem; margin-top: 0.4rem;">
+                <span><i class="fas fa-book-open" style="margin-right:0.3rem;"></i> <strong>Citation:</strong> ${item.source} (Supreme Court)</span>
+                <button onclick="navigator.clipboard.writeText('${item.title} (${item.source})'); if(window.ui && window.ui.toast) window.ui.toast('Citation copied to clipboard', 'info');" style="background: transparent; border: none; color: var(--primary-400); font-size: 0.72rem; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
+                    <i class="fas fa-copy"></i> Copy Citation
+                </button>
+            </div>
         </div>
     `).join('');
 };
