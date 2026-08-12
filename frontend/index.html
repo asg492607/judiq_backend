@@ -181,6 +181,93 @@
                 </div>
             </section>
 
+            <!-- Interactive Cross-Examination Risk Simulator Workbench -->
+            <section id="strategySimulatorSection" class="strategy-sim-section reveal-on-scroll">
+                <div class="section-heading">
+                    <h2>Interactive Cross-Examination Risk Simulator</h2>
+                    <p>Test litigation strategies live, simulate opposing counsel attack vectors, and calculate real-time courtroom survivability.</p>
+                </div>
+                
+                <div class="sim-workbench-container">
+                    <div class="sim-preset-bar">
+                        <span class="sim-preset-label"><i class="fas fa-sliders"></i> Test Scenarios:</span>
+                        <button class="sim-preset-btn active" data-preset="s138_signature" onclick="selectSimulatorPreset('s138_signature')">
+                            <i class="fas fa-signature"></i> S.138 Disputed Signature
+                        </button>
+                        <button class="sim-preset-btn" data-preset="s138_notice_delay" onclick="selectSimulatorPreset('s138_notice_delay')">
+                            <i class="fas fa-clock"></i> S.138 Notice Delay (>30 Days)
+                        </button>
+                        <button class="sim-preset-btn" data-preset="sarfaesi_npa" onclick="selectSimulatorPreset('sarfaesi_npa')">
+                            <i class="fas fa-building-columns"></i> SARFAESI Sec 13(2) Defect
+                        </button>
+                        <button class="sim-preset-btn" data-preset="cyber_fraud_65b" onclick="selectSimulatorPreset('cyber_fraud_65b')">
+                            <i class="fas fa-file-code"></i> Missing Sec.65B Certificate
+                        </button>
+                    </div>
+
+                    <div class="sim-main-grid">
+                        <div class="sim-controls-card">
+                            <div class="sim-card-header">
+                                <span id="simDomainBadge" class="sim-domain-badge">NI Act Section 138</span>
+                                <h3 id="simTitle">Cheque Bounce (Sec 138) — Disputed Signature &amp; Stop Payment</h3>
+                            </div>
+
+                            <div class="sim-form-group">
+                                <label for="simNoticeDelayInput">Demand Notice Dispatch Delay (Days)</label>
+                                <div class="sim-range-wrapper">
+                                    <input type="range" id="simNoticeDelayInput" min="1" max="60" value="12" oninput="document.getElementById('simDelayVal').textContent = this.value; recalculateSimulatorScore();">
+                                    <span id="simDelayVal" class="sim-range-val">12</span> days
+                                </div>
+                            </div>
+
+                            <div class="sim-toggles-grid">
+                                <label class="sim-toggle-item">
+                                    <input type="checkbox" id="simSignatureCheck" onchange="recalculateSimulatorScore()">
+                                    <span>Signature Discrepancy Raised</span>
+                                </label>
+                                <label class="sim-toggle-item">
+                                    <input type="checkbox" id="simSecurityCheck" onchange="recalculateSimulatorScore()">
+                                    <span>Cheque Issued as Security</span>
+                                </label>
+                                <label class="sim-toggle-item">
+                                    <input type="checkbox" id="sim65BCheck" checked onchange="recalculateSimulatorScore()">
+                                    <span>Sec. 65B Electronic Proof Present</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="sim-output-card">
+                            <div class="sim-score-header">
+                                <div>
+                                    <div class="sim-score-title">Courtroom Survivability Score</div>
+                                    <div id="simScoreStatus" class="sim-score-badge safe">High Courtroom Survivability</div>
+                                </div>
+                                <div id="simScoreValue" class="sim-score-num">68%</div>
+                            </div>
+
+                            <div class="sim-meter-track">
+                                <div id="simScoreMeter" class="sim-meter-fill" style="width: 68%;"></div>
+                            </div>
+
+                            <div class="sim-vector-box">
+                                <h4><i class="fas fa-crosshairs" style="color: #ef4444;"></i> Primary Opposing Counsel Attack Vector</h4>
+                                <p id="simAttackVector">Opposing counsel will demand forensic handwriting expert opinion under Sec. 45 Evidence Act and call the bank manager to verify specimen cards.</p>
+                            </div>
+
+                            <div class="sim-vector-box success">
+                                <h4><i class="fas fa-shield-halved" style="color: #10b981;"></i> Recommended Defense Counter-Strategy</h4>
+                                <p id="simCounterStrategy">File application for comparison of signatures by State Forensic Science Laboratory; establish lack of authorization register.</p>
+                            </div>
+
+                            <div class="sim-ratio-box">
+                                <i class="fas fa-scale-balanced" style="color: #38bdf8;"></i>
+                                <span id="simRatio">Linny D’Souza v. Vijay Kumar (2019) — Difference in signature requires strict proof of drawing under Sec. 138.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Interactive Deadline Sandbox Section -->
             <section id="deadlineSandbox" class="sandbox-section reveal-on-scroll">
                 <div class="section-heading">

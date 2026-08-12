@@ -10,6 +10,8 @@ import { escapeHtml } from './modules/utils.js?v=8';
 import { JudiQModals } from './modules/modals.js?v=8';
 import { renderAdversarialCharts, renderScoreBreakdownChart } from './modules/charts.js?v=8';
 import { JudiQValidator } from './modules/validation.js?v=8';
+import { JudiQCoCounselDock } from './modules/counsel_dock.js?v=8';
+import { JudiQStrategySimulator } from './modules/simulator.js?v=8';
 
 
 // Initialize Firebase
@@ -41,6 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
     setupFormListeners();
     initTheme();
     
+    // Initialize Co-Counsel Dock & Strategy Simulator
+    window.judiqDock = new JudiQCoCounselDock();
+    window.judiqSimulator = new JudiQStrategySimulator();
+
     const loadingScreen = document.getElementById('loadingScreen');
     if (loadingScreen) {
         ui.hide('loadingScreen');
