@@ -2836,6 +2836,14 @@ window.executeCommand = function(cmd) {
         case 'nav_dashboard':
             if (window.showDashboard) window.showDashboard();
             break;
+        case 'open_simulator':
+            const simEl = document.getElementById('strategySimulatorSection');
+            if (simEl) { simEl.scrollIntoView({ behavior: 'smooth' }); }
+            break;
+        case 'toggle_cocounsel':
+            const toggleBtn = document.getElementById('coCounselToggleBtn');
+            if (toggleBtn) { toggleBtn.click(); }
+            break;
         case 'toggle_theme':
             if (window.toggleTheme) window.toggleTheme();
             break;
