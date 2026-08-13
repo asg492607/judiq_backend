@@ -2455,6 +2455,16 @@ window.filterPrecedentsList = () => {
     `).join('');
 };
 
+window.filterPrecedentByTag = (tagQuery, element) => {
+    const searchInput = document.getElementById('precedentSearchInput');
+    if (searchInput) {
+        searchInput.value = tagQuery;
+    }
+    document.querySelectorAll('.precedent-tag-pill').forEach(btn => btn.classList.remove('active'));
+    if (element) element.classList.add('active');
+    window.filterPrecedentsList();
+};
+
 window.toggleChatWindow = () => {
     const chatWin = document.getElementById('aiChatWindow');
     if (chatWin) {

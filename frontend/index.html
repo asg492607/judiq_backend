@@ -374,6 +374,15 @@
                             <i class="fas fa-search"></i>
                             <input type="text" id="precedentSearchInput" class="precedent-search-bar" placeholder="Try typing: notice, signature, delay, stop payment..." oninput="filterPrecedentsList()">
                         </div>
+
+                        <div class="precedent-tag-pills" style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.75rem 0 1rem 0;">
+                            <button class="precedent-tag-pill sim-preset-btn active" onclick="filterPrecedentByTag('', this)">#All</button>
+                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('notice', this)">#NoticeDelay</button>
+                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('signature', this)">#Signature</button>
+                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('security', this)">#SecurityCheque</button>
+                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('director', this)">#Sec141Directors</button>
+                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('npa', this)">#SARFAESI_NPA</button>
+                        </div>
                         
                         <div id="precedentsListContainer" class="citations-list-container">
                             <!-- Populated dynamically via JS -->
