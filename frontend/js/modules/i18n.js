@@ -46,7 +46,14 @@ window.i18n = {
             next_best_actions: "Recommended Next Actions",
             adversarial_vectors: "Adversarial Attack Vectors & Weaknesses",
             export_pdf: "Export Analysis PDF",
-            lang_label: "English"
+            lang_label: "English",
+            sim_heading: "Interactive Cross-Examination Risk Simulator",
+            sim_sub: "Test litigation strategies live, simulate opposing counsel attack vectors, and calculate real-time courtroom survivability.",
+            counsel_dock_title: "JudIQ Co-Counsel Dock",
+            counsel_dock_prompt1: "Bank Manager Cross-Exam",
+            counsel_dock_prompt2: "S.138 Limitation Rules",
+            counsel_dock_prompt3: "Security Cheque Ratios",
+            counsel_dock_prompt4: "Section 313 Defense"
         },
         mr: {
             brand_name: "ज्युरिक आय (JudiQ AI)",
@@ -87,7 +94,14 @@ window.i18n = {
             next_best_actions: "महत्त्वाच्या पुढील कृती",
             adversarial_vectors: "विरोधी पक्षाचे संभाव्य युक्तिवाद आणि त्रुटी",
             export_pdf: "विश्लेषण पीडीएफ डाऊनलोड करा",
-            lang_label: "मराठी"
+            lang_label: "मराठी",
+            sim_heading: "उलटतपासणी धोका सिम्युलेटर",
+            sim_sub: "न्यायालयीन रणनीतींची थेट चाचणी करा आणि संभाव्य यशाची टक्केवारी मोजा.",
+            counsel_dock_title: "ज्युरिक एआय सह-सल्लागार",
+            counsel_dock_prompt1: "बँक व्यवस्थापक उलटतपासणी",
+            counsel_dock_prompt2: "कलम १३८ मुदत नियम",
+            counsel_dock_prompt3: "सुरक्षा चेक न्यायनिवाडा",
+            counsel_dock_prompt4: "कलम ३१३ बचाव उत्तर"
         },
         hi: {
             brand_name: "न्यायिक एआई (JudiQ AI)",
