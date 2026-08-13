@@ -151,3 +151,63 @@ async def analyze(request_data: Dict[str, Any], request: Request):
             del ANALYSIS_CACHE[oldest_key]
         ANALYSIS_CACHE[cache_key] = dict(response_body)
     return response_body
+
+
+class SimulationRequest(BaseModel):
+    preset: Optional[str] = "s138_signature"
+    notice_delay_days: Optional[int] = 12
+    signature_disputed: Optional[bool] = False
+    security_cheque: Optional[bool] = False
+    evidence_65b: Optional[bool] = True
+
+@router.post(
+    "/simulate",
+    summary="Simulate Cross-Examination Risk & Strategy",
+    description="Calculates real-time courtroom survivability score and opposing counsel attack vectors for legal scenarios."
+)
+async def simulate_strategy(req: SimulationRequest):
+    notice_delay = req.notice_delay_days or 0
+    sig_disputed = req.signature_disputed
+    sec_cheque = req.security_cheque
+    e65b = req.evidence_65b
+    
+    score = 90
+    if notice_delay > 30:
+        score -= 55
+    elif notice_delay > 25:
+        score -= 10
+        
+    if sig_disputed:
+        score -= 20
+    if sec_cheque:
+        score -= 15
+    if not e65b:
+        score -= 25
+        
+    score = max(10, min(99, score))
+    
+    if score >= 75:
+        risk_level = "SAFE"
+        status_text = "High Courtroom Survivability"
+    elif score >= 50:
+        risk_level = "WARNING"
+        status_text = "Moderate Risk — Defense Counter Required"
+    else:
+        risk_level = "DANGER"
+        status_text = "Fatal Procedural Vulnerability Detected"
+        
+    attack_vector = "Opposing counsel will demand forensic handwriting expert opinion under Sec. 45 Evidence Act." if sig_disputed else ("Demand notice dispatched past 30-day window under Sec 138(b)." if notice_delay > 30 else "Opposing counsel will challenge admissibility of electronic records under Sec 65B.")
+    counter_strategy = "File application for comparison of signatures by State Forensic Science Laboratory." if sig_disputed else ("Move application under Sec. 142(1)(b) proviso seeking condonation of delay." if notice_delay > 30 else "Submit Section 65B Electronic Evidence Affidavit from server administrator.")
+    ratio = "Dashrath Rupsingh Rathod v. State of Maharashtra (2014) — Procedural timeline compliance is strictly mandated under Section 138."
+    
+    return {
+        "success": True,
+        "survivability_score": score,
+        "risk_level": risk_level,
+        "status_text": status_text,
+        "primary_attack_vector": attack_vector,
+        "recommended_counter_strategy": counter_strategy,
+        "precedent_ratio": ratio,
+        "statutory_provisions": ["Sec. 138 NI Act", "Sec. 142 NI Act", "Sec. 45 Evidence Act", "Sec. 65B Evidence Act"]
+    }
+
