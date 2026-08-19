@@ -461,7 +461,13 @@ function renderDashboard() {
             } catch (_) {}
         }
         greetingEl.textContent = `Welcome, Counsel ${name}`;
-        const domainLabel = isSarfaesi ? 'SARFAESI / DRT Platform' : 'NI Act Litigation Strategist';
+        const domainLabels = {
+            criminal: 'Criminal Law Platform',
+            civil: 'Civil & Commercial Litigation Strategist',
+            sarfaesi: 'SARFAESI / DRT Platform',
+            ni_act: 'NI Act Litigation Strategist'
+        };
+        const domainLabel = domainLabels[domain] || 'NI Act Litigation Strategist';
         if (subtitleEl) {
             subtitleEl.textContent = firm
                 ? `${domainLabel} | ${firm} — Find the weakness before the courtroom does.`

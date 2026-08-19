@@ -301,31 +301,32 @@
                                                  "weighting_score":  7
                                              },
                                  "IPC_304B":  {
-                                                  "name":  "No Proximate Demand (S.304B IPC / S.80 BNS)",
-                                                  "severity":  "FATAL",
-                                                  "why_applied":  "Dowry death alleged, but no dowry demand \u0027soon before\u0027 death.",
-                                                  "risk":  "The presumption under S.113B Evidence Act only triggers if cruelty/demand occurred *soon before* the unnatural death.",
-                                                  "evidence_needed":  "Proof of cordial relations immediately preceding the death.",
-                                                  "precedent":  "Bansi Lal vs. State of Haryana",
-                                                  "chain":  [
-                                                                "1. Defence proves last demand was years ago.",
-                                                                "2. Argues no live link between demand and death.",
-                                                                "3. Court refuses to draw S.113B presumption."
-                                                            ],
-                                                  "probability_collapse":  0.90,
-                                                  "rebuttal_tree":  {
-                                                                        "defence_evidence":  "Recent WhatsApp chats, happy photographs.",
-                                                                        "prosecution_counter":  "Rely on witness testimony of recent, unrecorded verbal demands.",
-                                                                        "burden_shift_effect":  "Prevents the reverse burden of proof from activating.",
-                                                                        "magistrate_view":  "Crucial requirement. \u0027Soon before\u0027 is strictly construed."
-                                                                    },
-                                                  "cross_exam_questions":  [
-                                                                               "Can you establish the exact timeline?",
-                                                                               "Are there independent witnesses to corroborate this?"
-                                                                           ],
-                                                  "quashing_ground":  "Frivolous and vexatious litigation",
-                                                  "weighting_score":  10
-                                              },
+                                                   "name":  "Dowry Death / No Proximate Demand (S.304B IPC / S.80 BNS)",
+                                                   "severity":  "FATAL",
+                                                   "why_applied":  "Dowry death alleged, but no dowry demand \u0027soon before\u0027 death or lack of proximate link.",
+                                                   "risk":  "The presumption under S.113B Evidence Act only triggers if cruelty/demand occurred *soon before* the unnatural death.",
+                                                   "evidence_needed":  "Proof of cordial relations immediately preceding the death, PM report.",
+                                                   "precedent":  "Bansi Lal vs. State of Haryana / Kans Raj vs State of Punjab",
+                                                   "chain":  [
+                                                                 "1. Defence proves last demand was years ago or claims natural/suicide cause.",
+                                                                 "2. Argues no live link between demand and death.",
+                                                                 "3. Court refuses to draw S.113B presumption."
+                                                             ],
+                                                   "probability_collapse":  0.90,
+                                                   "rebuttal_tree":  {
+                                                                         "defence_evidence":  "Recent WhatsApp chats, happy photographs, lack of recent complaints.",
+                                                                         "prosecution_counter":  "Establish \u0027soon before\u0027 is a relative term showing proximate link.",
+                                                                         "burden_shift_effect":  "Prevents the reverse burden of proof from activating.",
+                                                                         "magistrate_view":  "Crucial requirement. \u0027Soon before\u0027 is strictly construed."
+                                                                     },
+                                                   "cross_exam_questions":  [
+                                                                                "When was the last documented dowry demand?",
+                                                                                "What was the exact cause of unnatural death?",
+                                                                                "Can you establish any proximate timeline between alleged demand and death?"
+                                                                            ],
+                                                   "quashing_ground":  "Lack of proximate link / natural death",
+                                                   "weighting_score":  10
+                                               },
                                  "IPC_120B":  {
                                                   "name":  "Criminal Conspiracy (S.120B IPC / S.61(2) BNS)",
                                                   "severity":  "HIGH",
@@ -611,32 +612,6 @@
                                                                            ],
                                                   "quashing_ground":  "Procedural violation of mandatory provisions",
                                                   "weighting_score":  10
-                                              },
-                                  "IPC_304B":  {
-                                                  "name":  "Dowry Death (IPC 304B / BNS 80)",
-                                                  "severity":  "FATAL",
-                                                  "why_applied":  "Unnatural death within 7 years of marriage with dowry cruelty.",
-                                                  "risk":  "Presumption of dowry death under Evidence Act.",
-                                                  "evidence_needed":  "Proof of cruelty 'soon before' death, PM report.",
-                                                  "precedent":  "Kans Raj vs State of Punjab",
-                                                  "chain":  [
-                                                                "1. Defence claims natural death or suicide unrelated to dowry.",
-                                                                "2. Argues no proximate link to dowry demand.",
-                                                                "3. Claims general omnibus allegations."
-                                                            ],
-                                                  "probability_collapse":  0.88,
-                                                  "rebuttal_tree":  {
-                                                                        "defence_evidence":  "Lack of recent complaints or demands.",
-                                                                        "prosecution_counter":  "Establish 'soon before' is a relative term showing proximate link.",
-                                                                        "burden_shift_effect":  "Presumption against husband/relatives.",
-                                                                        "magistrate_view":  "Serious view; strict scrutiny of 'soon before' element."
-                                                                    },
-                                                  "cross_exam_questions":  [
-                                                                               "When was the last documented dowry demand?",
-                                                                               "What was the exact cause of unnatural death?"
-                                                                           ],
-                                                  "quashing_ground":  "Lack of proximate link / natural death",
-                                                  "weighting_score":  9
                                               }
                              }
 }
