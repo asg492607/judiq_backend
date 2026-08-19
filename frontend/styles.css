@@ -3851,44 +3851,61 @@ input:checked+.slider-switch:before {
 }
 
 .pricing-card {
-    background: var(--glass-bg);
+    background: rgba(15, 23, 42, 0.6);
     border-radius: 20px;
-    padding: 3rem 2rem;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 2.75rem 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     flex-direction: column;
     position: relative;
-    transition: all 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .pricing-card:hover {
     transform: translateY(-8px);
     border-color: var(--primary-500);
-    box-shadow: 0 20px 40px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 20px 40px rgba(79, 70, 229, 0.15);
 }
 
 .pricing-card.popular {
-    border-color: var(--primary-500);
-    background: linear-gradient(180deg, var(--gray-900), rgba(99, 102, 241, 0.05));
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border: 2px solid #6366f1;
+    background: linear-gradient(180deg, rgba(79, 70, 229, 0.16) 0%, rgba(15, 23, 42, 0.85) 100%);
+    box-shadow: 0 15px 35px rgba(79, 70, 229, 0.25);
+    transform: scale(1.02);
+}
+
+.pricing-card.popular:hover {
+    transform: scale(1.02) translateY(-8px);
 }
 
 .pricing-badge {
     position: absolute;
     top: 20px;
     right: 20px;
-    background: var(--primary-500);
+    background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
     color: white;
-    padding: 0.25rem 0.75rem;
+    padding: 0.3rem 0.85rem;
     border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 700;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
 }
 
 .pricing-header h3 {
     font-size: 1.5rem;
     margin-bottom: 0.5rem;
     color: var(--gray-900);
+    font-weight: 700;
+}
+
+.pricing-header p {
+    color: var(--gray-400);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    margin: 0;
 }
 
 .pricing-price {
@@ -3898,6 +3915,7 @@ input:checked+.slider-switch:before {
     margin: 1.5rem 0;
     display: flex;
     align-items: baseline;
+    font-family: var(--font-family);
 }
 
 .pricing-price span {
@@ -3910,10 +3928,10 @@ input:checked+.slider-switch:before {
 .pricing-features {
     list-style: none;
     padding: 0;
-    margin: 2rem 0;
+    margin: 1.5rem 0 2rem 0;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.9rem;
     flex-grow: 1;
 }
 
@@ -3922,11 +3940,14 @@ input:checked+.slider-switch:before {
     align-items: center;
     gap: 0.75rem;
     color: var(--gray-300);
-    font-size: 0.95rem;
+    font-size: 0.92rem;
+    line-height: 1.4;
 }
 
 .pricing-features li i {
     color: var(--success-500);
+    font-size: 1rem;
+    flex-shrink: 0;
 }
 
 .pricing-features li.disabled {
@@ -3942,6 +3963,52 @@ input:checked+.slider-switch:before {
     text-align: center;
     padding: 0.85rem 0;
     font-weight: 700;
+    border-radius: var(--radius-md);
+}
+
+[data-theme="light"] .pricing-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .pricing-card:hover {
+    border-color: #6366f1;
+    box-shadow: 0 15px 35px rgba(99, 102, 241, 0.12);
+}
+
+[data-theme="light"] .pricing-card.popular {
+    background: linear-gradient(180deg, #f5f3ff 0%, #ffffff 100%);
+    border: 2px solid #6366f1;
+    box-shadow: 0 15px 35px rgba(99, 102, 241, 0.15);
+}
+
+[data-theme="light"] .pricing-header h3 {
+    color: #0f172a;
+}
+
+[data-theme="light"] .pricing-header p {
+    color: #64748b;
+}
+
+[data-theme="light"] .pricing-price {
+    color: #0f172a;
+}
+
+[data-theme="light"] .pricing-price span {
+    color: #64748b;
+}
+
+[data-theme="light"] .pricing-features li {
+    color: #334155;
+}
+
+[data-theme="light"] .pricing-features li.disabled {
+    color: #94a3b8;
+}
+
+[data-theme="light"] .pricing-features li.disabled i {
+    color: #cbd5e1;
 }
 
 /* Testimonials Section */

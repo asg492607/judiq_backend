@@ -1713,16 +1713,16 @@ window.togglePricingPeriod = (isAnnual) => {
     const annualLabel = document.getElementById('billingAnnualLabel');
     
     if (isAnnual) {
-        if (citizenPrice) citizenPrice.textContent = '39';
-        if (proPrice) proPrice.textContent = '119';
-        if (enterprisePrice) enterprisePrice.textContent = '399';
+        if (citizenPrice) citizenPrice.textContent = '239';
+        if (proPrice) proPrice.textContent = '479';
+        if (enterprisePrice) enterprisePrice.textContent = '799';
         
         if (monthlyLabel) monthlyLabel.classList.remove('active');
         if (annualLabel) annualLabel.classList.add('active');
     } else {
-        if (citizenPrice) citizenPrice.textContent = '49';
-        if (proPrice) proPrice.textContent = '149';
-        if (enterprisePrice) enterprisePrice.textContent = '499';
+        if (citizenPrice) citizenPrice.textContent = '299';
+        if (proPrice) proPrice.textContent = '599';
+        if (enterprisePrice) enterprisePrice.textContent = '999';
         
         if (monthlyLabel) monthlyLabel.classList.add('active');
         if (annualLabel) annualLabel.classList.remove('active');
