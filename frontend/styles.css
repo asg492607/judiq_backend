@@ -7032,6 +7032,97 @@ img, svg, video, canvas {
         font-size: 0.95rem;
     }
 
+    /* Top Navigation (App Screens) */
+    .top-nav {
+        padding: 0.6rem 0.85rem !important;
+        flex-wrap: nowrap !important;
+        gap: 0.5rem !important;
+    }
+
+    .nav-brand {
+        font-size: 0.95rem !important;
+        gap: 0.4rem !important;
+        min-width: 0 !important;
+        flex-shrink: 1 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .nav-brand span {
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        font-size: 0.9rem !important;
+        font-weight: 700 !important;
+    }
+
+    .nav-user {
+        gap: 0.35rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    .nav-user .lang-toggle-btn {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.72rem !important;
+        margin-right: 0 !important;
+    }
+
+    .user-role-badge {
+        display: none !important;
+    }
+
+    .user-menu span {
+        display: none !important;
+    }
+
+    .user-menu {
+        gap: 0.25rem !important;
+    }
+
+    .user-menu .btn {
+        padding: 0.3rem 0.45rem !important;
+        font-size: 0.8rem !important;
+        margin-right: 0 !important;
+    }
+
+    .user-menu .btn-text {
+        font-size: 0 !important;
+    }
+
+    .user-menu .btn i {
+        font-size: 0.95rem !important;
+        margin: 0 !important;
+    }
+
+    /* Dashboard Header & Content */
+    .dashboard-content {
+        padding: 1.25rem 0.85rem !important;
+    }
+
+    .dashboard-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.85rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+
+    .dashboard-header h1 {
+        font-size: clamp(1.4rem, 5.5vw, 1.85rem) !important;
+        line-height: 1.2 !important;
+    }
+
+    .dashboard-subtitle {
+        font-size: 0.85rem !important;
+        line-height: 1.45 !important;
+    }
+
+    .kb-status-badge {
+        width: 100% !important;
+        justify-content: flex-start !important;
+        padding: 0.45rem 0.85rem !important;
+    }
+
     /* Domain Selection Screen */
     .domain-selection-container {
         padding: 2rem 1rem;
