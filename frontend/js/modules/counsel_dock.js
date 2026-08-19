@@ -200,6 +200,43 @@ export class JudiQCoCounselDock {
             .co-counsel-input:focus {
                 border-color: #38bdf8;
             }
+            @media (max-width: 640px) {
+                .co-counsel-floating-btn {
+                    bottom: 1rem;
+                    right: 1rem;
+                    padding: 0.6rem 0.95rem;
+                    font-size: 0.82rem;
+                }
+                .co-counsel-drawer {
+                    bottom: 4.5rem;
+                    right: 0.75rem;
+                    left: 0.75rem;
+                    width: auto;
+                    max-width: calc(100vw - 1.5rem);
+                    height: calc(100vh - 6rem);
+                    max-height: 540px;
+                    border-radius: 14px;
+                }
+                .co-counsel-header {
+                    padding: 0.75rem 1rem;
+                }
+                .co-counsel-body {
+                    padding: 0.75rem;
+                    gap: 0.65rem;
+                }
+                .co-counsel-msg {
+                    max-width: 92%;
+                    padding: 0.65rem 0.85rem;
+                    font-size: 0.82rem;
+                }
+                .co-counsel-quick-pills {
+                    gap: 0.35rem;
+                }
+                .co-counsel-pill {
+                    font-size: 0.72rem;
+                    padding: 0.28rem 0.55rem;
+                }
+            }
         `;
         document.head.appendChild(style);
     }

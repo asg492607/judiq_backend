@@ -101,6 +101,12 @@ function setupAuthListeners() {
     const heroGetStartedBtn = document.getElementById('heroGetStartedBtn');
     if (heroGetStartedBtn) heroGetStartedBtn.addEventListener('click', () => window.showRegister());
 
+    const mobileNavLoginBtn = document.getElementById('mobileNavLoginBtn');
+    if (mobileNavLoginBtn) mobileNavLoginBtn.addEventListener('click', () => { window.toggleMobileNav(false); window.showLogin(); });
+
+    const mobileNavRegisterBtn = document.getElementById('mobileNavRegisterBtn');
+    if (mobileNavRegisterBtn) mobileNavRegisterBtn.addEventListener('click', () => { window.toggleMobileNav(false); window.showRegister(); });
+
     if (!auth) {
         // Fallback for non-Firebase environment (dev/offline testing)
         console.warn('Firebase is not available, running in offline/demo mode.');
@@ -2759,5 +2765,24 @@ document.addEventListener('keydown', (e) => {
         if (cmdModal && cmdModal.classList.contains('open')) {
             window.toggleCommandPalette(false);
         }
+        window.toggleMobileNav(false);
     }
 });
+
+// Mobile Navigation Toggle
+window.toggleMobileNav = (forceState) => {
+    const drawer = document.getElementById('mobileNavDrawer');
+    const backdrop = document.getElementById('mobileNavBackdrop');
+    if (!drawer || !backdrop) return;
+
+    const isOpen = typeof forceState === 'boolean' ? forceState : !drawer.classList.contains('open');
+    if (isOpen) {
+        drawer.classList.add('open');
+        backdrop.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    } else {
+        drawer.classList.remove('open');
+        backdrop.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+};
