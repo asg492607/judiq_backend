@@ -2431,64 +2431,8 @@
     </div>
 
 
-    <!-- Floating Mock AI Chat Assistant -->
-    <div id="aiChatToggle" class="ai-chat-toggle" onclick="toggleChatWindow()">
-        <i class="fas fa-comments"></i>
-        <span class="pulse-ring"></span>
-    </div>
-    
-    <div id="aiChatWindow" class="ai-chat-window">
-        <div class="chat-header">
-            <div class="chat-header-avatar">
-                <i class="fas fa-robot"></i>
-            </div>
-            <div class="chat-header-info">
-                <h4>JudiQ Legal Assistant</h4>
-                <p>Online | Virtual Agent</p>
-            </div>
-            <button class="chat-close-btn" onclick="toggleChatWindow()">&times;</button>
-        </div>
-        
-        <div id="chatMessages" class="chat-messages">
-            <div class="chat-bubble ai">
-                Hello! I am your virtual JudiQ assistant. I can answer general questions about cheque bounce procedures, Section 138 limitations, and case strategy. How can I help you today?
-            </div>
-        </div>
-        
-        <div class="chat-presets">
-            <div class="chat-presets-title">Section 138 FAQ</div>
-            <button class="chat-preset-btn" onclick="askPresetQuestion('What are the essential ingredients of a Section 138 offence?')">
-                What are the core elements of S.138?
-            </button>
-            <button class="chat-preset-btn" onclick="askPresetQuestion('What is the statutory timeline to serve a demand notice?')">
-                What is the statutory notice timeline?
-            </button>
-            <button class="chat-preset-btn" onclick="askPresetQuestion('What is the strict limitation period for filing the complaint in court?')">
-                What is the timeline for filing a complaint?
-            </button>
-            <button class="chat-preset-btn" onclick="askPresetQuestion('Can company directors be prosecuted under Section 141 for a bounced cheque?')">
-                Are directors liable under S.141?
-            </button>
-            <button class="chat-preset-btn" onclick="askPresetQuestion('What is the maximum penalty and punishment under Section 138?')">
-                What is the maximum penalty?
-            </button>
-            <button class="chat-preset-btn" onclick="askPresetQuestion('What happens if the drawer fails to pay after the notice period expires?')">
-                What if the drawer fails to pay?
-            </button>
-        </div>
-    </div>
 
-    <!-- Cookie Consent Banner -->
-    <div id="cookieConsentBanner" class="cookie-banner hidden">
-        <div class="cookie-content">
-            <h4>We Value Your Privacy <i class="fas fa-cookie-bite"></i></h4>
-            <p>We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking "Accept All", you consent to our use of cookies. <a href="#" style="color: var(--primary-400);">Read Policy</a></p>
-        </div>
-        <div class="cookie-actions">
-            <button class="btn btn-outline btn-sm" onclick="acceptCookies('essential')">Reject Non-Essential</button>
-            <button class="btn btn-primary btn-sm" onclick="acceptCookies('all')">Accept All</button>
-        </div>
-    </div>
+
 
     <!-- Command Palette Modal -->
     <div id="commandPaletteModal" class="command-palette-backdrop" onclick="if(event.target === this) toggleCommandPalette(false)">

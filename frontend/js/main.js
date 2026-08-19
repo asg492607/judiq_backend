@@ -2362,22 +2362,6 @@ const landmarkPrecedents = [
     }
 ];
 
-// AI Responses
-const assistantResponses = {
-    "What is the statutory timeline to serve a demand notice?": 
-        "Under Section 138 of the Negotiable Instruments Act, the payee must serve a written demand notice to the drawer within 30 days of receiving the Bank Dishonour/Return Memo. Failing to serve it within 30 days makes the complaint procedurally vulnerable to dismissal.",
-    "What happens if the drawer fails to pay after the notice period expires?": 
-        "After the notice is delivered, the drawer is given exactly 15 days to pay the cheque amount. If they fail to repay by the 15th day, the payee gains the cause of action to file a criminal complaint in court within the next 30 days.",
-    "What are the essential ingredients of a Section 138 offence?":
-        "The core elements are: 1) A legally enforceable debt. 2) Cheque presented to the bank within 3 months. 3) Dishonour by the bank. 4) Written demand notice sent within 30 days of dishonour. 5) Drawer fails to pay within 15 days of receiving the notice.",
-    "What is the strict limitation period for filing the complaint in court?":
-        "You must file the complaint in the Magistrate court within exactly 30 days from the date the cause of action arises (i.e., immediately after the drawer's 15-day payment window expires). Late filings require a Condonation of Delay application under S.142(b).",
-    "Can company directors be prosecuted under Section 141 for a bounced cheque?":
-        "Yes. Under Section 141, if the cheque was issued by a company, every person who was in charge of and responsible for the conduct of the business at the time the offence was committed can be prosecuted, alongside the company itself.",
-    "What is the maximum penalty and punishment under Section 138?":
-        "If convicted, the drawer can be punished with imprisonment for a term which may extend to two years, or with a fine which may extend to twice the amount of the cheque, or both."
-};
-
 window.updateReadinessProgress = () => {
     const checks = document.querySelectorAll('.readiness-check');
     if (checks.length === 0) return;
@@ -2443,17 +2427,17 @@ window.filterPrecedentsList = () => {
     }
     
     container.innerHTML = filtered.map(item => `
-        <div class="citation-result-card" style="border-left: 3px solid var(--primary-500); transition: var(--transition-fast); margin-bottom: 0.75rem; padding: 0.85rem; background: var(--gray-900); border-radius: 0.5rem; border: 1px solid var(--gray-800);">
+        <div class="citation-result-card" style="border-left: 3px solid var(--primary-500); transition: var(--transition-fast); margin-bottom: 0.75rem; padding: 0.85rem; background: var(--gray-100); border-radius: 0.5rem; border: 1px solid var(--gray-200);">
             <div class="citation-result-header" style="display:flex; align-items:center; justify-content:space-between; gap:0.5rem; margin-bottom:0.4rem;">
-                <h4 class="citation-result-title" style="font-family: var(--font-serif); font-size:0.95rem; font-weight:700; color: var(--gray-100); margin:0;">
+                <h4 class="citation-result-title" style="font-family: var(--font-serif); font-size:0.95rem; font-weight:700; color: var(--gray-900); margin:0;">
                     <i class="fas fa-gavel" style="color: #f59e0b; margin-right: 0.4rem; font-size: 0.8rem;"></i> ${item.title}
                 </h4>
                 <span class="citation-result-tag" style="background: rgba(14,165,233,0.12); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 12px; text-transform: uppercase;">${item.tag}</span>
             </div>
-            <p class="citation-result-text" style="font-size:0.83rem; color: var(--gray-300); line-height: 1.45; margin-bottom: 0.5rem;">${item.text}</p>
-            <div style="display:flex; align-items:center; justify-content:space-between; font-size: 0.75rem; color: var(--gray-400); border-top: 1px solid var(--gray-800); padding-top: 0.4rem; margin-top: 0.4rem;">
+            <p class="citation-result-text" style="font-size:0.83rem; color: var(--gray-700); line-height: 1.45; margin-bottom: 0.5rem;">${item.text}</p>
+            <div style="display:flex; align-items:center; justify-content:space-between; font-size: 0.75rem; color: var(--gray-500); border-top: 1px solid var(--gray-200); padding-top: 0.4rem; margin-top: 0.4rem;">
                 <span><i class="fas fa-book-open" style="margin-right:0.3rem;"></i> <strong>Citation:</strong> ${item.source} (Supreme Court)</span>
-                <button onclick="navigator.clipboard.writeText('${item.title} (${item.source})'); if(window.ui && window.ui.toast) window.ui.toast('Citation copied to clipboard', 'info');" style="background: transparent; border: none; color: var(--primary-400); font-size: 0.72rem; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
+                <button onclick="navigator.clipboard.writeText('${item.title} (${item.source})'); if(window.ui && window.ui.toast) window.ui.toast('Citation copied to clipboard', 'info');" style="background: transparent; border: none; color: var(--primary-500); font-size: 0.72rem; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
                     <i class="fas fa-copy"></i> Copy Citation
                 </button>
             </div>
@@ -2471,97 +2455,7 @@ window.filterPrecedentByTag = (tagQuery, element) => {
     window.filterPrecedentsList();
 };
 
-window.toggleChatWindow = () => {
-    const chatWin = document.getElementById('aiChatWindow');
-    if (chatWin) {
-        chatWin.classList.toggle('open');
-    }
-};
 
-window.askPresetQuestion = (question) => {
-    const messagesContainer = document.getElementById('chatMessages');
-    if (!messagesContainer) return;
-    
-    // 1. Add User bubble
-    const userBubble = document.createElement('div');
-    userBubble.className = 'chat-bubble user';
-    userBubble.textContent = question;
-    messagesContainer.appendChild(userBubble);
-    
-    // Scroll to bottom
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    
-    // 2. Add Typing loader
-    const typingLoader = document.createElement('div');
-    typingLoader.className = 'chat-typing-loader';
-    typingLoader.innerHTML = '<span></span><span></span><span></span>';
-    messagesContainer.appendChild(typingLoader);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    
-    // Get response text
-    const responseText = assistantResponses[question] || "I'm sorry, I don't have an answer for that specific question at the moment.";
-    
-    // 3. Simulate streaming response after delay
-    setTimeout(() => {
-        // Remove typing loader
-        typingLoader.remove();
-        
-        // Add AI bubble
-        const aiBubble = document.createElement('div');
-        aiBubble.className = 'chat-bubble ai';
-        aiBubble.textContent = responseText;
-        messagesContainer.appendChild(aiBubble);
-        
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }, 1500);
-};
-
-
-
-window.updateReadinessProgress = () => {
-    const checks = document.querySelectorAll('.readiness-check');
-    if (checks.length === 0) return;
-    
-    let checkedCount = 0;
-    checks.forEach(check => {
-        if (check.checked) checkedCount++;
-    });
-    
-    const percentage = Math.round((checkedCount / checks.length) * 100);
-    
-    // Update progress text
-    const textEl = document.getElementById('readinessProgressText');
-    if (textEl) textEl.textContent = `${percentage}%`;
-    
-    // Update progress circle offset (circumference of r=40 circle is 2 * pi * 40 ≈ 251.2)
-    const circleBar = document.getElementById('readinessCircleBar');
-    if (circleBar) {
-        const circumference = 251.2;
-        const offset = circumference - (percentage / 100) * circumference;
-        circleBar.style.strokeDashoffset = offset;
-    }
-    
-    // Update status text
-    const statusTextEl = document.getElementById('readinessStatusText');
-    if (statusTextEl) {
-        if (percentage === 0) {
-            statusTextEl.textContent = "No documents checked.";
-            statusTextEl.style.color = "var(--gray-400)";
-        } else if (percentage < 40) {
-            statusTextEl.textContent = "High Risk. Key evidence missing.";
-            statusTextEl.style.color = "var(--danger-400)";
-        } else if (percentage < 80) {
-            statusTextEl.textContent = "Partial readiness. Notice served?";
-            statusTextEl.style.color = "var(--warning-400)";
-        } else if (percentage < 100) {
-            statusTextEl.textContent = "Strong case files ready to compile.";
-            statusTextEl.style.color = "var(--primary-400)";
-        } else {
-            statusTextEl.textContent = "100% Ready. Secure filing approved!";
-            statusTextEl.style.color = "var(--success-400)";
-        }
-    }
-};
 
 
 
@@ -2613,15 +2507,6 @@ window.runAnalysis = async () => {
         if (window.ui && typeof window.ui.toast === 'function') {
             window.ui.toast('Error recalculating: ' + err.message, 'error');
         }
-    }
-};
-
-// --- Cookie Banner Logic ---
-window.acceptCookies = function(type) {
-    localStorage.setItem('judiq_cookie_consent', type);
-    const banner = document.getElementById('cookieConsentBanner');
-    if (banner) {
-        banner.classList.add('hidden');
     }
 };
 
@@ -2873,18 +2758,6 @@ document.addEventListener('keydown', (e) => {
         const cmdModal = document.getElementById('commandPaletteModal');
         if (cmdModal && cmdModal.classList.contains('open')) {
             window.toggleCommandPalette(false);
-        }
-    }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    const consent = localStorage.getItem('judiq_cookie_consent');
-    if (!consent) {
-        const banner = document.getElementById('cookieConsentBanner');
-        if (banner) {
-            setTimeout(() => {
-                banner.classList.remove('hidden');
-            }, 1000);
         }
     }
 });

@@ -80,10 +80,10 @@ export function renderList(id, items, fallback = "No data available") {
                 const badgeColor = parsedItem.severity === 'FATAL' ? '#ef4444' : (parsedItem.severity === 'CRITICAL' ? '#f97316' : (parsedItem.severity === 'HIGH' ? '#eab308' : '#3b82f6'));
                 text = `<div style="display:flex; flex-direction:column; gap:0.3rem; width:100%;">
                     <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                        <span style="font-weight:700; color:var(--gray-100);">${escapeHtml(String(parsedItem.risk))}</span>
+                        <span style="font-weight:700; color:var(--gray-900);">${escapeHtml(String(parsedItem.risk))}</span>
                         <span style="background-color:${badgeColor}22; color:${badgeColor}; font-size:0.7rem; font-weight:700; padding:0.15rem 0.4rem; border-radius:0.25rem; text-transform:uppercase; border:1px solid ${badgeColor}44;">${escapeHtml(String(parsedItem.severity))}</span>
                     </div>
-                    <div style="color:var(--gray-400); font-size:0.85rem; line-height:1.4;">${escapeHtml(String(parsedItem.detail))}</div>
+                    <div style="color:var(--gray-600); font-size:0.85rem; line-height:1.4;">${escapeHtml(String(parsedItem.detail))}</div>
                 </div>`;
                 trustedMarkup = true;
             } else {
@@ -94,7 +94,7 @@ export function renderList(id, items, fallback = "No data available") {
         }
 
         const safeText = trustedMarkup ? text : escapeHtml(String(text));
-        return `<div class="list-item" style="align-items: flex-start; padding: 0.6rem 0.8rem; margin-bottom: 0.5rem; background: var(--gray-900); border: 1px solid var(--gray-800); border-radius: 0.5rem;"><i class="fas fa-chevron-right" style="color: var(--primary-500); margin-right: 0.5rem; margin-top: 0.25rem;"></i><div style="flex:1; width: 100%; color: var(--gray-100);">${safeText}</div></div>`;
+        return `<div class="list-item" style="align-items: flex-start; padding: 0.6rem 0.8rem; margin-bottom: 0.5rem; background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: 0.5rem;"><i class="fas fa-chevron-right" style="color: var(--primary-500); margin-right: 0.5rem; margin-top: 0.25rem;"></i><div style="flex:1; width: 100%; color: var(--gray-800);">${safeText}</div></div>`;
     }).join('');
 }
 
@@ -316,9 +316,9 @@ export function renderTimelineEngine(timelineData) {
     }
 
     if (timelineData.nodes && Array.isArray(timelineData.nodes)) {
-        let html = `<div style="margin-bottom: 1rem; padding: 0.75rem 1rem; background: var(--gray-900); border-radius: 0.5rem; border: 1px solid var(--gray-800); display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-weight: 700; color: var(--primary-400);"><i class="fas fa-network-wired"></i> Stage: ${escapeHtml(timelineData.current_stage || 'Litigation')}</span>
-            <span style="font-size: 0.8rem; color: var(--gray-400);">${timelineData.completed_nodes || 0} of ${timelineData.total_nodes || 0} Milestones Completed</span>
+        let html = `<div style="margin-bottom: 1rem; padding: 0.75rem 1rem; background: var(--gray-100); border-radius: 0.5rem; border: 1px solid var(--gray-200); display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-weight: 700; color: var(--primary-500);"><i class="fas fa-network-wired"></i> Stage: ${escapeHtml(timelineData.current_stage || 'Litigation')}</span>
+            <span style="font-size: 0.8rem; color: var(--gray-500);">${timelineData.completed_nodes || 0} of ${timelineData.total_nodes || 0} Milestones Completed</span>
         </div>`;
 
         html += timelineData.nodes.map((node, idx) => {
@@ -331,20 +331,20 @@ export function renderTimelineEngine(timelineData) {
             return `
                 <div class="timeline-item" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
                     <div style="width: 2px; background: ${badgeColor}66; position: relative;">
-                        <div style="position: absolute; top: 0; left: -6px; width: 14px; height: 14px; border-radius: 50%; background: ${badgeColor}; border: 3px solid #0f172a;"></div>
+                        <div style="position: absolute; top: 0; left: -6px; width: 14px; height: 14px; border-radius: 50%; background: ${badgeColor}; border: 3px solid var(--gray-50);"></div>
                     </div>
-                    <div style="flex: 1; background: var(--gray-900); border: 1px solid ${hasDefect ? '#ef444466' : 'var(--gray-800)'}; padding: 1rem; border-radius: 0.5rem;">
+                    <div style="flex: 1; background: var(--gray-100); border: 1px solid ${hasDefect ? '#ef444466' : 'var(--gray-200)'}; padding: 1rem; border-radius: 0.5rem;">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem;">
-                            <div style="font-weight: 700; color: var(--gray-100); font-size: 0.95rem;">${idx + 1}. ${escapeHtml(node.name)}</div>
+                            <div style="font-weight: 700; color: var(--gray-900); font-size: 0.95rem;">${idx + 1}. ${escapeHtml(node.name)}</div>
                             <span style="background: ${badgeColor}22; color: ${badgeColor}; border: 1px solid ${badgeColor}44; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 0.25rem;">
                                 <i class="fas ${icon}"></i> ${badgeText}
                             </span>
                         </div>
-                        <div style="font-size: 0.8rem; color: var(--gray-400); margin-bottom: 0.4rem;">
+                        <div style="font-size: 0.8rem; color: var(--gray-600); margin-bottom: 0.4rem;">
                             <strong>Statute:</strong> ${escapeHtml(node.statute || '')} &bull; <strong>Authority:</strong> <em>${escapeHtml(node.authority || '')}</em>
                         </div>
-                        ${node.date ? `<div style="font-size: 0.8rem; color: var(--primary-400);">Milestone Date: ${escapeHtml(node.date)}</div>` : ''}
-                        ${hasDefect ? `<div style="margin-top: 0.5rem; background: #ef444415; border: 1px solid #ef444444; color: #f87171; padding: 0.5rem; border-radius: 0.35rem; font-size: 0.85rem;"><i class="fas fa-ban"></i> ${escapeHtml(node.defect)}</div>` : ''}
+                        ${node.date ? `<div style="font-size: 0.8rem; color: var(--primary-500);">Milestone Date: ${escapeHtml(node.date)}</div>` : ''}
+                        ${hasDefect ? `<div style="margin-top: 0.5rem; background: #ef444415; border: 1px solid #ef444444; color: #ef4444; padding: 0.5rem; border-radius: 0.35rem; font-size: 0.85rem;"><i class="fas fa-ban"></i> ${escapeHtml(node.defect)}</div>` : ''}
                     </div>
                 </div>
             `;
@@ -1445,11 +1445,11 @@ export function renderSarfaesiResultsPanels(data) {
                 const reason = typeof a === 'object' ? (a.reason || '') : '';
                 const priority = typeof a === 'object' ? (a.priority || i + 1) : i + 1;
                 return `
-                    <div style="background:var(--gray-900); border:1px solid var(--gray-800); border-left:3px solid #f59e0b; border-radius:10px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; display:flex; gap:1rem; align-items:flex-start;">
+                    <div style="background:var(--gray-100); border:1px solid var(--gray-200); border-left:3px solid #f59e0b; border-radius:10px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; display:flex; gap:1rem; align-items:flex-start;">
                         <span style="min-width:28px; height:28px; background:rgba(245,158,11,0.15); color:#f59e0b; font-weight:800; font-size:0.8rem; border-radius:6px; display:flex; align-items:center; justify-content:center;">${priority}</span>
                         <div style="flex:1;">
-                            <div style="font-weight:700; color:var(--gray-100); font-size:0.9rem;">${escapeHtml(action)}</div>
-                            ${reason ? `<div style="font-size:0.78rem; color:var(--gray-400); margin-top:0.2rem;">${escapeHtml(reason)}</div>` : ''}
+                            <div style="font-weight:700; color:var(--gray-900); font-size:0.9rem;">${escapeHtml(action)}</div>
+                            ${reason ? `<div style="font-size:0.78rem; color:var(--gray-600); margin-top:0.2rem;">${escapeHtml(reason)}</div>` : ''}
                         </div>
                     </div>
                 `;
