@@ -40,7 +40,7 @@ class PrecedentManager:
             with open(self.log_path, "r") as f:
                 log = json.load(f)
             return log["updates"][-limit:][::-1]
-        except:
+        except (OSError, json.JSONDecodeError):
             return []
     def search_real_precedents(self, query: str) -> List[Dict]:
         logger.info(f"Initiating research for: {query}")

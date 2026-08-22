@@ -9,7 +9,7 @@ def ensure_list(x):
     return [x]
 def ensure_number(x, default=0):
     try: return float(x)
-    except: return default
+    except (ValueError, TypeError): return default
 NEGATION_WINDOW = 6
 def _is_negated(text_tokens: List[str], match_start_idx: int) -> bool:
     negators = {

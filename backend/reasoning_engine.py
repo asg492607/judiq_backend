@@ -385,7 +385,7 @@ class ReasoningEngine:
                     chq_dt = datetime.fromisoformat(cheque_date) if isinstance(cheque_date, str) else cheque_date
                     if res_dt < chq_dt:
                         resigned_risk = True
-                except: pass
+                except (ValueError, TypeError): pass
             status = "CRITICAL_DEFECT" if not has_directors or resigned_risk else "SATISFIED"
             finding = ""
             if not has_directors:

@@ -172,7 +172,7 @@ class AdversarialEngine:
                 def parse_date(d):
                     for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"):
                         try: return datetime.strptime(str(d).strip(), fmt)
-                        except: pass
+                        except Exception: pass
                     return None
                 r_date = parse_date(resignation_date_str)
                 c_date = parse_date(cheque_date_str)
@@ -430,7 +430,7 @@ class AdversarialEngine:
             if isinstance(d_str, datetime): return d_str
             for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%Y/%m/%d"):
                 try: return datetime.strptime(str(d_str).strip(), fmt)
-                except: continue
+                except Exception: continue
             return None
         cheque_date = to_date(case_data.get("cheque_date"))
         dishonour_date = to_date(case_data.get("dishonour_date"))
@@ -466,7 +466,7 @@ class AdversarialEngine:
             try:
                 dest_prob = float(node["collapse_risk"].strip('%')) / 100.0
                 base_risk += (dest_prob * 0.3)
-            except: base_risk += 0.1
+            except Exception: base_risk += 0.1
         contradictions = cls.detect_contradictions(case_data, concepts)
         return {
             "risks_and_rebuttals": analysis_nodes,

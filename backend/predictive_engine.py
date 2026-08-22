@@ -24,7 +24,7 @@ class PredictiveEngine:
             if amt > 1000000:             
                 base_prob += 10
                 factors.append("High-value disputes often result in structured EMI settlements during mediation.")
-        except:
+        except (ValueError, TypeError):
             pass
         final_prob = max(5.0, min(95.0, base_prob))
         recommendation = "PURSUE MEDIATION" if final_prob > 60 else ("TRIAL LIKELY" if final_prob < 40 else "NEUTRAL (EQUAL ODDS)")
@@ -37,7 +37,7 @@ class PredictiveEngine:
     def forecast_penalty_and_compensation(score: float, case_data: Dict[str, Any], concepts: list) -> Dict[str, Any]:
         try:
             amt = float(case_data.get("amount", 0))
-        except:
+        except (ValueError, TypeError):
             amt = 0.0
         interim_likely = score > 60 and not any(c.get("concept") == "notice_defect" for c in concepts)
         if interim_likely:

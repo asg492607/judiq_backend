@@ -10,7 +10,7 @@ def parse_date(date_str):
         for fmt in formats:
             try:
                 return datetime.strptime(str(date_str), fmt)
-            except:
+            except ValueError:
                 continue
     return None
 def days_between(date1_str, date2_str):

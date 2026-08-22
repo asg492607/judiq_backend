@@ -362,7 +362,7 @@ class ResponseBuilder:
                 collapse_prob = 50
                 try:
                     collapse_prob = int(node.get("collapse_risk", "50").replace("%", ""))
-                except:
+                except (ValueError, AttributeError):
                     pass
                 rebuttal_text = ""
                 rebut_tree = node.get("rebuttal_tree", {})
