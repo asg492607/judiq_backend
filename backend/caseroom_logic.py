@@ -33,8 +33,8 @@ class CaseroomManager:
             if case_record:
                 import json
                 try:
-                    state["latest_analysis"] = json.loads(case_record[4])                             
-                except:
+                    state["latest_analysis"] = json.loads(case_record[4])
+                except (json.JSONDecodeError, TypeError):
                     state["latest_analysis"] = None
         return state
     @staticmethod
@@ -42,6 +42,7 @@ class CaseroomManager:
         return DatabaseManager.send_message(caseroom_id, user_id, text)
     @staticmethod
     def add_milestone(caseroom_id, title, due_date, description=""):
+        conn = None
         try:
             conn = DatabaseManager.get_connection()
             cursor = conn.cursor()
@@ -52,11 +53,13 @@ class CaseroomManager:
                 VALUES ({p}, {p}, {p}, {p}, {p})
             """, (caseroom_id, title, description, due_date, now))
             conn.commit()
-            conn.close()
             return True
-        except sqlite3.Error as e:
+        except Exception as e:
             logger.error(f"Failed to add task: {e}")
             return False
+        finally:
+            if conn:
+                conn.close()
     @staticmethod
     def upload_document(caseroom_id, user_id, file_name, file_path, doc_type, validation_status="PENDING", raw_text=None):
         from document_intelligence import doc_intel
@@ -92,8 +95,8 @@ class CaseroomManager:
         if not original_case:
             return False, "Original case not found"
         try:
-            case_data = json.loads(original_case[3])                        
-        except:
+            case_data = json.loads(original_case[3])
+        except (json.JSONDecodeError, TypeError):
             return False, "Invalid case data format"
         documents = caseroom_data.get("documents", [])
         updates = []
