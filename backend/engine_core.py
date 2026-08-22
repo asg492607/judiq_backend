@@ -205,6 +205,7 @@ class JudiQEngine:
             scoring_modules = ["scoring"]
         attack_chains = []
         adversarial_engine = None  # Initialize before loop to prevent NameError if loop is empty
+        adversarial_result = {"risks_and_rebuttals": [], "contradictions": []}  # Safe default
         for adv_module in adv_modules:
             adversarial_engine = registry.get(adv_module)
             adversarial_result = _safe_call(
@@ -213,6 +214,8 @@ class JudiQEngine:
                 context=f"{adv_module}"
             )
             attack_chains.extend(adversarial_result.get("risks_and_rebuttals", []))
+        if adversarial_engine is None:
+            raise RuntimeError("No adversarial engine could be loaded. Check registry configuration.")
         contradictions = _safe_call(
             adversarial_engine.detect_contradictions, case_data, concepts,
             fallback=[],
