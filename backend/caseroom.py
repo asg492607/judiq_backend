@@ -12,16 +12,33 @@ import asyncio
 router = APIRouter()
 logger = logging.getLogger("JudiQ.Caseroom")
 class ConnectionManager:
+    """
+    In-process WebSocket connection registry.
+
+    WARNING — SINGLE-WORKER CONSTRAINT:
+    This registry is stored in process memory. When running multiple Uvicorn
+    workers (e.g. `gunicorn -w 4`), each worker has its own independent copy.
+    A message broadcast will only reach clients connected to the SAME worker.
+
+    For multi-worker production deployments, replace this with a Redis pub/sub
+    backend (e.g. using `broadcaster` or `channels_redis`).
+
+    The current render.yaml uses `-w 1` (single worker) precisely for this reason.
+    Do NOT increase worker count without first migrating to a shared message bus.
+    """
     def __init__(self):
         self.active_connections = {}
+
     async def connect(self, websocket: WebSocket, room_id: str):
         await websocket.accept()
         if room_id not in self.active_connections:
             self.active_connections[room_id] = []
         self.active_connections[room_id].append(websocket)
+
     def disconnect(self, websocket: WebSocket, room_id: str):
         if room_id in self.active_connections and websocket in self.active_connections[room_id]:
             self.active_connections[room_id].remove(websocket)
+
     async def broadcast(self, message: dict, room_id: str):
         if room_id in self.active_connections:
             for connection in self.active_connections[room_id]:
@@ -29,6 +46,7 @@ class ConnectionManager:
                     await connection.send_json(message)
                 except Exception:
                     pass
+
 manager = ConnectionManager()
 try:
     _raw_key = settings.ENCRYPTION_KEY.encode() if isinstance(settings.ENCRYPTION_KEY, str) else settings.ENCRYPTION_KEY

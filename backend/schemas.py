@@ -74,19 +74,15 @@ class CaseInput(BaseModel):
     }
     @model_validator(mode='before')
     @classmethod
-    def map_aliases(cls, values):
-        for k in ['amount', 'cheque_amount', 'debt_amount']:
-            if k in values and values[k] == "":
-                values[k] = 0.0
-        if 'cheque_amount' in values and 'amount' not in values:
-            try:
-                values['amount'] = float(values['cheque_amount'])
-            except (ValueError, TypeError):
-                pass
-        return values
-    @model_validator(mode='before')
-    @classmethod
-    def sanitize_html(cls, values):
+    def sanitize_and_map(cls, values):
+        """
+        Single consolidated 'before' validator that:
+        1. Strips HTML tags from all string fields (security hardening).
+        2. Normalises amount aliases (cheque_amount -> amount, empty strings -> 0.0).
+
+        NOTE: Having two @model_validator(mode='before') on the same class in Pydantic v2
+        causes the first to be silently overridden. This merged validator fixes that.
+        """
         html_tag_re = re.compile(r'<[^>]+>')
         sanitized = {}
         for k, v in values.items():
@@ -94,12 +90,23 @@ class CaseInput(BaseModel):
                 sanitized[k] = html_tag_re.sub('', v)
             elif isinstance(v, dict):
                 sanitized[k] = {
-                    dk: html_tag_re.sub('', dv) if isinstance(dv, str) else dv 
+                    dk: html_tag_re.sub('', dv) if isinstance(dv, str) else dv
                     for dk, dv in v.items()
                 }
             else:
                 sanitized[k] = v
+        # Normalize empty string amounts to 0.0
+        for k in ['amount', 'cheque_amount', 'debt_amount']:
+            if k in sanitized and sanitized[k] == "":
+                sanitized[k] = 0.0
+        # Alias cheque_amount -> amount if amount is missing
+        if 'cheque_amount' in sanitized and 'amount' not in sanitized:
+            try:
+                sanitized['amount'] = float(sanitized['cheque_amount'])
+            except (ValueError, TypeError):
+                pass
         return sanitized
+
 class EngineResponse(BaseModel):
     status: str = "success"
     message: str = ""

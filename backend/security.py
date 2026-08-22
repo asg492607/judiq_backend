@@ -2,7 +2,7 @@ import jwt
 import logging
 import os
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict
 logger = logging.getLogger(__name__)
 from config import settings
@@ -13,9 +13,9 @@ class SecurityManager:
     def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         to_encode = data.copy()
         if expires_delta:
-            expire = datetime.utcnow() + expires_delta
+            expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(minutes=60)
+            expire = datetime.now(timezone.utc) + timedelta(minutes=60)
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
         return encoded_jwt
@@ -34,9 +34,9 @@ class SecurityManager:
     def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
         to_encode = data.copy()
         if expires_delta:
-            expire = datetime.utcnow() + expires_delta
+            expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(days=7)                 
+            expire = datetime.now(timezone.utc) + timedelta(days=7)
         to_encode.update({"exp": expire, "type": "refresh"})
         return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     @staticmethod
@@ -100,7 +100,31 @@ def get_current_user_optional(credentials: HTTPAuthorizationCredentials = Depend
             return payload["sub"]
     return "ANONYMOUS"
 class SecurityTelemetry:
+    # Basic injection pattern signatures to flag for manual review
+    _THREAT_PATTERNS = [
+        (r"(?i)(select\s+.+\s+from|drop\s+table|insert\s+into|union\s+select)", "SQL_INJECTION"),
+        (r"<script[\s>]", "XSS_SCRIPT_TAG"),
+        (r"(?i)(exec\s*\(|eval\s*\(|os\.system|subprocess)", "CODE_INJECTION"),
+        (r"(?i)\.\./\.\./", "PATH_TRAVERSAL"),
+    ]
+
     @staticmethod
     def audit_payload(payload: dict) -> list:
+        """
+        Scans request payload for common injection patterns and oversized fields.
+        Returns a list of threat dicts. Empty list = clean payload.
+        """
+        import re
         threats = []
+        for key, value in payload.items():
+            if not isinstance(value, str):
+                continue
+            if len(value) > 15000:
+                threats.append({"type": "OVERSIZED_FIELD", "field": key, "size": len(value)})
+                continue
+            for pattern, threat_type in SecurityTelemetry._THREAT_PATTERNS:
+                if re.search(pattern, value):
+                    threats.append({"type": threat_type, "field": key})
+                    break
         return threats
+

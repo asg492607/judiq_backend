@@ -1,16 +1,21 @@
 import os
 from functools import lru_cache
 from pydantic_settings import BaseSettings
+
+
 class Settings(BaseSettings):
     PROJECT_NAME: str = "JudiQ Legal AI"
     VERSION: str = "12.5.0-ENTERPRISE"
     API_V1_STR: str = "/api/v1"
+    # SECURITY: Never fall back to a weak default in production.
+    # Set SECRET_KEY as an environment variable before deploying.
     SECRET_KEY: str = os.getenv("SECRET_KEY", "changeme_secure_key_for_dev_only")
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8          
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://neondb_owner:npg_TLOS6yndJ2QW@ep-dark-unit-axrhpu2d.c-4.us-east-2.aws.neon.tech/neondb?sslmode=require")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
+    # SECURITY: DATABASE_URL must be provided via environment variable.
+    # No credentials are hardcoded here. Set DATABASE_URL in your environment.
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "")
     BACKEND_CORS_ORIGINS: list = [
-        "*",
         "https://cold-smoke-f63f.judiqai.workers.dev",
         "https://judiq.netlify.app",
         "http://localhost:3000",
@@ -27,6 +32,8 @@ class Settings(BaseSettings):
     ENCRYPTION_KEY: str = os.getenv("ENCRYPTION_KEY", "c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnk=")
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+
+
 @lru_cache()
 def get_settings():
     s = Settings()
@@ -36,6 +43,16 @@ def get_settings():
         s.ENCRYPTION_KEY = "c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnk="
     if not s.DEBUG and s.SECRET_KEY == "changeme_secure_key_for_dev_only":
         import logging
-        logging.getLogger("config").warning("WARNING: SECRET_KEY is set to default in production. Please set a custom SECRET_KEY env var for security.")
+        logging.getLogger("config").warning(
+            "CRITICAL SECURITY WARNING: SECRET_KEY is set to its insecure default value in production. "
+            "Set a strong, random SECRET_KEY environment variable immediately."
+        )
+    if not s.DEBUG and not s.DATABASE_URL:
+        raise ValueError(
+            "DATABASE_URL environment variable is required in production. "
+            "No database credentials should be hardcoded."
+        )
     return s
+
+
 settings = get_settings()

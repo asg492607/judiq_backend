@@ -6,10 +6,9 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 DB_PATH = os.environ.get("SQLITE_DB_PATH", "analytics.db")
-DATABASE_URL = os.environ.get(
-    "DATABASE_URL",
-    "postgresql://neondb_owner:npg_TLOS6yndJ2QW@ep-dark-unit-axrhpu2d.c-4.us-east-2.aws.neon.tech/neondb?sslmode=require"
-)
+# SECURITY: DATABASE_URL must be set via environment variable.
+# No credentials are hardcoded. Falls back to SQLite if not provided.
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
 
 class DatabaseManager:

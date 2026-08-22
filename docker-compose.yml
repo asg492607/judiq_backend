@@ -1,19 +1,19 @@
-version: '3.8'
-
 services:
   judiq-backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: judiq-backend
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=sqlite:///./judiq.db
-      - ENCRYPTION_KEY=c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnk= # Placeholder for dev
+      - DATABASE_URL=${DATABASE_URL:-}
+      - SECRET_KEY=${SECRET_KEY:-changeme_secure_key_for_dev_only}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnk=}
+      - DEBUG=${DEBUG:-False}
     volumes:
       - ./backend/uploads:/app/uploads
-      - ./backend/judiq.db:/app/judiq.db
+      - ./backend/analytics.db:/app/analytics.db
     restart: unless-stopped
 
   judiq-frontend:

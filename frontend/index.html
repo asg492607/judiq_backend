@@ -6,15 +6,16 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com https://*.googleapis.com https://*.firebaseio.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 ws://localhost:8000 wss://* https://*; frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://*.google.com;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JudiQ – AI Litigation Strategist</title>
-    <!-- TEMPORARY ERROR CATCHER FOR DEBUGGING -->
-    <script src="js/modules/error_handler.js"></script>
-    <script src="js/modules/i18n.js"></script>
     <meta name="description" content="JudiQ AI Litigation Strategist finds legal weaknesses before the courtroom does. Simulate opponent attacks and predict judge challenges.">
     <meta property="og:title" content="JudiQ – AI Litigation Strategist">
     <meta property="og:description" content="Adversarial litigation simulation, weakness detection, and courtroom strategy for law firms and in-house counsel.">
+    <!-- Stylesheet loaded first to prevent Flash of Unstyled Content (FOUC) -->
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Error handler and i18n loaded with defer to avoid blocking HTML parsing -->
+    <script src="js/modules/error_handler.js" defer></script>
+    <script src="js/modules/i18n.js" defer></script>
 </head>
 <body>
     <!-- Institutional Compliance Top Banner -->

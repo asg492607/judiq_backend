@@ -17,6 +17,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("JudiQ.Main")
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Initializing JudiQ Infrastructure...")
@@ -24,6 +25,7 @@ async def lifespan(app: FastAPI):
     logger.info("Infrastructure ready.")
     yield
     logger.info("Shutting down JudiQ Infrastructure...")
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -35,6 +37,7 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     start_time = time.time()
@@ -43,15 +46,17 @@ async def add_process_time_header(request: Request, call_next):
     response.headers["X-Process-Time"] = str(process_time)
     return response
 
-allowed_origins = [o for o in settings.BACKEND_CORS_ORIGINS if o != "*"]
+
+# SECURITY: Use an explicit allowlist only. No wildcard regex.
+# allow_origin_regex is intentionally omitted to prevent bypassing the allowlist.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_origin_regex=r"https?://.*",
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -62,6 +67,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"success": False, "error": "Internal Server Error"}
     )
+
 
 @app.get("/health")
 async def health_check():
@@ -79,17 +85,16 @@ async def health_check():
         pass
     return health_data
 
+
 @app.get("/")
 @app.head("/")
 async def root_endpoint():
     return {"status": "online", "service": settings.PROJECT_NAME, "version": settings.VERSION}
 
+
+# All routes are served exclusively under /api/v1 prefix.
+# Legacy duplicate route registrations removed to eliminate route conflicts.
 app.include_router(api_router, prefix="/api/v1")
-import analysis, verification, documents, criminal
-app.include_router(analysis.router, prefix="/analyze", tags=["Legacy Analysis"])
-app.include_router(criminal.router, prefix="/criminal", tags=["Legacy Criminal Engine"])
-app.include_router(verification.router, prefix="/verify-memo", tags=["Legacy Verification"])
-app.include_router(documents.router, prefix="/generate-pdf", tags=["Legacy Documents"])
 
 if __name__ == "__main__":
     import uvicorn
