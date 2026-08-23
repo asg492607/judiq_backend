@@ -122,6 +122,92 @@ def _num_to_words(n: int) -> str:
     if n < 100000: return _num_to_words(n // 1000) + " Thousand" + (" " + _num_to_words(n % 1000) if n % 1000 else "")
     if n < 10000000: return _num_to_words(n // 100000) + " Lakh" + (" " + _num_to_words(n % 100000) if n % 100000 else "")
     return _num_to_words(n // 10000000) + " Crore" + (" " + _num_to_words(n % 10000000) if n % 10000000 else "")
+def verify_s138_timeline_for_draft(case_data: Dict[str, Any]) -> Dict[str, Any]:
+    from utils import parse_date, days_between
+    cheque_date = case_data.get("cheque_date") or case_data.get("chequeDate")
+    presentation_date = case_data.get("presentation_date") or case_data.get("presentationDate") or case_data.get("dishonour_date") or case_data.get("dishonourDate")
+    dishonour_date = case_data.get("dishonour_date") or case_data.get("dishonourDate")
+    notice_date = case_data.get("notice_date") or case_data.get("noticeDate")
+    notice_received_date = case_data.get("notice_received_date") or case_data.get("noticeReceivedDate") or case_data.get("notice_delivery_date")
+    filing_date = case_data.get("filing_date") or case_data.get("filingDate")
+
+    res = {
+        "is_cheque_valid": True,
+        "is_notice_valid": True,
+        "is_complaint_timely": True,
+        "is_premature": False,
+        "is_delay": False,
+        "delay_days": 0,
+        "notice_dispatch_days": None,
+        "cheque_presentation_days": None,
+        "audit_lines": [],
+        "warnings": []
+    }
+
+    # 1. Cheque Validity (Max 90 days from cheque date)
+    if cheque_date and presentation_date:
+        gap = days_between(cheque_date, presentation_date)
+        res["cheque_presentation_days"] = gap
+        if gap is not None and gap > 92:
+            res["is_cheque_valid"] = False
+            msg = f"Cheque presented on day {gap} (> 90 days statutory validity from cheque date {cheque_date})."
+            res["warnings"].append(msg)
+            res["audit_lines"].append(f"[🚨 TIMELINE BREACH - CHEQUE EXPIRED]: {msg}")
+        elif gap is not None and gap >= 0:
+            res["audit_lines"].append(f"[✓ CHEQUE VALIDITY]: Cheque presented within {gap} days of issue.")
+
+    # 2. Demand Notice Dispatch (Max 30 days from dishonour date)
+    if dishonour_date and notice_date:
+        gap = days_between(dishonour_date, notice_date)
+        res["notice_dispatch_days"] = gap
+        if gap is not None and gap > 30:
+            res["is_notice_valid"] = False
+            msg = f"Statutory Demand Notice dispatched on day {gap} (> 30-day statutory limit from dishonour date {dishonour_date}). Notice is time-barred!"
+            res["warnings"].append(msg)
+            res["audit_lines"].append(f"[🚨 TIMELINE BREACH - NOTICE DELAYED]: {msg}")
+        elif gap is not None and gap >= 0:
+            res["audit_lines"].append(f"[✓ NOTICE DISPATCH]: Statutory notice dispatched on day {gap} (within 30-day statutory window).")
+
+    # 3. Complaint Filing Timeline (Cause of action accrual & limitation)
+    ref_service_date = notice_received_date or notice_date
+    if ref_service_date and filing_date:
+        gap_total = days_between(ref_service_date, filing_date)
+        if gap_total is not None:
+            if gap_total < 15:
+                res["is_premature"] = True
+                res["is_complaint_timely"] = False
+                msg = f"Complaint filed on day {gap_total} post-notice (< 15 days). Filed prematurely before cause of action accrued u/s 138(c)."
+                res["warnings"].append(msg)
+                res["audit_lines"].append(f"[🚨 TIMELINE WARNING - PREMATURE FILING]: {msg}")
+            elif gap_total > 45:
+                res["is_delay"] = True
+                res["is_complaint_timely"] = False
+                delay = gap_total - 45
+                res["delay_days"] = delay
+                msg = f"Complaint filed on day {gap_total} post-notice ({delay} days past the statutory 30-day filing window). Requires Condonation of Delay u/s 142(1)(b) NI Act."
+                res["warnings"].append(msg)
+                res["audit_lines"].append(f"[⚠️ TIMELINE ALERT - CONDONATION REQUIRED]: {msg}")
+            elif gap_total >= 15:
+                res["audit_lines"].append(f"[✓ COMPLAINT TIMELINE]: Complaint filed on day {gap_total} post-notice service (within 30-day window after 15-day cure period).")
+
+    return res
+
+def format_timeline_audit_report(res: Dict[str, Any]) -> str:
+    if not res.get("audit_lines") and not res.get("warnings"):
+        return ""
+    lines = [
+        "======================================================================",
+        "SECTION 138 NI ACT STATUTORY TIMELINE AUDIT REPORT",
+        "======================================================================"
+    ]
+    lines.extend(res.get("audit_lines", []))
+    if res.get("warnings"):
+        lines.append("\nSUMMARY STATUTORY WARNINGS:")
+        for w in res.get("warnings", []):
+            lines.append(f"  • {w}")
+    lines.append("======================================================================\n")
+    return "\n".join(lines)
+
 def generate_legal_notice(case_data: Dict, tone: str = "standard") -> str:
     today, amount_str = _case_meta(case_data)
     is_aggressive = (tone or "").lower() == "aggressive"
@@ -152,8 +238,12 @@ def generate_legal_notice(case_data: Dict, tone: str = "standard") -> str:
     is_cash = loan_via_bank not in ("yes", "true", "1")
     if amount_val > 150000 and is_cash:
         transaction_nature += f". My client specifically asserts possessing sufficient source of funds to the tune of {amount_str} at the time of the transaction, advanced from accumulated personal savings/agricultural income, fully satisfying their financial capacity"
+    
+    timeline_res = verify_s138_timeline_for_draft(case_data)
+    audit_header = format_timeline_audit_report(timeline_res)
+    
     template = env.get_template("legal_notice.jinja")
-    return template.render(
+    notice_content = template.render(
         header=_header("LEGAL NOTICE UNDER SECTION 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881"),
         today=today,
         amount_str=amount_str,
@@ -168,18 +258,23 @@ def generate_legal_notice(case_data: Dict, tone: str = "standard") -> str:
         transaction_nature=transaction_nature,
         tone=(tone or "").lower()
     )
+    if audit_header:
+        return f"{audit_header}\n{notice_content}"
+    return notice_content
 def generate_certificate_63_bsa(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
     complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Your Name)"
     device_type = case_data.get("device_type", "Smartphone / Personal Computer")
-    return f"""{_header("CERTIFICATE UNDER SECTION 63(4) OF THE BHARATIYA SAKSHYA ADHINIYAM (BSA)")}
+    hdr = _header("CERTIFICATE UNDER SECTION 63(4) OF THE BHARATIYA SAKSHYA ADHINIYAM (BSA)")
+
+    return hdr + f"""
 IN THE COURT OF THE LEARNED JUDICIAL MAGISTRATE / METROPOLITAN MAGISTRATE
 AT ________ (Court Location)
 COMPLAINT NO.: _____ / {datetime.now().year}
 IN THE MATTER OF:
-{complainant}                                              ... COMPLAINANT
+{complainant}                                              -- COMPLAINANT
 VERSUS
-________ (Accused Name)                                             ... ACCUSED
+________ (Accused Name)                                             -- ACCUSED
 AFFIDAVIT / CERTIFICATE UNDER SECTION 63(4) OF THE BHARATIYA SAKSHYA ADHINIYAM (BSA) FOR ADMISSIBILITY OF ELECTRONIC RECORDS
 I, {complainant}, adult, residing at ________ (Address), do hereby solemnly affirm and state as under:
 1. That I am the Complainant in the present case and I am fully conversant with the facts and circumstances of the case and am competent to depose to this affidavit.
@@ -261,10 +356,19 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
             liability_clause = f"3. THE VICARIOUS LIABILITY (SEC. 141): That the Accused No. 1 is a {accused_type} and the other Accused persons are its Directors/Officers who were in charge of and responsible for the conduct of the business (Exact roles: ________ (Specify Roles)) as per Section 141 of the NI Act."
         else:
             liability_clause = f"3. That the Accused is a {accused_type}. [🚨 FATAL DEFECT WARNING: You must name the specific Directors/Officers in charge of the company and describe their EXACT ROLES to satisfy Section 141 and avoid dismissal at the threshold stage per 'Aneeta Hada' ruling]."
+    
+    timeline_res = verify_s138_timeline_for_draft(case_data)
+    audit_report = format_timeline_audit_report(timeline_res)
+    
     delay_para = ""
     within_30_days = str(case_data.get("within_30_days", "yes")).lower() in ("yes", "true", "1")
-    if not within_30_days:
-        delay_para = f"There has been a technical delay of ____ days in issuing the statutory demand notice, for which a condonation of delay application under Section 142(1)(b) of the NI Act has been filed herewith."
+    if timeline_res.get("is_delay"):
+        delay_para = f"There has been a technical delay of {timeline_res.get('delay_days', 0)} days in filing the complaint post the expiry of statutory period, for which a condonation of delay application under Section 142(1)(b) of the NI Act read with Section 5 of the Limitation Act is filed herewith."
+    elif not within_30_days:
+        delay_para = f"There has been a technical delay in issuing/filing under Section 138, for which a condonation of delay application under Section 142(1)(b) of the NI Act is filed herewith."
+    elif timeline_res.get("is_premature"):
+        delay_para = f"[🚨 STATUTORY NOTICE WARNING: Complaint appears to be filed prematurely on day {timeline_res.get('notice_dispatch_days', '<15')} post-notice, prior to expiry of the mandatory 15-day payment period u/s 138(c). Cause of action had not accrued at the time of filing.]"
+
     if is_aggressive:
         debt_pleading = f"""The Complainant submits that the Accused is bound by an incontrovertible liability of {amount_str}, arising out of {transaction_nature}. 
     This liability is securely established by contemporaneous commercial records. The issuance of the subject cheque by the Accused was an explicit acknowledgment of this debt. Its subsequent dishonour is a clear demonstration of the Accused's mala fide intent to evade lawful obligations, compelling the Complainant to invoke the strict provisions of Section 138 of the NI Act."""
@@ -319,9 +423,9 @@ INDEX OF FILING BUNDLE
 IN THE COURT OF THE METROPOLITAN MAGISTRATE AT {court_name}
 COMPLAINT NO: _____ / {year_val}
 IN THE MATTER OF:
-{complainant}                                          ... COMPLAINANT
+{complainant}                                          -- COMPLAINANT
 VERSUS
-{accused}                                              ... ACCUSED
+{accused}                                              -- ACCUSED
 INDEX
 S.NO.   PARTICULARS                                     PAGE NO.
 1.      Synopsis and List of Dates                      1 - 2
@@ -347,7 +451,7 @@ DATE            PARTICULARS
 {dishonour_date}    The cheque was returned/dishonoured by the bank with the memo citing "{dishonour_reason}".
 {notice_date}   The Complainant sent the statutory demand notice under Section 138(b) of the NI Act to the Accused.
 {notice_received_date}   The statutory demand notice was served/deemed served on the Accused.
-{filing_date}   Filing of the present complaint before this Hon'ble Court.
+{filing_date}   Filing of the present complaint before this Honourable Court.
 Place: {place_val}                                      THROUGH:
 Date: {today}                                           __________________, ADVOCATE
                                                         FOR COMPLAINANT
@@ -361,11 +465,11 @@ IN THE MATTER OF:
 COMPLAINANT:    {complainant}
                 {complainant_addr}
                 {complainant_phone}
-                                                        ... COMPLAINANT
+                                                        -- COMPLAINANT
 VERSUS
 ACCUSED:        {accused}
                 {accused_addr}
-                                                        ... ACCUSED
+                                                        -- ACCUSED
 Place: {place_val}                                      THROUGH:
 Date: {today}                                           __________________, ADVOCATE
                                                         FOR COMPLAINANT
@@ -376,9 +480,9 @@ AFFIDAVIT IN SUPPORT OF THE COMPLAINT
 IN THE COURT OF THE METROPOLITAN MAGISTRATE AT {court_name}
 COMPLAINT NO: _____ / {year_val}
 IN THE MATTER OF:
-{complainant}                                          ... COMPLAINANT
+{complainant}                                          -- COMPLAINANT
 VERSUS
-{accused}                                              ... ACCUSED
+{accused}                                              -- ACCUSED
 AFFIDAVIT
 I, {complainant}, son/daughter/representative of ________, aged about ____ years, residing/having office at {complainant_addr}, do hereby solemnly affirm and state as under:
 1. That I am the Complainant in the accompanying complaint and am fully conversant with the facts of the case, and as such, competent to depose to this affidavit.
@@ -400,11 +504,11 @@ IN THE MATTER OF:
 COMPLAINANT:    {complainant}
                 {complainant_addr}
                 {complainant_phone}
-                                                        ... COMPLAINANT
+                                                        -- COMPLAINANT
 VERSUS
 ACCUSED:        {accused}
                 {accused_addr}
-                                                        ... ACCUSED
+                                                        -- ACCUSED
                 THROUGH: __________________, ADVOCATE
                 FOR THE COMPLAINANT
 COMPLAINT U/S 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881
@@ -423,14 +527,14 @@ RESPECTFULLY SHOWETH:
 7. STATUTORY DEMAND NOTICE AND ACCUSED'S DEFAULT:
    As mandated under Section 138(b) of the NI Act, 1881, the Complainant sent a legal demand notice dated {notice_date} to the Accused at their correct and known address via Registered Post (AD)/Speed Post, demanding payment of the cheque amount of {amount_str} within 15 days of receipt of the notice. The notice was duly served/deemed to be served upon the Accused. Despite receipt/deemed receipt of the notice, the Accused failed to make the payment of the cheque amount within the statutory period of 15 days, which expired on ________. The Accused has thus committed an offence punishable under Section 138 of the Negotiable Instruments Act, 1881. {delay_para} {dynamic_rebuttal}
 8. JURISDICTION:
-   This Hon'ble Court has territorial jurisdiction to entertain and try this Complaint as the cheque in question was presented for encashment at {bank_full}, which is situated within the territorial limits of this Court, as per the law laid down by the Hon'ble Supreme Court in Dashrath Rupsingh Rathod vs. State of Maharashtra.
+   This Honourable Court has territorial jurisdiction to entertain and try this Complaint as the cheque in question was presented for encashment at {bank_full}, which is situated within the territorial limits of this Court, as per the law laid down by the Honourable Supreme Court in Dashrath Rupsingh Rathod vs. State of Maharashtra.
 9. PRAYER:
-   It is, therefore, most respectfully prayed that this Hon'ble Court may be pleased to:
+   It is, therefore, most respectfully prayed that this Honourable Court may be pleased to:
    (a) Take cognizance of the offence committed by the Accused under Section 138 of the NI Act, 1881;
    (b) Issue summons/process to the Accused to face trial;
    (c) Direct the Accused to pay INTERIM COMPENSATION of 20% of the cheque amount to the Complainant as per Section 143A of the NI Act (as amended in 2018);
    (d) On conviction, sentence the Accused to imprisonment for the maximum term and/or impose a fine of twice the cheque amount to meet the ends of justice; and
-   (e) Pass such other order(s) as this Hon'ble Court may deem fit in the interest of justice.
+   (e) Pass such other order(s) as this Honourable Court may deem fit in the interest of justice.
 LIST OF ANNEXURES:
 ANNEXURE-A: Original Board Resolution / Letter of Authority (If applicable)
 ANNEXURE-B: Original Dishonoured Cheque No. {cheque_no}
@@ -441,11 +545,13 @@ ANNEXURE-F: Section 63(4) BSA Certificate for WhatsApp/Email records (Mandatory)
 VERIFICATION:
 I, {complainant}, do hereby solemnly verify that the contents of the above Complaint are true and correct to the best of my knowledge, information, and belief. Nothing material has been concealed therefrom, and all supporting documents are annexed herewith.
 Place: {place_val}
-Date: {today}
                                                         {complainant}
                                                         (Complainant)
 """
-    return f"{index_section}\n\n{synopsis_section}\n\n{memo_section}\n\n{complaint_body}\n\n{affidavit_section}"
+    full_complaint_bundle = f"{index_section}\n\n{synopsis_section}\n\n{memo_section}\n\n{complaint_body}\n\n{affidavit_section}"
+    if audit_report:
+        return f"{audit_report}\n{full_complaint_bundle}"
+    return full_complaint_bundle
 def generate_defence_strategy(case_data: Dict, concepts: List[Dict], score: int) -> str:
     today, amount_str = _case_meta(case_data)
     concept_names = {c.get("concept", "") for c in concepts if isinstance(c, dict)}
@@ -454,7 +560,7 @@ def generate_defence_strategy(case_data: Dict, concepts: List[Dict], score: int)
     if "security_cheque" in concept_names:
         defences_identified.append("Cheque Given as Security — Not for Debt Discharge")
         legal_arguments.append(
-            "The cheque in question was given purely as a security/collateral cheque and not in discharge of any legally enforceable debt. As per the Hon'ble Supreme Court in Indus Airways Pvt. Ltd. v. Magnum Aviation Pvt. Ltd. (2014), a security cheque falls outside the scope of Section 138 NI Act, as there is no legally enforceable debt against which the cheque was drawn."
+            "The cheque in question was given purely as a security/collateral cheque and not in discharge of any legally enforceable debt. As per the Honourable Supreme Court in Indus Airways Pvt. Ltd. v. Magnum Aviation Pvt. Ltd. (2014), a security cheque falls outside the scope of Section 138 NI Act, as there is no legally enforceable debt against which the cheque was drawn."
         )
     if "signature_dispute" in concept_names:
         defences_identified.append("Signature on Cheque Not Genuine — Forgery Alleged")
@@ -481,7 +587,9 @@ def generate_defence_strategy(case_data: Dict, concepts: List[Dict], score: int)
         defences_identified.insert(0, synthesis)
     defences_text = "\n".join([f"   {i+1}. {d}" if not str(d).startswith("COMPOSITE") else f"   {d}" for i, d in enumerate(defences_identified)]) if defences_identified else "   (To be determined based on full case facts)"
     arguments_text = "\n\n".join([f"   {i+1}. {a}" for i, a in enumerate(legal_arguments)]) if legal_arguments else "   (Legal arguments to be elaborated based on specific case documents)"
-    return f"""{_header("DEFENCE STRATEGY BRIEF — SECTION 138 NI ACT")}
+    hdr = _header("DEFENCE STRATEGY BRIEF — SECTION 138 NI ACT")
+
+    return hdr + f"""
 Date: {today}
 Case Strength Score: {score}/100
 Classification: DEFENCE-SIDED (ACCUSED STRATEGY)
@@ -505,22 +613,24 @@ SETTLEMENT ASSESSMENT:
    Given the case strength score of {score}/100, a negotiated settlement may be advisable to avoid
    prolonged litigation risk. The Accused should evaluate a commercial resolution.
 DISCLAIMER: This is an AI-generated preliminary strategy document. Consult a qualified advocate before taking any legal action.
-WARNING: Do NOT file raw AI output. You MUST 'humanize' the draft to avoid 'Cookie-Cutter' objections from the Magistrate, and verify ALL citations to prevent 'Phantom Precedent' penalties (Professional Misconduct/₹50k fine).
+WARNING: Do NOT file raw AI output. You MUST 'humanize' the draft to avoid 'Cookie-Cutter' objections from the Magistrate, and verify ALL citations to prevent 'Phantom Precedent' penalties (Professional Misconduct/Rs. 50,000 fine).
 """
 def generate_discharge_application(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
     accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
-    return f"""{_header("DISCHARGE APPLICATION — SECTION 227/239 CrPC / 250/262 BNSS")}
+    hdr = _header("DISCHARGE APPLICATION — SECTION 227/239 CrPC / 250/262 BNSS")
+
+    return hdr + f"""
 IN THE COURT OF ________ (Sessions Judge / Magistrate), ________ (Location)
 IN THE MATTER OF:
-STATE                                                      ... PROSECUTION
+STATE                                                      -- PROSECUTION
 VERSUS
-{accused}                                                  ... ACCUSED
+{accused}                                                  -- ACCUSED
 APPLICATION FOR DISCHARGE OF THE ACCUSED
 MOST RESPECTFULLY SHOWETH:
 1. That the police have filed a charge sheet against the Accused. However, a bare perusal of the charge sheet and accompanying documents under Section 207 CrPC reveals that no prima facie case is made out.
 2. GRAVE SUSPICION LACKING:
-   As per the Hon'ble Supreme Court in 'Union of India v. Prafulla Kumar Samal', the Court must evaluate if the materials create a 'grave suspicion'. Here, the evidence is entirely hearsay, legally inadmissible, and fundamentally flawed.
+   As per the Honourable Supreme Court in 'Union of India v. Prafulla Kumar Samal', the Court must evaluate if the materials create a 'grave suspicion'. Here, the evidence is entirely hearsay, legally inadmissible, and fundamentally flawed.
 3. ABSENCE OF MENS REA:
    Even if the allegations are taken at face value (without admitting them), the essential ingredients of the offence, particularly the requisite mens rea, are completely absent.
 PRAYER:
@@ -537,22 +647,23 @@ def generate_quashing_petition(case_data: Dict) -> str:
     fir_date = case_data.get("fir_date", "________ (Date)")
     police_station = case_data.get("police_station", "________ (Police Station)")
     state_name = case_data.get("state_name", "________ (State Name)")
-    return f"""{_header("QUASHING PETITION — SECTION 482 CrPC / 528 BNSS")}
-IN THE HON'BLE HIGH COURT OF {state_name}
+    hdr = _header("QUASHING PETITION — SECTION 482 CrPC / 528 BNSS")
+    return hdr + f"""
+IN THE HONOURABLE HIGH COURT OF {state_name}
 CRIMINAL MISC. PETITION NO. ______ OF {datetime.now().year}
 IN THE MATTER OF:
-{accused}                                                  ... PETITIONER
+{accused}                                                  -- PETITIONER
 VERSUS
-STATE OF {state_name} & ANR.                               ... RESPONDENTS
+STATE OF {state_name} & ANR.                               -- RESPONDENTS
 PETITION UNDER SECTION 482 OF THE CODE OF CRIMINAL PROCEDURE FOR QUASHING OF FIR NO. {fir_no} DATED {fir_date} U/S {offense} P.S. {police_station} AND ALL CONSEQUENTIAL PROCEEDINGS
 MOST RESPECTFULLY SHOWETH:
-1. That the present petition is being filed invoking the inherent jurisdiction of this Hon'ble Court to prevent the abuse of the process of law and to secure the ends of justice.
+1. That the present petition is being filed invoking the inherent jurisdiction of this Honourable Court to prevent the abuse of the process of law and to secure the ends of justice.
 2. MALA FIDE IMPLICATION (BHAJAN LAL GUIDELINES):
    That the FIR has been instituted with an ulterior motive to wreak vengeance on the Petitioner due to a private and personal dispute. The allegations, even if taken on their face value and accepted in their entirety, do not prima facie constitute any offence or make out a case against the Petitioner, falling squarely within Parameters 1 and 7 laid down in 'State of Haryana v. Bhajan Lal'.
 3. PURELY CIVIL DISPUTE GIVEN CRIMINAL COLOR:
-   That the crux of the dispute between the parties is inherently civil/commercial in nature (e.g., breach of contract/partnership dispute). The Complainant is attempting to weaponize the criminal justice system to exert pressure for a civil recovery, which is strictly deprecated by the Hon'ble Supreme Court in 'Indian Oil Corp v. NEPC India'.
+   That the crux of the dispute between the parties is inherently civil/commercial in nature (e.g., breach of contract/partnership dispute). The Complainant is attempting to weaponize the criminal justice system to exert pressure for a civil recovery, which is strictly deprecated by the Honourable Supreme Court in 'Indian Oil Corp v. NEPC India'.
 PRAYER:
-It is prayed that this Hon'ble Court may be pleased to quash the impugned FIR No. ________ (FIR No.) and all consequential proceedings emanating therefrom.
+It is prayed that this Honourable Court may be pleased to quash the impugned FIR No. ________ (FIR No.) and all consequential proceedings emanating therefrom.
 Place: ________ (Place)
 Date: {today}
 Through Counsel
@@ -560,13 +671,15 @@ Through Counsel
 def generate_suspension_sentence(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
     accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Appellant Name)"
-    return f"""{_header("APPLICATION FOR SUSPENSION OF SENTENCE — SECTION 389 CrPC / 430 BNSS")}
+    hdr = _header("APPLICATION FOR SUSPENSION OF SENTENCE — SECTION 389 CrPC / 430 BNSS")
+
+    return hdr + f"""
 IN THE COURT OF ________ (Sessions Judge / High Court), ________ (Location)
 CRIMINAL MISC. APPLICATION IN CRIMINAL APPEAL NO. ______ OF {datetime.now().year}
 IN THE MATTER OF:
-{accused}                                                  ... APPELLANT
+{accused}                                                  -- APPELLANT
 VERSUS
-STATE OF ________ (State Name)                                      ... RESPONDENT
+STATE OF ________ (State Name)                                      -- RESPONDENT
 APPLICATION UNDER SECTION 389 OF CrPC FOR SUSPENSION OF SENTENCE AND GRANT OF BAIL PENDING APPEAL
 MOST RESPECTFULLY SHOWETH:
 1. That the Appellant has preferred the accompanying Criminal Appeal challenging the judgment and order of conviction dated ________ (Date) passed by the Ld. Trial Court, whereby the Appellant has been sentenced to undergo rigorous imprisonment for ________ (X) years.
@@ -584,13 +697,15 @@ def generate_criminal_appeal(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
     accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Appellant Name)"
     offense = case_data.get("offense_type", "General")
-    return f"""{_header("CRIMINAL APPEAL — SECTION 374 CrPC / 415 BNSS")}
+    hdr = _header("CRIMINAL APPEAL — SECTION 374 CrPC / 415 BNSS")
+
+    return hdr + f"""
 IN THE COURT OF ________ (Sessions Judge / High Court), ________ (Location)
 CRIMINAL APPEAL NO. ______ OF {datetime.now().year}
 IN THE MATTER OF:
-{accused}                                                  ... APPELLANT
+{accused}                                                  -- APPELLANT
 VERSUS
-STATE OF ________ (State Name)                                      ... RESPONDENT
+STATE OF ________ (State Name)                                      -- RESPONDENT
 CRIMINAL APPEAL UNDER SECTION 374 OF THE CrPC AGAINST THE JUDGMENT OF CONVICTION DATED ________ (Date) PASSED IN CASE NO. ________ (Case No.) U/S {offense}
 MOST RESPECTFULLY SHOWETH:
 1. That the present appeal is directed against the impugned judgment and order of sentence dated ________ (Date), whereby the Ld. Trial Court has erroneously convicted the Appellant based on conjectures and surmises.
@@ -607,15 +722,17 @@ Through Counsel
 def generate_recall_witness(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
     accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Applicant Name)"
-    return f"""{_header("APPLICATION TO RECALL WITNESS — SECTION 311 CrPC / 348 BNSS")}
+    hdr = _header("APPLICATION TO RECALL WITNESS — SECTION 311 CrPC / 348 BNSS")
+
+    return hdr + f"""
 IN THE COURT OF ________ (Sessions Judge / Magistrate), ________ (Location)
 IN THE MATTER OF:
-STATE                                                      ... PROSECUTION
+STATE                                                      -- PROSECUTION
 VERSUS
-{accused}                                                  ... ACCUSED
+{accused}                                                  -- ACCUSED
 APPLICATION UNDER SECTION 311 OF THE CrPC FOR RECALLING PROSECUTION WITNESS (PW-________ (X)) FOR FURTHER CROSS-EXAMINATION
 MOST RESPECTFULLY SHOWETH:
-1. That the present case is pending adjudication before this Hon'ble Court and is fixed for ________ (Next Stage) on ________ (Next Date).
+1. That the present case is pending adjudication before this Honourable Court and is fixed for ________ (Next Stage) on ________ (Next Date).
 2. ESSENTIAL FOR JUST DECISION:
    That subsequent to the cross-examination of PW-________ (X) (________ (Witness Name)), certain material documents/facts have surfaced which go to the root of the matter. Recalling the witness is essential for arriving at a just decision of the case as mandated by the second part of Section 311 CrPC.
 3. NO DELAY TACTIC:
@@ -629,17 +746,19 @@ Through Counsel
 def generate_add_accused(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
     complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
-    return f"""{_header("APPLICATION TO SUMMON ADDITIONAL ACCUSED — SECTION 319 CrPC / 358 BNSS")}
+    hdr = _header("APPLICATION TO SUMMON ADDITIONAL ACCUSED — SECTION 319 CrPC / 358 BNSS")
+
+    return hdr + f"""
 IN THE COURT OF ________ (Sessions Judge / Magistrate), ________ (Location)
 IN THE MATTER OF:
-{complainant} / STATE                                      ... COMPLAINANT/PROSECUTION
+{complainant} / STATE                                      -- COMPLAINANT/PROSECUTION
 VERSUS
-________ (Current Accused) & ORS.                                   ... ACCUSED
+________ (Current Accused) & ORS.                                   -- ACCUSED
 APPLICATION UNDER SECTION 319 OF THE CrPC FOR SUMMONING ADDITIONAL ACCUSED PERSON
 MOST RESPECTFULLY SHOWETH:
 1. That the trial in the present matter is ongoing. During the recording of evidence of PW-________ (X), specific and overt acts have been attributed to one Mr./Ms. ________ (Name of Proposed Accused), who was not charge-sheeted by the police.
 2. STRONG PRIMA FACIE EVIDENCE:
-   That the testimony before this Hon'ble Court establishes a strong prima facie case against the proposed accused. As per the Constitution Bench ruling in 'Hardeep Singh v. State of Punjab', the evidence is more than a mere probability of complicity.
+   That the testimony before this Honourable Court establishes a strong prima facie case against the proposed accused. As per the Constitution Bench ruling in 'Hardeep Singh v. State of Punjab', the evidence is more than a mere probability of complicity.
 PRAYER:
 It is prayed that Mr./Ms. ________ (Name) be summoned to stand trial alongside the current accused persons, to meet the ends of justice.
 Place: ________ (Place)
@@ -649,19 +768,21 @@ Through Counsel
 def generate_exemption_appearance(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
     accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
-    return f"""{_header("EXEMPTION FROM PERSONAL APPEARANCE — SECTION 205/317 CrPC / 355 BNSS")}
+    hdr = _header("EXEMPTION FROM PERSONAL APPEARANCE — SECTION 205/317 CrPC / 355 BNSS")
+
+    return hdr + f"""
 IN THE COURT OF ________ (Sessions Judge / Magistrate), ________ (Location)
 IN THE MATTER OF:
-STATE                                                      ... PROSECUTION
+STATE                                                      -- PROSECUTION
 VERSUS
-{accused}                                                  ... ACCUSED
+{accused}                                                  -- ACCUSED
 APPLICATION FOR EXEMPTION FROM PERSONAL APPEARANCE OF THE ACCUSED FOR TODAY
 MOST RESPECTFULLY SHOWETH:
-1. That the Accused is a law-abiding citizen and has been regularly appearing before this Hon'ble Court.
+1. That the Accused is a law-abiding citizen and has been regularly appearing before this Honourable Court.
 2. UNAVOIDABLE REASON:
    That today, the Accused is unable to attend the Court due to ________ (Reason for Absence). A medical certificate/proof is annexed herewith.
 3. NO PREJUDICE TO TRIAL:
-   That the absence of the Accused is neither intentional nor deliberate. The Accused's counsel is present and the identity of the Accused is not disputed. The trial will not be impeded by his/her absence today.
+   That the absence of the Accused is neither intentional nor deliberate. The counsel for the Accused is present and the identity of the Accused is not disputed. The trial will not be impeded by his/her absence today.
 PRAYER:
 It is prayed that the personal appearance of the Accused be exempted for today only.
 Place: ________ (Place)
@@ -671,19 +792,21 @@ Through Counsel
 def generate_superdari_application(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
     applicant = case_data.get("complainant_name") or case_data.get("accused_name") or "________ (Applicant Name)"
-    return f"""{_header("SUPERDARI APPLICATION (RELEASE OF PROPERTY) — SECTION 451 CrPC / 497 BNSS")}
+    hdr = _header("SUPERDARI APPLICATION (RELEASE OF PROPERTY) — SECTION 451 CrPC / 497 BNSS")
+
+    return hdr + f"""
 IN THE COURT OF ________ (Magistrate), ________ (Location)
 IN THE MATTER OF:
-{applicant}                                                ... APPLICANT
+{applicant}                                                -- APPLICANT
 VERSUS
-STATE                                                      ... PROSECUTION
+STATE                                                      -- PROSECUTION
 APPLICATION UNDER SECTION 451 OF THE CrPC FOR RELEASE OF VEHICLE / PROPERTY ON SUPERDARI
 MOST RESPECTFULLY SHOWETH:
 1. That the Applicant is the registered owner of the vehicle ________ (Make/Model) bearing Registration No. ________ (Reg No.), which was seized by the police in connection with the present FIR.
 2. DEPRECIATION OF ASSET:
-   That the vehicle is currently parked at the police station, exposed to extreme weather, and is rapidly deteriorating in value and mechanical condition, as noted by the Hon'ble Supreme Court in 'Sunderbhai Ambalal Desai v. State of Gujarat'.
+   That the vehicle is currently parked at the police station, exposed to extreme weather, and is rapidly deteriorating in value and mechanical condition, as noted by the Honourable Supreme Court in 'Sunderbhai Ambalal Desai v. State of Gujarat'.
 3. UNDERTAKING:
-   That the Applicant undertakes to produce the vehicle before this Hon'ble Court as and when directed, and shall not alter its color or sell it without the prior permission of the Court.
+   That the Applicant undertakes to produce the vehicle before this Honourable Court as and when directed, and shall not alter its color or sell it without the prior permission of the Court.
 PRAYER:
 It is prayed that the seized vehicle be released to the Applicant on Superdari upon furnishing a suitable indemnity bond.
 Place: ________ (Place)
@@ -694,21 +817,23 @@ def generate_protest_petition(case_data: Dict) -> str:
     today, _ = _case_meta(case_data)
     complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
     accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
-    return f"""{_header("PROTEST PETITION AGAINST CLOSURE REPORT")}
+    hdr = _header("PROTEST PETITION AGAINST CLOSURE REPORT")
+
+    return hdr + f"""
 IN THE COURT OF ________ (Magistrate), ________ (Location)
 IN THE MATTER OF:
-{complainant}                                              ... COMPLAINANT
+{complainant}                                              -- COMPLAINANT
 VERSUS
-{accused}                                                  ... PROPOSED ACCUSED
+{accused}                                                  -- PROPOSED ACCUSED
 PROTEST PETITION AGAINST THE FINAL REPORT (CLOSURE REPORT) FILED BY THE POLICE U/S 173 CrPC
 MOST RESPECTFULLY SHOWETH:
 1. That the police have filed a Closure Report / B-Summary in FIR No. ________ (FIR No.), erroneously concluding that no case is made out against the Accused.
 2. TAINTED INVESTIGATION:
    That the Investigating Officer (IO) has acted in a highly partisan manner and deliberately ignored the direct evidence, medical reports, and independent eyewitness statements provided by the Complainant.
 3. PRIMA FACIE CASE EXISTS:
-   That despite the defective investigation, the materials on record clearly disclose the commission of cognizable offences. This Hon'ble Court has the power under Section 190(1)(b) CrPC to disagree with the police report, take cognizance, and summon the Accused.
+   That despite the defective investigation, the materials on record clearly disclose the commission of cognizable offences. This Honourable Court has the power under Section 190(1)(b) CrPC to disagree with the police report, take cognizance, and summon the Accused.
 PRAYER:
-It is prayed that this Hon'ble Court reject the Closure Report, take cognizance of the offences, and summon the Accused to face trial.
+It is prayed that this Honourable Court reject the Closure Report, take cognizance of the offences, and summon the Accused to face trial.
 Place: ________ (Place)
 Date: {today}
 Through Counsel
@@ -806,24 +931,40 @@ def generate_delay_condonation(case_data: Dict) -> str:
     return "APPLICATION FOR CONDONATION OF DELAY\n\nUnder Section 5 of the Limitation Act, 1963 read with Section 142(b) of the Negotiable Instruments Act, 1881.\n\n[DRAFT DETAILS TO BE FILLED]"
 def generate_application_143a(case_data: Dict) -> str:
     return "APPLICATION UNDER SECTION 143A OF THE NEGOTIABLE INSTRUMENTS ACT\n\nFor direction to the Accused to pay interim compensation.\n\n[DRAFT DETAILS TO BE FILLED]"
-def generate_legal_opinion(score: int, concepts: List[Dict], case_data: Dict) -> str:
+def generate_legal_opinion(case_data: Dict, score: int, concepts: List[Dict]) -> str:
     today, amount_str = _case_meta(case_data)
-    return f"""{_header("PROFESSIONAL LEGAL OPINION — ADVERSARIAL ASSESSMENT")}
+    hdr = _header("LEGAL OPINION & LITIGATION VIABILITY BRIEF — SECTION 138 NI ACT")
+    
+    viability_eval = "The case is structurally sound but requires procedural precision." if score > 70 else "The case exhibits significant structural vulnerabilities that may impede successful prosecution."
+    
+    risk_list = [f"   - {c.get('concept', '').replace('_', ' ').upper()} (Impact: High)" for c in concepts if isinstance(c, dict) and c.get('confidence', 0) > 0.7]
+    risk_str = "\n".join(risk_list) if risk_list else "   - No high-confidence risks detected."
+    
+    rec_str = "Proceed with the filing of a Criminal Complaint under Section 138 NI Act whilst ensuring all statutory timelines are strictly met." if score > 60 else "Immediate litigation is not recommended. Focus on evidentiary remediation or explore a mediated settlement (Section 147 NI Act) to mitigate costs."
+    
+    dir_str = "1. Prepare and file the complaint within the 30-day limitation window from notice service.\n   2. Confirm original documents are available for verification." if score > 60 else "1. Issue a remedial notice or seek compounding to avoid dismissal.\n   2. Collect additional documentary evidence to verify transaction details."
+
+    return hdr + f"""
 Date: {today}
 Case Viability Score: {score}/100
 Subject: Strategic Assessment of Cheque Dishonour Case involving {amount_str}
+
 1. EXECUTIVE SUMMARY:
    Based on the current evidentiary configuration, this case has a viability score of {score}%. 
-   { "The case is structurally sound but requires procedural precision." if score > 70 else "The case exhibits significant structural vulnerabilities that may impede successful prosecution." }
+   {viability_eval}
+
 2. KEY RISK VECTORS:
    The following legal concepts were detected which directly impact the litigation posture:
-   { "\n".join([f"   - {c.get('concept', '').replace('_', ' ').upper()} (Impact: High)" for c in concepts if c.get('confidence', 0) > 0.7]) or "   - No high-confidence risks detected." }
+{risk_str}
+
 3. STRATEGIC RECOMMENDATION:
-   { "Proceed with the filing of a Criminal Complaint under Section 138 NI Act whilst ensuring all statutory timelines are strictly met." if score > 60 else "Immediate litigation is not recommended. Focus on evidentiary remediation or explore a mediated settlement (Section 147 NI Act) to mitigate costs." }
+   {rec_str}
+
 4. LITIGATION DIRECTIVE:
-   { "1. Prepare and file the complaint within the 30-day limitation window from notice service.\\n   2. Confirm original documents are available for verification." if score > 60 else "1. Issue a remedial notice or seek compounding to avoid dismissal.\\n   2. Collect additional documentary evidence to verify transaction details." }
+   {dir_str}
+
 DISCLAIMER: This is an AI-generated preliminary strategy document. Consult a qualified advocate before taking any legal action.
-WARNING: Do NOT file raw AI output. You MUST 'humanize' the draft to avoid 'Cookie-Cutter' objections from the Magistrate, and verify ALL citations to prevent 'Phantom Precedent' penalties (Professional Misconduct/₹50k fine).
+WARNING: Do NOT file raw AI output. You MUST humanize the draft to avoid Cookie-Cutter objections from the Magistrate, and verify ALL citations to prevent Phantom Precedent penalties (Professional Misconduct/Rs. 50,000 fine).
 """
 
 def generate_sarfaesi_13_2_notice(case_data: Dict) -> str:
@@ -833,7 +974,10 @@ def generate_sarfaesi_13_2_notice(case_data: Dict) -> str:
     loan_acc = case_data.get("loan_account_number", case_data.get("account_number", "L-XXXXXXXX"))
     npa_date = case_data.get("npa_date", "[NPA Classification Date]")
 
-    return f"""{_header("DEMAND NOTICE UNDER SECTION 13(2) OF THE SARFAESI ACT, 2002")}
+    hdr = _header("DEMAND NOTICE UNDER SECTION 13(2) OF THE SARFAESI ACT, 2002")
+
+
+    return hdr + f"""
 
 BY REGISTERED AD / SPEED POST WITH ACKNOWLEDGEMENT DUE
 
@@ -849,7 +993,7 @@ SUBJECT: DEMAND NOTICE UNDER SECTION 13(2) READ WITH RULE 3 OF THE SECURITY INTE
 
 Sir / Madam,
 
-1. We act for and on behalf of {bank} ("Secured Creditor").
+1. We act for and on behalf of {bank} ('Secured Creditor').
 2. You, the Borrower/Guarantor, availed credit facilities from the Secured Creditor against the creation of equitable mortgage / security interest over the secured asset(s).
 3. Due to persistent defaults in repayment of principal and interest, your credit account was classified as a Non-Performing Asset (NPA) on {npa_date} in strict compliance with Reserve Bank of India (RBI) Income Recognition and Asset Classification (IRAC) guidelines.
 4. As of {today}, the total outstanding liabilities due and payable by you stand at {amount_str}, along with further interest, penal charges, and costs.
@@ -866,36 +1010,19 @@ def generate_sarfaesi_13_3a_reply(case_data: Dict) -> str:
     bank = case_data.get("bank_name", "Secured Creditor Bank")
     rep_date = case_data.get("borrower_representation_date", "[Representation Date]")
 
-    return f"""{_header("REASONED DECISION / REPLY UNDER SECTION 13(3A) OF THE SARFAESI ACT, 2002")}
+    hdr = _header("REASONED DECISION / REPLY UNDER SECTION 13(3A) OF THE SARFAESI ACT, 2002")
 
-Date: {today}
-
-TO:
-{borrower}
-
-FROM:
-Authorized Officer, {bank}
-
-SUBJECT: DECISION ON REPRESENTATION / OBJECTION DATED {rep_date} SUBMITTED UNDER SECTION 13(3A) OF SARFAESI ACT, 2002.
-
-1. We acknowledge receipt of your representation / objection dated {rep_date} against the Section 13(2) Demand Notice.
-2. The Secured Creditor has duly considered your objections in compliance with Section 13(3A) of the SARFAESI Act and the principles laid down by the Hon'ble Supreme Court in Mardia Chemicals Ltd. v. Union of India (2004) 4 SCC 311.
-3. UPON CAREFUL CONSIDERATION, YOUR OBJECTIONS ARE FOUND TO BE UNTENABLE AND STAND REJECTED FOR THE FOLLOWING REASONS:
-   a) NPA classification was strictly executed per RBI guidelines upon continuous 90-day default.
-   b) The security interest is duly registered on CERSAI portal (Section 26D).
-   c) Claims of financial distress do not legally suspend statutory enforcement under Chapter III of the Act.
-4. Consequently, the Demand Notice dated under Section 13(2) remains valid and operative.
-
-AUTHORIZED OFFICER
-{bank}
-"""
+    return f"{hdr}\n\nDate: {today}\n\nTO:\n{borrower}\n\nFROM:\nAuthorized Officer, {bank}\n\nSUBJECT: DECISION ON REPRESENTATION / OBJECTION DATED {rep_date} SUBMITTED UNDER SECTION 13(3A) OF SARFAESI ACT, 2002.\n\n1. We acknowledge receipt of your representation / objection dated {rep_date} against the Section 13(2) Demand Notice.\n2. The Secured Creditor has duly considered your objections in compliance with Section 13(3A) of the SARFAESI Act and the principles laid down by the Honourable Supreme Court in Mardia Chemicals Ltd. v. Union of India (2004) 4 SCC 311.\n3. UPON CAREFUL CONSIDERATION, YOUR OBJECTIONS ARE FOUND TO BE UNTENABLE AND STAND REJECTED FOR THE FOLLOWING REASONS:\n   (a) NPA classification was strictly executed per RBI guidelines upon continuous 90-day default.\n   (b) The security interest is duly registered on CERSAI portal (Section 26D).\n   (c) Claims of financial distress do not legally suspend statutory enforcement under Chapter III of the Act.\n4. Consequently, the Demand Notice dated under Section 13(2) remains valid and operative.\n\nAUTHORIZED OFFICER\n{bank}\n"
 
 def generate_sarfaesi_13_4_possession(case_data: Dict) -> str:
     today, amount_str = _case_meta(case_data)
     borrower = case_data.get("borrower_name", "Borrower")
     bank = case_data.get("bank_name", "Secured Creditor Bank")
 
-    return f"""{_header("POSSESSION NOTICE UNDER RULE 8(1) / SECTION 13(4) OF SARFAESI ACT, 2002")}
+    hdr = _header("POSSESSION NOTICE UNDER RULE 8(1) / SECTION 13(4) OF SARFAESI ACT, 2002")
+
+
+    return hdr + f"""
 
 POSSESSION NOTICE (FOR IMMOVABLE PROPERTY)
 
@@ -917,14 +1044,16 @@ def generate_sarfaesi_sec_14_app(case_data: Dict) -> str:
     bank = case_data.get("bank_name", "Secured Creditor Bank")
     borrower = case_data.get("borrower_name", "Borrower")
 
-    return f"""{_header("APPLICATION UNDER SECTION 14 OF THE SARFAESI ACT, 2002")}
+    hdr = _header("APPLICATION UNDER SECTION 14 OF THE SARFAESI ACT, 2002")
 
-BEFORE THE HON'BLE CHIEF METROPOLITAN MAGISTRATE / DISTRICT MAGISTRATE
+    body = """
+
+BEFORE THE HONOURABLE CHIEF METROPOLITAN MAGISTRATE / DISTRICT MAGISTRATE
 
 IN THE MATTER OF:
-{bank} ... Applicant / Secured Creditor
+{bank} -- Applicant / Secured Creditor
 VERSUS
-{borrower} ... Respondent / Borrower
+{borrower} -- Respondent / Borrower
 
 APPLICATION ON BEHALF OF SECURED CREDITOR UNDER SECTION 14 OF THE SARFAESI ACT, 2002 FOR SEEKING ASSISTANCE IN TAKING PHYSICAL POSSESSION OF THE SECURED ASSET.
 
@@ -935,29 +1064,33 @@ MOST RESPECTFULLY SHOWETH:
 4. An affidavit affirming statutory compliance with Section 14 provisions is attached hereto.
 
 PRAYER:
-It is most respectfully prayed that this Hon'ble Court may be pleased to:
+It is most respectfully prayed that this Honourable Court may be pleased to:
 a) Pass an order directing the concerned Sub-Divisional Magistrate / Police Authority to take physical possession of the secured asset and hand over the same to the Applicant.
 b) Provide necessary police assistance for execution of possession.
 
 APPLICANT / SECURED CREDITOR
 THROUGH COUNSEL
-"""
+""".format(bank=bank, borrower=borrower, amount_str=amount_str)
+    return hdr + body
 
 def generate_sarfaesi_sec_17_sa(case_data: Dict) -> str:
     today, amount_str = _case_meta(case_data)
     borrower = case_data.get("borrower_name", "Borrower")
     bank = case_data.get("bank_name", "Secured Creditor Bank")
 
-    return f"""{_header("SECURITISATION APPLICATION (SA) UNDER SECTION 17 OF SARFAESI ACT, 2002")}
+    hdr = _header("SECURITISATION APPLICATION (SA) UNDER SECTION 17 OF SARFAESI ACT, 2002")
+
+
+    return hdr + f"""
 
 BEFORE THE DEBT RECOVERY TRIBUNAL (DRT)
 
 S.A. NO. ______ OF {datetime.now().year}
 
 IN THE MATTER OF:
-{borrower} ... Applicant / Debtor
+{borrower} -- Applicant / Debtor
 VERSUS
-{bank} ... Respondent / Secured Creditor
+{bank} -- Respondent / Secured Creditor
 
 APPLICATION UNDER SECTION 17(1) OF THE SARFAESI ACT, 2002 CHALLENGING THE ILLEGAL POSSESSION MEASURES TAKEN BY THE RESPONDENT BANK UNDER SECTION 13(4).
 
@@ -965,13 +1098,13 @@ MOST RESPECTFULLY SHOWETH:
 1. The Applicant is the lawful owner and mortgagor of the subject property.
 2. The Respondent Bank has acted in gross violation of mandatory statutory provisions under the SARFAESI Act and Security Interest Rules, 2002.
 3. GROUNDS FOR INTERIM STAY AND QUASHING OF MEASURES:
-   a) Non-compliance with Section 13(3A): The Respondent Bank failed to consider and communicate a reasoned decision on Applicant's objections within statutory 15 days (Mardia Chemicals Ltd. v. UOI).
+   a) Non-compliance with Section 13 Sub-section 3A: The Respondent Bank failed to consider and communicate a reasoned decision on Applicant's objections within statutory 15 days (Mardia Chemicals Ltd. v. UOI).
    b) Violation of Section 26D: Security interest is not registered on CERSAI portal.
    c) Procedural defect under Rule 8(1) and 8(2) regarding non-publication of possession notice.
    d) Property constitutes Agricultural Land exempt under Section 31(i).
 
 PRAYER:
-It is prayed that this Hon'ble Tribunal be pleased to:
+It is prayed that this Honourable Tribunal be pleased to:
 a) Set aside and quash Section 13(4) Possession Notice dated ______;
 b) Restrain Respondent Bank from taking physical possession or auctioning the secured asset.
 
@@ -980,22 +1113,24 @@ THROUGH COUNSEL
 """
 
 def generate_sarfaesi_written_statement(case_data: Dict) -> str:
-    return f"""{_header("WRITTEN STATEMENT / REPLY ON BEHALF OF SECURED CREDITOR BEFORE DRT")}
+    hdr = _header("WRITTEN STATEMENT / REPLY ON BEHALF OF SECURED CREDITOR BEFORE DRT")
+
+    return hdr + f"""
 
 BEFORE THE DEBT RECOVERY TRIBUNAL (DRT)
 
 IN S.A. NO. ______ OF {datetime.now().year}
 
 IN THE MATTER OF:
-Borrower ... Applicant
+Borrower -- Applicant
 VERSUS
-Secured Creditor Bank ... Respondent
+Secured Creditor Bank -- Respondent
 
 REPLY ON BEHALF OF RESPONDENT BANK TO SECURITISATION APPLICATION FILED U/S 17.
 
 PRELIMINARY OBJECTIONS:
 1. The Securitisation Application is barred by limitation under Section 17(1) having been filed beyond 45 days.
-2. All measures under Section 13(2), 13(3A), and 13(4) were strictly executed in compliance with statutory rules and Supreme Court precedents (Transcore v. UOI, Satyawati Tondon v. UBI).
+2. All measures under Section 13(2), 13 Sub-section 3A, and 13(4) were strictly executed in compliance with statutory rules and Supreme Court precedents (Transcore v. UOI, Satyawati Tondon v. UBI).
 3. CERSAI registration is validly subsisting under Section 26D.
 
 PRAYER: Dismiss the SA with exemplary costs.
@@ -1011,7 +1146,10 @@ def generate_sarfaesi_sec_14_affidavit(case_data: Dict) -> str:
     debt = case_data.get("outstanding_amount") or case_data.get("debt_amount") or 0.0
     notice_date = case_data.get("notice_13_2_date") or "____"
 
-    return f"""{_header("MANDATORY 9-POINT AFFIDAVIT UNDER SECTION 14(1) PROVISO OF SARFAESI ACT, 2002")}
+    hdr = _header("MANDATORY 9-POINT AFFIDAVIT UNDER SECTION 14(1) PROVISO OF SARFAESI ACT, 2002")
+
+
+    return hdr + f"""
 
 BEFORE THE CHIEF METROPOLITAN MAGISTRATE / DISTRICT MAGISTRATE
 
@@ -1022,9 +1160,9 @@ I, Authorized Officer of {bank}, do hereby solemnly affirm and declare on oath a
 
 1. STATUTORY AVERMENT 1 (SECURITY INTEREST): The Applicant Bank is a Secured Creditor and holds a valid, subsisting Security Interest over {asset}.
 2. STATUTORY AVERMENT 2 (DEFAULT & NPA): The borrower {borrower} defaulted in repayment, and the loan account was classified as NPA on {case_data.get("npa_date", "____")}.
-3. STATUTORY AVERMENT 3 (SECTION 13(2) NOTICE): Statutory Demand Notice U/S 13(2) was issued on {notice_date} demanding payment of ₹{debt:,.2f}.
+3. STATUTORY AVERMENT 3 (SECTION 13(2) NOTICE): Statutory Demand Notice U/S 13(2) was issued on {notice_date} demanding payment of Rs. {debt:,.2f}.
 4. STATUTORY AVERMENT 4 (60-DAY ELAPSED): The mandatory period of 60 days from service of Section 13(2) notice has expired without full discharge of liability.
-5. STATUTORY AVERMENT 5 (SECTION 13(3A) COMPLIANCE): Objections submitted by borrower under Section 13(3A) were duly considered and reasoned reply communicating rejection was served within 15 days.
+5. STATUTORY AVERMENT 5 (SECTION 13 Sub-section 3A COMPLIANCE): Objections submitted by borrower under Section 13 Sub-section 3A were duly considered and reasoned reply communicating rejection was served within 15 days.
 6. STATUTORY AVERMENT 6 (NO STAY ORDER): No stay or injunction order has been granted by DRT or any Court of law restraining possession measures.
 7. STATUTORY AVERMENT 7 (CERSAI REGISTRATION): Security interest has been duly registered on CERSAI portal under Section 26D (Asset Security ID: {case_data.get("cersai_security_id", "REGISTERED")}).
 8. STATUTORY AVERMENT 8 (ASSISTANCE REQUIRED): The assistance of DM/CMM is required to take physical possession as borrower/occupants refuse voluntary surrender.
@@ -1040,7 +1178,10 @@ def generate_sarfaesi_rule_8_6_auction_notice(case_data: Dict) -> str:
     asset = case_data.get("secured_asset") or "Secured Immovable Asset"
     reserve_price = case_data.get("reserve_price") or case_data.get("valuation_amount") or 0.0
 
-    return f"""{_header("MANDATORY 30-DAY AUCTION SALE NOTICE UNDER RULE 8(6) & RULE 9(1)")}
+    hdr = _header("MANDATORY 30-DAY AUCTION SALE NOTICE UNDER RULE 8(6) & RULE 9(1)")
+
+
+    return hdr + f"""
 
 BY REGISTERED POST AD / SPEED POST
 
@@ -1053,7 +1194,7 @@ Sir / Madam,
 
 1. TAKE NOTICE that in exercise of powers conferred under Section 13(4) of the SARFAESI Act, 2002, the undersigned Authorized Officer of {bank} has decided to sell the secured immovable property described below by Public E-Auction.
 2. SECURED ASSET: {asset}
-3. RESERVE PRICE: ₹{reserve_price:,.2f}
+3. RESERVE PRICE: Rs. {reserve_price:,.2f}
 4. DATE & TIME OF E-AUCTION: ______ (Minimum 30 days from date of service of this notice).
 5. RIGHT OF REDEMPTION (SECTION 13(8)): You are hereby informed that your right of redemption under Section 13(8) shall stand extinguished upon publication of the public auction notice in newspapers (Celir LLP v. Bafna Motors).
 
@@ -1096,9 +1237,9 @@ def _format_marathi_draft(draft_text: str, draft_type: str, case_data: Dict) -> 
         return marathi_header + f"""मा. ज्युडिशियल मॅजिस्ट्रेट प्रथम वर्ग न्यायालय
 तक्रार अर्ज क्रमांक: ________ / २०२६
 
-{complainant} ... तक्रारदार
+{complainant} -- तक्रारदार
 विरुद्ध
-{accused} ... आरोपी
+{accused} -- आरोपी
 
 विषय: कलम १४३अ वाटाघाटीयोग्य दस्तऐवज कायदा १८८१ अन्वये २०% अंतरिम भरपाई मिळण्याबाबत अर्ज.
 
@@ -1152,9 +1293,9 @@ def _format_hindi_draft(draft_text: str, draft_type: str, case_data: Dict) -> st
         return hindi_header + f"""न्यायालय माननीय न्यायिक मजिस्ट्रेट प्रथम श्रेणी
 आपराधिक परिवाद संख्या: ________ / 2026
 
-{complainant} ... शिकायतकर्ता
+{complainant} -- शिकायतकर्ता
 बनाम
-{accused} ... अभियुक्त
+{accused} -- अभियुक्त
 
 विषय: धारा 143A पराक्रम्य लिखित अधिनियम, 1881 के तहत 20% अंतरिम मुआवजा दिलाए जाने हेतु प्रार्थना पत्र।
 

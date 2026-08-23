@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com https://*.googleapis.com https://*.firebaseio.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 ws://localhost:8000 wss://* https://*; frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://*.google.com;">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <title>JudiQ – AI Litigation Strategist</title>
     <meta name="description" content="JudiQ AI Litigation Strategist finds legal weaknesses before the courtroom does. Simulate opponent attacks and predict judge challenges.">
     <meta property="og:title" content="JudiQ – AI Litigation Strategist">
     <meta property="og:description" content="Adversarial litigation simulation, weakness detection, and courtroom strategy for law firms and in-house counsel.">
     <!-- Stylesheet loaded first to prevent Flash of Unstyled Content (FOUC) -->
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=12">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Error handler and i18n loaded with defer to avoid blocking HTML parsing -->
@@ -903,6 +903,15 @@
                             <span class="btn-loader"></span>
                         </button>
                     </form>
+
+                    <div style="display: flex; align-items: center; margin: 1rem 0; gap: 0.75rem;">
+                        <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.12);"></div>
+                        <span style="font-size: 0.78rem; color: var(--gray-400); text-transform: uppercase;">or</span>
+                        <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.12);"></div>
+                    </div>
+                    <button type="button" class="btn btn-outline btn-full" onclick="window.loginAsGuest()" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i class="fas fa-bolt" style="color: #38bdf8;"></i> Instant Guest / Demo Access
+                    </button>
                     
                     <div class="auth-footer">
                         <p>Don't have an account? <a href="#" id="showRegister">Create one</a></p>
@@ -974,6 +983,15 @@
                             <span class="btn-loader"></span>
                         </button>
                     </form>
+
+                    <div style="display: flex; align-items: center; margin: 1rem 0; gap: 0.75rem;">
+                        <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.12);"></div>
+                        <span style="font-size: 0.78rem; color: var(--gray-400); text-transform: uppercase;">or</span>
+                        <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.12);"></div>
+                    </div>
+                    <button type="button" class="btn btn-outline btn-full" onclick="window.loginAsGuest()" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i class="fas fa-bolt" style="color: #38bdf8;"></i> Instant Guest / Demo Access
+                    </button>
                     
                     <div class="auth-footer">
                         <p>Already have an account? <a href="#" id="showLogin">Sign in</a></p>
@@ -1134,33 +1152,33 @@
                         <h2>Fast Case Analysis</h2>
                         <p>Enter minimal details for instant overview</p>
                     </div>
-                    <div style="max-width: 800px; margin: 0 auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div class="quick-analysis-card">
                         <div style="margin-bottom: 2rem;">
-                            <h3 style="margin-bottom: 1rem; color: #1f2937;">Basic Details</h3>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                                <div><label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Cheque Amount (₹)</label><input type="number" id="qAmount" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="50000" required></div>
-                                <div><label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Cheque Date</label><input type="date" id="qChequeDate" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;" required></div>
+                            <h3 style="margin-bottom: 1rem; color: var(--gray-900); font-weight: 700;"><i class="fas fa-file-invoice"></i> Basic Details</h3>
+                            <div class="quick-form-grid">
+                                <div class="form-group"><label>Cheque Amount (₹) <span class="required">*</span></label><input type="number" id="qAmount" placeholder="50000" required></div>
+                                <div class="form-group"><label>Cheque Date <span class="required">*</span></label><input type="date" id="qChequeDate" required></div>
                             </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                                <div><label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Notice Date</label><input type="date" id="qNoticeDate" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;" required></div>
-                                <div><label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Filing Date</label><input type="date" id="qFilingDate" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;" required></div>
+                            <div class="quick-form-grid">
+                                <div class="form-group"><label>Notice Date <span class="required">*</span></label><input type="date" id="qNoticeDate" required></div>
+                                <div class="form-group"><label>Filing Date <span class="required">*</span></label><input type="date" id="qFilingDate" required></div>
                             </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                                <div><label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Complainant Name</label><input type="text" id="qComplainant" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="Your Name" required></div>
-                                <div><label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Accused Name</label><input type="text" id="qAccused" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="Other Party" required></div>
+                            <div class="quick-form-grid">
+                                <div class="form-group"><label>Complainant Name <span class="required">*</span></label><input type="text" id="qComplainant" placeholder="Your Name or Entity" required></div>
+                                <div class="form-group"><label>Accused Name <span class="required">*</span></label><input type="text" id="qAccused" placeholder="Drawer / Accused Entity" required></div>
                             </div>
                         </div>
                         <div style="margin-bottom: 2rem;">
-                            <h3 style="margin-bottom: 1rem; color: #1f2937;">Proof Check</h3>
-                            <div style="display: grid; gap: 0.75rem;">
-                                <label style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #f9fafb; border-radius: 6px; cursor: pointer;"><input type="checkbox" id="qChequePresent" style="width: 18px; height: 18px;"><span>Original Cheque Available</span></label>
-                                <label style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #f9fafb; border-radius: 6px; cursor: pointer;"><input type="checkbox" id="qDishonourMemo" style="width: 18px; height: 18px;"><span>Bank Dishonour Memo Available</span></label>
-                                <label style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #f9fafb; border-radius: 6px; cursor: pointer;"><input type="checkbox" id="qNoticeSent" style="width: 18px; height: 18px;"><span>Legal Notice Sent</span></label>
-                                <label style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #f9fafb; border-radius: 6px; cursor: pointer;"><input type="checkbox" id="qDebtProof" style="width: 18px; height: 18px;"><span>Debt Proof Documents Available</span></label>
+                            <h3 style="margin-bottom: 1rem; color: var(--gray-900); font-weight: 700;"><i class="fas fa-check-double"></i> Proof Check</h3>
+                            <div class="quick-proof-grid">
+                                <label class="quick-checkbox-label"><input type="checkbox" id="qChequePresent"><span>Original Cheque Available</span></label>
+                                <label class="quick-checkbox-label"><input type="checkbox" id="qDishonourMemo"><span>Bank Dishonour Memo Available</span></label>
+                                <label class="quick-checkbox-label"><input type="checkbox" id="qNoticeSent"><span>Legal Demand Notice Sent</span></label>
+                                <label class="quick-checkbox-label"><input type="checkbox" id="qDebtProof"><span>Debt Proof Documents Available</span></label>
                             </div>
                         </div>
-                        <div style="display: flex; gap: 1rem; justify-content: center;">
-                            <button class="btn btn-primary btn-lg" onclick="runQuickAnalysis()" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                        <div class="quick-actions-row">
+                            <button class="btn btn-primary btn-lg" onclick="runQuickAnalysis()">
                                 <i class="fas fa-bolt"></i> Analyze Now
                             </button>
                             <button class="btn btn-outline" onclick="expandToFullMode()">
@@ -2619,7 +2637,7 @@
     <!-- Chart.js for Visualizations --><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Main Application Script (ES6 Module) -->
-    <script type="module" src="js/main.js?v=9"></script>
+    <script type="module" src="js/main.js?v=12"></script>
 </body>
 </html>
 

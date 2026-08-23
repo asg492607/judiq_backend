@@ -1,3 +1,73 @@
+function verifyDraftTimelineS138(d) {
+    if (!d) return { auditReport: '', warnings: [] };
+    const parse = (s) => s ? new Date(s) : null;
+    const daysBetween = (d1, d2) => {
+        if (!d1 || !d2 || isNaN(d1) || isNaN(d2)) return null;
+        return Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+    };
+
+    const chequeDt = parse(d.cheque_date);
+    const presDt = parse(d.presentation_date || d.dishonour_date);
+    const disDt = parse(d.dishonour_date);
+    const noticeDt = parse(d.notice_date);
+    const noticeRecDt = parse(d.notice_served_date || d.notice_received_date || d.notice_date);
+    const filingDt = parse(d.filing_date);
+
+    const auditLines = [];
+    const warnings = [];
+
+    if (chequeDt && presDt) {
+        const gap = daysBetween(chequeDt, presDt);
+        if (gap !== null && gap > 92) {
+            const msg = `Cheque presented on day ${gap} (> 90 days statutory validity from cheque date).`;
+            warnings.push(msg);
+            auditLines.push(`[🚨 TIMELINE BREACH - CHEQUE EXPIRED]: ${msg}`);
+        } else if (gap !== null && gap >= 0) {
+            auditLines.push(`[✓ CHEQUE VALIDITY]: Presented within ${gap} days of issue.`);
+        }
+    }
+
+    if (disDt && noticeDt) {
+        const gap = daysBetween(disDt, noticeDt);
+        if (gap !== null && gap > 30) {
+            const msg = `Statutory Demand Notice dispatched on day ${gap} (> 30-day statutory limit from dishonour date). Notice is time-barred!`;
+            warnings.push(msg);
+            auditLines.push(`[🚨 TIMELINE BREACH - NOTICE DELAYED]: ${msg}`);
+        } else if (gap !== null && gap >= 0) {
+            auditLines.push(`[✓ NOTICE DISPATCH]: Notice dispatched on day ${gap} (within 30-day statutory window).`);
+        }
+    }
+
+    if (noticeRecDt && filingDt) {
+        const gap = daysBetween(noticeRecDt, filingDt);
+        if (gap !== null) {
+            if (gap < 15) {
+                const msg = `Complaint filed on day ${gap} post-notice (< 15 days). Premature filing before cause of action accrued u/s 138(c).`;
+                warnings.push(msg);
+                auditLines.push(`[🚨 TIMELINE WARNING - PREMATURE FILING]: ${msg}`);
+            } else if (gap > 45) {
+                const delay = gap - 45;
+                const msg = `Complaint filed on day ${gap} post-notice (${delay} days past 30-day window). Requires Condonation of Delay u/s 142(1)(b) NI Act.`;
+                warnings.push(msg);
+                auditLines.push(`[⚠️ TIMELINE ALERT - CONDONATION REQUIRED]: ${msg}`);
+            } else if (gap >= 15) {
+                auditLines.push(`[✓ COMPLAINT TIMELINE]: Filed on day ${gap} post-notice service (within statutory filing window).`);
+            }
+        }
+    }
+
+    let report = '';
+    if (auditLines.length > 0) {
+        report = `======================================================================\nSECTION 138 NI ACT STATUTORY TIMELINE AUDIT REPORT\n======================================================================\n` + auditLines.join('\n');
+        if (warnings.length > 0) {
+            report += `\n\nSUMMARY STATUTORY WARNINGS:\n` + warnings.map(w => `  • ${w}`).join('\n');
+        }
+        report += `\n======================================================================\n\n`;
+    }
+
+    return { auditReport: report, warnings };
+}
+
 const DRAFT_TYPES = [
     {
         id: 'demand_notice', number: 1, title: 'Legal Demand Notice', subtitle: 'Pre-Complaint',
@@ -10,7 +80,7 @@ const DRAFT_TYPES = [
             { name: 'accused_address', label: 'Accused Address', type: 'textarea', required: true, placeholder: 'Full postal address...' },
             { name: 'cheque_number', label: 'Cheque Number', type: 'text', required: true, placeholder: 'e.g., 012345' },
             { name: 'cheque_date', label: 'Cheque Date', type: 'date', required: true },
-            { name: 'cheque_amount', label: 'Cheque Amount (Γé╣)', type: 'number', required: true, placeholder: 'e.g., 250000' },
+            { name: 'cheque_amount', label: 'Cheque Amount (₹)', type: 'number', required: true, placeholder: 'e.g., 250000' },
             { name: 'bank_name', label: 'Bank Name', type: 'text', required: true, placeholder: 'e.g., State Bank of India' },
             { name: 'branch_name', label: 'Branch Name', type: 'text', required: false, placeholder: 'e.g., Andheri West Branch' },
             { name: 'dishonour_date', label: 'Dishonour Date', type: 'date', required: true },
@@ -20,7 +90,8 @@ const DRAFT_TYPES = [
             { name: 'demand_days', label: 'Payment Demand Period', type: 'select', required: true, options: ['15 days', '30 days'] }
         ],
         generate: function (d) {
-            return `LEGAL NOTICE UNDER SECTION 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881
+            const timelineCheck = verifyDraftTimelineS138(d);
+            const body = `LEGAL NOTICE UNDER SECTION 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881
 
 Date: ${formatDraftDate(d.notice_date)}
 
@@ -56,6 +127,7 @@ ${d.complainant_name}
 Copy to: Complainant (for records)
 
 Note: Date of receipt of this notice shall be the date of service for the purpose of computing the limitation period under Section 138 NI Act.`;
+            return timelineCheck.auditReport ? timelineCheck.auditReport + body : body;
         }
     },
     {
@@ -195,6 +267,7 @@ ${d.advocate_name ? '\nThrough Advocate: ' + d.advocate_name : ''}
             { name: 'filing_date', label: 'Date of Filing This Complaint', type: 'date', required: true }
         ],
         generate: function (d) {
+            const timelineCheck = verifyDraftTimelineS138(d);
             let s141_averment = '';
             const directorsNamed = window.state?.caseData?.directors_named || 'No';
             const isNamed = ['yes', 'yes - actively managed operations', 'yes - partial'].includes((String(directorsNamed)).toLowerCase());
@@ -209,7 +282,7 @@ ${d.advocate_name ? '\nThrough Advocate: ' + d.advocate_name : ''}
                 }
             }
 
-            return `IN THE ${d.court_name.toUpperCase()}
+            const body = `IN THE ${d.court_name.toUpperCase()}
 
 CRIMINAL COMPLAINT UNDER SECTION 138 READ WITH SECTION 142 OF
 THE NEGOTIABLE INSTRUMENTS ACT, 1881
@@ -293,6 +366,7 @@ Verified at _____________ on ${formatDraftDate(d.filing_date)}.
 
                                         ________________________
                                         (Complainant)`;
+            return timelineCheck.auditReport ? timelineCheck.auditReport + body : body;
         }
     },
     {

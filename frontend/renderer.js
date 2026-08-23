@@ -306,98 +306,203 @@ export function renderEconomicsEngine(economicsData) {
 }
 
 // Render timeline engine & procedural graph
-export function renderTimelineEngine(timelineData) {
+export function renderTimelineEngine(timelineData, fullData = null) {
     const container = document.getElementById('timelineList');
     if (!container) return;
 
-    if (!timelineData) {
-        container.innerHTML = '<p style="color: var(--gray-500);"><i class="fas fa-info-circle"></i> No timeline data available.</p>';
-        return;
+    const data = fullData || (window.state && window.state.analysisResult) || {};
+    const caseData = (window.state && window.state.caseData) || data.case_data || {};
+    const limitation = data.limitation || {};
+    const domain = (window.state && window.state.userDomain) || (caseData.case_type === 'SARFAESI' ? 'sarfaesi' : 'ni_act');
+
+    // 1. If timelineData has populated non-empty nodes, use them
+    let nodes = (timelineData && Array.isArray(timelineData.nodes) && timelineData.nodes.length > 0)
+        ? timelineData.nodes
+        : null;
+
+    // 2. If nodes is empty, generate domain-specific statutory milestone nodes
+    if (!nodes) {
+        if (domain === 'sarfaesi' || caseData.case_type === 'SARFAESI') {
+            const npaDate = caseData.npa_date || 'Day 90+ Overdue';
+            const notice132Date = caseData.notice_13_2_date || 'Statutory Demand Issued';
+            const repDate = caseData.borrower_representation_date;
+            const replyDate = caseData.bank_reply_13_3a_date;
+            const possDate = caseData.possession_13_4_date;
+            const dmDate = caseData.dm_application_date || caseData.dm_order_date;
+            const auctionDate = caseData.auction_notice_date;
+            const saDate = caseData.sa_filing_date;
+
+            nodes = [
+                {
+                    name: "1. NPA Classification (90-Day Default)",
+                    statute: "RBI IRAC Norms Master Circular",
+                    authority: "RBI Regulatory Directives & Banking Regulation Act",
+                    date: caseData.npa_date || "Statutory 90-Day NPA Classification",
+                    completed: true,
+                    defect: caseData.npa_classification_challenged ? "Premature NPA tagging alleged" : null
+                },
+                {
+                    name: "2. Section 13(2) Demand Notice (60-Day Window)",
+                    statute: "Section 13(2) SARFAESI Act",
+                    authority: "Transcore v. Union of India (2008)",
+                    date: caseData.notice_13_2_date || "Mandatory 60-Day Demand Notice Served",
+                    completed: true,
+                    defect: caseData.notice_withdrawn ? "Notice Withdrawn by Secured Creditor" : null
+                },
+                {
+                    name: "3. Section 13(3A) Borrower Representation & Decision",
+                    statute: "Section 13(3A) SARFAESI Act",
+                    authority: "Mardia Chemicals Ltd. v. UOI (2004)",
+                    date: caseData.borrower_representation_date || "Within 60-Day Window",
+                    completed: true,
+                    defect: (repDate && !replyDate) ? "15-Day Mandatory Reasoned Decision not communicated" : null
+                },
+                {
+                    name: "4. Section 13(4) Symbolic / Physical Possession Measure",
+                    statute: "Section 13(4) & Rule 8 Security Interest Rules",
+                    authority: "Mathew Varghese v. M. Amritha Kumar (2014)",
+                    date: caseData.possession_13_4_date || "Post 60-Day Cure Period",
+                    completed: true,
+                    defect: caseData.newspaper_publication === "No" ? "Rule 8(2) 2-newspaper publication missing" : null
+                },
+                {
+                    name: "5. Section 14 DM / CMM Chief Magistrate Order",
+                    statute: "Section 14 SARFAESI Act",
+                    authority: "Standard Chartered Bank v. V. Noble Kumar (2013)",
+                    date: dmDate || "Administrative Assistance Application",
+                    completed: !!dmDate,
+                    defect: null
+                },
+                {
+                    name: "6. Rule 8(6) / 9(1) Public Auction Sale Notice (30 Days)",
+                    statute: "Rule 8(6) & Rule 9(1) Security Interest Rules",
+                    authority: "Celir LLP v. Bafna Motors (2023)",
+                    date: auctionDate || "Public Notice & Valued Reserve Price",
+                    completed: !!auctionDate,
+                    defect: caseData.valuation_report_available === "No" ? "Mandatory reserve price valuation report missing" : null
+                },
+                {
+                    name: "7. Section 17 Securitisation Application (DRT Limitation)",
+                    statute: "Section 17(1) SARFAESI Act",
+                    authority: "B. Arvind Kumar v. Govt. of India (2007)",
+                    date: saDate || "Strict 45-Day DRT Limitation Window",
+                    completed: !!saDate,
+                    defect: null
+                }
+            ];
+        } else {
+            // NI Act Section 138 Statutory Milestones
+            const txDate = caseData.transaction_date || caseData.loan_date || "Pre-Cheque Consideration";
+            const chqDate = caseData.cheque_date || "Date of Instrument";
+            const disDate = caseData.dishonour_date || caseData.memo_date || "Bank Dishonour Date";
+            const notDate = caseData.notice_date || "Legal Demand Notice Served";
+            const recDate = caseData.notice_received_date || (caseData.notice_date ? `${caseData.notice_date} + 3 days` : "Notice Receipt & Delivery");
+            const fileDate = caseData.filing_date || "Complaint Filing Date";
+
+            const hasNoticeDelay = limitation.notice_delay_days > 0 || caseData.within_30_days === "No";
+            const isPremature = limitation.is_premature || false;
+            const isTimeBarred = limitation.is_time_barred || false;
+
+            nodes = [
+                {
+                    name: "1. Underlying Transaction & Debt Creation",
+                    statute: "Section 138 (Explanation) & Section 139 NI Act",
+                    authority: "Bir Singh v. Mukesh Kumar (2019) & Basalingappa (2019)",
+                    date: txDate,
+                    completed: true,
+                    defect: (caseData.agreement_type === "No Formal Agreement" && caseData.itr_available === "No") ? "Financial capacity / debt proof lacks documentary corroboration" : null
+                },
+                {
+                    name: "2. Cheque Drawing & Banking Presentation",
+                    statute: "Section 138 Proviso (a) NI Act",
+                    authority: "MSR Leathers v. S. Palaniappan (2013)",
+                    date: chqDate,
+                    completed: true,
+                    defect: caseData.account_closed ? "Cheque drawn on closed account (Presumption intact under NEPC Micon)" : null
+                },
+                {
+                    name: "3. Cheque Dishonour & Bank Return Memo",
+                    statute: "Section 146 NI Act (Presumption of Bank Slip)",
+                    authority: "Kishan Rao v. Shankargouda (2018)",
+                    date: disDate,
+                    completed: true,
+                    defect: null
+                },
+                {
+                    name: "4. Statutory Demand Notice Issued (30-Day Limit)",
+                    statute: "Section 138 Proviso (b) NI Act",
+                    authority: "C.C. Alavi Haji v. Palapetty Muhammed (2007)",
+                    date: notDate,
+                    completed: true,
+                    defect: hasNoticeDelay ? `Notice served ${limitation.notice_delay_days || 'X'} days late; exceeds 30-day statutory window (Section 142 condonation required)` : null
+                },
+                {
+                    name: "5. Notice Delivery & 15-Day Cure Period Expiry",
+                    statute: "Section 138 Proviso (c) NI Act",
+                    authority: "Subodh S. Salaskar v. Jayprakash M. Shah (2008)",
+                    date: recDate,
+                    completed: true,
+                    defect: isPremature ? "Premature: Accused's 15-day repayment window has not expired (Yogendra Pratap Singh bar)" : null
+                },
+                {
+                    name: "6. Cause of Action & Court Complaint Filing (30-Day Window)",
+                    statute: "Section 142(1)(b) NI Act",
+                    authority: "Yogendra Pratap Singh v. Savitri Pandey (2014)",
+                    date: fileDate,
+                    completed: true,
+                    defect: isTimeBarred ? "Time Barred: Exceeds 30-day limitation from cause of action date" : null
+                }
+            ];
+        }
     }
 
-    if (timelineData.nodes && Array.isArray(timelineData.nodes)) {
-        let html = `<div style="margin-bottom: 1rem; padding: 0.75rem 1rem; background: var(--gray-100); border-radius: 0.5rem; border: 1px solid var(--gray-200); display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-weight: 700; color: var(--primary-500);"><i class="fas fa-network-wired"></i> Stage: ${escapeHtml(timelineData.current_stage || 'Litigation')}</span>
-            <span style="font-size: 0.8rem; color: var(--gray-500);">${timelineData.completed_nodes || 0} of ${timelineData.total_nodes || 0} Milestones Completed</span>
-        </div>`;
+    const completedCount = nodes.filter(n => n.completed).length;
+    const totalCount = nodes.length;
+    const stageName = (timelineData && timelineData.current_stage) || (domain === 'sarfaesi' ? 'Active Recovery Stage' : 'Active Court Proceedings');
 
-        html += timelineData.nodes.map((node, idx) => {
-            const isDone = node.completed;
-            const hasDefect = !!node.defect;
-            const badgeColor = hasDefect ? '#ef4444' : (isDone ? '#10b981' : '#6b7280');
-            const badgeText = hasDefect ? 'DEFECT DETECTED' : (isDone ? 'COMPLETED' : 'PENDING');
-            const icon = hasDefect ? 'fa-exclamation-triangle' : (isDone ? 'fa-check-circle' : 'fa-clock');
+    let html = `<div style="margin-bottom: 1.25rem; padding: 0.85rem 1.15rem; background: var(--gray-100); border-radius: 0.75rem; border: 1px solid var(--gray-200); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+        <span style="font-weight: 700; color: var(--primary-600);"><i class="fas fa-network-wired"></i> Stage: ${escapeHtml(stageName)}</span>
+        <span style="font-size: 0.82rem; font-weight: 600; color: var(--gray-600);">${completedCount} of ${totalCount} Statutory Milestones Tracked</span>
+    </div>`;
 
-            return `
-                <div class="timeline-item" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                    <div style="width: 2px; background: ${badgeColor}66; position: relative;">
-                        <div style="position: absolute; top: 0; left: -6px; width: 14px; height: 14px; border-radius: 50%; background: ${badgeColor}; border: 3px solid var(--gray-50);"></div>
-                    </div>
-                    <div style="flex: 1; background: var(--gray-100); border: 1px solid ${hasDefect ? '#ef444466' : 'var(--gray-200)'}; padding: 1rem; border-radius: 0.5rem;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem;">
-                            <div style="font-weight: 700; color: var(--gray-900); font-size: 0.95rem;">${idx + 1}. ${escapeHtml(node.name)}</div>
-                            <span style="background: ${badgeColor}22; color: ${badgeColor}; border: 1px solid ${badgeColor}44; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 0.25rem;">
-                                <i class="fas ${icon}"></i> ${badgeText}
-                            </span>
-                        </div>
-                        <div style="font-size: 0.8rem; color: var(--gray-600); margin-bottom: 0.4rem;">
-                            <strong>Statute:</strong> ${escapeHtml(node.statute || '')} &bull; <strong>Authority:</strong> <em>${escapeHtml(node.authority || '')}</em>
-                        </div>
-                        ${node.date ? `<div style="font-size: 0.8rem; color: var(--primary-500);">Milestone Date: ${escapeHtml(node.date)}</div>` : ''}
-                        ${hasDefect ? `<div style="margin-top: 0.5rem; background: #ef444415; border: 1px solid #ef444444; color: #ef4444; padding: 0.5rem; border-radius: 0.35rem; font-size: 0.85rem;"><i class="fas fa-ban"></i> ${escapeHtml(node.defect)}</div>` : ''}
-                    </div>
+    html += nodes.map((node, idx) => {
+        const isDone = node.completed;
+        const hasDefect = !!node.defect;
+        const badgeColor = hasDefect ? '#ef4444' : (isDone ? '#10b981' : '#6b7280');
+        const badgeText = hasDefect ? 'DEFECT DETECTED' : (isDone ? 'COMPLIANT' : 'PENDING');
+        const icon = hasDefect ? 'fa-exclamation-triangle' : (isDone ? 'fa-check-circle' : 'fa-clock');
+
+        return `
+            <div class="timeline-item" style="display: flex; gap: 1rem; margin-bottom: 1.25rem;">
+                <div style="width: 2px; background: ${badgeColor}44; position: relative; margin-left: 6px;">
+                    <div style="position: absolute; top: 0; left: -6px; width: 14px; height: 14px; border-radius: 50%; background: ${badgeColor}; border: 3px solid var(--gray-50); box-shadow: 0 0 0 2px ${badgeColor}33;"></div>
                 </div>
-            `;
-        }).join('');
+                <div style="flex: 1; background: var(--gray-100); border: 1px solid ${hasDefect ? '#ef444455' : 'var(--gray-200)'}; padding: 1rem 1.2rem; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.45rem; flex-wrap: wrap; gap: 0.4rem;">
+                        <div style="font-weight: 700; color: var(--gray-900); font-size: 0.95rem;">${escapeHtml(node.name)}</div>
+                        <span style="background: ${badgeColor}18; color: ${badgeColor}; border: 1px solid ${badgeColor}44; font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 0.35rem; display: inline-flex; align-items: center; gap: 0.3rem;">
+                            <i class="fas ${icon}"></i> ${badgeText}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.82rem; color: var(--gray-600); margin-bottom: 0.4rem; line-height: 1.4;">
+                        <strong>Statute:</strong> ${escapeHtml(node.statute || '')} &bull; <strong>Authority:</strong> <em>${escapeHtml(node.authority || '')}</em>
+                    </div>
+                    ${node.date ? `<div style="font-size: 0.82rem; color: var(--primary-600); font-weight: 600;"><i class="fas fa-calendar-day"></i> Date: ${escapeHtml(String(node.date))}</div>` : ''}
+                    ${hasDefect ? `<div style="margin-top: 0.6rem; background: #ef444415; border: 1px solid #ef444444; color: #ef4444; padding: 0.6rem 0.85rem; border-radius: 0.5rem; font-size: 0.85rem; font-weight: 500;"><i class="fas fa-ban"></i> ${escapeHtml(node.defect)}</div>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
 
-        container.innerHTML = html;
-        return;
-    }
-
-    if (Array.isArray(timelineData)) {
-        renderList("timelineList", timelineData, "No timeline available");
-        return;
-    }
-
-    let html = '';
-
-    if (timelineData.opportunities && timelineData.opportunities.length > 0) {
+    // Append any opportunities if present
+    if (timelineData && timelineData.opportunities && timelineData.opportunities.length > 0) {
+        html += `<div style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-weight: 700; color: var(--error-600); font-size: 0.9rem; text-transform: uppercase;"><i class="fas fa-bolt"></i> Strategic Opportunities</div>`;
         html += timelineData.opportunities.map(opp => `
-            <div style="background: var(--error-50); border-left: 4px solid var(--error-600); padding: 1rem; margin-bottom: 1rem; border-radius: var(--radius-md); box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);">
-                <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; font-weight: 800; color: var(--error-700); text-transform: uppercase; animation: pulse 2s infinite;">
-                    <i class="fas fa-bolt"></i> CRITICAL OPPORTUNITY
-                </div>
-                <div style="font-size: 1rem; font-weight: 600; color: var(--gray-900); margin-top: 0.5rem;">${opp.opportunity}</div>
-                <div style="font-size: 0.85rem; color: var(--error-800); margin-top: 0.25rem;"><strong>Action:</strong> ${opp.action}</div>
+            <div style="background: var(--error-50); border-left: 4px solid var(--error-600); padding: 1rem; margin-bottom: 0.75rem; border-radius: var(--radius-md); box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);">
+                <div style="font-size: 0.95rem; font-weight: 700; color: var(--gray-900);">${escapeHtml(String(opp.opportunity || opp.title || opp))}</div>
+                ${opp.action ? `<div style="font-size: 0.85rem; color: var(--error-800); margin-top: 0.35rem;"><strong>Recommended Action:</strong> ${escapeHtml(String(opp.action))}</div>` : ''}
             </div>
         `).join('');
-    }
-
-    if (timelineData.anomalies && timelineData.anomalies.length > 0) {
-        html += timelineData.anomalies.map(anom => {
-            const isFatal = String(anom.anomaly || anom).toUpperCase().includes("BARRED");
-            const color = isFatal ? 'error' : 'warning';
-            const icon = isFatal ? 'fa-ban' : 'fa-exclamation-triangle';
-            
-            return `
-                <div class="timeline-item" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                    <div style="width: 2px; background: var(--${color}-300); position: relative;">
-                        <div style="position: absolute; top: 0; left: -6px; width: 14px; height: 14px; border-radius: 50%; background: var(--${color}-500); border: 3px solid white; box-shadow: 0 0 0 1px var(--${color}-200);"></div>
-                    </div>
-                    <div style="flex: 1; background: var(--gray-50); border: 1px solid var(--gray-200); padding: 1rem; border-radius: var(--radius-md);">
-                        <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--${color}-700); font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">
-                            <i class="fas ${icon}"></i> ${isFatal ? 'FATAL ANOMALY' : 'PROCEDURAL ANOMALY'}
-                        </div>
-                        <div style="font-size: 0.95rem; color: var(--gray-800);">${anom.anomaly || anom}</div>
-                        ${anom.precedent ? `<div style="margin-top: 0.5rem; font-size: 0.8rem; background: var(--gray-100); padding: 0.5rem; border-radius: var(--radius-sm); border-left: 2px solid var(--gray-400); font-family: monospace;">${anom.precedent}</div>` : ''}
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    if (html === '') {
-        html = '<p style="color: var(--gray-500);"><i class="fas fa-check-circle"></i> Timeline is clean. No anomalies detected.</p>';
     }
 
     container.innerHTML = html;
@@ -1458,7 +1563,7 @@ export function renderSarfaesiResultsPanels(data) {
     }
 
     // Timeline list (enforcement milestones)
-    renderTimelineEngine(graph);
+    renderTimelineEngine(graph, data);
     const sarfaesiTimeline = document.getElementById('sarfaesiTimelineList');
     const origTimeline = document.getElementById('timelineList');
     if (sarfaesiTimeline && origTimeline) sarfaesiTimeline.innerHTML = origTimeline.innerHTML;
@@ -1622,7 +1727,7 @@ export function renderResults(data) {
         : (data.weaknesses || []);
     renderList("weaknessesList", weaknesses, "No significant weaknesses identified");
     
-    renderTimelineEngine(data.procedural_graph || data.timeline_analysis || data.timeline);
+    renderTimelineEngine(data.procedural_graph || data.timeline_analysis || data.timeline, data);
     renderEconomicsEngine(data.economics || data.bail_economics);
     renderExplainableScore(data);
     renderEvidenceSufficiencyMeter(data);

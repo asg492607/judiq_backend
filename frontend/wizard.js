@@ -1,7 +1,7 @@
-import { wizardSteps, sarfaesiWizardSteps, getActiveWizardSteps } from './config.js?v=8';
-import { ui, switchScreen } from './ui.js?v=8';
-import { api } from './api.js?v=8';
-import { renderResults } from './renderer.js?v=8';
+import { wizardSteps, sarfaesiWizardSteps, getActiveWizardSteps } from './config.js?v=12';
+import { ui, switchScreen } from './ui.js?v=12';
+import { api } from './api.js?v=12';
+import { renderResults } from './renderer.js?v=12';
 
 let isWizardInitialized = false;
 let currentCaseType = null;
@@ -162,10 +162,27 @@ function renderField(field) {
 
 function updateProgress() {
     const steps = getCurrentSteps();
-    const progress = (window.state.currentStep / steps.length) * 100;
+    const current = window.state.currentStep || 1;
+    const progress = (current / steps.length) * 100;
     const fill = document.getElementById('progressFill');
     if (fill) fill.style.width = `${progress}%`;
     ui.setText('progressPercentage', `${Math.round(progress)}%`);
+
+    const stepsContainer = document.getElementById('progressSteps');
+    if (stepsContainer) {
+        stepsContainer.innerHTML = steps.map((s, idx) => {
+            const num = idx + 1;
+            const isCurrent = num === current;
+            const isCompleted = num < current;
+            const stateClass = isCurrent ? 'step-active' : (isCompleted ? 'step-completed' : 'step-upcoming');
+            return `
+                <div class="progress-step-pill ${stateClass}" onclick="if(${num} <= ${current} + 1) { saveCurrentStepValues(); window.state.currentStep = ${num}; persistAutosave(); renderWizardStep(); }">
+                    <span class="step-num">${isCompleted ? '<i class="fas fa-check"></i>' : num}</span>
+                    <span class="step-label">${s.title || `Step ${num}`}</span>
+                </div>
+            `;
+        }).join('');
+    }
 }
 
 // Update wizard navigation buttons state

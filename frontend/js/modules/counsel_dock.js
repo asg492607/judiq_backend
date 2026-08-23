@@ -209,13 +209,16 @@ export class JudiQCoCounselDock {
                 }
                 .co-counsel-drawer {
                     bottom: 4.5rem;
-                    right: 0.75rem;
-                    left: 0.75rem;
+                    right: 0.5rem;
+                    left: 0.5rem;
                     width: auto;
-                    max-width: calc(100vw - 1.5rem);
-                    height: calc(100vh - 6rem);
-                    max-height: 540px;
-                    border-radius: 14px;
+                    max-width: calc(100vw - 1rem);
+                    height: calc(100vh - 5.5rem);
+                    max-height: 82vh;
+                    border-radius: 16px;
+                }
+                .co-counsel-input {
+                    font-size: 16px !important;
                 }
                 .co-counsel-header {
                     padding: 0.75rem 1rem;
