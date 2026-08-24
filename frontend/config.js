@@ -142,74 +142,154 @@ export const wizardSteps = [
     }
 ];
 
-export const sarfaesiWizardSteps = [
+export const criminalWizardSteps = [
     {
-        id: 'sarfaesi_identity',
-        title: 'Case Identity & Mode',
-        subtitle: 'Basic case details and perspective selection',
+        id: 'criminal_identity',
+        title: 'Criminal Case & FIR Details',
+        subtitle: 'FIR details, police station jurisdiction, and statutory framework',
         fields: [
-            { name: 'case_id', label: 'Case ID / Loan Ref', type: 'text', required: false, placeholder: 'e.g., SARFAESI/2026/001' },
-            { name: 'case_title', label: 'Case Title', type: 'text', required: true, placeholder: 'State Bank vs M/s XYZ Ltd' },
-            // case_type is intentionally excluded here — it is auto-locked to 'SARFAESI' by wizard.js
-            // when this flow is activated, preventing accidental cross-domain re-routing.
-            { name: 'perspective', label: 'Client Perspective (Mode)', type: 'select', options: ['creditor', 'borrower'], required: true },
-            { name: 'filing_date', label: 'Audit / Filing Date', type: 'date', required: true },
-            { name: 'drt_bench', label: 'DRT Bench / Court Location', type: 'text', required: false, placeholder: 'e.g., DRT-I Mumbai' }
+            { name: 'case_id', label: 'FIR / Case Number', type: 'text', required: true, placeholder: 'e.g., FIR No. 204/2026' },
+            { name: 'case_title', label: 'Case Title / Caption', type: 'text', required: true, placeholder: 'e.g., State vs Ramesh Kumar & Ors' },
+            { name: 'police_station', label: 'Police Station & Jurisdiction', type: 'text', required: true, placeholder: 'e.g., Cyber Crime PS, Bandra, Mumbai' },
+            { name: 'client_role', label: 'Client Representation', type: 'select', options: ['Accused', 'Complainant / Informant', 'Victim'], required: true },
+            { name: 'statutory_regime', label: 'Statutory Framework', type: 'select', options: ['Bharatiya Nyaya Sanhita (BNS 2023 / BNSS 2023)', 'Indian Penal Code (IPC 1860 / CrPC 1973)', 'Special Criminal Act (NDPS / PMLA / PC Act)'], required: true },
+            { name: 'filing_date', label: 'FIR / Complaint Registration Date', type: 'date', required: true },
+            { name: 'court_name', label: 'Designated Trial / Remand Court', type: 'text', required: false, placeholder: 'e.g., Additional Sessions Court, Greater Mumbai' }
         ]
     },
     {
-        id: 'sarfaesi_facility',
-        title: 'Loan & Default Details',
-        subtitle: 'Facility type, outstanding debt, and NPA classification',
+        id: 'criminal_offense',
+        title: 'Offense & Specific Charges',
+        subtitle: 'Primary offense classification, sections charged, and timeline',
         fields: [
-            { name: 'bank_name', label: 'Secured Creditor (Bank/NBFC)', type: 'text', required: true, placeholder: 'e.g., State Bank of India' },
-            { name: 'borrower_name', label: 'Borrower / Mortgagor Name', type: 'text', required: true, placeholder: 'e.g., M/s Zenith Enterprises' },
-            { name: 'loan_account_number', label: 'Loan Account Number', type: 'text', required: true, placeholder: 'e.g., CC-99887711' },
-            { name: 'facility_type', label: 'Facility Type', type: 'select', options: ['Term Loan', 'Cash Credit', 'Housing Loan', 'Commercial Overdraft'], required: true },
-            { name: 'outstanding_amount', label: 'Total Outstanding Debt (₹)', type: 'number', required: true, placeholder: 'e.g., 25000000' },
-            { name: 'npa_date', label: 'NPA Classification Date', type: 'date', required: true }
+            { 
+                name: 'offense_type', 
+                label: 'Primary Offense Category', 
+                type: 'select', 
+                options: [
+                    'S.420 IPC / S.318 BNS (Cheating & Financial Fraud)', 
+                    'S.406/409 IPC / S.316 BNS (Criminal Breach of Trust)', 
+                    'S.467/468/471 IPC / S.336/338/340 BNS (Forgery & Valuable Security)', 
+                    'S.498A IPC / S.85 BNS (Matrimonial Cruelty & Dowry Allegations)', 
+                    'S.302/304 IPC / S.103/105 BNS (Homicide / Murder vs Provocation)', 
+                    'S.307 IPC / S.109 BNS (Attempt to Murder)', 
+                    'S.376 IPC / S.64 BNS (Rape / False Promise of Marriage)', 
+                    'S.323/324/326 IPC / S.115/117/118 BNS (Voluntarily Causing Hurt / Dangerous Weapon)', 
+                    'NDPS Act (Search S.50 & Twin Bail Conditions S.37)', 
+                    'Prevention of Corruption Act (Prior Sanction S.17A / S.19)',
+                    'Other Criminal Offense'
+                ], 
+                required: true 
+            },
+            { name: 'ipc_section', label: 'Specific Sections Charged (IPC / BNS / Special Acts)', type: 'text', required: true, placeholder: 'e.g., S. 420, 406, 120B IPC / S. 318, 316, 61 BNS' },
+            { name: 'incident_date', label: 'Date of Alleged Incident', type: 'date', required: true },
+            { name: 'fir_date', label: 'Date of FIR / Complaint', type: 'date', required: true },
+            { name: 'delay_explanation', label: 'Explanation for FIR Delay (if any)', type: 'textarea', required: false, placeholder: 'Explain reasons for delay between incident date and FIR registration...' },
+            { name: 'max_punishment_years', label: 'Maximum Imprisonment for Highest Offense (Years)', type: 'number', required: true, placeholder: 'e.g., 7' }
         ]
     },
     {
-        id: 'sarfaesi_security',
-        title: 'Mortgaged Asset & CERSAI',
-        subtitle: 'Property description, CERSAI portal registration, and agricultural status',
+        id: 'criminal_custody',
+        title: 'Arrest, Custody & Investigation',
+        subtitle: 'Remand status, 41A notice compliance, and default bail milestones',
         fields: [
-            { name: 'property_description', label: 'Mortgaged Asset Description', type: 'textarea', required: true, placeholder: 'Describe property location, plot/survey number...' },
-            { name: 'cersai_registered', label: 'Security Registered on CERSAI Portal? (S.26D)', type: 'select', options: ['Yes', 'No'], required: true },
-            { name: 'is_agricultural_land', label: 'Is Property Agricultural Land? (S.31i)', type: 'select', options: ['No - Commercial/Residential', 'Yes - Agricultural Land'], required: true },
-            { name: 'valuation_amount', label: 'Valuation / Reserve Price (₹)', type: 'number', required: false, placeholder: 'e.g., 30000000' }
+            { name: 'arrested_during_investigation', label: 'Arrest / Custody Status', type: 'select', options: ['Yes - Currently in Custody', 'Yes - Released on Bail', 'No - Anticipating Arrest / Not Arrested'], required: true },
+            { name: 'arrest_date', label: 'Date of Arrest (if applicable)', type: 'date', required: false },
+            { name: 'days_in_custody', label: 'Total Days in Judicial / Police Custody', type: 'number', required: false, placeholder: 'e.g., 65' },
+            { name: 'no_s41a_notice', label: 'S.41A CrPC / S.35 BNSS Notice Compliance (For offenses <= 7 yrs)', type: 'select', options: ['Notice Served & Cooperated', 'Arrested Directly Without S.41A Notice (Arnesh Kumar Violation)', 'Not Applicable (>7 Years)'], required: true },
+            { name: 'chargesheet_filed', label: 'Chargesheet / Final Police Report Status', type: 'select', options: ['No - Investigation Pending (Default Bail S.167 Check)', 'Yes - Chargesheet Submitted in Court'], required: true },
+            { name: 'chargesheet_date', label: 'Chargesheet Filing Date (if filed)', type: 'date', required: false },
+            { name: 'is_public_servant', label: 'Is Accused a Public Servant / Government Officer?', type: 'select', options: ['No', 'Yes - Public Servant Acting in Official Duty'], required: true },
+            { name: 'sanction_obtained', label: 'Prior Sanction Obtained? (S.197 CrPC / S.218 BNSS / S.17A PCA)', type: 'select', options: ['Yes - Valid Sanction on Record', 'No - No Prior Sanction (Cognizance Barred)', 'Not Applicable'], required: true }
         ]
     },
     {
-        id: 'sarfaesi_enforcement',
-        title: 'Enforcement Timeline',
-        subtitle: 'Section 13(2), 13(3A) representation, and Section 13(4) measures',
+        id: 'criminal_evidence',
+        title: 'Evidentiary Audit & Forensics',
+        subtitle: 'Electronic certificates, discovery memos, and medical contradictions',
         fields: [
-            { name: 'notice_13_2_date', label: 'Section 13(2) Demand Notice Date', type: 'date', required: false },
-            { name: 'borrower_representation_date', label: 'Borrower S.13(3A) Objection Date', type: 'date', required: false },
-            { name: 'bank_reply_13_3a_date', label: 'Bank S.13(3A) Reasoned Reply Date', type: 'date', required: false },
-            { name: 'possession_13_4_date', label: 'Section 13(4) Possession Notice Date', type: 'date', required: false },
-            { name: 'newspaper_publication_done', label: 'Published in 2 Newspapers? (Rule 8-2)', type: 'select', options: ['Yes', 'No'], required: false }
+            { name: 'electronic_evidence', label: 'Does Prosecution Rely on Electronic Records (WhatsApp, Calls, CCTV)?', type: 'select', options: ['Yes', 'No'], required: true },
+            { name: 's65b_certificate', label: 'Is S.65B IEA / S.63 BSA Certificate Attached?', type: 'select', options: ['Yes - Valid Certificate Available', 'No - Uncertified / Missing (Inadmissible)', 'Not Applicable'], required: false },
+            { name: 'recovery_memo_s27', label: 'Discovery / Recovery Memo (S.27 IEA / S.23 BSA)', type: 'select', options: ['Yes - Independent Panch Witnesses Present', 'Yes - Questionable / Stock Witnesses', 'No Recovery Made'], required: false },
+            { name: 'medical_contradicts_ocular', label: 'Does Medical / Post-Mortem Report Contradict Eyewitnesses?', type: 'select', options: ['Yes - Direct Medical vs Ocular Contradiction (Thaman Kumar Rule)', 'No - Consistent', 'Not Applicable'], required: false },
+            { name: 's161_s164_contradiction', label: 'Major Discrepancy Between S.161 & S.164 Statements?', type: 'select', options: ['Yes - Severe Material Contradiction', 'Minor Variations', 'No'], required: false },
+            { name: 'witness_type', label: 'Nature of Key Witnesses', type: 'select', options: ['Independent Public Witnesses', 'Solely Interested / Family Witnesses', 'Only Police Witnesses'], required: false }
         ]
     },
     {
-        id: 'sarfaesi_litigation',
-        title: 'Tribunal & Auction Details',
-        subtitle: 'Section 14 DM order, auction date, and Section 17 DRT SA',
+        id: 'criminal_adversarial',
+        title: 'Quashing, Bail & Defense Strategy',
+        subtitle: 'Bhajan Lal quashing grounds, civil dispute disguise, and relief sought',
         fields: [
-            { name: 'dm_order_date', label: 'Section 14 DM Physical Possession Order Date', type: 'date', required: false },
-            { name: 'auction_notice_date', label: 'Rule 8(6)/9(1) Sale Auction Notice Date', type: 'date', required: false },
-            { name: 'sa_filing_date', label: 'Section 17 DRT SA Filing Date', type: 'date', required: false },
-            { name: 'additional_notes', label: 'Additional Case Notes / Defense Arguments', type: 'textarea', required: false, placeholder: 'Describe any specific legal objections or disputes...' }
+            { name: 'contract_exists', label: 'Is There an Underlying Contract / Commercial Dispute? (S.420 Defense)', type: 'select', options: ['Yes - Commercial Contract / Debt Recovery in Criminal Garb', 'No - Pure Criminal Act'], required: true },
+            { name: 'relative_impleaded', label: 'Are Distant In-Laws / Relatives Impleaded with Omnibus Claims? (S.498A)', type: 'select', options: ['Yes - Vague Omnibus Allegations on Extended Family', 'No'], required: false },
+            { name: 'flight_risk', label: 'Flight Risk / Tampering Apprehension', type: 'select', options: ['No - Deep Local Roots & Clean Track Record', 'Yes - Risk Alleged by Prosecution'], required: false },
+            { 
+                name: 'primary_relief_sought', 
+                label: 'Primary Legal Strategy / Relief Sought', 
+                type: 'select', 
+                options: [
+                    'Anticipatory Bail (S.438 CrPC / S.484 BNSS)', 
+                    'Regular Bail (S.437/439 CrPC / S.480/483 BNSS)', 
+                    'Default / Statutory Bail (S.167(2) CrPC / S.187 BNSS)', 
+                    'High Court Quashing u/s 482 CrPC / S.528 BNSS (Bhajan Lal)', 
+                    'Discharge Application u/s 227/239 CrPC / S.250/262 BNSS', 
+                    'Trial Cross-Examination & Comprehensive Defense Strategy'
+                ], 
+                required: true 
+            },
+            { name: 'additional_notes', label: 'Specific Defense Grounds & Factual Context', type: 'textarea', required: false, placeholder: 'Detail any alibi, hostile witness history, prior settlement agreements, or specific legal objections...' }
+        ]
+    }
+];
+
+export const civilWizardSteps = [
+    {
+        id: 'civil_identity',
+        title: 'Civil Suit & Jurisdiction',
+        subtitle: 'Suit details, valuation, and court jurisdiction',
+        fields: [
+            { name: 'case_id', label: 'Suit / Petition Number', type: 'text', required: true, placeholder: 'e.g., Commercial Suit No. 45/2026' },
+            { name: 'case_title', label: 'Suit Title', type: 'text', required: true, placeholder: 'e.g., ABC Developers vs XYZ Infra Ltd' },
+            { name: 'court_name', label: 'Court / Commercial Court Bench', type: 'text', required: true, placeholder: 'e.g., City Civil Court, Commercial Division' },
+            { name: 'suit_valuation', label: 'Suit Valuation / Claim Amount (₹)', type: 'number', required: true, placeholder: 'e.g., 50000000' },
+            { name: 's12a_mediation', label: 'Pre-Institution Mediation u/s 12A Commercial Courts Act?', type: 'select', options: ['Yes - Mediation Attempted / Failed', 'No - Urgent Interim Relief Claimed', 'Not a Commercial Suit'], required: true },
+            { name: 'filing_date', label: 'Filing Date', type: 'date', required: true }
+        ]
+    },
+    {
+        id: 'civil_cause_of_action',
+        title: 'Cause of Action & Contract Details',
+        subtitle: 'Agreement terms, breach date, and limitation audit',
+        fields: [
+            { name: 'agreement_date', label: 'Agreement / Contract Execution Date', type: 'date', required: true },
+            { name: 'breach_date', label: 'Date Cause of Action Arose / Breach Date', type: 'date', required: true },
+            { name: 'agreement_registered', label: 'Is Agreement Stamped & Registered?', type: 'select', options: ['Yes - Duly Stamped & Registered', 'Unstamped / Insufficiently Stamped (Impounding Risk)', 'Oral Agreement'], required: true },
+            { name: 'limitation_article', label: 'Limitation Act Article Applicable', type: 'select', options: ['Article 54 - Specific Performance (3 Years)', 'Article 55 - Breach of Contract (3 Years)', 'Article 113 - Residual Civil Suits (3 Years)', 'Article 65 - Possession of Immovable Property (12 Years)'], required: true }
+        ]
+    },
+    {
+        id: 'civil_relief',
+        title: 'Relief Sought & Interim Applications',
+        subtitle: 'Primary prayers and Order 39 injunction requirements',
+        fields: [
+            { name: 'primary_prayer', label: 'Primary Relief Sought', type: 'select', options: ['Specific Performance of Contract', 'Recovery of Money / Commercial Damages', 'Permanent & Mandatory Injunction', 'Declaration of Title & Ownership', 'Cancellation of Sale Deed'], required: true },
+            { name: 'order_39_injunction', label: 'Interim Injunction Sought? (Order 39 Rules 1 & 2 CPC)', type: 'select', options: ['Yes - Prima Facie Case & Balance of Convenience Pled', 'No - Only Final Decree Sought'], required: true },
+            { name: 'additional_notes', label: 'Additional Pleadings / Submissions', type: 'textarea', required: false, placeholder: 'Describe readiness and willingness (S.16(c) SRA) or breach particulars...' }
         ]
     }
 ];
 
 export function getActiveWizardSteps(caseType) {
     const type = (caseType || '').toLowerCase();
-    if (type.includes('sarfaesi') || type.includes('drt')) {
+    if (type.includes('criminal') || type.includes('bns') || type.includes('ipc') || type.includes('fir')) {
+        return criminalWizardSteps;
+    }
+    if (type.includes('sarfaesi') || type.includes('drt') || type.includes('npa') || type.includes('bank')) {
         return sarfaesiWizardSteps;
+    }
+    if (type.includes('civil') || type.includes('cpc') || type.includes('commercial')) {
+        return civilWizardSteps;
     }
     return wizardSteps;
 }

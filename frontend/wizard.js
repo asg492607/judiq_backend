@@ -1,13 +1,23 @@
-import { wizardSteps, sarfaesiWizardSteps, getActiveWizardSteps } from './config.js?v=12';
-import { ui, switchScreen } from './ui.js?v=12';
-import { api } from './api.js?v=12';
-import { renderResults } from './renderer.js?v=12';
+import { wizardSteps, sarfaesiWizardSteps, criminalWizardSteps, civilWizardSteps, getActiveWizardSteps } from './config.js?v=13';
+import { ui, switchScreen } from './ui.js?v=13';
+import { api } from './api.js?v=13';
+import { renderResults } from './renderer.js?v=13';
 
 let isWizardInitialized = false;
 let currentCaseType = null;
 
 function getCurrentSteps() {
-    const caseType = window.state?.caseData?.case_type || 'Cheque Bounce';
+    const domain = (window.state?.userDomain || 'ni_act').toLowerCase();
+    let caseType = window.state?.caseData?.case_type;
+    if (!caseType) {
+        if (domain === 'criminal') caseType = 'Criminal';
+        else if (domain === 'sarfaesi') caseType = 'SARFAESI';
+        else if (domain === 'civil') caseType = 'Civil';
+        else caseType = 'Cheque Bounce';
+        window.state = window.state || {};
+        window.state.caseData = window.state.caseData || {};
+        window.state.caseData.case_type = caseType;
+    }
     return getActiveWizardSteps(caseType);
 }
 
@@ -38,23 +48,38 @@ function persistAutosave() {
 window.loadAutosave = loadAutosave;
 window.persistAutosave = persistAutosave;
 
+window.setCaseType = (type) => {
+    window.state = window.state || {};
+    window.state.caseData = window.state.caseData || {};
+    window.state.caseData.case_type = type;
+    window.state.currentStep = 1;
+    isWizardInitialized = false;
+    currentCaseType = null;
+    renderWizardStep();
+};
 
 export function renderWizardStep() {
     const steps = getCurrentSteps();
     const caseType = window.state?.caseData?.case_type || 'Cheque Bounce';
+    
     if (currentCaseType !== caseType) {
         isWizardInitialized = false;
         currentCaseType = caseType;
     }
 
-    const stepIdx = Math.min(window.state.currentStep - 1, steps.length - 1);
+    const currentStep = window.state.currentStep || 1;
+    const stepIdx = Math.min(Math.max(0, currentStep - 1), steps.length - 1);
     const step = steps[stepIdx];
 
-    // Auto-lock case_type to 'SARFAESI' when the SARFAESI wizard is active.
-    // This prevents stale autosave values or accidental resets from re-routing
-    // the submission to the Section 138 / Cheque Bounce engine.
-    if (caseType === 'SARFAESI' || steps === sarfaesiWizardSteps) {
+    // Auto-lock case_type based on active steps
+    if (steps === criminalWizardSteps || (caseType && caseType.toLowerCase().includes('criminal'))) {
+        window.state.caseData['case_type'] = 'Criminal';
+    } else if (steps === sarfaesiWizardSteps || (caseType && caseType.toLowerCase().includes('sarfaesi'))) {
         window.state.caseData['case_type'] = 'SARFAESI';
+    } else if (steps === civilWizardSteps || (caseType && caseType.toLowerCase().includes('civil'))) {
+        window.state.caseData['case_type'] = 'Civil';
+    } else {
+        window.state.caseData['case_type'] = 'Cheque Bounce';
     }
     
     ui.setText('wizardTitle', step.title);
@@ -252,7 +277,15 @@ function sanitizePayload(rawData) {
         'directors_named', 'complainant_authorized', 'itr_available',
         'bank_memo_received', 'second_presentation', 'post_dated',
         'signature_dispute', 'debt_denial', 'cheque_security_claim',
-        'within_30_days', 'reply_received', 'memo_signed', 'court_attendance'
+        'within_30_days', 'reply_received', 'memo_signed', 'court_attendance',
+        // Criminal fields
+        'electronic_evidence', 's65b_certificate', 'medical_contradicts_ocular',
+        's161_s164_contradiction', 'contract_exists', 'relative_impleaded',
+        'flight_risk', 'is_public_servant', 'sanction_obtained', 'no_s41a_notice',
+        // SARFAESI fields
+        'cersai_registered', 'is_agricultural_land', 'newspaper_publication_done',
+        // Civil fields
+        's12a_mediation', 'agreement_registered', 'order_39_injunction'
     ];
     const TRUTHY_VALUES = ['yes', 'true', '1', 'yes - all', 'yes - partial',
         'yes - original', 'yes - copy', 'yes - written', 'yes - verbal',

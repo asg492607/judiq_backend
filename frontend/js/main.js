@@ -894,8 +894,28 @@ window.deleteCaseFromHistory = async (caseId, event) => {
 window.startCaseAnalysis = (initialData = null) => {
     window.state.currentStep = 1;
     window.state.caseData = initialData ? { ...initialData } : {};
-    renderWizardStep();
+    if (initialData && initialData.case_type) {
+        if (typeof window.setCaseType === 'function') {
+            window.setCaseType(initialData.case_type);
+        }
+    } else {
+        if (typeof renderWizardStep === 'function') {
+            renderWizardStep();
+        }
+    }
     switchScreen('caseWizardScreen');
+};
+
+window.setUserDomain = (domain) => {
+    window.state = window.state || {};
+    window.state.userDomain = domain;
+    if (window.state.currentUser) {
+        localStorage.setItem(`judiq_domain_${window.state.currentUser.uid}`, domain);
+    }
+    renderDashboard();
+    if (window.ui && typeof window.ui.toast === 'function') {
+        window.ui.toast(`Switched domain to ${domain.toUpperCase()}`, 'info');
+    }
 };
 
 /**
