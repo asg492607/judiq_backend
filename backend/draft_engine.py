@@ -1108,12 +1108,314 @@ class DraftEngine:
         return draft_out
 def generate_settlement_draft(case_data: Dict, score: int) -> str:
     return "MEMORANDUM OF SETTLEMENT\n\nThis memorandum of settlement is generated based on the case facts. A formal mediator or counsel should review the terms."
-def generate_fir_draft(case_data: Dict, concepts: List[Dict]) -> str:
-    return "FIRST INFORMATION REPORT (FIR) DRAFT\n\nDrafted based on core criminal facts."
+def generate_fir_draft(case_data: Dict, concepts: List[Dict] = None) -> str:
+    today, amount_str = _case_meta(case_data)
+    informant = case_data.get("complainant_name") or case_data.get("informant_name") or "________ (Informant Name)"
+    informant_addr = case_data.get("complainant_address") or "________ (Address)"
+    informant_phone = case_data.get("complainant_phone") or "________ (Phone)"
+    accused = case_data.get("accused_name") or "________ (Accused Person(s))"
+    accused_addr = case_data.get("accused_address") or "________ (Accused Address)"
+    ps = case_data.get("police_station") or "________ (Police Station Name)"
+    incident_date = case_data.get("incident_date") or "[Date of Incident]"
+    sections = case_data.get("ipc_section") or case_data.get("offense_type") or "Section 420, 406, 120B IPC / Section 318, 316, 61 BNS"
+    desc = case_data.get("description") or "Allegations of criminal breach of trust, fraudulent inducement, and misappropriation of funds."
+
+    hdr = _header("CRIMINAL COMPLAINT / FIRST INFORMATION REPORT (S.154 / 156(3) CrPC <-> S.173 / 175 BNSS)")
+
+    return hdr + f"""
+
+TO:
+THE STATION HOUSE OFFICER / OFFICER-IN-CHARGE,
+POLICE STATION {ps.upper()}
+
+COMPLAINANT / INFORMANT:
+{informant}, R/o {informant_addr}, Contact: {informant_phone}
+
+ACCUSED PERSON(S):
+{accused}, R/o {accused_addr}
+
+SUBJECT: COMPLAINT FOR REGISTRATION OF FIRST INFORMATION REPORT (FIR) UNDER {sections.upper()} AND OTHER RELEVANT PROVISIONS OF LAW.
+
+RESPECTED SIR,
+
+I, the undersigned Informant, do hereby lodge this formal criminal complaint setting out the true facts of the cognizable offence committed by the Accused:
+
+1. THE COMPLAINANT & ACCUSED:
+   The Informant is a law-abiding citizen residing at the address mentioned above. The Accused approached the Informant on or about {incident_date} with dishonest and deceptive representations.
+
+2. FACTUAL NARRATIVE & SPECIFIC OVERT ACTS:
+   {desc}
+
+3. COGNIZABLE OFFENCE & FORENSIC EVIDENCE:
+   The acts committed by the Accused clearly disclose the commission of non-bailable cognizable offences under {sections}. Contemporaneous evidence including bank records, digital communications, and witness statements are submitted herewith.
+
+4. MANDATORY REGISTRATION OF FIR:
+   In terms of the Constitution Bench judgment of the Hon'ble Supreme Court in Lalita Kumari v. Govt. of UP (2014) 2 SCC 1, registration of FIR is mandatory upon disclosure of a cognizable offence.
+
+PRAYER:
+It is respectfully prayed that this Police Station may be pleased to:
+a) Register a formal FIR against the Accused under the aforementioned sections of law;
+b) Conduct a thorough investigation, effect recovery of material evidence, and arrest the culprits;
+c) File a Final Report / Chargesheet before the competent jurisdictional Magistrate.
+
+DATE: {today}
+PLACE: {case_data.get("court_name", "________")}
+
+INFORMANT / COMPLAINANT
+THROUGH COUNSEL
+"""
+
 def generate_regular_bail(case_data: Dict) -> str:
-    return "APPLICATION FOR REGULAR BAIL\n\nUnder Section 439 of the Code of Criminal Procedure."
+    today, _ = _case_meta(case_data)
+    applicant = case_data.get("accused_name") or "________ (Accused / Applicant)"
+    applicant_addr = case_data.get("accused_address") or "________ (Address)"
+    court = case_data.get("court_name") or "SESSIONS COURT / MAGISTRATE COURT"
+    fir_no = case_data.get("case_id") or case_data.get("fir_number") or "FIR No. ____/2026"
+    ps = case_data.get("police_station") or "________"
+    sections = case_data.get("ipc_section") or case_data.get("offense_type") or "Section 420/406 IPC / Section 318/316 BNS"
+    custody_days = case_data.get("days_in_custody") or 0
+    arrest_date = case_data.get("arrest_date") or "[Date of Arrest]"
+
+    hdr = _header("APPLICATION FOR REGULAR BAIL UNDER SECTION 437/439 CrPC <-> SECTION 480/483 BNSS")
+
+    return hdr + f"""
+
+IN THE COURT OF THE PRINCIPAL SESSIONS JUDGE / JUDICIAL MAGISTRATE
+AT {court.upper()}
+
+BAIL APPLICATION NO. _____ OF {datetime.now().year}
+
+IN THE MATTER OF:
+{applicant}
+S/o ____________, Age: ____ Years,
+R/o {applicant_addr}
+(Presently in Judicial Custody at Central Prison)             -- APPLICANT / ACCUSED
+
+VERSUS
+
+STATE (GOVT. OF NCT / STATE POLICE)
+THROUGH SHO, POLICE STATION {ps.upper()}                     -- RESPONDENT / PROSECUTION
+
+APPLICATION UNDER SECTION 439 OF THE CODE OF CRIMINAL PROCEDURE, 1973 (READ WITH SECTION 483 OF BHARATIYA NAGARIK SURAKSHA SANHITA, 2023) FOR GRANT OF REGULAR BAIL IN CONNECTION WITH {fir_no.upper()} REGISTERED AT POLICE STATION {ps.upper()} FOR OFFENCES UNDER {sections.upper()}.
+
+MOST RESPECTFULLY SHOWETH:
+
+1. That the Applicant has been falsely implicated in the above-mentioned FIR and was arrested on {arrest_date}. The Applicant has undergone continuous judicial incarceration for approximately {custody_days} days.
+
+2. TRIPLE TEST SATISFACTION:
+   a) NO FLIGHT RISK: The Applicant is a permanent resident of the jurisdiction with deep family roots and fixed immovable assets.
+   b) NO TAMPERING WITH EVIDENCE: The entire investigation is documentary in nature and all material evidence is in the custody of the Investigating Agency (P. Chidambaram v. CBI).
+   c) NO WITNESS INTIMIDATION: The Applicant has clean antecedents and undertakes not to contact or influence any prosecution witness.
+
+3. SATENDER KUMAR ANTIL GUIDELINES:
+   The case of the Applicant is squarely governed by the landmark Supreme Court ruling in Satender Kumar Antil v. CBI (2022) 10 SCC 51 wherein the Hon'ble Court reiterated that "Bail is the rule and jail is an exception" (State of Rajasthan v. Balchand).
+
+4. NO NECESSITY OF FURTHER CUSTODIAL INTERROGATION:
+   Investigation qua the Applicant is substantially complete, recovery (if any) has already been effected, and continued detention serves no punitive purpose during pre-trial stages.
+
+PRAYER:
+It is most respectfully prayed that this Hon'ble Court may be pleased to:
+a) Enlarge the Applicant on regular bail in connection with {fir_no} registered at PS {ps} upon furnishing solvent surety bonds;
+b) Pass any other order deemed fit in the interest of justice.
+
+DATE: {today}
+PLACE: {court}
+
+APPLICANT
+THROUGH ADVOCATE
+"""
+
 def generate_anticipatory_bail(case_data: Dict) -> str:
-    return "APPLICATION FOR ANTICIPATORY BAIL\n\nUnder Section 438 of the Code of Criminal Procedure."
+    today, _ = _case_meta(case_data)
+    applicant = case_data.get("accused_name") or "________ (Accused / Applicant)"
+    applicant_addr = case_data.get("accused_address") or "________ (Address)"
+    court = case_data.get("court_name") or "HON'BLE SESSIONS COURT / HIGH COURT"
+    fir_no = case_data.get("case_id") or case_data.get("fir_number") or "FIR No. ____/2026 (or Anticipated FIR)"
+    ps = case_data.get("police_station") or "________"
+    sections = case_data.get("ipc_section") or case_data.get("offense_type") or "Section 420/406 IPC / Section 318/316 BNS"
+
+    hdr = _header("APPLICATION FOR ANTICIPATORY BAIL UNDER SECTION 438 CrPC <-> SECTION 484 BNSS")
+
+    return hdr + f"""
+
+IN THE COURT OF SESSIONS / HIGH COURT
+AT {court.upper()}
+
+CRIMINAL MISC. (ANTICIPATORY BAIL) APPLICATION NO. _____ OF {datetime.now().year}
+
+IN THE MATTER OF:
+{applicant}
+S/o ____________, Age: ____ Years,
+R/o {applicant_addr}                                         -- APPLICANT
+
+VERSUS
+
+STATE (GOVT. OF NCT / STATE POLICE)
+THROUGH SHO, POLICE STATION {ps.upper()}                     -- RESPONDENT
+
+APPLICATION UNDER SECTION 438 OF CrPC, 1973 (READ WITH SECTION 484 OF BNSS, 2023) FOR GRANT OF PRE-ARREST / ANTICIPATORY BAIL IN THE EVENT OF ARREST IN {fir_no.upper()} REGISTERED AT PS {ps.upper()} UNDER {sections.upper()}.
+
+MOST RESPECTFULLY SHOWETH:
+
+1. APPREHENSION OF ARREST:
+   The Applicant has a bona fide and reasonable apprehension of imminent arrest at the hands of the police of PS {ps} in connection with frivolous and vexatious allegations.
+
+2. CIVIL DISPUTE CLOTHED WITH CRIMINAL OFFENCE:
+   The dispute between the parties is purely civil and contractual in nature arising out of commercial dealings, without any dishonest intention at inception (Hridaya Ranjan Prasad Verma v. State of Bihar).
+
+3. SUSHILA AGGARWAL CONSTITUTION BENCH MANDATE:
+   Per the 5-Judge Constitution Bench ruling in Sushila Aggarwal v. State (NCT of Delhi) (2020) 5 SCC 1, protection under Section 438 should not be restricted by time-limits and liberty must be safeguarded against arbitrary arrest.
+
+4. ARNESH KUMAR & S.41A NOTICE COMPLIANCE:
+   The alleged offences carry punishment up to 7 years. The police have acted in defiance of Section 41A CrPC / S.35 BNSS and the binding mandate of Arnesh Kumar v. State of Bihar (2014) 8 SCC 273.
+
+5. UNDERTAKING TO COOPERATE:
+   The Applicant undertakes to join investigation as and when summoned by the Investigating Officer and abide by all conditions under Section 438(2) CrPC.
+
+PRAYER:
+It is respectfully prayed that this Hon'ble Court may direct that in the event of arrest, the Applicant be released on anticipatory bail in {fir_no} on furnishing suitable sureties.
+
+DATE: {today}
+PLACE: {court}
+
+APPLICANT
+THROUGH COUNSEL
+"""
+
+def generate_default_bail(case_data: Dict) -> str:
+    today, _ = _case_meta(case_data)
+    applicant = case_data.get("accused_name") or "________ (Applicant / Accused)"
+    court = case_data.get("court_name") or "COURT OF JUDICIAL MAGISTRATE FIRST CLASS"
+    fir_no = case_data.get("case_id") or case_data.get("fir_number") or "FIR No. ____/2026"
+    ps = case_data.get("police_station") or "________"
+    custody_days = case_data.get("days_in_custody") or 60
+    punishment = int(case_data.get("max_punishment_years") or 7)
+    threshold = 90 if punishment >= 10 else 60
+
+    hdr = _header("APPLICATION FOR STATUTORY DEFAULT BAIL UNDER SECTION 167(2) CrPC <-> SECTION 187 BNSS")
+
+    return hdr + f"""
+
+IN THE COURT OF THE LEARNED JUDICIAL MAGISTRATE
+AT {court.upper()}
+
+BAIL APPLICATION (DEFAULT BAIL) NO. _____ OF {datetime.now().year}
+
+IN THE MATTER OF:
+{applicant} (Presently in Judicial Custody)                   -- APPLICANT / ACCUSED
+
+VERSUS
+
+STATE (POLICE STATION {ps.upper()})                          -- RESPONDENT
+
+APPLICATION UNDER SECTION 167(2) OF CrPC (READ WITH SECTION 187 OF BNSS) FOR STATUTORY DEFAULT BAIL AS THE INVESTIGATION HAS NOT BEEN COMPLETED WITHIN {threshold} DAYS.
+
+MOST RESPECTFULLY SHOWETH:
+
+1. That the Applicant was remanded to judicial custody on {case_data.get("arrest_date", "____")} and has completed {custody_days} days in continuous custody.
+2. That the statutory period of {threshold} days prescribed under Section 167(2)(a) for completing investigation has expired.
+3. That as of the filing of this application, the Police have NOT submitted the final Charge Sheet / Report under Section 173(2) CrPC.
+4. That the right to default bail is an INDEFEASIBLE FUNDAMENTAL RIGHT under Article 21 of the Constitution of India (Ritu Chhabaria v. Union of India, 2023; Bikramjit Singh v. State of Punjab, 2020; Sanjay Dutt v. State, 1994).
+5. That the Applicant is ready and willing to furnish solvent bail bonds and sureties.
+
+PRAYER:
+It is prayed that this Hon'ble Court be pleased to immediately release the Applicant on Statutory Default Bail under Section 167(2) CrPC.
+
+DATE: {today}
+PLACE: {court}
+
+APPLICANT
+THROUGH ADVOCATE
+"""
+
+def generate_quashing_petition(case_data: Dict) -> str:
+    today, _ = _case_meta(case_data)
+    petitioner = case_data.get("accused_name") or "________ (Petitioner)"
+    court = case_data.get("court_name") or "HON'BLE HIGH COURT"
+    fir_no = case_data.get("case_id") or case_data.get("fir_number") or "FIR No. ____/2026"
+    ps = case_data.get("police_station") or "________"
+    sections = case_data.get("ipc_section") or case_data.get("offense_type") or "Section 420/406/498A IPC"
+
+    hdr = _header("CRIMINAL QUASHING PETITION UNDER SECTION 482 CrPC <-> SECTION 528 BNSS")
+
+    return hdr + f"""
+
+IN THE HIGH COURT OF JUDICATURE
+CRIMINAL MISCELLANEOUS (QUASHING) PETITION NO. _____ OF {datetime.now().year}
+
+IN THE MATTER OF:
+{petitioner}                                                 -- PETITIONER(S)
+
+VERSUS
+
+1. STATE (GOVT. OF NCT / STATE POLICE)
+2. COMPLAINANT / INFORMANT                                  -- RESPONDENTS
+
+PETITION UNDER SECTION 482 OF CrPC, 1973 (READ WITH SECTION 528 OF BNSS, 2023) FOR QUASHING OF {fir_no.upper()} REGISTERED AT PS {ps.upper()} UNDER {sections.upper()} AND ALL CONSEQUENTIAL PROCEEDINGS.
+
+MOST RESPECTFULLY SHOWETH:
+
+1. BHAJAN LAL SEVEN-PILLAR QUASHING PARAMETERS:
+   The present petition is squarely covered by the landmark parameters laid down by the Hon'ble Supreme Court in State of Haryana v. Bhajan Lal (1992 Supp (1) SCC 335).
+
+2. GROUNDS FOR QUASHING:
+   a) Absence of Prima Facie Offence: Even if allegations in the FIR are taken at face value, they do not disclose ingredients of cognizable offences.
+   b) Disguised Civil Dispute: Commercial breach of contract converted into criminal fraud without mens rea at inception (Hridaya Ranjan Prasad Verma v. State of Bihar).
+   c) Omnibus Allegations: Vague and general claims without specific overt acts leveled maliciously against family members (Kahkashan Kausar v. State of Bihar, 2022).
+   d) Abuse of Process: Criminal proceedings instituted with an ulterior motive for wreaking vengeance.
+
+PRAYER:
+It is most respectfully prayed that this Hon'ble High Court may graciously be pleased to:
+a) Quash and set aside {fir_no} registered at Police Station {ps} and all consequential proceedings arising therefrom;
+b) Stay all further investigation/proceedings during the pendency of this petition.
+
+DATE: {today}
+PLACE: {court}
+
+PETITIONER(S)
+THROUGH COUNSEL
+"""
+
+def generate_discharge_application(case_data: Dict) -> str:
+    today, _ = _case_meta(case_data)
+    applicant = case_data.get("accused_name") or "________ (Applicant / Accused)"
+    court = case_data.get("court_name") or "COURT OF SESSIONS / METROPOLITAN MAGISTRATE"
+    fir_no = case_data.get("case_id") or "CC No. ____/2026"
+    sections = case_data.get("ipc_section") or "Relevant Penal Sections"
+
+    hdr = _header("DISCHARGE APPLICATION UNDER SECTION 227 / 239 CrPC <-> SECTION 250 / 262 BNSS")
+
+    return hdr + f"""
+
+IN THE COURT OF SESSIONS / JUDICIAL MAGISTRATE
+AT {court.upper()}
+
+DISCHARGE APPLICATION UNDER SECTION 227/239 CrPC (READ WITH SECTION 250/262 BNSS)
+
+IN THE MATTER OF:
+{applicant}                                                 -- APPLICANT / ACCUSED
+
+VERSUS
+
+STATE (PROSECUTION)                                          -- RESPONDENT
+
+APPLICATION FOR DISCHARGE OF THE ACCUSED IN {fir_no.upper()} FOR OFFENCES UNDER {sections.upper()} FOR WANT OF PRIMA FACIE CASE AND SUFFICIENT GROUNDS FOR PROCEEDING.
+
+MOST RESPECTFULLY SHOWETH:
+
+1. That the materials placed on record by the prosecution in the police report under Section 173 CrPC do not disclose sufficient grounds for proceeding against the Applicant.
+2. That there is no grave suspicion or prima facie evidence connecting the Applicant with the alleged commission of offence (Union of India v. Prafulla Kumar Samal, 1979; Sajjan Kumar v. CBI, 2010).
+3. That the prosecution evidence is riddled with material contradictions between Section 161 statements and scientific FSL reports.
+
+PRAYER:
+It is prayed that this Hon'ble Court may be pleased to discharge the Applicant under Section 227/239 CrPC.
+
+DATE: {today}
+PLACE: {court}
+
+APPLICANT
+THROUGH ADVOCATE
+"""
 def generate_delay_condonation(case_data: Dict) -> str:
     return "APPLICATION FOR CONDONATION OF DELAY\n\nUnder Section 5 of the Limitation Act, 1963 read with Section 142(b) of the Negotiable Instruments Act, 1881.\n\n[DRAFT DETAILS TO BE FILLED]"
 def generate_application_143a(case_data: Dict) -> str:
