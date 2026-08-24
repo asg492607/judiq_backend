@@ -1416,6 +1416,308 @@ PLACE: {court}
 APPLICANT
 THROUGH ADVOCATE
 """
+
+def generate_suspension_sentence(case_data: Dict) -> str:
+    today, _ = _case_meta(case_data)
+    applicant = case_data.get("accused_name") or "________ (Appellant / Convict)"
+    court = case_data.get("court_name") or "HON'BLE SESSIONS COURT / HIGH COURT"
+    case_no = case_data.get("case_id") or "Criminal Appeal No. ____/2026"
+    sentence_period = case_data.get("sentence_period", "3 Years Simple Imprisonment")
+
+    hdr = _header("APPLICATION FOR SUSPENSION OF SENTENCE UNDER SECTION 389 CrPC <-> SECTION 430 BNSS")
+
+    return hdr + f"""
+
+IN THE HIGH COURT OF JUDICATURE / SESSIONS COURT
+AT {court.upper()}
+
+CRIMINAL MISC. APPLICATION NO. _____ OF {datetime.now().year}
+IN {case_no.upper()}
+
+IN THE MATTER OF:
+{applicant} (Presently in Prison)                            -- APPLICANT / APPELLANT
+
+VERSUS
+
+STATE (PROSECUTION)                                          -- RESPONDENT
+
+APPLICATION UNDER SECTION 389(1) OF CrPC (READ WITH SECTION 430 OF BNSS) FOR SUSPENSION OF SENTENCE AND GRANT OF BAIL PENDING FINAL DISPOSAL OF CRIMINAL APPEAL.
+
+MOST RESPECTFULLY SHOWETH:
+
+1. That the Applicant has been convicted by the Ld. Trial Court and sentenced to undergo {sentence_period}.
+2. That the Criminal Appeal preferred by the Applicant raises substantial and arguable legal questions with high probability of acquittal.
+3. That the Applicant was on bail throughout the trial and never misused the liberty granted by the Court.
+4. That disposal of the appeal is likely to take considerable time, and in terms of the Supreme Court ruling in Bhagwan Rama Shinde v. State of Gujarat (1999) 4 SCC 421 and Kiran Kumar v. State of MP (2001) 9 SCC 211, fixed term sentences should ordinarily be suspended during the pendency of appeal.
+
+PRAYER:
+It is prayed that this Hon'ble Court may graciously be pleased to suspend the substantive sentence of imprisonment and enlarge the Applicant on bail pending final hearing of the Appeal.
+
+DATE: {today}
+PLACE: {court}
+
+APPLICANT / APPELLANT
+THROUGH COUNSEL
+"""
+
+def generate_criminal_appeal(case_data: Dict) -> str:
+    today, _ = _case_meta(case_data)
+    appellant = case_data.get("accused_name") or "________ (Appellant)"
+    court = case_data.get("court_name") or "HON'BLE SESSIONS COURT / HIGH COURT"
+    trial_court = case_data.get("trial_court_name", "Court of Learned Metropolitan Magistrate")
+    cc_no = case_data.get("case_id") or "CC No. ____/2024"
+    judgment_date = case_data.get("judgment_date", "[Date of Impugned Judgment]")
+
+    hdr = _header("MEMORANDUM OF CRIMINAL APPEAL UNDER SECTION 374 CrPC <-> SECTION 415 BNSS")
+
+    return hdr + f"""
+
+IN THE HIGH COURT OF JUDICATURE / SESSIONS COURT
+AT {court.upper()}
+
+CRIMINAL APPEAL NO. _____ OF {datetime.now().year}
+
+IN THE MATTER OF:
+{appellant}                                                  -- APPELLANT
+
+VERSUS
+
+STATE (GOVT. OF NCT / STATE POLICE)                          -- RESPONDENT
+
+MEMORANDUM OF CRIMINAL APPEAL UNDER SECTION 374(2) OF THE CODE OF CRIMINAL PROCEDURE, 1973 (READ WITH SECTION 415 OF BNSS, 2023) AGAINST THE IMPUGNED JUDGMENT OF CONVICTION AND ORDER ON SENTENCE DATED {judgment_date} PASSED BY {trial_court.upper()} IN {cc_no.upper()}.
+
+MOST RESPECTFULLY SHOWETH:
+
+1. IMPUGNED ORDER:
+   The Appellant challenges the judgment of conviction dated {judgment_date} whereby the Appellant was erroneously convicted and sentenced.
+
+2. GROUNDS OF APPEAL:
+   a) Erroneous Appreciation of Evidence: The Trial Court failed to appreciate that the prosecution failed to prove guilt beyond reasonable doubt.
+   b) Contradictory Witness Depositions: Glaring contradictions between ocular witnesses were completely overlooked.
+   c) Non-Compliance with Mandatory Procedures: Non-adherence to statutory safeguards under Section 65B Evidence Act / Section 100 CrPC.
+   d) Complete Absence of Mens Rea: Essential statutory ingredients were not established.
+
+PRAYER:
+It is respectfully prayed that this Hon'ble Appellate Court may be pleased to:
+a) Call for the Trial Court Record in {cc_no};
+b) Set aside and quash the impugned judgment of conviction and order of sentence;
+c) Acquit the Appellant of all charges.
+
+DATE: {today}
+PLACE: {court}
+
+APPELLANT
+THROUGH ADVOCATE
+"""
+
+def generate_recall_witness(case_data: Dict) -> str:
+    today, _ = _case_meta(case_data)
+    applicant = case_data.get("accused_name") or "________ (Accused / Applicant)"
+    court = case_data.get("court_name") or "TRIAL COURT"
+    case_no = case_data.get("case_id") or "Session Case No. ____/2026"
+    witness_name = case_data.get("witness_name", "PW-1 / Investigating Officer")
+
+    hdr = _header("APPLICATION UNDER SECTION 311 CrPC <-> SECTION 348 BNSS (RECALL OF WITNESS)")
+
+    return hdr + f"""
+
+IN THE COURT OF THE LEARNED JUDICIAL MAGISTRATE / SESSIONS JUDGE
+AT {court.upper()}
+
+CRIMINAL MISC. APPLICATION NO. _____ OF {datetime.now().year}
+IN {case_no.upper()}
+
+IN THE MATTER OF:
+{applicant}                                                 -- APPLICANT / ACCUSED
+
+VERSUS
+
+STATE (PROSECUTION)                                          -- RESPONDENT
+
+APPLICATION UNDER SECTION 311 OF CrPC (READ WITH SECTION 348 OF BNSS) FOR RECALLING AND FURTHER CROSS-EXAMINATION OF {witness_name.upper()}.
+
+MOST RESPECTFULLY SHOWETH:
+
+1. That the testimony of {witness_name} is essential to the just decision of the case.
+2. That vital scientific documents and contradictory police statements (S.161 CrPC) could not be confronted during previous cross-examination due to subsequent discovery of material records.
+3. That Section 311 confers wide discretionary powers on the Court to summon or recall any person if their evidence appears essential to arrive at the truth (Manju Devi v. State of Rajasthan, 2019; Rajaram Prasad Yadav v. State of Bihar, 2013).
+4. That no prejudice will be caused to the prosecution.
+
+PRAYER:
+It is prayed that this Hon'ble Court be pleased to recall {witness_name} for further cross-examination.
+
+DATE: {today}
+PLACE: {court}
+
+APPLICANT
+THROUGH COUNSEL
+"""
+
+def generate_add_accused(case_data: Dict) -> str:
+    today, _ = _case_meta(case_data)
+    court = case_data.get("court_name") or "SESSIONS COURT"
+    case_no = case_data.get("case_id") or "SC No. ____/2026"
+    proposed_accused = case_data.get("additional_accused_name", "________ (Person to be summoned)")
+
+    hdr = _header("APPLICATION UNDER SECTION 319 CrPC <-> SECTION 357 BNSS (SUMMONING ADDITIONAL ACCUSED)")
+
+    return hdr + f"""
+
+IN THE COURT OF SESSIONS / SPECIAL JUDGE
+AT {court.upper()}
+
+IN {case_no.upper()}
+
+IN THE MATTER OF:
+STATE (PROSECUTION / COMPLAINANT)                            -- COMPLAINANT
+
+VERSUS
+
+ACCUSED PERSONS (IN CHARGESHEET)                             -- ACCUSED
+
+APPLICATION UNDER SECTION 319 CrPC (READ WITH SECTION 357 BNSS) FOR SUMMONING {proposed_accused.upper()} AS AN ADDITIONAL ACCUSED TO STAND TRIAL.
+
+MOST RESPECTFULLY SHOWETH:
+
+1. That during the course of trial evidence, substantive depositions by prosecution witnesses have clearly implicated {proposed_accused} in the active conspiracy and commission of the offence.
+2. That the standard of evidence under Section 319 is more than prima facie satisfaction, which is fully met by the sworn testimonies recorded before this Court (Hardeep Singh v. State of Punjab, Constitution Bench, 2014).
+3. That it is expedient in the interest of justice that {proposed_accused} be tried together with the other accused.
+
+PRAYER:
+It is prayed that this Hon'ble Court issue summons against {proposed_accused} under Section 319 CrPC.
+
+DATE: {today}
+PLACE: {court}
+
+APPLICANT
+THROUGH ADVOCATE
+"""
+
+def generate_exemption_appearance(case_data: Dict) -> str:
+    today, _ = _case_meta(case_data)
+    applicant = case_data.get("accused_name") or "________ (Accused / Applicant)"
+    court = case_data.get("court_name") or "COURT OF JUDICIAL MAGISTRATE"
+    case_no = case_data.get("case_id") or "CC No. ____/2026"
+    reason = case_data.get("exemption_reason", "Severe medical illness / unavoidable professional duty abroad")
+
+    hdr = _header("APPLICATION FOR PERSONAL EXEMPTION UNDER SECTION 205 / 317 CrPC <-> SECTION 228 / 355 BNSS")
+
+    return hdr + f"""
+
+IN THE COURT OF THE LEARNED JUDICIAL MAGISTRATE
+AT {court.upper()}
+
+IN {case_no.upper()}
+
+IN THE MATTER OF:
+{applicant}                                                 -- APPLICANT / ACCUSED
+
+VERSUS
+
+STATE (COMPLAINANT)                                          -- RESPONDENT
+
+APPLICATION UNDER SECTION 205 / 317 CrPC FOR EXEMPTION FROM PERSONAL APPEARANCE FOR THE DAY / PERMANENTLY THROUGH COUNSEL.
+
+MOST RESPECTFULLY SHOWETH:
+
+1. That the Applicant is unable to appear in person before this Hon'ble Court today on account of: {reason}.
+2. That the Applicant is duly represented by his authorized counsel who undertakes to participate in all proceedings and not dispute the identity of the accused (Bhaskar Sen v. State of Maharashtra).
+3. That medical certificate / proof is annexed herewith.
+
+PRAYER:
+It is prayed that the personal appearance of the Applicant be exempted for today through Counsel.
+
+DATE: {today}
+PLACE: {court}
+
+APPLICANT
+THROUGH COUNSEL
+"""
+
+def generate_superdari_application(case_data: Dict) -> str:
+    today, _ = _case_meta(case_data)
+    applicant = case_data.get("accused_name") or case_data.get("owner_name") or "________ (Registered Owner / Applicant)"
+    court = case_data.get("court_name") or "COURT OF JUDICIAL MAGISTRATE"
+    fir_no = case_data.get("case_id") or "FIR No. ____/2026"
+    property_desc = case_data.get("seized_property", "Vehicle bearing Registration No. ________ / Mobile Device / Valuables")
+
+    hdr = _header("SUPERDARI APPLICATION UNDER SECTION 451 / 457 CrPC <-> SECTION 497 / 503 BNSS")
+
+    return hdr + f"""
+
+IN THE COURT OF THE METROPOLITAN MAGISTRATE / JUDICIAL MAGISTRATE
+AT {court.upper()}
+
+IN CONNECTION WITH {fir_no.upper()} REGISTERED AT PS {case_data.get("police_station", "________").upper()}
+
+IN THE MATTER OF:
+{applicant}                                                 -- APPLICANT
+
+VERSUS
+
+STATE (POLICE DEPARTMENT)                                    -- RESPONDENT
+
+APPLICATION UNDER SECTION 451 READ WITH SECTION 457 CrPC FOR RELEASE OF SEIZED PROPERTY ({property_desc.upper()}) ON SUPERDARI.
+
+MOST RESPECTFULLY SHOWETH:
+
+1. That the Applicant is the undisputed registered owner of {property_desc}.
+2. That the said property was seized by the Police during investigation and is presently lying exposed to natural elements in the Police Malkhana, causing severe deterioration.
+3. That per the landmark ruling of the Hon'ble Supreme Court in Sunderbhai Ambalal Desai v. State of Gujarat (2002) 10 SCC 283, seized vehicles and articles should not be kept in police stations for long periods and must be released expeditiously on Superdari.
+4. That the Applicant undertakes to produce the property before the Court whenever directed and not sell or alter its condition.
+
+PRAYER:
+It is prayed that the custody of {property_desc} be released to the Applicant on Superdari upon furnishing necessary indemnity bond.
+
+DATE: {today}
+PLACE: {court}
+
+APPLICANT
+THROUGH ADVOCATE
+"""
+
+def generate_protest_petition(case_data: Dict) -> str:
+    today, _ = _case_meta(case_data)
+    complainant = case_data.get("complainant_name") or "________ (Complainant / Victim)"
+    court = case_data.get("court_name") or "COURT OF CHIEF JUDICIAL MAGISTRATE"
+    fir_no = case_data.get("case_id") or "FIR No. ____/2026"
+    ps = case_data.get("police_station") or "________"
+
+    hdr = _header("PROTEST PETITION UNDER SECTION 173(8) / 190 CrPC <-> SECTION 193(9) / 210 BNSS")
+
+    return hdr + f"""
+
+IN THE COURT OF THE LEARNED JUDICIAL MAGISTRATE / CHIEF METROPOLITAN MAGISTRATE
+AT {court.upper()}
+
+IN CONNECTION WITH CLOSURE REPORT / FINAL REPORT IN {fir_no.upper()} OF PS {ps.upper()}
+
+IN THE MATTER OF:
+{complainant}                                               -- PROTEST PETITIONER / COMPLAINANT
+
+VERSUS
+
+STATE (POLICE DEPARTMENT) & ACCUSED PERSONS                  -- RESPONDENTS
+
+PROTEST PETITION AGAINST THE ILLEGAL CLOSURE REPORT (FINAL REPORT) SUBMITTED BY THE INVESTIGATING AGENCY, AND PRAYER FOR TAKING COGNIZANCE / FURTHER INVESTIGATION.
+
+MOST RESPECTFULLY SHOWETH:
+
+1. That the Informant lodged {fir_no} alleging serious cognizable offences.
+2. That the Investigating Officer conducted a shoddy, biased, and perfunctory investigation, completely ignoring crucial eyewitness statements and digital CCTV footage.
+3. That in terms of the Supreme Court ruling in Bhagwant Singh v. Commissioner of Police (1985) 2 SCC 537 and Vishnu Kumar Tiwari v. State of UP (2019), the Magistrate has the jurisdiction to reject the closure report, take cognizance, or direct further investigation u/s 173(8).
+
+PRAYER:
+It is respectfully prayed that this Hon'ble Court may be pleased to:
+a) Reject the Closure Report filed by the Police;
+b) Take cognizance of the offences against the Accused or direct Further Investigation under Section 173(8) CrPC by an independent senior officer.
+
+DATE: {today}
+PLACE: {court}
+
+PROTEST PETITIONER
+THROUGH COUNSEL
+"""
 def generate_delay_condonation(case_data: Dict) -> str:
     return "APPLICATION FOR CONDONATION OF DELAY\n\nUnder Section 5 of the Limitation Act, 1963 read with Section 142(b) of the Negotiable Instruments Act, 1881.\n\n[DRAFT DETAILS TO BE FILLED]"
 def generate_application_143a(case_data: Dict) -> str:
