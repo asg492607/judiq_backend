@@ -158,6 +158,32 @@ function updateConditionalFields() {
         const isEntity = accTypeEl.value !== 'Individual' && accTypeEl.value !== '';
         toggleField('directors_named', isEntity);
     }
+
+    // Criminal Offense Type -> Intelligent Presets for Sections & Maximum Punishment
+    const offenseTypeEl = document.getElementById('offense_type');
+    const ipcSectionEl = document.getElementById('ipc_section');
+    const maxPunishmentEl = document.getElementById('max_punishment_years');
+    if (offenseTypeEl && offenseTypeEl.value) {
+        const val = offenseTypeEl.value;
+        if (ipcSectionEl && !ipcSectionEl.value) {
+            if (val.includes('420') || val.includes('318')) ipcSectionEl.value = 'S. 420, 406, 120B IPC / S. 318, 316, 61 BNS';
+            else if (val.includes('498A') || val.includes('85')) ipcSectionEl.value = 'S. 498A, 304B, 34 IPC / S. 85, 80, 3(5) BNS';
+            else if (val.includes('302') || val.includes('103')) ipcSectionEl.value = 'S. 302, 304 Part II, 34 IPC / S. 103, 105, 3(5) BNS';
+            else if (val.includes('307') || val.includes('109')) ipcSectionEl.value = 'S. 307, 324, 34 IPC / S. 109, 117, 3(5) BNS';
+            else if (val.includes('376') || val.includes('64')) ipcSectionEl.value = 'S. 376(2)(n), 506 IPC / S. 64(2)(m), 351 BNS';
+            else if (val.includes('POCSO')) ipcSectionEl.value = 'POCSO Act 2012 S. 3, 4, 5, 6, 29 / S. 376 IPC';
+            else if (val.includes('NDPS')) ipcSectionEl.value = 'NDPS Act S. 8(c), 20(b)(ii)(C), 29, 37';
+            else if (val.includes('Corruption') || val.includes('17A')) ipcSectionEl.value = 'Prevention of Corruption Act S. 7, 13(1)(b), 13(2), 17A';
+            else if (val.includes('PMLA') || val.includes('Laundering')) ipcSectionEl.value = 'PMLA 2002 S. 3, 4, 45';
+            else if (val.includes('Cyber')) ipcSectionEl.value = 'IT Act 2000 S. 66C, 66D, 67 / S. 420 IPC';
+            else if (val.includes('Hit & Run') || val.includes('279')) ipcSectionEl.value = 'S. 279, 304A IPC / S. 281, 106 BNS';
+        }
+        if (maxPunishmentEl && (!maxPunishmentEl.value || maxPunishmentEl.value === '0')) {
+            if (val.includes('420') || val.includes('318') || val.includes('Corruption') || val.includes('PMLA')) maxPunishmentEl.value = 7;
+            else if (val.includes('498A') || val.includes('85') || val.includes('Cyber') || val.includes('Hit & Run')) maxPunishmentEl.value = 3;
+            else if (val.includes('302') || val.includes('103') || val.includes('NDPS') || val.includes('POCSO') || val.includes('376') || val.includes('307')) maxPunishmentEl.value = 20;
+        }
+    }
 }
 
 function renderField(field) {
