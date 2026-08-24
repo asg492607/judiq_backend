@@ -60,7 +60,7 @@
         <div id="landingScreen" class="landing-screen">
             <header class="landing-header">
                 <div class="landing-logo" style="display: flex; align-items: center; gap: 0.75rem;">
-                    <img src="logo.svg" alt="JudiQ AI Logo" class="brand-logo-img" style="height: 40px; width: 40px; filter: drop-shadow(0 0 10px rgba(14,165,233,0.6));">
+                    <img src="logo.svg" alt="JudiQ AI Logo" class="brand-logo-img" style="height: 38px; width: 38px; border-radius: 8px;">
                     <span data-i18n="brand_name" class="brand-name-serif" style="font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.08em; font-size: 1.3rem;">JUDIQ AI</span>
                 </div>
                 <div class="landing-nav-links">
@@ -876,10 +876,8 @@
         <!-- Login Screen -->
         <div id="loginScreen" class="auth-screen hidden">
             <div class="auth-container">
-                <div class="auth-brand">
-                    <div class="brand-icon">
-                        <i class="fas fa-balance-scale"></i>
-                    </div>
+                <div class="auth-brand" style="display: flex; flex-direction: column; align-items: center;">
+                    <img src="logo.svg" alt="JudiQ AI Logo" style="height: 56px; width: 56px; margin-bottom: 0.75rem; border-radius: 12px;">
                     <h1>JUDIQ AI</h1>
                     <p class="brand-tagline">AI Litigation Strategist</p>
                 </div>
@@ -923,10 +921,8 @@
         <!-- Register Screen -->
         <div id="registerScreen" class="auth-screen hidden">
             <div class="auth-container">
-                <div class="auth-brand">
-                    <div class="brand-icon">
-                        <i class="fas fa-balance-scale"></i>
-                    </div>
+                <div class="auth-brand" style="display: flex; flex-direction: column; align-items: center;">
+                    <img src="logo.svg" alt="JudiQ AI Logo" style="height: 56px; width: 56px; margin-bottom: 0.75rem; border-radius: 12px;">
                     <h1>JUDIQ AI</h1>
                     <p class="brand-tagline">AI Litigation Strategist</p>
                 </div>
@@ -1077,7 +1073,7 @@
             <!-- Top Navigation -->
             <nav class="top-nav">
                 <div class="nav-brand">
-                    <img src="logo.svg" alt="JudiQ AI Logo" class="brand-logo-img" style="height: 30px; width: 30px; filter: drop-shadow(0 0 8px rgba(14,165,233,0.5));">
+                    <img src="logo.svg" alt="JudiQ AI Logo" class="brand-logo-img" style="height: 32px; width: 32px; border-radius: 6px;">
                     <span class="brand-title">JUDIQ AI</span>
                 </div>
                 <div class="nav-user">
@@ -1133,7 +1129,10 @@
         
         <div id="quickAnalysisScreen" class="main-screen hidden">
             <nav class="top-nav">
-                <div class="nav-brand"><span>Quick Analysis</span></div>
+                <div class="nav-brand" style="display: flex; align-items: center; gap: 0.6rem;">
+                    <img src="logo.svg" alt="JudiQ AI Logo" class="brand-logo-img" style="height: 28px; width: 28px; border-radius: 6px;">
+                    <span class="brand-title">JUDIQ AI</span>
+                </div>
                 <div class="nav-actions">
                     <button class="btn btn-text" onclick="showDashboard()">
                         <i class="fas fa-arrow-left"></i> Back
@@ -1191,8 +1190,9 @@
         
         <div id="caseWizardScreen" class="main-screen hidden">
             <nav class="top-nav">
-                <div class="nav-brand">
-                    <span>AI Litigation Strategist</span>
+                <div class="nav-brand" style="display: flex; align-items: center; gap: 0.6rem;">
+                    <img src="logo.svg" alt="JudiQ AI Logo" class="brand-logo-img" style="height: 28px; width: 28px; border-radius: 6px;">
+                    <span class="brand-title">JUDIQ AI</span>
                 </div>
                 <div class="nav-actions">
                     <button class="btn btn-text" onclick="showDashboard()">
@@ -1255,9 +1255,10 @@
         
         <div id="resultsScreen" class="main-screen hidden">
             <nav class="top-nav">
-                <div class="nav-brand" style="display:flex;align-items:center;">
-                    <span>AI Litigation Strategist</span>
-                    <span id="resultsDomainBadge" class="domain-badge domain-badge--ni" style="display:none;"></span>
+                <div class="nav-brand" style="display: flex; align-items: center; gap: 0.6rem;">
+                    <img src="logo.svg" alt="JudiQ AI Logo" class="brand-logo-img" style="height: 28px; width: 28px; border-radius: 6px;">
+                    <span class="brand-title">JUDIQ AI</span>
+                    <span id="resultsDomainBadge" class="domain-badge domain-badge--ni" style="display: none;"></span>
                 </div>
                 <div class="nav-actions">
                     <button class="btn btn-outline" onclick="editAndReanalyze()">
@@ -1985,8 +1986,9 @@
         
         <div id="draftScreen" class="main-screen hidden">
             <nav class="top-nav">
-                <div class="nav-brand">
-                    <span>AI Litigation Strategist</span>
+                <div class="nav-brand" style="display: flex; align-items: center; gap: 0.6rem;">
+                    <img src="logo.svg" alt="JudiQ AI Logo" class="brand-logo-img" style="height: 28px; width: 28px; border-radius: 6px;">
+                    <span class="brand-title">JUDIQ AI</span>
                 </div>
                 <div class="nav-actions">
                     <button class="btn btn-text" onclick="backToResults()">
