@@ -108,3 +108,51 @@ def evaluate_quashing(case_data: Dict[str, Any]):
         "contradictions": contradictions,
         "statutory_bars": rules
     }
+
+@router.post(
+    "/draft",
+    summary="Generate Court-Ready Criminal Pleadings",
+    description="Generates court-ready drafts for Anticipatory Bail, Regular Bail, Default Bail, Quashing, Discharge, FIR, Suspension of Sentence, etc."
+)
+def generate_criminal_draft(request_data: Dict[str, Any]):
+    from draft_engine import DraftEngine
+    draft_type = request_data.get("draft_type", "REGULAR_BAIL")
+    score = request_data.get("score", 75)
+    concepts = request_data.get("concepts", [])
+    case_data = request_data.get("case_data", request_data)
+    
+    draft_text = DraftEngine.generate_draft(draft_type, score, concepts, case_data)
+    return {
+        "success": True,
+        "draft_type": draft_type,
+        "draft": draft_text
+    }
+
+@router.post(
+    "/cross-exam",
+    summary="Generate Trial Cross-Examination Question Bank",
+    description="Generates tailored deposition cross-examination toolkits for I.O., Medical Doctors, and Informants."
+)
+def generate_cross_examination(request_data: Dict[str, Any]):
+    case_data = request_data.get("case_data", request_data)
+    nodes = CriminalAdversarialEngine.simulate_strategic_stress_test(case_data, [])
+    cross_exam_questions = []
+    rebuttal_trees = []
+    matched_vector = None
+    for n in nodes:
+        if not matched_vector:
+            matched_vector = n.get("adversarial_vector")
+        if n.get("cross_exam_questions"):
+            cross_exam_questions.extend(n.get("cross_exam_questions"))
+        if n.get("rebuttal_tree"):
+            rebuttal_trees.append(n.get("rebuttal_tree"))
+    
+    return {
+        "success": True,
+        "matched_vector": matched_vector or "General Criminal Offense",
+        "cross_examination_toolkit": cross_exam_questions,
+        "rebuttal_trees": rebuttal_trees,
+        "total_questions": len(cross_exam_questions)
+    }
+
+
