@@ -87,10 +87,21 @@ class CaseInput(BaseModel):
         sanitized = {}
         for k, v in values.items():
             if isinstance(v, str):
-                sanitized[k] = html_tag_re.sub('', v)
+                cleaned_str = html_tag_re.sub('', v).strip()
+                # Intelligent boolean conversion for select dropdown strings
+                v_lower = cleaned_str.lower()
+                if v_lower in ("true", "1") or v_lower.startswith("yes") or "violation" in v_lower or "unlawful" in v_lower or "missing" in v_lower:
+                    if k in cls.model_fields and cls.model_fields[k].annotation is bool:
+                        sanitized[k] = True
+                        continue
+                elif v_lower in ("false", "0") or v_lower.startswith("no") or "not applicable" in v_lower:
+                    if k in cls.model_fields and cls.model_fields[k].annotation is bool:
+                        sanitized[k] = False
+                        continue
+                sanitized[k] = cleaned_str
             elif isinstance(v, dict):
                 sanitized[k] = {
-                    dk: html_tag_re.sub('', dv) if isinstance(dv, str) else dv
+                    dk: html_tag_re.sub('', dv).strip() if isinstance(dv, str) else dv
                     for dk, dv in v.items()
                 }
             else:

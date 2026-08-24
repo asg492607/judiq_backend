@@ -6,6 +6,24 @@ from base_scoring_engine import BaseScoringEngine
 
 logger = logging.getLogger(__name__)
 
+def _is_true(val: Any) -> bool:
+    if isinstance(val, bool):
+        return val
+    if isinstance(val, (int, float)):
+        return val > 0
+    if isinstance(val, str):
+        val_lower = val.strip().lower()
+        return val_lower in ("true", "yes", "1") or val_lower.startswith("yes") or "violation" in val_lower or "unlawful" in val_lower or "missing" in val_lower or "without" in val_lower
+    return False
+
+def _is_false(val: Any) -> bool:
+    if isinstance(val, bool):
+        return not val
+    if isinstance(val, str):
+        val_lower = val.strip().lower()
+        return val_lower in ("false", "no", "0") or val_lower.startswith("no")
+    return False
+
 class CriminalScoringEngine(BaseScoringEngine):
     """
     Calculates conviction probability for prosecution and acquittal/discharge probability for defense,
@@ -37,49 +55,55 @@ class CriminalScoringEngine(BaseScoringEngine):
         score = 65 # Base conviction probability for standard criminal trial
         trace.append("Base Conviction Probability: 65 (Standard Trial Baseline)")
 
-        # 1. Lack of Sanction (S.197 CrPC / S.218 BNSS)
-        if "CRPC_197" in concept_names or (case_data.get("is_public_servant") and not case_data.get("sanction_obtained")):
+        # 1. Lack of Sanction (S.197 CrPC / S.218 BNSS / S.17A PC Act)
+        is_public_servant = _is_true(case_data.get("is_public_servant"))
+        sanction_obtained = _is_true(case_data.get("sanction_obtained"))
+        if "CRPC_197" in concept_names or (is_public_servant and not sanction_obtained):
             score -= 60
             trace.append("FATAL: Cognizance barred under S.197 CrPC / S.218 BNSS (No Sanction).")
             causality_map.append({"fact": "No S.197/S.218 Sanction", "impact": -60, "type": "negative", "rationale": "Absolute bar on cognizance against public servant without statutory sanction."})
 
         # 2. Limitation Bar (S.468 CrPC / S.514 BNSS)
-        if "CRPC_468" in concept_names or case_data.get("limitation_barred") or limitation.get("is_barred"):
+        if "CRPC_468" in concept_names or _is_true(case_data.get("limitation_barred")) or limitation.get("is_barred"):
             score -= 50
             trace.append("FATAL: Cognizance barred under S.468 CrPC / S.514 BNSS (Limitation Act).")
             causality_map.append({"fact": "Limitation Bar", "impact": -50, "type": "negative", "rationale": "Offence is time-barred."})
 
         # 3. NDPS S.50 Mandatory Procedural Violation
-        if case_data.get("ndps_case") or "NDPS" in str(case_data.get("offense_type", "")).upper():
-            if "NDPS_S50" in concept_names or case_data.get("s50_ndps_violation"):
+        offense_str = str(case_data.get("offense_type", "")).upper()
+        if _is_true(case_data.get("ndps_case")) or "NDPS" in offense_str:
+            if "NDPS_S50" in concept_names or _is_true(case_data.get("s50_violation")) or _is_true(case_data.get("s50_ndps_violation")):
                 score -= 45
                 trace.append("FATAL: S.50 NDPS Mandatory Search Violation.")
                 causality_map.append({"fact": "S.50 NDPS Violation", "impact": -45, "type": "negative", "rationale": "Mandatory search procedure violated; recovery becomes inadmissible."})
 
         # 4. Unexplained FIR Delay
-        if case_data.get("fir_delay_unexplained") or "fir_delay" in concept_names:
+        if _is_true(case_data.get("fir_delay_unexplained")) or "fir_delay" in concept_names:
             score -= 25
             trace.append("-25 EVIDENTIARY: Unexplained FIR delay.")
             causality_map.append({"fact": "FIR Delay", "impact": -25, "type": "negative", "rationale": "Suggests deliberation, consultation, and afterthought."})
 
         # 5. Ocular vs Medical Contradiction
-        if case_data.get("medical_contradicts_ocular") or "MEDICAL_OCULAR" in concept_names:
+        if _is_true(case_data.get("medical_contradicts_ocular")) or "MEDICAL_OCULAR" in concept_names:
             score -= 30
             trace.append("-30 EVIDENTIARY: Eyewitness testimony contradicts medical evidence.")
             causality_map.append({"fact": "Medical Contradiction", "impact": -30, "type": "negative", "rationale": "Independent medical evidence casts massive doubt on eyewitnesses."})
 
-        # 6. Apply Timeline Penalties & BSA s.63 / IEA s.65B Certificate
-        timeline_penalties = cls.apply_timeline_penalties(case_data, concepts, limitation)
-        score += timeline_penalties.get("score_delta", 0)
-        trace.extend(timeline_penalties.get("trace", []))
-        causality_map.extend(timeline_penalties.get("causality_map", []))
+        # 6. S.41A Notice Violation (Arnesh Kumar)
+        if _is_true(case_data.get("no_s41a_notice")):
+            score -= 20
+            trace.append("-20 PROCEDURAL: Violation of S.41A CrPC / S.35 BNSS Mandatory Notice.")
+            causality_map.append({"fact": "S.41A Notice Violation", "impact": -20, "type": "negative", "rationale": "Arrest without recording specific necessity is unlawful under Arnesh Kumar."})
 
-        bsa_result = cls.apply_s63_4_penalty(case_data)
-        score += bsa_result.get("score_delta", 0)
-        trace.extend(bsa_result.get("trace", []))
-        causality_map.extend(bsa_result.get("causality_map", []))
+        # 7. S.65B IEA / S.63 BSA Missing Certificate
+        has_elec = _is_true(case_data.get("electronic_evidence"))
+        has_cert = _is_true(case_data.get("s65b_certificate"))
+        if has_elec and not has_cert:
+            score -= 30
+            trace.append("-30 EVIDENTIARY: Electronic evidence without S.65B/S.63 certificate.")
+            causality_map.append({"fact": "Uncertified Electronic Evidence", "impact": -30, "type": "negative", "rationale": "Secondary electronic evidence is strictly inadmissible per Arjun Panditrao."})
 
-        # 7. Contradictions Impact
+        # 8. Contradictions Impact
         for cont in contradictions:
             penalty = cont.get("penalty", -15)
             score += penalty
@@ -91,12 +115,11 @@ class CriminalScoringEngine(BaseScoringEngine):
                 "rationale": cont.get("detail", "")
             })
 
-        # 8. KB Vulnerability Matching
-        offense_type = str(case_data.get("offense_type", "")).upper()
+        # 9. KB Vulnerability Matching
         matched_kb = False
-        if offense_type and kb_models:
+        if offense_str and kb_models:
             for kb_key, kb_data in kb_models.items():
-                if offense_type in kb_key or kb_key in concept_names:
+                if any(k in offense_str for k in kb_key.split('_')) or kb_key in concept_names:
                     matched_kb = True
                     trigger_risk = kb_data.get("probability_collapse", 0.5)
                     if trigger_risk > 0.6:
@@ -112,25 +135,16 @@ class CriminalScoringEngine(BaseScoringEngine):
                             "rationale": kb_data.get("risk", "High structural vulnerability.")
                         })
 
-        if not matched_kb and ("IPC" in offense_type or "BNS" in offense_type or "CRPC" in offense_type):
+        if not matched_kb and any(x in offense_str for x in ["IPC", "BNS", "CRPC", "BNSS"]):
             penalty_val = -10
             score += penalty_val
-            trace.append(f"{penalty_val} KB VULNERABILITY: Unmapped Offence ({offense_type}) Generic Procedural Risk.")
+            trace.append(f"{penalty_val} KB VULNERABILITY: Unmapped Offence ({offense_str}) Generic Procedural Risk.")
             causality_map.append({
-                "fact": f"Procedural Risk: {offense_type}",
+                "fact": f"Procedural Risk: {offense_str}",
                 "impact": penalty_val,
                 "type": "negative",
                 "rationale": "Generic procedural or evidentiary vulnerabilities apply under standard criminal framework."
             })
-
-        # 9. Evidence Reliability Audit
-        evidence_reliability = cls.calculate_evidence_reliability(case_data)
-        for name, data in evidence_reliability.items():
-            if data.get("score", 1.0) < 0.5:
-                penalty = -15
-                score += penalty
-                trace.append(f"{penalty} EVIDENTIARY: Low reliability on critical evidence ({name}).")
-                causality_map.append({"fact": f"Low Reliability: {name}", "impact": penalty, "type": "negative", "rationale": data.get("reason", "Evidence is vulnerable to challenge.")})
 
         # 10. Final Score Calculation & Verdict Determination
         prosecution_conviction_prob = max(0, min(99, score))
@@ -150,7 +164,6 @@ class CriminalScoringEngine(BaseScoringEngine):
             "accused_acquittal_probability": 100 - int(prosecution_conviction_prob),
             "verdict": verdict,
             "causality_map": causality_map,
-            "evidence_reliability": evidence_reliability,
             "reasoning_trace": trace,
             "score_breakdown": trace
         }
