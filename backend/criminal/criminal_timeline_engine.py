@@ -71,11 +71,23 @@ class CriminalTimelineEngine:
                 elapsed_years = (fir_date - incident_date).days / 365.25
                 if elapsed_years > limit_years:
                     opportunities.append({
-                        "type": "S504_LIMITATION_BAR",
+                        "type": "S468_LIMITATION_BAR",
                         "severity": "FATAL_TO_PROSECUTION",
                         "description": f"Cognizance barred under S.468 CrPC / S.514 BNSS. Complaint filed {elapsed_years:.1f} years post-incident (Statutory Limit: {limit_years} year(s)).",
                         "tactical_move": "File Quashing petition or object to taking of cognizance (State of Punjab v. Sarwan Singh)."
                     })
+
+        # 4. Mandatory 2-Month Investigation Window for Sexual & Child Offenses (S.173(1A) CrPC / S.193(3) BNSS)
+        offense_str = str(case_data.get("offense_type", "")).upper()
+        if any(x in offense_str for x in ["376", "64", "65", "POCSO", "RAPE"]) and fir_date:
+            investigation_days = (chargesheet_date - fir_date).days if chargesheet_date else (today - fir_date).days
+            if investigation_days > 60:
+                anomalies.append({
+                    "type": "S173_INVESTIGATION_DELAY",
+                    "severity": "MEDIUM",
+                    "description": f"Investigation elapsed {investigation_days} days (> 60 days statutory benchmark under S.173(1A) CrPC / S.193(3) BNSS & S.35 POCSO Act).",
+                    "tactical_move": "Raise statutory delay in completing investigation to seek regular bail under Article 21 speedy trial rights."
+                })
 
         return {
             "anomalies": anomalies,
