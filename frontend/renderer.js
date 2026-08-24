@@ -2176,6 +2176,10 @@ export function renderCriminalResultsPanels(data) {
     const rules = data.statutory_rules || data.triggered_rules || [];
     const adv = data.adversarial_risk_model || {};
     const risks = adv.risks_and_rebuttals || [];
+    const econ = data.economics || data.criminal_economics || {};
+    const comp = econ.compounding_and_settlement || {};
+    const bailEcon = econ.bail_economics || {};
+    const plea = econ.trial_vs_plea || {};
     const timeline = data.timeline || data.timeline_analysis || {};
     const caseData = data.case_data || {};
 
@@ -2222,7 +2226,27 @@ export function renderCriminalResultsPanels(data) {
                 ` : ''}
             </div>
 
-            <!-- Trial Cross-Examination Toolkit -->
+            <!-- Compounding & Settlement Dynamics (S.320 CrPC / S.359 BNSS) -->
+            ${comp.statutory_mechanism ? `
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="font-size: 0.8rem; font-weight: 800; color: #0f172a;">
+                            <i class="fas fa-handshake" style="color: #2563eb;"></i> Compounding & Dispute Settlement Viability
+                        </span>
+                        <span style="background: ${comp.is_compoundable ? '#dcfce7' : '#fef3c7'}; color: ${comp.is_compoundable ? '#166534' : '#92400e'}; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 4px;">
+                            ${comp.is_compoundable ? 'COMPOUNDABLE' : 'NON-COMPOUNDABLE (S.482 REQUIRED)'}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.88rem; color: #334155; margin-bottom: 0.4rem;">
+                        <strong>Mechanism:</strong> ${escapeHtml(comp.statutory_mechanism)}
+                    </div>
+                    <div style="font-size: 0.82rem; color: #64748b;">
+                        <strong>Surety Bond Exposure:</strong> Approx. Rs. ${(bailEcon.estimated_surety_bond || 25000).toLocaleString('en-IN')} | ${escapeHtml(bailEcon.cash_bail_viability || 'Standard Surety')}
+                    </div>
+                </div>
+            ` : ''}
+
+            <!-- Trial Cross-Examination Question Bank -->
             ${risks.length > 0 && risks[0].cross_exam_questions ? `
                 <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
@@ -2235,6 +2259,9 @@ export function renderCriminalResultsPanels(data) {
                         ${(risks[0].cross_exam_questions || []).map((q, idx) => `
                             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.65rem 0.85rem; font-size: 0.88rem; color: #334155; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;">
                                 <div><strong style="color: #2563eb;">Q${idx + 1}:</strong> ${escapeHtml(q)}</div>
+                                <button type="button" onclick="navigator.clipboard.writeText('${escapeHtml(q).replace(/'/g, "\\'")}'); this.innerHTML='<i class=\\'fas fa-check\\'></i> Copied'; setTimeout(() => this.innerHTML='<i class=\\'fas fa-copy\\'></i> Copy', 2000);" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 0.25rem 0.55rem; font-size: 0.75rem; color: #475569; cursor: pointer; white-space: nowrap;">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
                             </div>
                         `).join('')}
                     </div>
