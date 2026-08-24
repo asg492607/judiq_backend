@@ -1309,6 +1309,24 @@
                         <i class="fas fa-file-alt"></i> Draft
                     </button>
                 </div>
+                <!-- Criminal Law Tab Group (hidden until domain applies) -->
+                <div class="results-tabs hidden" id="criminalTabs">
+                    <button class="tab-button active" data-tab="criminal_overview" onclick="switchResultTab('criminal_overview')">
+                        <i class="fas fa-tachometer-alt"></i> Overview
+                    </button>
+                    <button class="tab-button" data-tab="criminal_bail" onclick="switchResultTab('criminal_bail')">
+                        <i class="fas fa-key"></i> Bail & Custody
+                    </button>
+                    <button class="tab-button" data-tab="criminal_quashing" onclick="switchResultTab('criminal_quashing')">
+                        <i class="fas fa-shield-halved"></i> Bhajan Lal Quashing
+                    </button>
+                    <button class="tab-button" data-tab="criminal_evidence" onclick="switchResultTab('criminal_evidence')">
+                        <i class="fas fa-microscope"></i> Forensics & Cross-Exam
+                    </button>
+                    <button class="tab-button" data-tab="draft" onclick="switchResultTab('draft')">
+                        <i class="fas fa-file-alt"></i> Draft
+                    </button>
+                </div>
 
 
                 <!-- ADVOCATE-GRADE FATAL ALERTS -->
@@ -1866,6 +1884,82 @@
                     </div>
                 </div>
                 <!-- End Tab: SARFAESI Strategy -->
+
+                <!-- ═══ CRIMINAL DOMAIN TABS (hidden by default — activated by applyDomainTheme) ═══ -->
+
+                <!-- Tab: Criminal Overview -->
+                <div id="tabCriminal_overview" class="tab-content hidden">
+                    <!-- Fatal alerts container -->
+                    <div id="criminalFatalAlerts" class="fatal-alert-container hidden"></div>
+                    <!-- Criminal Metrics Grid -->
+                    <div class="metrics-grid" id="criminalMetricsGrid">
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;"><i class="fas fa-gavel"></i></div>
+                            <div class="metric-content"><h4>Primary Offense</h4><p id="criminalOffenseMetric">—</p></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;"><i class="fas fa-key"></i></div>
+                            <div class="metric-content"><h4>Bail Viability</h4><p id="criminalBailMetric">—</p></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;"><i class="fas fa-shield-halved"></i></div>
+                            <div class="metric-content"><h4>Quashing Viability</h4><p id="criminalQuashingMetric">—</p></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;"><i class="fas fa-hourglass-half"></i></div>
+                            <div class="metric-content"><h4>Remand / Custody</h4><p id="criminalCustodyMetric">—</p></div>
+                        </div>
+                    </div>
+                    <!-- Criminal Triggered Rules / Statutory Bars -->
+                    <div class="result-card" style="margin-top: 1.5rem;">
+                        <h3><i class="fas fa-scale-balanced" style="color: #ef4444;"></i> Mandatory Statutory Bars & Landmark Rulings</h3>
+                        <div id="criminalStatutoryRulesList"></div>
+                    </div>
+                    <!-- Next Defense Best Actions -->
+                    <div class="result-card" style="margin-top: 1rem;">
+                        <h3><i class="fas fa-list-check" style="color: #3b82f6;"></i> Prioritized Criminal Defense Roadmap</h3>
+                        <div id="criminalNextActionsList"></div>
+                    </div>
+                </div>
+                <!-- End Tab: Criminal Overview -->
+
+                <!-- Tab: Criminal Bail & Custody -->
+                <div id="tabCriminal_bail" class="tab-content hidden">
+                    <div class="result-card">
+                        <h3><i class="fas fa-key" style="color: #3b82f6;"></i> 3-Tier Bail Viability Assessment</h3>
+                        <p class="card-subtitle">Evaluation under S.437/438/439 CrPC & S.480/483/484 BNSS with Satender Kumar Antil Guidelines</p>
+                        <div id="criminalBailAssessmentCard"></div>
+                    </div>
+                    <div class="result-card" style="margin-top: 1rem;">
+                        <h3><i class="fas fa-clock" style="color: #f59e0b;"></i> Statutory Default Bail Countdown (S.167(2) CrPC / S.187 BNSS)</h3>
+                        <div id="criminalDefaultBailCard"></div>
+                    </div>
+                </div>
+                <!-- End Tab: Criminal Bail -->
+
+                <!-- Tab: Criminal Quashing Radar -->
+                <div id="tabCriminal_quashing" class="tab-content hidden">
+                    <div class="result-card">
+                        <h3><i class="fas fa-shield-halved" style="color: #10b981;"></i> Bhajan Lal 7-Pillar Quashing Radar (S.482 CrPC / S.528 BNSS)</h3>
+                        <p class="card-subtitle">Scrutiny of FIR allegations against the landmark Supreme Court principles in State of Haryana v. Bhajan Lal</p>
+                        <div id="criminalBhajanLalList"></div>
+                    </div>
+                </div>
+                <!-- End Tab: Criminal Quashing -->
+
+                <!-- Tab: Criminal Forensics & Cross-Exam -->
+                <div id="tabCriminal_evidence" class="tab-content hidden">
+                    <div class="result-card">
+                        <h3><i class="fas fa-microscope" style="color: #8b5cf6;"></i> Evidentiary & Forensics Audit</h3>
+                        <div id="criminalEvidenceAuditList"></div>
+                    </div>
+                    <div class="result-card" style="margin-top: 1rem;">
+                        <h3><i class="fas fa-crosshairs" style="color: #ef4444;"></i> Investigating Officer (I.O.) & Witness Cross-Exam Kit</h3>
+                        <p class="card-subtitle">Generated cross-examination attack vectors to confront prosecution witnesses under S.145/148 Evidence Act / BSA</p>
+                        <div id="criminalCrossExamList"></div>
+                    </div>
+                </div>
+                <!-- End Tab: Criminal Evidence -->
 
                 <!-- Action Buttons -->
                 <div class="results-actions">

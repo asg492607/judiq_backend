@@ -1,6 +1,6 @@
-import { ui, switchScreen } from './ui.js?v=8';
-import { api } from './api.js?v=8';
-import { escapeHtml } from './js/modules/utils.js?v=8';
+import { ui, switchScreen } from './ui.js?v=13';
+import { api } from './api.js?v=13';
+import { escapeHtml } from './js/modules/utils.js?v=13';
 
 // Helper: isTruthy check
 function isTruthy(val) {
@@ -1428,55 +1428,268 @@ export function applyDomainTheme(domain) {
     const screen = document.getElementById('resultsScreen');
     if (!screen) return;
 
-    const isSarfaesi = domain === 'sarfaesi';
+    const d = (domain || '').toLowerCase();
+    const isSarfaesi = d === 'sarfaesi';
+    const isCriminal = d === 'criminal';
 
     // Swap CSS theme class
-    screen.classList.remove('dashboard--138', 'dashboard--sarfaesi');
-    screen.classList.add(isSarfaesi ? 'dashboard--sarfaesi' : 'dashboard--138');
+    screen.classList.remove('dashboard--138', 'dashboard--sarfaesi', 'dashboard--criminal');
+    if (isSarfaesi) screen.classList.add('dashboard--sarfaesi');
+    else if (isCriminal) screen.classList.add('dashboard--criminal');
+    else screen.classList.add('dashboard--138');
 
     // Domain badge in results nav
     const badge = document.getElementById('resultsDomainBadge');
     if (badge) {
         badge.style.display = 'inline-flex';
-        badge.className = `domain-badge ${isSarfaesi ? 'domain-badge--sarfaesi' : 'domain-badge--ni'}`;
-        badge.innerHTML = isSarfaesi
-            ? '<i class="fas fa-university"></i> SARFAESI / DRT'
-            : '<i class="fas fa-balance-scale"></i> NI Act — S.138';
+        if (isCriminal) {
+            badge.className = 'domain-badge domain-badge--criminal';
+            badge.innerHTML = '<i class="fas fa-gavel"></i> Criminal Law (BNS / IPC)';
+        } else if (isSarfaesi) {
+            badge.className = 'domain-badge domain-badge--sarfaesi';
+            badge.innerHTML = '<i class="fas fa-university"></i> SARFAESI / DRT';
+        } else {
+            badge.className = 'domain-badge domain-badge--ni';
+            badge.innerHTML = '<i class="fas fa-balance-scale"></i> NI Act — S.138';
+        }
     }
 
     // Swap tab groups
     const niTabs = document.getElementById('niActTabs');
     const sarfaesiTabs = document.getElementById('sarfaesiTabs');
-    if (isSarfaesi) {
-        if (niTabs) niTabs.classList.add('hidden');
-        if (sarfaesiTabs) sarfaesiTabs.classList.remove('hidden');
-        // Hide NI Act tab panels, show SARFAESI ones
-        ['tabOverview','tabDetailed','tabStrategy'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) { el.classList.add('hidden'); el.classList.remove('active'); }
+    const criminalTabs = document.getElementById('criminalTabs');
+
+    if (niTabs) niTabs.classList.add('hidden');
+    if (sarfaesiTabs) sarfaesiTabs.classList.add('hidden');
+    if (criminalTabs) criminalTabs.classList.add('hidden');
+
+    // Hide all tab contents initially
+    const allTabPanels = [
+        'tabOverview', 'tabDetailed', 'tabStrategy',
+        'tabSarfaesi_overview', 'tabSarfaesi_enforcement', 'tabSarfaesi_graph', 'tabSarfaesi_strategy',
+        'tabCriminal_overview', 'tabCriminal_bail', 'tabCriminal_quashing', 'tabCriminal_evidence',
+        'tabDraft'
+    ];
+    allTabPanels.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.classList.add('hidden'); el.classList.remove('active'); }
+    });
+
+    if (isCriminal) {
+        if (criminalTabs) criminalTabs.classList.remove('hidden');
+        const defTab = document.getElementById('tabCriminal_overview');
+        if (defTab) { defTab.classList.remove('hidden'); defTab.classList.add('active'); }
+        // Reset tab buttons active state
+        document.querySelectorAll('#criminalTabs .tab-button').forEach((btn, idx) => {
+            if (idx === 0) btn.classList.add('active');
+            else btn.classList.remove('active');
         });
-        // Activate SARFAESI overview by default
+    } else if (isSarfaesi) {
+        if (sarfaesiTabs) sarfaesiTabs.classList.remove('hidden');
         const defTab = document.getElementById('tabSarfaesi_overview');
         if (defTab) { defTab.classList.remove('hidden'); defTab.classList.add('active'); }
-    } else {
-        if (sarfaesiTabs) sarfaesiTabs.classList.add('hidden');
-        if (niTabs) niTabs.classList.remove('hidden');
-        // Hide SARFAESI tab panels
-        ['tabSarfaesi_overview','tabSarfaesi_enforcement','tabSarfaesi_graph','tabSarfaesi_strategy'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) { el.classList.add('hidden'); el.classList.remove('active'); }
+        document.querySelectorAll('#sarfaesiTabs .tab-button').forEach((btn, idx) => {
+            if (idx === 0) btn.classList.add('active');
+            else btn.classList.remove('active');
         });
-        // Activate NI Act overview by default
+    } else {
+        if (niTabs) niTabs.classList.remove('hidden');
         const defTab = document.getElementById('tabOverview');
         if (defTab) { defTab.classList.remove('hidden'); defTab.classList.add('active'); }
+        document.querySelectorAll('#niActTabs .tab-button').forEach((btn, idx) => {
+            if (idx === 0) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
     }
 }
 
 /**
- * Render all SARFAESI-specific result panels.
- * Called by renderResults() when domain === 'sarfaesi'.
+ * Render all Criminal-specific result panels.
+ * Called by renderResults() when domain === 'criminal'.
  */
-export function renderSarfaesiResultsPanels(data) {
+export function renderCriminalResultsPanels(data) {
+    const caseData = (window.state && window.state.caseData) || data.case_data || {};
+    const offense = String(caseData.offense_type || caseData.ipc_section || 'General Criminal').replace(/\(.*\)/, '').trim();
+    const daysInCustody = parseInt(caseData.days_in_custody || 0, 10);
+    const maxPunishment = parseInt(caseData.max_punishment_years || 7, 10);
+    const defaultBailDays = maxPunishment >= 10 ? 90 : 60;
+    const isDefaultBailActive = daysInCustody >= defaultBailDays && !caseData.chargesheet_filed;
+
+    // Metrics
+    const offenseMetricEl = document.getElementById('criminalOffenseMetric');
+    if (offenseMetricEl) offenseMetricEl.textContent = offense || 'IPC / BNS Offense';
+
+    const bailMetricEl = document.getElementById('criminalBailMetric');
+    if (bailMetricEl) {
+        if (isDefaultBailActive) bailMetricEl.innerHTML = '<span style="color:#10b981; font-weight:800;">100% (Default Bail u/s 167)</span>';
+        else if (caseData.no_s41a_notice && maxPunishment <= 7) bailMetricEl.innerHTML = '<span style="color:#10b981; font-weight:800;">HIGH (Antil Cat. A)</span>';
+        else bailMetricEl.textContent = data.score >= 50 ? 'Strong (Bailable/Parity)' : 'Caution (Custodial)';
+    }
+
+    const quashingMetricEl = document.getElementById('criminalQuashingMetric');
+    if (quashingMetricEl) {
+        const hasCivilDispute = caseData.contract_exists || String(caseData.offense_type || '').includes('420');
+        const hasOmnibus = caseData.relative_impleaded;
+        if (hasCivilDispute) quashingMetricEl.innerHTML = '<span style="color:#10b981; font-weight:800;">85% (Param 1 Civil Disguise)</span>';
+        else if (hasOmnibus) quashingMetricEl.innerHTML = '<span style="color:#10b981; font-weight:800;">75% (Param 7 Omnibus)</span>';
+        else quashingMetricEl.textContent = 'Moderate Viability';
+    }
+
+    const custodyMetricEl = document.getElementById('criminalCustodyMetric');
+    if (custodyMetricEl) {
+        if (daysInCustody > 0) custodyMetricEl.textContent = `${daysInCustody} Days (${isDefaultBailActive ? 'Default Bail Active' : `${defaultBailDays - daysInCustody} days to S.167`})`;
+        else custodyMetricEl.textContent = 'Pre-Arrest / Bail Granted';
+    }
+
+    // Statutory Rules / Fatal Alerts
+    const rules = data.triggered_rules || data.rules || [];
+    const rulesListEl = document.getElementById('criminalStatutoryRulesList');
+    if (rulesListEl) {
+        if (rules.length === 0) {
+            rulesListEl.innerHTML = '<p style="color:var(--gray-500);"><i class="fas fa-check-circle"></i> No mandatory statutory bars detected.</p>';
+        } else {
+            rulesListEl.innerHTML = rules.map(r => `
+                <div style="background:rgba(239,68,68,0.08); border-left:4px solid #ef4444; border-radius:6px; padding:1rem; margin-bottom:0.75rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                        <span style="font-weight:700; color:var(--gray-900); font-size:1rem;"><i class="fas fa-scale-balanced"></i> ${escapeHtml(r.rule_name || '')}</span>
+                        <span style="background:var(--error-100); color:var(--error-800); font-size:0.72rem; font-weight:700; padding:0.2rem 0.5rem; border-radius:4px;">${escapeHtml(r.status || 'ALERT')}</span>
+                    </div>
+                    <div style="font-size:0.88rem; color:var(--gray-700); margin-bottom:0.4rem;"><strong>Trigger:</strong> ${escapeHtml(r.description || '')}</div>
+                    <div style="font-size:0.88rem; color:var(--error-700); font-weight:600; margin-bottom:0.4rem;"><i class="fas fa-gavel"></i> ${escapeHtml(r.legal_effect || '')}</div>
+                    <div style="font-size:0.85rem; background:white; padding:0.5rem; border-radius:4px; border:1px solid var(--gray-200); color:var(--primary-700);">
+                        <i class="fas fa-arrow-right"></i> <strong>Defense Action:</strong> ${escapeHtml(r.action || '')}
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    // Prioritized Defense Roadmap
+    const actions = data.next_best_actions || data.recommendations || [];
+    const actionsListEl = document.getElementById('criminalNextActionsList');
+    if (actionsListEl) {
+        if (actions.length === 0) {
+            actionsListEl.innerHTML = '<p style="color:var(--gray-500);">No specific actions returned.</p>';
+        } else {
+            actionsListEl.innerHTML = actions.map((a, idx) => {
+                const title = typeof a === 'string' ? a : (a.action || a.title || '');
+                const reason = typeof a === 'object' ? (a.reason || a.legal_effect || '') : '';
+                const auth = typeof a === 'object' ? (a.authority || '') : '';
+                return `
+                    <div style="background:rgba(59,130,246,0.06); border:1px solid rgba(59,130,246,0.2); border-radius:8px; padding:0.85rem 1rem; margin-bottom:0.6rem;">
+                        <div style="font-weight:700; color:#2563eb; font-size:0.92rem;"><i class="fas fa-check-circle"></i> Step ${idx + 1}: ${escapeHtml(title)}</div>
+                        ${reason ? `<div style="font-size:0.82rem; color:var(--gray-600); margin-top:0.25rem;">${escapeHtml(reason)}</div>` : ''}
+                        ${auth ? `<div style="font-size:0.75rem; color:#475569; margin-top:0.2rem; font-weight:600;"><i class="fas fa-book-bookmark"></i> Precedent/Authority: ${escapeHtml(auth)}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    // Bail Assessment Card
+    const bailCardEl = document.getElementById('criminalBailAssessmentCard');
+    if (bailCardEl) {
+        bailCardEl.innerHTML = `
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;">
+                <div style="background:white; border:1px solid var(--gray-200); border-radius:8px; padding:1.2rem;">
+                    <div style="font-weight:700; color:var(--gray-800); margin-bottom:0.5rem;"><i class="fas fa-shield" style="color:#3b82f6;"></i> Anticipatory Bail (S.438 CrPC / S.484 BNSS)</div>
+                    <div style="font-size:0.88rem; color:var(--gray-600); margin-bottom:0.75rem;">Viability: <strong>${maxPunishment <= 7 ? 'VERY HIGH (Arnesh Kumar Compliance)' : 'MODERATE (Subject to Custodial Interrogation necessity)'}</strong></div>
+                    <div style="font-size:0.8rem; color:var(--gray-500);">Precedent: <em>Sushila Aggarwal v. State (NCT of Delhi)</em> — Anticipatory bail protection does not automatically expire upon chargesheet.</div>
+                </div>
+                <div style="background:white; border:1px solid var(--gray-200); border-radius:8px; padding:1.2rem;">
+                    <div style="font-weight:700; color:var(--gray-800); margin-bottom:0.5rem;"><i class="fas fa-unlock" style="color:#10b981;"></i> Regular Bail (S.437/439 CrPC / S.480/483 BNSS)</div>
+                    <div style="font-size:0.88rem; color:var(--gray-600); margin-bottom:0.75rem;">Status: <strong>${daysInCustody > 30 ? 'Substantial Custody Undergone (Parity / Trial Delay Grounds)' : 'Available on First Appearance'}</strong></div>
+                    <div style="font-size:0.8rem; color:var(--gray-500);">Precedent: <em>Satender Kumar Antil v. CBI (2022)</em> — Bail is rule, jail is exception; strict adherence to category mandates.</div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Default Bail Countdown Card
+    const defaultBailEl = document.getElementById('criminalDefaultBailCard');
+    if (defaultBailEl) {
+        defaultBailEl.innerHTML = `
+            <div style="background:${isDefaultBailActive ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.08)'}; border:2px solid ${isDefaultBailActive ? '#10b981' : '#f59e0b'}; border-radius:8px; padding:1.2rem;">
+                <div style="font-weight:800; font-size:1.05rem; color:${isDefaultBailActive ? '#065f46' : '#92400e'}; margin-bottom:0.5rem;">
+                    <i class="fas ${isDefaultBailActive ? 'fa-check-circle' : 'fa-hourglass-start'}"></i>
+                    ${isDefaultBailActive ? 'INDEFEASIBLE RIGHT TO DEFAULT BAIL ACQUIRED' : `STATUTORY PERIOD IN PROGRESS: ${daysInCustody} / ${defaultBailDays} DAYS`}
+                </div>
+                <p style="font-size:0.88rem; color:var(--gray-700); margin:0 0 0.5rem 0;">
+                    ${isDefaultBailActive ? `The ${defaultBailDays}-day statutory limit for completing investigation has expired without filing chargesheet. Accused is entitled to immediate release upon furnishing bail bond per <em>Ritu Chhabaria v. Union of India (2023)</em>.` : `Under Section 167(2) CrPC / Section 187 BNSS, if the police fail to submit the chargesheet within ${defaultBailDays} days of initial remand, default bail becomes an absolute constitutional right.`}
+                </p>
+                <div style="font-size:0.8rem; font-weight:700; color:var(--primary-700);">
+                    Action: ${isDefaultBailActive ? 'File S.167(2) Application immediately before Chargesheet is placed on record.' : 'Track investigation diary and file S.167(2) application on day ' + (defaultBailDays + 1) + '.'}
+                </div>
+            </div>
+        `;
+    }
+
+    // Bhajan Lal Quashing Radar
+    const bhajanLalEl = document.getElementById('criminalBhajanLalList');
+    if (bhajanLalEl) {
+        const grounds = (data.adversarial_risk_model && data.adversarial_risk_model.risks_and_rebuttals) || [];
+        const bhajanItems = grounds.filter(g => String(g.adversarial_vector || '').includes('Bhajan Lal') || String(g.quashing_ground || '').length > 0);
+        if (bhajanItems.length === 0) {
+            bhajanLalEl.innerHTML = `
+                <div style="background:white; border:1px solid var(--gray-200); border-radius:8px; padding:1rem;">
+                    <div style="font-weight:700; color:#1e293b;"><i class="fas fa-info-circle"></i> Bhajan Lal 7-Parameter Evaluation</div>
+                    <p style="font-size:0.85rem; color:var(--gray-600); margin:0.4rem 0;">FIR discloses prima facie elements of offense. Defense should focus on trial contradictions, cross-examination of I.O., and S.227/239 discharge arguments.</p>
+                </div>
+            `;
+        } else {
+            bhajanLalEl.innerHTML = bhajanItems.map(b => `
+                <div style="background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.25); border-radius:8px; padding:1rem; margin-bottom:0.75rem;">
+                    <div style="font-weight:700; color:#065f46; font-size:0.95rem;"><i class="fas fa-shield-halved"></i> ${escapeHtml(b.adversarial_vector || b.quashing_ground || '')}</div>
+                    <div style="font-size:0.85rem; color:var(--gray-700); margin:0.35rem 0;">${escapeHtml(b.description || '')}</div>
+                    <div style="font-size:0.8rem; color:#047857; font-weight:600;"><i class="fas fa-gavel"></i> Quashing Strategy: ${escapeHtml(b.discharge_quashing_strategy || 'File Petition u/s 482 CrPC / S.528 BNSS before High Court.')}</div>
+                </div>
+            `).join('');
+        }
+    }
+
+    // Evidentiary & Cross-Exam
+    const evidenceAuditEl = document.getElementById('criminalEvidenceAuditList');
+    if (evidenceAuditEl) {
+        evidenceAuditEl.innerHTML = `
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:0.75rem;">
+                <div style="background:white; border:1px solid var(--gray-200); border-radius:6px; padding:0.9rem;">
+                    <div style="font-weight:700; font-size:0.88rem; color:var(--gray-800);"><i class="fas fa-file-shield" style="color:#8b5cf6;"></i> Electronic Proof (S.65B/63 BSA)</div>
+                    <div style="font-size:0.82rem; color:${caseData.s65b_certificate ? '#10b981' : '#ef4444'}; font-weight:600; margin-top:0.25rem;">
+                        ${caseData.s65b_certificate ? 'Certified & Admissible' : 'Uncertified / Inadmissible (Arjun Panditrao Rule)'}
+                    </div>
+                </div>
+                <div style="background:white; border:1px solid var(--gray-200); border-radius:6px; padding:0.9rem;">
+                    <div style="font-weight:700; font-size:0.88rem; color:var(--gray-800);"><i class="fas fa-box-archive" style="color:#3b82f6;"></i> Discovery Memo (S.27 IEA/23 BSA)</div>
+                    <div style="font-size:0.82rem; color:var(--gray-600); margin-top:0.25rem;">
+                        ${caseData.recovery_memo_s27 || 'Subject to strict proof of custody disclosure and independent panchas'}
+                    </div>
+                </div>
+                <div style="background:white; border:1px solid var(--gray-200); border-radius:6px; padding:0.9rem;">
+                    <div style="font-weight:700; font-size:0.88rem; color:var(--gray-800);"><i class="fas fa-notes-medical" style="color:#ef4444;"></i> Medical vs Ocular Divergence</div>
+                    <div style="font-size:0.82rem; color:${caseData.medical_contradicts_ocular ? '#ef4444' : '#10b981'}; font-weight:600; margin-top:0.25rem;">
+                        ${caseData.medical_contradicts_ocular ? 'Fatal Ocular Contradiction (Thaman Kumar)' : 'Consistent with medical reports'}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    const crossExamEl = document.getElementById('criminalCrossExamList');
+    if (crossExamEl) {
+        const crossQuestions = (data.adversarial_risk_model && data.adversarial_risk_model.risks_and_rebuttals && data.adversarial_risk_model.risks_and_rebuttals[0]?.cross_exam_questions) || [
+            "Can you establish the exact chronological timeline between the alleged incident and the registration of the FIR?",
+            "Were any independent local public witnesses requested to join the recovery proceedings under Section 100(4) CrPC / Section 103 BNSS?",
+            "Is it not true that the electronic WhatsApp/CCTV evidence lacks the mandatory contemporaneous certificate under Section 65B(4) Evidence Act / Section 63 BSA?",
+            "Is it not true that the dispute between the parties is purely a commercial civil debt dispute for which no criminal fraud existed at inception?"
+        ];
+
+        crossExamEl.innerHTML = crossQuestions.map((q, idx) => `
+            <div style="background:white; border-left:3px solid #3b82f6; border-radius:4px; padding:0.75rem 1rem; margin-bottom:0.5rem; font-size:0.88rem; color:var(--gray-800); box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                <strong>Q${idx + 1}:</strong> "${escapeHtml(q)}"
+            </div>
+        `).join('');
+    }
+}
     // Enforcement stage
     const graph = data.procedural_graph || data.timeline_analysis || data.timeline || {};
     const currentStage = graph.current_stage || data.enforcement_stage || 'Pre-Enforcement';
@@ -1611,10 +1824,19 @@ export function renderResults(data) {
     if (!data) return;
 
     // Apply domain theme FIRST — swaps CSS class, tabs, domain badge
-    const domain = (window.state && window.state.userDomain) ||
-        (data.case_data && data.case_data.case_type === 'SARFAESI' ? 'sarfaesi' : 'ni_act') ||
-        'ni_act';
+    const caseType = (data.case_data && data.case_data.case_type) || (window.state?.caseData?.case_type) || '';
+    const domain = (data.domain) ? data.domain.toLowerCase() :
+        (caseType.toLowerCase().includes('criminal') ? 'criminal' :
+        (caseType.toLowerCase().includes('sarfaesi') ? 'sarfaesi' :
+        (caseType.toLowerCase().includes('civil') ? 'civil' :
+        (window.state?.userDomain || 'ni_act'))));
     applyDomainTheme(domain);
+
+    if (domain === 'sarfaesi') {
+        renderSarfaesiResultsPanels(data);
+    } else if (domain === 'criminal') {
+        renderCriminalResultsPanels(data);
+    }
 
     const resContainer = document.querySelector('.results-container');
     if (resContainer) resContainer.scrollTop = 0;
