@@ -2165,6 +2165,8 @@ export function switchResultTab(tabName) {
             window.renderSelectedDraft();
         }
     }
+}
+
 // Render Criminal Litigation & Statutory Defense Panels
 export function renderCriminalResultsPanels(data) {
     const container = document.getElementById('statutoryRulesContainer') || document.getElementById('overviewContent');
