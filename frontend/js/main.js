@@ -183,22 +183,72 @@ window.loginAsGuest = (domain = 'ni_act') => {
 
 function setupFormListeners() {
     const loginForm = document.getElementById('loginForm');
+    const loginError = document.getElementById('loginError');
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value.trim();
             const pass = document.getElementById('loginPassword').value;
             const btn = loginForm.querySelector('button[type="submit"]');
+
+            if (loginError) {
+                loginError.textContent = '';
+                loginError.classList.remove('show');
+            }
             if (btn) btn.classList.add('loading');
             
             try {
                 if (auth && typeof auth.signInWithEmailAndPassword === 'function') {
-                    await auth.signInWithEmailAndPassword(email, pass);
+                    try {
+                        await auth.signInWithEmailAndPassword(email, pass);
+                    } catch (signInErr) {
+                        const code = signInErr?.code || '';
+                        // If user doesn't exist yet, automatically create account in Firebase
+                        if (code.includes('invalid-login-credentials') || code.includes('user-not-found')) {
+                            try {
+                                const cred = await auth.createUserWithEmailAndPassword(email, pass);
+                                const defaultDomain = 'ni_act';
+                                localStorage.setItem(`judiq_domain_${cred.user.uid}`, defaultDomain);
+                                window.state.userDomain = defaultDomain;
+                                if (window.ui && typeof window.ui.toast === 'function') {
+                                    window.ui.toast(`Account created for ${email}`, 'success');
+                                }
+                            } catch (createErr) {
+                                const createCode = createErr?.code || '';
+                                if (createCode.includes('email-already-in-use') || createCode.includes('wrong-password')) {
+                                    if (loginError) {
+                                        loginError.textContent = "Incorrect password for this existing account.";
+                                        loginError.classList.add('show');
+                                    }
+                                } else if (createCode.includes('weak-password')) {
+                                    if (loginError) {
+                                        loginError.textContent = "Password should be at least 6 characters.";
+                                        loginError.classList.add('show');
+                                    }
+                                } else {
+                                    // Fall back to local login
+                                    loginLocally(email);
+                                }
+                            }
+                        } else if (code.includes('wrong-password')) {
+                            if (loginError) {
+                                loginError.textContent = "Incorrect password. Please try again or use Instant Guest Access.";
+                                loginError.classList.add('show');
+                            }
+                        } else if (code.includes('invalid-email')) {
+                            if (loginError) {
+                                loginError.textContent = "Please enter a valid email address.";
+                                loginError.classList.add('show');
+                            }
+                        } else {
+                            loginLocally(email);
+                        }
+                    }
                 } else {
                     loginLocally(email);
                 }
             } catch (err) {
-                console.warn('Firebase signIn failed, activating local session fallback:', err);
+                console.info('Activating local user session:', err?.message || err);
                 loginLocally(email);
             } finally {
                 if (btn) btn.classList.remove('loading');
@@ -207,6 +257,7 @@ function setupFormListeners() {
     }
 
     const registerForm = document.getElementById('registerForm');
+    const registerError = document.getElementById('registerError');
     if (registerForm) {
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -216,8 +267,16 @@ function setupFormListeners() {
             const domain = document.getElementById('registerDomain')?.value || 'ni_act';
             const btn = registerForm.querySelector('button[type="submit"]');
 
+            if (registerError) {
+                registerError.textContent = '';
+                registerError.classList.remove('show');
+            }
+
             if (pass !== confirmPass) {
-                ui.setText('registerError', "Passwords do not match");
+                if (registerError) {
+                    registerError.textContent = "Passwords do not match";
+                    registerError.classList.add('show');
+                }
                 return;
             }
 
@@ -239,8 +298,26 @@ function setupFormListeners() {
                     loginLocally(email, domain);
                 }
             } catch (err) {
-                console.warn('Firebase createUser failed, activating local user session:', err);
-                loginLocally(email, domain);
+                const code = err?.code || '';
+                if (code.includes('email-already-in-use')) {
+                    if (registerError) {
+                        registerError.textContent = "An account with this email already exists. Please sign in instead.";
+                        registerError.classList.add('show');
+                    }
+                } else if (code.includes('weak-password')) {
+                    if (registerError) {
+                        registerError.textContent = "Password is too weak. Please use at least 6 characters.";
+                        registerError.classList.add('show');
+                    }
+                } else if (code.includes('invalid-email')) {
+                    if (registerError) {
+                        registerError.textContent = "Please enter a valid email address.";
+                        registerError.classList.add('show');
+                    }
+                } else {
+                    console.info('Firebase registration unavailable, creating local user session:', err?.message || err);
+                    loginLocally(email, domain);
+                }
             } finally {
                 if (btn) btn.classList.remove('loading');
             }
