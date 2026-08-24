@@ -2017,6 +2017,8 @@ export function renderResults(data) {
 
     if (domain === 'sarfaesi') {
         renderSarfaesiResultsPanels(data);
+    } else if (domain === 'criminal') {
+        renderCriminalResultsPanels(data);
     }
 }
 
@@ -2163,6 +2165,83 @@ export function switchResultTab(tabName) {
             window.renderSelectedDraft();
         }
     }
+// Render Criminal Litigation & Statutory Defense Panels
+export function renderCriminalResultsPanels(data) {
+    const container = document.getElementById('statutoryRulesContainer') || document.getElementById('overviewContent');
+    if (!container) return;
+
+    const bail = data.bail_assessment || {};
+    const rules = data.statutory_rules || data.triggered_rules || [];
+    const adv = data.adversarial_risk_model || {};
+    const risks = adv.risks_and_rebuttals || [];
+    const timeline = data.timeline || data.timeline_analysis || {};
+    const caseData = data.case_data || {};
+
+    const antilCategory = bail.antil_category || "Category A (Offenses <= 7 Years)";
+    const bailProb = bail.probability || "HIGH";
+    const bailProbColor = (bailProb.includes("VERY HIGH") || bailProb.includes("HIGH")) ? "#16a34a" : (bailProb.includes("MEDIUM") ? "#d97706" : "#dc2626");
+
+    let criminalHTML = `
+        <div class="criminal-dashboard-panel" style="background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%); border: 1.5px solid #bfdbfe; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(37,99,235,0.06); font-family: inherit;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #dbeafe; padding-bottom: 1rem; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="background: #2563eb; color: #ffffff; width: 36px; height: 36px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                        <i class="fas fa-balance-scale"></i>
+                    </span>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #1e3a8a;">Criminal Defense & Statutory Safeguard Matrix</h3>
+                        <div style="font-size: 0.85rem; color: #475569;">Governed by IPC 1860 / CrPC 1973 & Bharatiya Nyaya Sanhita (BNS / BNSS 2023)</div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <span style="background: ${bailProbColor}15; color: ${bailProbColor}; font-size: 0.8rem; font-weight: 800; padding: 0.35rem 0.75rem; border-radius: 6px; border: 1px solid ${bailProbColor}33; display: inline-flex; align-items: center; gap: 0.4rem;">
+                        <i class="fas fa-gavel"></i> BAIL PROBABILITY: ${escapeHtml(bailProb)}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Satender Kumar Antil 4-Category Matrix -->
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                    <span style="font-size: 0.78rem; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-shield-alt"></i> Satender Kumar Antil (2022) 10 SCC 51 Taxonomy
+                    </span>
+                    <span style="background: #eff6ff; color: #1e40af; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px;">
+                        ${escapeHtml(antilCategory)}
+                    </span>
+                </div>
+                <div style="font-size: 0.92rem; color: #1e293b; line-height: 1.5; margin-bottom: 0.6rem;">
+                    <strong>Strategic Rationale:</strong> ${escapeHtml(bail.strategic_rationale || 'Bail is the rule, jail is the exception (State of Rajasthan v. Balchand).')}
+                </div>
+                ${bail.default_bail_triggered ? `
+                    <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.88rem; color: #991b1b; margin-top: 0.5rem;">
+                        <i class="fas fa-clock"></i> <strong>S.167(2) Default Bail Right Accrued:</strong> Mandatory statutory bail must be filed immediately prior to submission of the police charge sheet (Ritu Chhabaria v. UOI).
+                    </div>
+                ` : ''}
+            </div>
+
+            <!-- Trial Cross-Examination Toolkit -->
+            ${risks.length > 0 && risks[0].cross_exam_questions ? `
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                        <div style="font-weight: 800; color: #0f172a; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-user-tie" style="color: #2563eb;"></i> Trial Cross-Examination Question Bank
+                        </div>
+                        <span style="font-size: 0.75rem; color: #64748b;">Ready for Courtroom Deposition</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        ${(risks[0].cross_exam_questions || []).map((q, idx) => `
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.65rem 0.85rem; font-size: 0.88rem; color: #334155; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;">
+                                <div><strong style="color: #2563eb;">Q${idx + 1}:</strong> ${escapeHtml(q)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+    `;
+
+    container.insertAdjacentHTML('afterbegin', criminalHTML);
 }
 
 
