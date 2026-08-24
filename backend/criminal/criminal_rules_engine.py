@@ -149,7 +149,7 @@ class CriminalRulesEngine:
             except (ValueError, TypeError):
                 pass
 
-        # 7. Disguised Civil Dispute / Absence of Mens Rea at Inception (S.420 / 406 IPC ↔ S.318 / 316 BNS)
+        # 7. Disguised Civil Dispute / Absence of Mens Rea at Inception (S.420 / 406 IPC <-> S.318 / 316 BNS)
         if (case_data.get("contract_exists") or case_data.get("commercial_dispute") or case_data.get("recovery_suit_pending")) and any(x in offense for x in ["420", "406", "318", "316", "CHEATING", "FRAUD", "BREACH"]):
             triggered_rules.append({
                 "rule_name": "Disguised Civil Dispute / Absence of Mens Rea at Inception",
@@ -160,7 +160,7 @@ class CriminalRulesEngine:
                 "action": "File Petition under Section 482 CrPC / Section 528 BNSS before the High Court for quashing of FIR and all consequential proceedings."
             })
 
-        # 8. Omnibus Family Impleadment in Matrimonial Disputes (S.498A IPC ↔ S.85 BNS)
+        # 8. Omnibus Family Impleadment in Matrimonial Disputes (S.498A IPC <-> S.85 BNS)
         if ("498A" in offense or "85" in offense or "DOWRY" in offense or "304B" in offense) and (case_data.get("relative_impleaded") or case_data.get("separate_residence")):
             triggered_rules.append({
                 "rule_name": "Omnibus Allegations Against In-Laws / Distant Relatives (S.498A)",
@@ -192,7 +192,7 @@ class CriminalRulesEngine:
                     "action": "Challenge admissibility of FSL report in trial cross-examination."
                 })
 
-        # 10. False Promise to Marry vs. Consensual Relationship (S.376 IPC ↔ S.64 / S.69 BNS)
+        # 10. False Promise to Marry vs. Consensual Relationship (S.376 IPC <-> S.64 / S.69 BNS)
         if ("376" in offense or "64" in offense or "69" in offense or "RAPE" in offense) and (case_data.get("consensual_relationship") or case_data.get("promise_to_marry")):
             triggered_rules.append({
                 "rule_name": "Consensual Relationship vs. False Promise of Marriage (S.376)",

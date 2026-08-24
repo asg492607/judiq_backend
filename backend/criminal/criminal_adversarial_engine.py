@@ -23,7 +23,7 @@ class CriminalAdversarialEngine(AdversarialEngine):
 
     VULNERABILITY_MODELS = {
         "FINANCIAL_FRAUD": {
-            "name": "Cheating & Financial Fraud (S.420/406 IPC ↔ S.318/316 BNS)",
+            "name": "Cheating & Financial Fraud (S.420/406 IPC <-> S.318/316 BNS)",
             "severity": "CRITICAL",
             "risk": "Civil dispute or breach of contract disguised as criminal offense without dishonest intention at inception.",
             "chain": [
@@ -46,7 +46,7 @@ class CriminalAdversarialEngine(AdversarialEngine):
             "probability_collapse": 0.85
         },
         "MATRIMONIAL": {
-            "name": "Matrimonial Cruelty & Dowry (S.498A/304B IPC ↔ S.85/80 BNS)",
+            "name": "Matrimonial Cruelty & Dowry (S.498A/304B IPC <-> S.85/80 BNS)",
             "severity": "HIGH",
             "risk": "Omnibus allegations against husband's relatives residing separately or roped in without specific overt acts.",
             "chain": [
@@ -69,7 +69,7 @@ class CriminalAdversarialEngine(AdversarialEngine):
             "probability_collapse": 0.80
         },
         "HOMICIDE_BODILY": {
-            "name": "Bodily Offences / Murder vs Sudden Quarrel (S.302/307 IPC ↔ S.103/109 BNS)",
+            "name": "Bodily Offences / Murder vs Sudden Quarrel (S.302/307 IPC <-> S.103/109 BNS)",
             "severity": "FATAL",
             "risk": "Sudden fight without premeditation or grave provocation reducing murder to S.304 Culpable Homicide.",
             "chain": [
@@ -92,7 +92,7 @@ class CriminalAdversarialEngine(AdversarialEngine):
             "probability_collapse": 0.60
         },
         "SEXUAL_OFFENSES": {
-            "name": "Sexual Offences / Consent vs Breach of Promise (S.376 IPC ↔ S.64/69 BNS)",
+            "name": "Sexual Offences / Consent vs Breach of Promise (S.376 IPC <-> S.64/69 BNS)",
             "severity": "CRITICAL",
             "risk": "Consensual relationship during courtship where marriage failed due to subsequent circumstances.",
             "chain": [
