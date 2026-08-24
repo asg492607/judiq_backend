@@ -106,7 +106,48 @@ class JudiQEngine:
         if "has_bsa_certificate" not in case_data:
             case_data["has_bsa_certificate"] = case_data["has_65b_certificate"]
         case_data["analysis_mode"] = analysis_mode
-        logger.info(f"[JUDIQ] Core analysis triggered for: {case_data.get('case_id', 'ANON')}")
+        logger.info(f"[JUDIQ] Core analysis triggered for: {case_data.get('case_id', 'ANON')} (Type: {case_data.get('case_type', 'Cheque Bounce')})")
+
+        # Domain Dispatch Routing
+        case_type_clean = (case_data.get("case_type") or "").strip().lower()
+        if case_type_clean in ("criminal", "ipc", "bns", "crpc", "bnss"):
+            from criminal.criminal_engine import CriminalEngine
+            from criminal.criminal_adversarial_engine import CriminalAdversarialEngine
+            criminal_res = CriminalEngine.analyze(case_data)
+            score = criminal_res.get("score", 65)
+            verdict = criminal_res.get("verdict", "Strong Defense")
+            adv_model = CriminalAdversarialEngine.stress_test(case_data, score)
+            procedural_graph = CriminalEngine().build_procedural_graph(case_data)
+            next_actions = CriminalEngine().get_next_actions(case_data, criminal_res)
+            return {
+                "score": score,
+                "verdict": verdict,
+                "domain": "criminal",
+                "risk_level": "Low" if score >= 70 else ("Moderate" if score >= 40 else "High"),
+                "case_data": case_data,
+                "triggered_rules": criminal_res.get("statutory_rules", []),
+                "rules": criminal_res.get("statutory_rules", []),
+                "weaknesses": [r.get("legal_effect") for r in criminal_res.get("statutory_rules", [])],
+                "strengths": [m for m in criminal_res.get("litigation_map", {}).get("posture", {}).get("tactical_moves", [])],
+                "next_best_actions": next_actions,
+                "procedural_graph": procedural_graph,
+                "adversarial_risk_model": adv_model,
+                "timeline": criminal_res.get("timeline_analysis", {}),
+                "timeline_analysis": criminal_res.get("timeline_analysis", {}),
+                "bail_assessment": criminal_res.get("bail_assessment", {}),
+                "strategy": criminal_res.get("strategy", {}),
+                "litigation_strategy": criminal_res.get("strategy", {}).get("litigation_strategy", ""),
+                "contradictions": criminal_res.get("contradictions", [])
+            }
+        elif case_type_clean in ("sarfaesi", "drt", "securitisation"):
+            from sarfaesi.sarfaesi_domain_engine import SarfaesiDomainEngine
+            sarfaesi_res = SarfaesiDomainEngine.analyze(case_data)
+            return {
+                **sarfaesi_res,
+                "domain": "sarfaesi",
+                "case_data": case_data
+            }
+
         doc_intel = registry.get("document_intelligence")
         verification_flags = _safe_call(
             doc_intel.validate_claims, case_data,

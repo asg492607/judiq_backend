@@ -251,3 +251,7 @@ class CriminalAdversarialEngine(AdversarialEngine):
             "contradictions": contradictions,
             "adversarial_risk": min(0.95, base_risk)
         }
+
+    @classmethod
+    def stress_test(cls, case_data: Dict[str, Any], score: int = 50) -> Dict[str, Any]:
+        return cls.audit_case(case_data, [])

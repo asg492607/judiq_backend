@@ -125,7 +125,12 @@ class CriminalRulesEngine:
             })
 
         # 6. Undertrial Prisoner Maximum Detention Period (S.436A CrPC / S.479 BNSS)
-        days_in_custody = case_data.get("days_in_custody", 0)
+        days_in_custody = int(case_data.get("days_in_custody") or 0)
+        chargesheet_filed = case_data.get("chargesheet_filed", False)
+        chargesheet_date = case_data.get("chargesheet_date")
+        if chargesheet_date:
+            chargesheet_filed = True
+
         if days_in_custody > 0 and max_punishment:
             try:
                 max_days = (int(max_punishment) * 365) / 2 # 1/2 of max sentence
@@ -140,5 +145,56 @@ class CriminalRulesEngine:
                     })
             except (ValueError, TypeError):
                 pass
+
+        # 7. Statutory Default Bail Check (S.167(2) CrPC / S.187 BNSS)
+        if days_in_custody > 0 and not chargesheet_filed:
+            try:
+                punishment = int(max_punishment or 3)
+                statutory_days = 90 if punishment >= 10 else 60
+                if days_in_custody >= statutory_days:
+                    triggered_rules.append({
+                        "rule_name": f"S.167(2) CrPC / S.187 BNSS Indefeasible Right to Default Bail ({statutory_days} Days Exceeded)",
+                        "severity": "ABSOLUTE STATUTORY RIGHT",
+                        "status": "MANDATORY BAIL",
+                        "description": f"Accused has been in custody for {days_in_custody} days. The statutory limit of {statutory_days} days for completing investigation has expired without police report/chargesheet filed.",
+                        "legal_effect": "Accused has acquired an indefeasible right to statutory default bail. The Magistrate has zero discretion to extend judicial remand (Ritu Chhabaria v. Union of India, 2023; Bikramjit Singh v. State of Punjab).",
+                        "action": f"Immediately file S.167(2) Default Bail Application before the chargesheet is submitted to prevent extinguishing the right."
+                    })
+            except (ValueError, TypeError):
+                pass
+
+        # 8. Civil Dispute Disguised as Criminal Offense (S.420 / 406 IPC ↔ S.318 / 316 BNS)
+        offense = str(case_data.get("offense_type") or case_data.get("ipc_section") or "").upper()
+        if (case_data.get("contract_exists") or case_data.get("commercial_dispute") or case_data.get("recovery_suit_pending")) and any(x in offense for x in ["420", "406", "318", "316", "CHEATING", "BREACH"]):
+            triggered_rules.append({
+                "rule_name": "Disguised Civil Dispute / Absence of Mens Rea at Inception",
+                "severity": "CRITICAL QUASHING GROUND",
+                "status": "BHATIA / HRIDAYA RANJAN PARADIGM",
+                "description": "Criminal proceedings instituted for pure breach of commercial contract/debt recovery without establishing fraudulent intent at the inception of the transaction.",
+                "legal_effect": "Supreme Court holds that mere failure to keep a promise or pay money does not constitute S.420/406. Criminal courts cannot be used as recovery agencies (Hridaya Ranjan Prasad Verma v. State of Bihar; Dalip Kaur v. Jagnar Singh).",
+                "action": "File Petition under Section 482 CrPC / Section 528 BNSS before the High Court for quashing of FIR and all consequential proceedings."
+            })
+
+        # 9. Omnibus Family Impleadment (S.498A IPC ↔ S.85 BNS)
+        if ("498A" in offense or "85" in offense or "DOWRY" in offense) and (case_data.get("relative_impleaded") or case_data.get("separate_residence")):
+            triggered_rules.append({
+                "rule_name": "Omnibus Allegations Against In-Laws / Distant Relatives (S.498A)",
+                "severity": "HIGH QUASHING GROUND",
+                "status": "KAHKASHAN KAUSAR COMPLIANCE",
+                "description": "General and omnibus allegations leveled against relatives of husband without attributing specific overt acts of harassment or cruelty.",
+                "legal_effect": "Proceedings against extended family members residing separately or roped in casually are liable to be quashed to prevent abuse of judicial process (Kahkashan Kausar v. State of Bihar, 2022; Geeta Mehrotra v. State of UP).",
+                "action": "File S.482 / S.528 Quashing Petition highlighting independent residence and lack of specific date-time attribution."
+            })
+
+        # 10. NDPS Section 50 Personal Search Protocol
+        if "NDPS" in offense and case_data.get("s50_violation"):
+            triggered_rules.append({
+                "rule_name": "Section 50 NDPS Act Mandatory Search Violation",
+                "severity": "FATAL TO PROSECUTION",
+                "status": "INADMISSIBLE RECOVERY",
+                "description": "Personal search of accused conducted without offering mandatory option to be searched in presence of a Gazetted Officer or Magistrate.",
+                "legal_effect": "Section 50 is strictly mandatory. Failure to comply vitiates recovery and entitles accused to acquittal (Vijaysinh Chandubha Jadeja v. State of Gujarat, Constitution Bench).",
+                "action": "File discharge application under S.227 or urge S.50 violation during bail hearing."
+            })
 
         return triggered_rules

@@ -838,6 +838,191 @@ Place: ________ (Place)
 Date: {today}
 Through Counsel
 """
+def generate_anticipatory_bail(case_data: Dict) -> str:
+    today, _ = _case_meta(case_data)
+    accused = case_data.get("accused_name") or case_data.get("case_title") or "________ (Applicant Name)"
+    court = case_data.get("court_name") or "THE COURT OF SESSIONS JUDGE / HIGH COURT"
+    ps = case_data.get("police_station", "________ (Police Station)")
+    fir_no = case_data.get("case_id") or case_data.get("fir_no", "FIR No. ____ / 2026")
+    offense = case_data.get("offense_type") or case_data.get("ipc_section", "Under Relevant Sections of IPC / BNS")
+    max_punishment = case_data.get("max_punishment_years", 7)
+
+    hdr = _header("ANTICIPATORY BAIL APPLICATION — SECTION 438 CrPC / SECTION 484 BNSS")
+    return hdr + f"""
+IN {court}
+CRIMINAL MISC. (ANTICIPATORY BAIL) APPLICATION NO. ______ OF {datetime.now().year}
+
+IN THE MATTER OF:
+{accused}
+Address: _____________________________________             -- APPLICANT / ACCUSED
+VERSUS
+STATE (NCT / GOVT OF ____________)
+Through Station House Officer, P.S. {ps}                   -- RESPONDENT
+
+APPLICATION UNDER SECTION 438 OF THE CODE OF CRIMINAL PROCEDURE, 1973 / SECTION 484 OF BHARATIYA NAGARIK SURAKSHA SANHITA, 2023 FOR GRANT OF ANTICIPATORY BAIL IN CONNECTION WITH {fir_no} REGISTERED AT P.S. {ps} FOR OFFENCES PUNISHABLE U/S {offense}.
+
+MOST RESPECTFULLY SHOWETH:
+
+1. That the Applicant is a respectable, law-abiding citizen of India with deep roots in society and has never been convicted of any non-bailable criminal offense.
+
+2. FALSE & MALICIOUS APPREHENSION:
+   That the Applicant apprehends arrest at the hands of P.S. {ps} in connection with {fir_no} registered for alleged offences under {offense}. It is submitted that the FIR is an outcome of malice, ulterior motives, and personal vendetta, and no prima facie offence is made out against the Applicant.
+
+3. ARNESH KUMAR & SATENDER KUMAR ANTIL GUIDELINES:
+   That the maximum sentence for the alleged primary offense is {max_punishment} years. As per the landmark Constitution Bench ruling in 'Arnesh Kumar v. State of Bihar (2014)' and 'Satender Kumar Antil v. CBI (2022)', arrest in offences punishable up to 7 years must not be made casually or mechanically. The police have failed to demonstrate any credible necessity for custodial interrogation.
+
+4. CIVIL DISPUTE CLOTHED WITH CRIMINAL COLOR:
+   That the underlying dispute between the parties arises out of a commercial/civil contractual relationship. The Supreme Court in 'Dalip Kaur v. Jagnar Singh' and 'Hridaya Ranjan Prasad Verma v. State of Bihar' has held that a breach of contract cannot give rise to criminal prosecution under Section 420 IPC / Section 318 BNS in the absence of fraudulent intention at inception.
+
+5. TRIPLE TEST COMPLIANCE & UNDERTAKINGS:
+   (a) The Applicant is not a flight risk and possesses immovable properties within the jurisdiction of this Court.
+   (b) The Applicant undertakes not to tamper with prosecution evidence or influence/intimidate any witness directly or indirectly.
+   (c) The Applicant undertakes to join and fully cooperate with the ongoing investigation as and when summoned by the Investigating Officer under Section 41A CrPC / Section 35 BNSS.
+   (d) The Applicant is ready and willing to surrender his/her passport and furnish solvent local surety to the satisfaction of the Court/IO.
+
+PRAYER:
+It is most respectfully prayed that in the event of arrest of the Applicant in connection with {fir_no} P.S. {ps}, the Applicant be released on anticipatory bail on such terms and conditions as this Honourable Court may deem fit and proper.
+
+Place: ____________________
+Date: {today}
+COUNSEL FOR THE APPLICANT
+"""
+
+def generate_regular_bail(case_data: Dict) -> str:
+    today, _ = _case_meta(case_data)
+    accused = case_data.get("accused_name") or case_data.get("case_title") or "________ (Applicant / Undertrial)"
+    court = case_data.get("court_name") or "THE COURT OF CHIEF METROPOLITAN MAGISTRATE / SESSIONS JUDGE"
+    ps = case_data.get("police_station", "________ (Police Station)")
+    fir_no = case_data.get("case_id") or case_data.get("fir_no", "FIR No. ____ / 2026")
+    offense = case_data.get("offense_type") or case_data.get("ipc_section", "Under Relevant Sections of IPC / BNS")
+    days_in_custody = case_data.get("days_in_custody", 30)
+
+    hdr = _header("REGULAR BAIL APPLICATION — SECTION 437/439 CrPC / SECTION 480/483 BNSS")
+    return hdr + f"""
+IN {court}
+CRIMINAL BAIL APPLICATION NO. ______ OF {datetime.now().year}
+
+IN THE MATTER OF:
+{accused}
+(Currently lodged in Judicial Custody / Central Jail)       -- APPLICANT / ACCUSED
+VERSUS
+STATE
+Through Investigating Officer, P.S. {ps}                   -- RESPONDENT
+
+APPLICATION UNDER SECTION 437/439 OF THE CODE OF CRIMINAL PROCEDURE, 1973 / SECTION 480/483 OF BHARATIYA NAGARIK SURAKSHA SANHITA, 2023 FOR GRANT OF REGULAR BAIL IN CONNECTION WITH {fir_no} P.S. {ps} U/S {offense}.
+
+MOST RESPECTFULLY SHOWETH:
+
+1. That the Applicant has been arrested in connection with {fir_no} P.S. {ps} and has been languishing in judicial custody for the past {days_in_custody} days.
+
+2. INVESTIGATION SUBSTANTIALLY COMPLETE / CUSTODIAL INTERROGATION OVER:
+   That the police remand of the Applicant is complete and no further recovery remains to be effected from the Applicant under Section 27 of the Evidence Act / Section 23 BSA. Continuous detention in custody serves no punitive or investigative purpose and would amount to pre-trial punishment.
+
+3. BAIL IS THE RULE, JAIL IS THE EXCEPTION:
+   That as per the Supreme Court in 'State of Rajasthan v. Balchand (1977)' and reaffirmed in 'Manish Sisodia v. Directorate of Enforcement (2024)', bail is the cardinal rule and detention is an exception. Deprivation of personal liberty without trial violates Article 21 of the Constitution.
+
+4. EVIDENTIARY INFIRMITIES IN PROSECUTION CASE:
+   That there are material contradictions between the ocular statements of witnesses and the documentary record. Furthermore, electronic records relied upon by the prosecution lack the mandatory certificate under Section 65B(4) IEA / Section 63 BSA, rendering the evidence legally inadmissible.
+
+5. TRIPLE TEST FULFILLED:
+   The Applicant is a permanent resident, has clean antecedents, and undertakes not to tamper with evidence, jump bail, or contact prosecution witnesses.
+
+PRAYER:
+It is respectfully prayed that the Applicant be enlarged on Regular Bail in connection with {fir_no} P.S. {ps} on such terms and conditions and surety as this Honourable Court deems fit.
+
+Place: ____________________
+Date: {today}
+COUNSEL FOR THE APPLICANT
+"""
+
+def generate_default_bail(case_data: Dict) -> str:
+    today, _ = _case_meta(case_data)
+    accused = case_data.get("accused_name") or case_data.get("case_title") or "________ (Applicant)"
+    court = case_data.get("court_name") or "THE COURT OF DESIGNATED MAGISTRATE / SESSIONS JUDGE"
+    ps = case_data.get("police_station", "________ (Police Station)")
+    fir_no = case_data.get("case_id") or case_data.get("fir_no", "FIR No. ____ / 2026")
+    days_in_custody = case_data.get("days_in_custody", 65)
+    max_punishment = case_data.get("max_punishment_years", 7)
+    statutory_limit = 90 if max_punishment >= 10 else 60
+
+    hdr = _header("STATUTORY DEFAULT BAIL APPLICATION — SECTION 167(2) CrPC / SECTION 187 BNSS")
+    return hdr + f"""
+IN {court}
+CRIMINAL MISC. (STATUTORY DEFAULT BAIL) APPLICATION NO. ______ OF {datetime.now().year}
+
+IN THE MATTER OF:
+{accused}
+(In Judicial Custody)                                      -- APPLICANT / ACCUSED
+VERSUS
+STATE (P.S. {ps})                                          -- RESPONDENT
+
+APPLICATION UNDER SECTION 167(2) OF THE CODE OF CRIMINAL PROCEDURE, 1973 / SECTION 187 OF BHARATIYA NAGARIK SURAKSHA SANHITA, 2023 FOR GRANT OF STATUTORY / DEFAULT BAIL UPON EXPIRY OF {statutory_limit} DAYS WITHOUT CHARGESHEET.
+
+MOST RESPECTFULLY SHOWETH:
+
+1. That the Applicant was arrested and remanded to custody on ________ (Remand Date). As of today, the Applicant has undergone {days_in_custody} continuous days in custody.
+
+2. STATUTORY PERIOD EXPIRED WITHOUT CHARGESHEET:
+   That the primary offences alleged carry a maximum punishment up to {max_punishment} years, for which the outer statutory limit for filing the Police Report / Chargesheet is {statutory_limit} days under Section 167(2)(a)(ii) CrPC / Section 187(3) BNSS. The police have failed to file the chargesheet within the statutory prescribed period.
+
+3. INDEFEASIBLE CONSTITUTIONAL RIGHT ACQUIRED:
+   That as held by the Supreme Court in 'Bikramjit Singh v. State of Punjab (2020)', 'M. Ravindran v. Intelligence Officer (2021)', and 'Ritu Chhabaria v. Union of India (2023)', the moment the statutory period of {statutory_limit} days expires without a chargesheet, the Accused acquires an absolute and indefeasible constitutional right to Default Bail under Article 21.
+
+4. OFFERING SOLVENT SURETY:
+   That the Applicant is ready and willing to furnish solvent surety and bail bonds to the satisfaction of this Honourable Court and avails of this statutory right prior to any subsequent submission of the chargesheet.
+
+PRAYER:
+It is respectfully prayed that this Honourable Court be pleased to grant Statutory Default Bail to the Applicant under Section 167(2) CrPC / Section 187 BNSS in {fir_no} P.S. {ps}.
+
+Place: ____________________
+Date: {today}
+COUNSEL FOR THE APPLICANT
+"""
+
+def generate_fir_draft(case_data: Dict, concepts: List[Dict] = None) -> str:
+    today, amount_str = _case_meta(case_data)
+    complainant = case_data.get("complainant_name") or "________ (Complainant Name)"
+    accused = case_data.get("accused_name") or "________ (Accused Person)"
+    ps = case_data.get("police_station", "________ (Police Station)")
+    incident_date = case_data.get("incident_date", "________ (Incident Date)")
+    offense = case_data.get("offense_type", "Cheating, Fraud & Criminal Breach of Trust")
+
+    hdr = _header("CRIMINAL COMPLAINT / FORMAL FIR DRAFT — SECTION 154 / 156(3) CrPC / S.173 / 175 BNSS")
+    return hdr + f"""
+TO:
+THE STATION HOUSE OFFICER (SHO) / HONOURABLE METROPOLITAN MAGISTRATE
+POLICE STATION {ps}
+
+COMPLAINANT: {complainant}
+Address: _________________________________________________
+Contact: _________________________________________________
+
+ACCUSED: {accused}
+Address: _________________________________________________
+
+SUBJECT: FORMAL COMPLAINT FOR REGISTRATION OF FIRST INFORMATION REPORT (FIR) U/S 420, 406, 467, 468, 471, 120B IPC / SECTIONS 318, 316, 336, 338, 340, 61 BNS FOR OFFENCES OF FRAUD, FORGERY, CRIMINAL BREACH OF TRUST, AND CHEATING.
+
+RESPECTED SIR / MADAM,
+
+1. That the Complainant is a law-abiding citizen engaged in lawful business/avocation and was dishonestly approached by the Accused person on or about {incident_date}.
+
+2. FRAUDULENT INDUCEMENT & ENTRUSTMENT:
+   That the Accused dishonestly and fraudulently induced the Complainant by making false representations regarding ________________________ (Transaction Nature). Believing the representations to be true, the Complainant parted with valuable property / funds amounting to {amount_str}.
+
+3. DISHONEST MISAPPROPRIATION & FORGERY:
+   That subsequent investigations revealed that the Accused harboured dishonest intention right from the inception of the transaction. The Accused fabricated documents/invoices and misappropriated the funds for personal enrichment, refusing to refund the money and threatening the Complainant with dire consequences.
+
+4. COGNIZABLE OFFENCE MADE OUT:
+   That the specific acts of the Accused satisfy all ingredients of cognizable offences under Sections 420/406/468 IPC / Sections 318/316/338 BNS. As mandated by the Constitution Bench in 'Lalita Kumari v. Govt of UP (2014)', registration of FIR is mandatory where information discloses commission of a cognizable offence.
+
+PRAYER:
+It is therefore requested that an FIR be registered immediately against the Accused persons under relevant sections of the law and stringent investigative measures, including seizure of incriminating materials and arrest of the culprits, be initiated in accordance with law.
+
+Place: ____________________
+Date: {today}
+COMPLAINANT
+"""
+
 class DraftEngine:
     @staticmethod
     def generate_opinion(analysis_result: Dict[str, Any]) -> str:
@@ -861,6 +1046,8 @@ class DraftEngine:
             return generate_regular_bail(case_data)
         elif draft_type == "ANTICIPATORY_BAIL":
             return generate_anticipatory_bail(case_data)
+        elif draft_type in ("DEFAULT_BAIL", "DEFAULT_BAIL_APPLICATION"):
+            return generate_default_bail(case_data)
         elif draft_type == "DISCHARGE_APPLICATION":
             return generate_discharge_application(case_data)
         elif draft_type == "QUASHING_PETITION":

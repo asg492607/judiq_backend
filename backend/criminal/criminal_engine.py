@@ -69,6 +69,11 @@ class CriminalEngine(BaseDomainEngine):
             **scoring_data,
             "domain": "criminal",
             "strategy": strategy,
+            "bail_assessment": strategy.get("bail_assessment"),
+            "statutory_rules": strategy.get("statutory_rules"),
+            "litigation_map": strategy.get("litigation_map"),
+            "timeline_analysis": strategy.get("timeline_analysis"),
+            "checkpoints": strategy.get("checkpoints"),
             "contradictions": contradictions
         }
 
