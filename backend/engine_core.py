@@ -125,6 +125,7 @@ class JudiQEngine:
                 "domain": "criminal",
                 "risk_level": "Low" if score >= 70 else ("Moderate" if score >= 40 else "High"),
                 "case_data": case_data,
+                "statutory_rules": criminal_res.get("statutory_rules", []),
                 "triggered_rules": criminal_res.get("statutory_rules", []),
                 "rules": criminal_res.get("statutory_rules", []),
                 "weaknesses": [r.get("legal_effect") for r in criminal_res.get("statutory_rules", [])],
