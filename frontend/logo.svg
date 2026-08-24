@@ -1,78 +1,65 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
   <defs>
-    <!-- Deep Royal Navy Background Gradient -->
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0F172A"/>
-      <stop offset="60%" stop-color="#1E293B"/>
-      <stop offset="100%" stop-color="#0F172A"/>
-    </linearGradient>
-
-    <!-- Vibrant Electric Blue to Cyan Gradient -->
-    <linearGradient id="primaryBlue" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#60A5FA"/>
-      <stop offset="50%" stop-color="#3B82F6"/>
+    <!-- Pure Vibrant Royal Blue Base Gradient (NO BLACK) -->
+    <linearGradient id="blueBase" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="50%" stop-color="#2563EB"/>
       <stop offset="100%" stop-color="#1D4ED8"/>
     </linearGradient>
 
-    <!-- Pure Platinum White Gradient -->
-    <linearGradient id="pureWhite" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="100%" stop-color="#E2E8F0"/>
+    <!-- Light Cyan-Blue Accent Gradient -->
+    <linearGradient id="iceBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#BAE6FD"/>
+      <stop offset="100%" stop-color="#60A5FA"/>
     </linearGradient>
 
-    <!-- Subtle Soft Shadow for Depth -->
-    <filter id="softElevation" x="-10%" y="-10%" width="120%" height="120%" filterUnits="userSpaceOnUse">
-      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.35"/>
-      <feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#2563EB" flood-opacity="0.2"/>
+    <!-- Soft Blue Elevation Shadow (NO BLACK) -->
+    <filter id="softBlueShadow" x="-10%" y="-10%" width="120%" height="120%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#1E40AF" flood-opacity="0.35"/>
     </filter>
-
-    <!-- Subtle Outer Stroke -->
-    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.6"/>
-      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.15"/>
-    </linearGradient>
   </defs>
 
-  <!-- Base Container: Premium Smooth Squircle -->
-  <rect x="24" y="24" width="464" height="464" rx="108" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="2.5" filter="url(#softElevation)"/>
+  <!-- Pure Royal Blue Smooth Squircle (NO BLACK) -->
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#blueBase)" stroke="#93C5FD" stroke-width="3" stroke-opacity="0.4" filter="url(#softBlueShadow)"/>
 
-  <!-- Geometric Emblem: Scales of Justice + J/Q Monogram in Pure White & Blue -->
+  <!-- Inner Soft Border Ring in Pure White & Light Blue -->
+  <rect x="38" y="38" width="436" height="436" rx="100" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.2"/>
+
+  <!-- Emblem: Scales of Justice + J/Q Legal Intelligence Monogram in Pure White & Ice Blue -->
   <g transform="translate(0, 0)">
-    <!-- 1. Central Vertical Axis (Pillar of Law) -->
-    <line x1="256" y1="124" x2="256" y2="348" stroke="url(#pureWhite)" stroke-width="8" stroke-linecap="round"/>
+    <!-- 1. Central Vertical Axis (Supreme Law Pillar) in Pure White -->
+    <line x1="256" y1="120" x2="256" y2="348" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
 
-    <!-- 2. Horizontal Balance Beam (Upper Arch) -->
-    <path d="M 132 196 C 168 168, 212 156, 256 156 C 300 156, 344 168, 380 196" 
-          stroke="url(#pureWhite)" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <!-- 2. Horizontal Balance Beam (Upper Arch) in Pure White -->
+    <path d="M 132 196 C 168 166, 212 154, 256 154 C 300 154, 344 166, 380 196" 
+          stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" fill="none"/>
 
-    <!-- 3. Left Balance Scale (White & Blue Geometry) -->
-    <line x1="132" y1="196" x2="132" y2="246" stroke="url(#pureWhite)" stroke-width="5" stroke-linecap="round"/>
-    <path d="M 100 246 C 100 268, 164 268, 164 246 Z" 
-          fill="none" stroke="url(#primaryBlue)" stroke-width="6" stroke-linejoin="round"/>
-    <path d="M 102 246 C 102 265, 162 265, 162 246 Z" fill="url(#primaryBlue)" opacity="0.25"/>
+    <!-- 3. Left Balance Scale Pan in Pure White & Ice Blue -->
+    <line x1="132" y1="196" x2="132" y2="246" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+    <path d="M 100 246 C 100 270, 164 270, 164 246 Z" 
+          fill="#FFFFFF" fill-opacity="0.2" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round"/>
 
-    <!-- 4. Right Balance Scale (White & Blue Geometry) -->
-    <line x1="380" y1="196" x2="380" y2="246" stroke="url(#pureWhite)" stroke-width="5" stroke-linecap="round"/>
-    <path d="M 348 246 C 348 268, 412 268, 412 246 Z" 
-          fill="none" stroke="url(#primaryBlue)" stroke-width="6" stroke-linejoin="round"/>
-    <path d="M 350 246 C 350 265, 410 265, 410 246 Z" fill="url(#primaryBlue)" opacity="0.25"/>
+    <!-- 4. Right Balance Scale Pan in Pure White & Ice Blue -->
+    <line x1="380" y1="196" x2="380" y2="246" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+    <path d="M 348 246 C 348 270, 412 270, 412 246 Z" 
+          fill="#FFFFFF" fill-opacity="0.2" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round"/>
 
-    <!-- 5. 'J' Curve Sweep at Base (White Graceful Loop) -->
+    <!-- 5. 'J' Monogram Curve at Base in Pure White -->
     <path d="M 256 312 C 256 372, 192 384, 176 348 C 168 328, 180 308, 204 308 C 224 308, 236 322, 236 338" 
-          stroke="url(#pureWhite)" stroke-width="8" stroke-linecap="round" fill="none"/>
+          stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" fill="none"/>
 
-    <!-- 6. 'Q' Tail Diagonal Slash (Electric Blue Precision Stroke) -->
+    <!-- 6. 'Q' Tail Diagonal Slash in Ice Blue -->
     <path d="M 256 332 C 278 332, 318 344, 348 384" 
-          stroke="url(#primaryBlue)" stroke-width="8" stroke-linecap="round" fill="none"/>
+          stroke="url(#iceBlue)" stroke-width="9" stroke-linecap="round" fill="none"/>
 
-    <!-- 7. Base Foundation Arch (Crisp White Pedestal) -->
-    <line x1="208" y1="400" x2="304" y2="400" stroke="url(#pureWhite)" stroke-width="6" stroke-linecap="round"/>
+    <!-- 7. Base Foundation Arch in Pure White -->
+    <line x1="204" y1="402" x2="308" y2="402" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
 
-    <!-- 8. Apex Diamond Core (Wisdom / Law) -->
-    <path d="M 256 108 L 268 124 L 256 140 L 244 124 Z" fill="url(#primaryBlue)"/>
+    <!-- 8. Apex Diamond Core in Ice Blue -->
+    <path d="M 256 104 L 268 120 L 256 136 L 244 120 Z" fill="url(#iceBlue)"/>
 
-    <!-- 9. Central Fulcrum Core (Blue Accent with White Center) -->
-    <circle cx="256" cy="196" r="10" fill="#1E293B" stroke="url(#primaryBlue)" stroke-width="4"/>
-    <circle cx="256" cy="196" r="4" fill="#FFFFFF"/>
+    <!-- 9. Central Fulcrum Core: White Outer Ring with Pure Blue Center -->
+    <circle cx="256" cy="196" r="11" fill="#2563EB" stroke="#FFFFFF" stroke-width="4.5"/>
+    <circle cx="256" cy="196" r="4.5" fill="#FFFFFF"/>
   </g>
 </svg>

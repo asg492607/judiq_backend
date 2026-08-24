@@ -1690,6 +1690,12 @@ export function renderCriminalResultsPanels(data) {
         `).join('');
     }
 }
+
+/**
+ * Render all SARFAESI-specific result panels.
+ * Called by renderResults() when domain === 'sarfaesi'.
+ */
+export function renderSarfaesiResultsPanels(data) {
     // Enforcement stage
     const graph = data.procedural_graph || data.timeline_analysis || data.timeline || {};
     const currentStage = graph.current_stage || data.enforcement_stage || 'Pre-Enforcement';
