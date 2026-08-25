@@ -1,28 +1,65 @@
+version: '3.8'
+
 services:
-  judiq-backend:
+  # 1. JudiQ Backend API Cluster
+  api:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
-    container_name: judiq-backend
+    container_name: judiq-api
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://judiq_user:judiq_secure_pass@db:5432/judiq_db
+      - SECRET_KEY=${SECRET_KEY:-judiq_production_secret_key_2026_enterprise}
+      - DEBUG=False
+      - REDIS_URL=redis://redis:6379/0
     ports:
       - "8000:8000"
-    environment:
-      - DATABASE_URL=${DATABASE_URL:-}
-      - SECRET_KEY=${SECRET_KEY:-changeme_secure_key_for_dev_only}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnk=}
-      - DEBUG=${DEBUG:-False}
-    volumes:
-      - ./backend/uploads:/app/uploads
-      - ./backend/analytics.db:/app/analytics.db
-    restart: unless-stopped
-
-  judiq-frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: judiq-frontend
-    ports:
-      - "8080:80"
     depends_on:
-      - judiq-backend
-    restart: unless-stopped
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - judiq-network
+
+  # 2. Production PostgreSQL 16 Database
+  db:
+    image: postgres:16-alpine
+    container_name: judiq-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: judiq_user
+      POSTGRES_PASSWORD: judiq_secure_pass
+      POSTGRES_DB: judiq_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U judiq_user -d judiq_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - judiq-network
+
+  # 3. High-Performance Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: judiq-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - judiq-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  judiq-network:
+    driver: bridge

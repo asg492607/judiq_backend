@@ -13,34 +13,54 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
 class DatabaseManager:
     _active_dialect = "sqlite"
+    _pg_pool = None
+
+    @classmethod
+    def _get_pg_pool(cls):
+        if cls._pg_pool is None and DATABASE_URL and ("postgres" in DATABASE_URL or "postgresql" in DATABASE_URL):
+            try:
+                import psycopg2.pool
+                cls._pg_pool = psycopg2.pool.ThreadedConnectionPool(
+                    minconn=2,
+                    maxconn=20,
+                    dsn=DATABASE_URL
+                )
+                logger.info("🐘 Production PostgreSQL Connection Pool Initialized (maxconn=20).")
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to initialize PostgreSQL pool: {e}. Falling back to single connections.")
+        return cls._pg_pool
 
     @staticmethod
     def get_connection():
-        # Priority 1: Primary SQLite Database
+        # Priority 1: Production PostgreSQL Database (if DATABASE_URL is configured)
+        if DATABASE_URL and ("postgres" in DATABASE_URL or "postgresql" in DATABASE_URL):
+            try:
+                import psycopg2
+                pool = DatabaseManager._get_pg_pool()
+                if pool:
+                    conn = pool.getconn()
+                    conn.autocommit = True
+                    DatabaseManager._active_dialect = "postgres"
+                    return conn
+                else:
+                    conn = psycopg2.connect(DATABASE_URL)
+                    DatabaseManager._active_dialect = "postgres"
+                    logger.info("📡 Production PostgreSQL Connected.")
+                    return conn
+            except ImportError:
+                logger.warning("⚠️ psycopg2 not installed. Falling back to local SQLite.")
+            except Exception as pg_err:
+                logger.warning(f"⚠️ Production PostgreSQL connection failed: {pg_err}. Falling back to local SQLite.")
+
+        # Priority 2: Local Development SQLite Database
         try:
             conn = sqlite3.connect(DB_PATH, check_same_thread=False)
             DatabaseManager._active_dialect = "sqlite"
-            logger.info("📁 Primary Database (SQLite) Connected.")
+            logger.info("📁 Local Development Database (SQLite) Connected.")
             return conn
         except Exception as sqlite_err:
-            logger.warning(f"⚠️ Primary SQLite connection failed: {sqlite_err}. Attempting Neon Postgres fallback...")
-
-        # Priority 2: Secondary Neon Postgres Database
-        if DATABASE_URL and "postgres" in DATABASE_URL:
-            try:
-                import psycopg2
-                conn = psycopg2.connect(DATABASE_URL)
-                DatabaseManager._active_dialect = "postgres"
-                logger.info("📡 Secondary Database (Neon Postgres) Connected.")
-                return conn
-            except ImportError:
-                logger.error("❌ psycopg2 not found. Cannot connect to Neon Postgres.")
-            except Exception as pg_err:
-                logger.error(f"❌ Neon Postgres connection failed: {pg_err}.")
-
-        # Emergency Fallback: Default SQLite
-        DatabaseManager._active_dialect = "sqlite"
-        return sqlite3.connect(DB_PATH, check_same_thread=False)
+            logger.error(f"❌ SQLite connection failed: {sqlite_err}")
+            raise sqlite_err
 
     @staticmethod
     def get_dialect_placeholder():

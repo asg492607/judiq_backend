@@ -14,22 +14,16 @@ import { JudiQCoCounselDock } from './modules/counsel_dock.js?v=14';
 import { JudiQStrategySimulator } from './modules/simulator.js?v=14';
 
 
+import { store } from './modules/store.js?v=14';
+
 // Initialize Firebase
 if (typeof firebase !== 'undefined') {
     firebase.initializeApp(firebaseConfig);
 }
 const auth = typeof firebase !== 'undefined' ? firebase.auth() : null;
 
-// Global State Initializer
-window.state = {
-    currentUser: null,
-    currentRole: null,
-    currentStep: 1,
-    totalSteps: wizardSteps.length,
-    caseData: {},
-    currentExperienceMode: 'executive',
-    analysisResult: null
-};
+// Enterprise Reactive State Initialization
+store.attachGlobalProxy();
 
 // Expose charts to window for switchResultTab access
 window.renderAdversarialCharts = renderAdversarialCharts;

@@ -15,3 +15,11 @@ api_router.include_router(verification.router, prefix="/verify", tags=["Verifica
 api_router.include_router(documents.router, prefix="/documents", tags=["Documents"])
 api_router.include_router(cases.router, prefix="/cases", tags=["Cases"])
 api_router.include_router(telemetry.router, prefix="/telemetry", tags=["Telemetry"])
+
+from knowledge_pipeline import PrecedentIngestionPayload, PrecedentIngestionService
+from fastapi import Body
+
+@api_router.post("/ingest/precedents", tags=["Knowledge Pipeline"])
+def ingest_precedent_endpoint(payload: PrecedentIngestionPayload = Body(...)):
+    return PrecedentIngestionService.ingest_precedent(payload)
+
