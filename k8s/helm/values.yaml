@@ -1,0 +1,60 @@
+# Default values for judiq-enterprise Helm chart.
+replicaCount: 3
+
+image:
+  repository: judiq/litigation-engine
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "25m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+  hosts:
+    - host: api.judiq.ai
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: judiq-api-tls
+      hosts:
+        - api.judiq.ai
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2048Mi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+probes:
+  liveness:
+    path: /health
+    initialDelaySeconds: 15
+    periodSeconds: 10
+  readiness:
+    path: /health
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+env:
+  DEBUG: "False"
+  PROJECT_NAME: "JudiQ Legal AI"
+  VERSION: "12.5.0-ENTERPRISE"

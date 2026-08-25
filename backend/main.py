@@ -38,18 +38,34 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
+from metrics import prometheus_metrics_endpoint, JUDIQ_REQUESTS_TOTAL, JUDIQ_REQUEST_DURATION_SECONDS
+
 @app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
+async def add_process_time_and_metrics(request: Request, call_next):
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time
     response.headers["X-Process-Time"] = str(process_time)
+    
+    # Record Prometheus Metrics
+    try:
+        endpoint = request.url.path
+        method = request.method
+        status = str(response.status_code)
+        JUDIQ_REQUESTS_TOTAL.labels(method=method, endpoint=endpoint, status_code=status).inc()
+        JUDIQ_REQUEST_DURATION_SECONDS.labels(method=method, endpoint=endpoint).observe(process_time)
+    except Exception:
+        pass
+
     # Prevent browser from serving stale cached static files in development
     if not request.url.path.startswith("/api/"):
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
     return response
+
+# Prometheus scraping endpoint
+app.add_api_route("/metrics", prometheus_metrics_endpoint, methods=["GET"], tags=["Observability"])
 
 
 # SECURITY: Use an explicit allowlist only. No wildcard regex.

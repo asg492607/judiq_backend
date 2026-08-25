@@ -1,0 +1,14 @@
+apiVersion: v2
+name: judiq-enterprise
+description: Enterprise Helm Chart for JudiQ AI Litigation Intelligence Platform
+type: application
+version: 1.0.0
+appVersion: "12.5.0"
+keywords:
+  - legal-tech
+  - litigation-intelligence
+  - fast-api
+  - judicial-analytics
+maintainers:
+  - name: JudiQ Core Engineering
+    email: engineering@judiq.ai

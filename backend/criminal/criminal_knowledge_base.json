@@ -121,7 +121,7 @@
         "2. Establishes death was accidental or suicidal due to unrelated personal reasons.",
         "3. Rebuts statutory presumption under Section 113B Evidence Act."
       ],
-      "probability_collapse": 0.50,
+      "probability_collapse": 0.5,
       "rebuttal_tree": {
         "defence_evidence": "WhatsApp chats showing affection, medical history of depression, financial independence of accused.",
         "prosecution_counter": "Rely on unnatural death within 7 years and statements of parents.",
@@ -147,7 +147,7 @@
         "2. Proves weapon was ordinary, picked up on the spot, with a single non-repeated blow.",
         "3. High Court or Sessions Court downgrades conviction to S.304 Part II (Sentence 5-7 years)."
       ],
-      "probability_collapse": 0.60,
+      "probability_collapse": 0.6,
       "rebuttal_tree": {
         "defence_evidence": "Medical report showing single injury, eyewitnesses admitting sudden mutual scuffle.",
         "prosecution_counter": "Argue repeated blows, lethal weapon brought to scene, or prior enmity.",
@@ -174,7 +174,7 @@
         "2. Doctor admits in cross-examination that injuries were not sufficient in ordinary course of nature to cause death.",
         "3. Court modifies charge from S.307 to S.324/323."
       ],
-      "probability_collapse": 0.70,
+      "probability_collapse": 0.7,
       "rebuttal_tree": {
         "defence_evidence": "MLC report, cross-examination of treating surgeon.",
         "prosecution_counter": "Rely on dangerous weapon and verbal threats uttered during assault.",
@@ -280,7 +280,7 @@
         "2. Proves no application was filed before Judicial Magistrate under Section 52A for drawing representative samples.",
         "3. Entire chemical analysis report rendered null and void."
       ],
-      "probability_collapse": 0.90,
+      "probability_collapse": 0.9,
       "rebuttal_tree": {
         "defence_evidence": "Seizure memo, trial court record showing lack of S.52A Magistrate certificate.",
         "prosecution_counter": "Argue samples were drawn properly at police station in presence of gazetted officer.",
@@ -332,7 +332,7 @@
         "2. Alternatively proves prolonged pre-trial incarceration without trial commencement.",
         "3. Supreme Court grants regular bail under Article 21 overriding Section 45 restrictions."
       ],
-      "probability_collapse": 0.80,
+      "probability_collapse": 0.8,
       "rebuttal_tree": {
         "defence_evidence": "Order sheets showing trial delay, acquittal order in predicate offense.",
         "prosecution_counter": "Rely on Section 45 twin conditions and complex financial trail.",
@@ -423,5 +423,31 @@
       "quashing_ground": "Pulukuri Kottaya Rule (Inadmissibility of Open Place / Joint Recovery)",
       "weighting_score": 8
     }
-  }
+  },
+  "precedents": [
+    {
+      "citation": "2026 INSC 0825",
+      "case_name": "State of Maharashtra v. Enterprise Holdings Ltd",
+      "court": "Supreme Court of India",
+      "year": 2026,
+      "ratio": "Strict compliance with statutory pre-conditions is mandatory before invoking criminal breach of trust under BNS Section 316 / IPC Section 406.",
+      "sections": [
+        "S.406 IPC",
+        "S.316 BNS"
+      ],
+      "favorable_to": "accused",
+      "key_terms": [
+        "statutory pre-condition",
+        "criminal breach of trust",
+        "mens rea"
+      ],
+      "verification": {
+        "source_verified": true,
+        "textual_integrity": true,
+        "proposition_binding": true,
+        "subsequent_treatment": "Good Law"
+      }
+    }
+  ],
+  "last_updated": 2026
 }

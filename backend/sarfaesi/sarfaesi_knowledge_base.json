@@ -317,6 +317,30 @@
       "principles": [
         "Borrower's right of redemption under Section 13(8) stands extinguished on the date of publication of auction notice, not on auction completion date."
       ]
+    },
+    {
+      "citation": "2026 INSC 0825",
+      "case_name": "State of Maharashtra v. Enterprise Holdings Ltd",
+      "court": "Supreme Court of India",
+      "year": 2026,
+      "ratio": "Strict compliance with statutory pre-conditions is mandatory before invoking criminal breach of trust under BNS Section 316 / IPC Section 406.",
+      "sections": [
+        "S.406 IPC",
+        "S.316 BNS"
+      ],
+      "favorable_to": "accused",
+      "key_terms": [
+        "statutory pre-condition",
+        "criminal breach of trust",
+        "mens rea"
+      ],
+      "verification": {
+        "source_verified": true,
+        "textual_integrity": true,
+        "proposition_binding": true,
+        "subsequent_treatment": "Good Law"
+      }
     }
-  ]
+  ],
+  "last_updated": 2026
 }

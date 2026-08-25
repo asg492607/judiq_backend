@@ -1,0 +1,100 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "🏛️ JudiQ AI Platform Ingress & Latency",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": { "unit": "reqps" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 },
+      "id": 2,
+      "title": "Requests per Second (by Endpoint & Status)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(judiq_requests_total[1m])) by (endpoint, status_code)",
+          "legendFormat": "{{endpoint}} ({{status_code}})"
+        }
+      ]
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": { "unit": "s" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
+      "id": 3,
+      "title": "95th Percentile Latency (p95)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(judiq_request_duration_seconds_bucket[5m])) by (le, endpoint))",
+          "legendFormat": "p95 - {{endpoint}}"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 },
+      "id": 4,
+      "title": "⚖️ Litigation Intelligence & Defect Analytics",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": { "unit": "short" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
+      "id": 5,
+      "title": "Fatal Defects Detected by Code",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(judiq_fatal_defects_detected_total[5m])) by (defect_code)",
+          "legendFormat": "{{defect_code}}"
+        }
+      ]
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": { "unit": "short" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
+      "id": 6,
+      "title": "Analysis Volume by Legal Domain",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(judiq_analysis_executions_total[5m])) by (domain)",
+          "legendFormat": "{{domain}}"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["judiq", "legal-tech", "production"],
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "title": "JudiQ AI Enterprise Production Dashboard",
+  "uid": "judiq-enterprise-prod"
+}
