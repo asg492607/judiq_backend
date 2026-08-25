@@ -86,16 +86,24 @@ async def health_check():
     return health_data
 
 
-@app.get("/")
-@app.head("/")
-async def root_endpoint():
-    return {"status": "online", "service": settings.PROJECT_NAME, "version": settings.VERSION}
-
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
 
 # All routes are served exclusively under /api/v1 prefix.
 # Legacy duplicate route registrations removed to eliminate route conflicts.
 app.include_router(api_router, prefix="/api/v1")
 
+# Mount frontend directory for seamless local development & single-port hosting
+frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
+if frontend_dir.exists():
+    app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
+else:
+    @app.get("/")
+    @app.head("/")
+    async def root_endpoint():
+        return {"status": "online", "service": settings.PROJECT_NAME, "version": settings.VERSION}
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
+
