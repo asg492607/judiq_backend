@@ -248,6 +248,70 @@ export const criminalWizardSteps = [
     }
 ];
 
+export const sarfaesiWizardSteps = [
+    {
+        id: 'sarfaesi_identity',
+        title: 'Loan Account & NPA Particulars',
+        subtitle: 'Loan account, borrower details, and NPA classification',
+        fields: [
+            { name: 'case_id', label: 'Loan Account / SARFAESI ID', type: 'text', required: true, placeholder: 'e.g., SARF/2026/894' },
+            { name: 'case_title', label: 'Case Title / Caption', type: 'text', required: true, placeholder: 'e.g., ABC Bank vs XYZ Commercial Infra' },
+            { name: 'perspective', label: 'Representation Perspective', type: 'select', options: ['Creditor (Bank / Financial Institution)', 'Borrower / Guarantor / Mortgagor'], required: true },
+            { name: 'bank_name', label: 'Secured Creditor (Bank / NBFC Name)', type: 'text', required: true, placeholder: 'e.g., State Bank of India' },
+            { name: 'borrower_name', label: 'Borrower / Mortgagor Name', type: 'text', required: true, placeholder: 'e.g., Rajesh Sharma & M/s Sharma Enterprises' },
+            { name: 'npa_date', label: 'NPA Classification Date', type: 'date', required: true },
+            { name: 'filing_date', label: 'Intake / Audit Date', type: 'date', required: true }
+        ]
+    },
+    {
+        id: 'sarfaesi_debt',
+        title: 'Debt & Secured Asset Audit',
+        subtitle: 'Sanction, outstanding debt, CERSAI, and agricultural land audit',
+        fields: [
+            { name: 'sanction_amount', label: 'Original Sanction Amount (₹)', type: 'number', required: true, placeholder: 'e.g., 50000000' },
+            { name: 'outstanding_amount', label: 'Outstanding Debt Claimed (₹)', type: 'number', required: true, placeholder: 'e.g., 62500000' },
+            { name: 'property_description', label: 'Secured Asset / Property Description', type: 'textarea', required: true, placeholder: 'e.g., Commercial Plot No. 45, MIDC Industrial Area, Pune' },
+            { name: 'is_agricultural_land', label: 'Is Secured Asset Agricultural Land? (S.31(i) Bar)', type: 'select', options: ['No - Commercial / Residential Property', 'Yes - Agricultural Land (SARFAESI Inapplicable)'], required: true },
+            { name: 'cersai_registered', label: 'CERSAI Security Interest Registered? (S.26D)', type: 'select', options: ['Yes - Duly Registered with CERSAI', 'No - Unregistered (Enforcement Barred u/s 26D)'], required: true },
+            { name: 'ibc_moratorium', label: 'Is IBC Moratorium / CIRP Active? (S.14 IBC Overrides)', type: 'select', options: ['No', 'Yes - NCLT CIRP / Moratorium Active (Enforcement Barred)'], required: true }
+        ]
+    },
+    {
+        id: 'sarfaesi_notices',
+        title: 'Section 13 Enforcement Notices',
+        subtitle: 'Section 13(2) demand, borrower objection, 13(3A) reply, and 13(4) possession',
+        fields: [
+            { name: 'notice_13_2_date', label: 'Demand Notice u/s 13(2) Date', type: 'date', required: true },
+            { name: 'service_proof_available', label: 'Proof of Service for S.13(2) Notice Available?', type: 'select', options: ['Yes - Acknowledgment / Delivery Proof Available', 'No - Missing Proof of Service'], required: true },
+            { name: 'borrower_representation_date', label: 'Borrower Objection / Representation Date (if any)', type: 'date', required: false },
+            { name: 'bank_reply_13_3a_date', label: 'Bank Reply u/s 13(3A) Date (Must be within 15 days)', type: 'date', required: false },
+            { name: 'possession_13_4_date', label: 'Possession Notice u/s 13(4) Date', type: 'date', required: false }
+        ]
+    },
+    {
+        id: 'sarfaesi_auction',
+        title: 'Possession & Auction Compliance',
+        subtitle: 'Rule 8/9 newspaper publication, valuation, and 30-day notice',
+        fields: [
+            { name: 'newspaper_publication_done', label: 'Newspaper Publication in 2 Dailies? (Rule 8(6) / 9(1))', type: 'select', options: ['Yes - Published in English & Vernacular Dailies', 'No - Defective Publication', 'Not Applicable (Pre-Auction)'], required: true },
+            { name: 'auction_notice_date', label: 'Auction Sale Notice Issued Date', type: 'date', required: false },
+            { name: 'auction_date', label: 'Scheduled / Held Auction Date', type: 'date', required: false },
+            { name: 'reserve_price', label: 'Approved Reserve Price (₹)', type: 'number', required: false, placeholder: 'e.g., 45000000' }
+        ]
+    },
+    {
+        id: 'sarfaesi_drt',
+        title: 'DRT Securitization Application (S.17)',
+        subtitle: 'DRT filing, 45-day limitation, pre-deposit, and interim stay prayers',
+        fields: [
+            { name: 'sa_filing_date', label: 'Securitization Application (SA) Filing Date (S.17)', type: 'date', required: false },
+            { name: 'drt_court_name', label: 'Designated Debts Recovery Tribunal (DRT Bench)', type: 'text', required: false, placeholder: 'e.g., DRT-I, Mumbai' },
+            { name: 'stay_sought', label: 'Interim Stay on Physical Possession / Auction Sought?', type: 'select', options: ['Yes - Urgent Interim Stay Prayed', 'No - Final Hearing / Valuation Challenge Only'], required: false },
+            { name: 'additional_notes', label: 'Additional Pleadings & Irregularities Pled', type: 'textarea', required: false, placeholder: 'Detail any undervaluation, lack of panchnama, or breach of mandatory timelines...' }
+        ]
+    }
+];
+
 export const civilWizardSteps = [
     {
         id: 'civil_identity',

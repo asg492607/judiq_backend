@@ -1,17 +1,17 @@
-import { firebaseConfig, roleActions, wizardSteps } from '../config.js?v=12';
-import { api } from '../api.js?v=12';
-import { ui, switchScreen } from '../ui.js?v=12';
-import { renderWizardStep } from '../wizard.js?v=12';
-import { renderResults, switchResultTab } from '../renderer.js?v=12';
-import { DRAFT_TYPES, formatDraftDate, numberToWords } from '../draft_templates.js?v=12';
-import { escapeHtml } from './modules/utils.js?v=12';
+import { firebaseConfig, roleActions, wizardSteps } from '../config.js?v=13';
+import { api } from '../api.js?v=13';
+import { ui, switchScreen } from '../ui.js?v=13';
+import { renderWizardStep } from '../wizard.js?v=13';
+import { renderResults, switchResultTab } from '../renderer.js?v=13';
+import { DRAFT_TYPES, formatDraftDate, numberToWords } from '../draft_templates.js?v=13';
+import { escapeHtml } from './modules/utils.js?v=13';
 
 // Import sub-modules to register their exports or initialize their global interfaces
-import { JudiQModals } from './modules/modals.js?v=12';
-import { renderAdversarialCharts, renderScoreBreakdownChart } from './modules/charts.js?v=12';
-import { JudiQValidator } from './modules/validation.js?v=12';
-import { JudiQCoCounselDock } from './modules/counsel_dock.js?v=12';
-import { JudiQStrategySimulator } from './modules/simulator.js?v=12';
+import { JudiQModals } from './modules/modals.js?v=13';
+import { renderAdversarialCharts, renderScoreBreakdownChart } from './modules/charts.js?v=13';
+import { JudiQValidator } from './modules/validation.js?v=13';
+import { JudiQCoCounselDock } from './modules/counsel_dock.js?v=13';
+import { JudiQStrategySimulator } from './modules/simulator.js?v=13';
 
 
 // Initialize Firebase
