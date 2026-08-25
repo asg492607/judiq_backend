@@ -102,15 +102,15 @@ def normalize_input(data: dict) -> dict:
     if not isinstance(data, dict):
         logger.error("normalize_input received non-dict input; returning empty defaults.")
         data = {}
-    tx_obj   = data.get("transaction")   or {}
-    cq_obj   = data.get("cheque")        or {}
-    ds_obj   = data.get("dishonour")     or {}
-    nt_obj   = data.get("notice")        or {}
-    id_obj   = data.get("case_identity") or {}
-    pt_obj   = data.get("parties")       or {}
-    comp_obj = pt_obj.get("complainant") or {}
-    accu_obj = pt_obj.get("accused")     or {}
-    meta_obj = data.get("metadata")      or {}
+    tx_obj   = data.get("transaction")   if isinstance(data.get("transaction"), dict) else {}
+    cq_obj   = data.get("cheque")        if isinstance(data.get("cheque"), dict) else {}
+    ds_obj   = data.get("dishonour")     if isinstance(data.get("dishonour"), dict) else {}
+    nt_obj   = data.get("notice")        if isinstance(data.get("notice"), dict) else {}
+    id_obj   = data.get("case_identity") if isinstance(data.get("case_identity"), dict) else {}
+    pt_obj   = data.get("parties")       if isinstance(data.get("parties"), dict) else {}
+    comp_obj = pt_obj.get("complainant") if isinstance(pt_obj.get("complainant"), dict) else {}
+    accu_obj = pt_obj.get("accused")     if isinstance(pt_obj.get("accused"), dict) else {}
+    meta_obj = data.get("metadata")      if isinstance(data.get("metadata"), dict) else {}
     raw_amount = (data.get("amount") or data.get("caseAmount")
                   or data.get("debt_amount") or data.get("cheque_amount")
                   or tx_obj.get("debt_amount") or cq_obj.get("cheque_amount") or 0)

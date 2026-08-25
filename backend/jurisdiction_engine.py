@@ -79,15 +79,28 @@ def map_jurisdiction(case_data: Dict) -> Dict:
             "warnings": ["Provide payee bank branch location to enable jurisdiction mapping."]
         }
     supplied_court = str(case_data.get("court_name") or "").strip().lower()
+    court_tier = get_court_tier(primary_city)
+    correct_court_name = f"{court_tier}, {primary_city.title()}"
+
     if supplied_court and primary_city and primary_city.lower() not in supplied_court:
         return {
             "status": "INVALID",
-            "recommended_court": f"{get_court_tier(primary_city)}, {primary_city.title()}",
+            "auto_reroute_available": True,
+            "current_court": case_data.get('court_name'),
+            "suggested_court": correct_court_name,
+            "recommended_court": correct_court_name,
             "primary_city": primary_city.title(),
             "confidence": confidence,
             "legal_basis": basis,
-            "reason": f"Filed court '{case_data.get('court_name')}' does not align with S.142(2) territorial jurisdiction at {primary_city.title()}.",
-            "warnings": warnings + ["Territorial jurisdiction mismatch triggers a maintainability defect."],
+            "reason": f"Selected filing court '{case_data.get('court_name')}' does not match territorial payee-branch jurisdiction at {primary_city.title()}.",
+            "reroute_action_label": f"Auto-Align to {correct_court_name}",
+            "warnings": warnings + [
+                f"Territorial defect: Under Section 142(2)(a) (post-2015 Amendment & Bridgestone India), complaint must be filed before {correct_court_name}."
+            ],
+            "filing_checklist": [
+                f"⚡ Auto-Reroute to: {correct_court_name}",
+                "✅ Attach bank account statement proving cheque collection branch location"
+            ]
         }
     court_tier = get_court_tier(primary_city)
     court_name = f"{court_tier}, {primary_city.title()}"

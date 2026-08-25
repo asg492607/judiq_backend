@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import Dict, List, Any
 from core.base_domain_engine import BaseDomainEngine
 from core.case_registry import case_registry
@@ -95,6 +96,28 @@ class SarfaesiDomainEngine(BaseDomainEngine):
             all_fatal.extend(eval_result["critical_blockers"])
         if eval_result.get("critical_grounds"):
             all_fatal.extend(eval_result["critical_grounds"])
+
+        # Institutional Module Invocations:
+        from sarfaesi.edrt_export_engine import EdrtExportEngine
+        from sarfaesi.cersai_verification_engine import CersaiVerificationEngine
+        from sarfaesi.redemption_engine import RedemptionEngine
+        from sarfaesi.section14_affidavit_engine import Section14AffidavitEngine
+
+        cersai_audit = CersaiVerificationEngine.verify_cersai_compliance(case_data)
+        redemption_analysis = RedemptionEngine.evaluate_redemption_status(case_data)
+        section14_audit = Section14AffidavitEngine.audit_section14_readiness(case_data)
+        edrt_bundle = EdrtExportEngine.generate_edrt_bundle(case_data)
+
+        # Apply CERSAI Section 26D Statutory Bar if active
+        if cersai_audit.get("statutory_bar_active") and not is_borrower:
+            score = min(score, 25)
+            verdict = "HIGH STAY RISK"
+            all_fatal.append("CERSAI Section 26D Statutory Bar: Unregistered security interest cannot be enforced under Chapter III.")
+
+        # Apply Celir LLP Section 13(8) Redemption Cut-off note
+        if redemption_analysis.get("right_to_redeem_extinguished") and is_borrower:
+            all_fatal.append("Section 13(8) Cut-Off: Borrower redemption right extinguished upon auction notice publication (Celir LLP v. Bafna Motors).")
+
         fatal_defect = " | ".join(dict.fromkeys(all_fatal)) if all_fatal else None
 
         evidence_gaps = eval_result.get("evidence_gaps") or eval_result.get("evidence_gaps_in_bank_case") or EvidenceIntelligenceEngine.evaluate_evidence_gaps(case_data)
@@ -117,13 +140,9 @@ class SarfaesiDomainEngine(BaseDomainEngine):
         )
 
         return {
-            "score": score,
-            "final_score": float(score),
-            "verdict": verdict,
             "domain": "sarfaesi",
-            "perspective": eval_result["perspective"],
-            "fatal_defect": fatal_defect,
-            "issues": all_fatal,
+            "score": score,
+            "verdict": verdict,
             "reasoning_trace": scoring_res.get("trace", []) + eval_result.get("all_grounds", []),
             "abstain_recommended": abstain_recommended,
             "decision_status": decision_status,
@@ -142,10 +161,18 @@ class SarfaesiDomainEngine(BaseDomainEngine):
             "limitation_status": lim_status,
             "limitation": limitation_res,
             "audit_entry": audit_entry,
+            "cersai_audit": cersai_audit,
+            "redemption_analysis": redemption_analysis,
+            "section14_audit": section14_audit,
+            "edrt_bundle": edrt_bundle,
             "detailed_assessment": {
                 **eval_result,
                 "limitation_remaining_days": lim_rem,
-                "limitation_status": lim_status
+                "limitation_status": lim_status,
+                "cersai_audit": cersai_audit,
+                "redemption_analysis": redemption_analysis,
+                "section14_audit": section14_audit,
+                "edrt_bundle": edrt_bundle
             }
         }
 

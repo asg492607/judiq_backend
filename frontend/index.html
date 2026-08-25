@@ -60,7 +60,6 @@
         <div id="landingScreen" class="landing-screen">
             <header class="landing-header">
                 <div class="landing-logo" style="display: flex; align-items: center; gap: 0.75rem;">
-                    <img src="logo.svg" alt="JudiQ AI Logo" class="brand-logo-img" style="height: 38px; width: 38px; border-radius: 8px;">
                     <span data-i18n="brand_name" class="brand-name-serif" style="font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.08em; font-size: 1.3rem;">JUDIQ AI</span>
                 </div>
                 <div class="landing-nav-links">
@@ -93,7 +92,6 @@
             <div id="mobileNavDrawer" class="mobile-nav-drawer">
                 <div class="mobile-nav-drawer-header">
                     <div style="display: flex; align-items: center; gap: 0.6rem;">
-                        <img src="logo.svg" alt="JudiQ AI Logo" style="height: 32px; width: 32px;">
                         <span class="brand-name-serif" style="font-family: 'Cinzel', serif; font-weight: 700; font-size: 1.1rem; color: #fff;">JUDIQ AI</span>
                     </div>
                     <button class="mobile-nav-close-btn" onclick="toggleMobileNav(false)">&times;</button>
@@ -809,7 +807,6 @@
                 <div class="footer-content">
                     <div class="footer-col brand-col">
                         <div class="footer-brand" style="display: flex; align-items: center; gap: 0.6rem;">
-                            <img src="logo.svg" alt="JudiQ AI Logo" style="height: 28px; width: 28px;">
                             <span class="brand-name-serif" style="font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.08em;">JUDIQ AI</span>
                         </div>
                         <p class="footer-desc">Institutional-grade adversarial litigation simulation, statutory weakness detection, and strategy formulation for top-tier law firms and in-house counsel.</p>
@@ -877,7 +874,6 @@
         <div id="loginScreen" class="auth-screen hidden">
             <div class="auth-container">
                 <div class="auth-brand" style="display: flex; flex-direction: column; align-items: center;">
-                    <img src="logo.svg" alt="JudiQ AI Logo" style="height: 56px; width: 56px; margin-bottom: 0.75rem; border-radius: 12px;">
                     <h1>JUDIQ AI</h1>
                     <p class="brand-tagline">AI Litigation Strategist</p>
                 </div>
@@ -901,15 +897,6 @@
                             <span class="btn-loader"></span>
                         </button>
                     </form>
-
-                    <div style="display: flex; align-items: center; margin: 1rem 0; gap: 0.75rem;">
-                        <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.12);"></div>
-                        <span style="font-size: 0.78rem; color: var(--gray-400); text-transform: uppercase;">or</span>
-                        <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.12);"></div>
-                    </div>
-                    <button type="button" class="btn btn-outline btn-full" onclick="window.loginAsGuest()" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                        <i class="fas fa-bolt" style="color: #38bdf8;"></i> Instant Guest / Demo Access
-                    </button>
                     
                     <div class="auth-footer">
                         <p>Don't have an account? <a href="#" id="showRegister">Create one</a></p>
@@ -922,7 +909,6 @@
         <div id="registerScreen" class="auth-screen hidden">
             <div class="auth-container">
                 <div class="auth-brand" style="display: flex; flex-direction: column; align-items: center;">
-                    <img src="logo.svg" alt="JudiQ AI Logo" style="height: 56px; width: 56px; margin-bottom: 0.75rem; border-radius: 12px;">
                     <h1>JUDIQ AI</h1>
                     <p class="brand-tagline">AI Litigation Strategist</p>
                 </div>
@@ -945,25 +931,49 @@
                             <input type="password" id="registerConfirmPassword" required placeholder="••••••••" autocomplete="new-password">
                         </div>
 
-                        <!-- Domain Picker — selected once at registration, permanently locked -->
+                        <!-- Domain Picker — Select primary legal specialization or full access -->
                         <div class="domain-picker-section">
-                            <div class="domain-picker-label">Select Your Legal Domain <span style="color:#ef4444;">*</span></div>
-                            <div class="domain-picker" id="domainPickerGrid">
+                            <div class="domain-picker-label">Select Your Legal Specialization or Full Access <span style="color:#ef4444;">*</span></div>
+                            <div class="domain-picker" id="domainPickerGrid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                                <div class="domain-card selected--all" id="domainCard_all" onclick="selectRegisterDomain('all')">
+                                    <span class="dc-check" id="domainCheck_all"><i class="fas fa-check"></i></span>
+                                    <span class="dc-icon">🏛️</span>
+                                    <span class="dc-title">Full Practice (All Domains)</span>
+                                    <span class="dc-sub">Unrestricted access to all 5 statutory litigation modules</span>
+                                </div>
+                                <div class="domain-card" id="domainCard_composite" onclick="selectRegisterDomain('composite')">
+                                    <span class="dc-check" id="domainCheck_composite"><i class="fas fa-check"></i></span>
+                                    <span class="dc-icon">⚡</span>
+                                    <span class="dc-title">Multi-Track Composite</span>
+                                    <span class="dc-sub">Concurrent SARFAESI + Sec 138 + Criminal Recovery Engine</span>
+                                </div>
                                 <div class="domain-card" id="domainCard_ni" onclick="selectRegisterDomain('ni_act')">
                                     <span class="dc-check" id="domainCheck_ni"><i class="fas fa-check"></i></span>
                                     <span class="dc-icon">⚖️</span>
                                     <span class="dc-title">NI Act — Section 138</span>
-                                    <span class="dc-sub">Cheque Bounce, Negotiable Instruments, Criminal Complaints</span>
+                                    <span class="dc-sub">Cheque Bounce, S.139 Presumptions, S.143A Compensation</span>
                                 </div>
                                 <div class="domain-card" id="domainCard_sarfaesi" onclick="selectRegisterDomain('sarfaesi')">
                                     <span class="dc-check" id="domainCheck_sarfaesi"><i class="fas fa-check"></i></span>
                                     <span class="dc-icon">🏦</span>
                                     <span class="dc-title">SARFAESI / DRT</span>
-                                    <span class="dc-sub">Secured Asset Recovery, Bank Enforcement, NPA Proceedings</span>
+                                    <span class="dc-sub">Secured Asset Recovery, S.13(2)/13(4), CERSAI, DRT S.A.</span>
+                                </div>
+                                <div class="domain-card" id="domainCard_criminal" onclick="selectRegisterDomain('criminal')">
+                                    <span class="dc-check" id="domainCheck_criminal"><i class="fas fa-check"></i></span>
+                                    <span class="dc-icon">🛡️</span>
+                                    <span class="dc-title">Criminal (BNS / IPC)</span>
+                                    <span class="dc-sub">Bail S.438/439, S.482 Quashing, S.318/420 Cheating Defense</span>
+                                </div>
+                                <div class="domain-card" id="domainCard_civil" onclick="selectRegisterDomain('civil')">
+                                    <span class="dc-check" id="domainCheck_civil"><i class="fas fa-check"></i></span>
+                                    <span class="dc-icon">📜</span>
+                                    <span class="dc-title">Civil & Commercial</span>
+                                    <span class="dc-sub">Commercial Suits, Specific Performance, Order 39 Injunctions</span>
                                 </div>
                             </div>
                             <div class="domain-picker-error" id="domainPickerError">Please select your legal domain to continue.</div>
-                            <input type="hidden" id="registerDomain" value="">
+                            <input type="hidden" id="registerDomain" value="all">
                         </div>
 
                         <div class="form-group checkbox-group" style="display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 1.5rem; text-align: left;">
@@ -979,15 +989,6 @@
                             <span class="btn-loader"></span>
                         </button>
                     </form>
-
-                    <div style="display: flex; align-items: center; margin: 1rem 0; gap: 0.75rem;">
-                        <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.12);"></div>
-                        <span style="font-size: 0.78rem; color: var(--gray-400); text-transform: uppercase;">or</span>
-                        <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.12);"></div>
-                    </div>
-                    <button type="button" class="btn btn-outline btn-full" onclick="window.loginAsGuest()" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                        <i class="fas fa-bolt" style="color: #38bdf8;"></i> Instant Guest / Demo Access
-                    </button>
                     
                     <div class="auth-footer">
                         <p>Already have an account? <a href="#" id="showLogin">Sign in</a></p>
@@ -1073,7 +1074,6 @@
             <!-- Top Navigation -->
             <nav class="top-nav">
                 <div class="nav-brand">
-                    <img src="logo.svg" alt="JudiQ AI Logo" class="brand-logo-img" style="height: 32px; width: 32px; border-radius: 6px;">
                     <span class="brand-title">JUDIQ AI</span>
                 </div>
                 <div class="nav-user">
@@ -1112,6 +1112,29 @@
                     </div>
                 </div>
 
+                <!-- Domain / Legal Area Quick Switcher -->
+                <div class="domain-quick-switch-bar" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1.25rem 0 1.75rem 0; padding: 0.6rem; background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: 12px;">
+                    <button class="btn btn-sm domain-switch-tab active" id="tab_domain_all" onclick="window.switchUserDomain('all', this)" style="border-radius: 8px; font-weight: 600; padding: 0.45rem 0.9rem;">
+                        <i class="fas fa-layer-group"></i> All Modules
+                    </button>
+                    <button class="btn btn-sm domain-switch-tab" id="tab_domain_composite" onclick="window.switchUserDomain('composite', this)" style="border-radius: 8px; font-weight: 600; padding: 0.45rem 0.9rem;">
+                        <i class="fas fa-bolt" style="color:#f59e0b;"></i> Multi-Track (SARFAESI + 138 + Criminal)
+                    </button>
+                    <button class="btn btn-sm domain-switch-tab" id="tab_domain_ni" onclick="window.switchUserDomain('ni_act', this)" style="border-radius: 8px; font-weight: 600; padding: 0.45rem 0.9rem;">
+                        <i class="fas fa-file-invoice-dollar" style="color:#3b82f6;"></i> S.138 Cheque Bounce
+                    </button>
+                    <button class="btn btn-sm domain-switch-tab" id="tab_domain_sarfaesi" onclick="window.switchUserDomain('sarfaesi', this)" style="border-radius: 8px; font-weight: 600; padding: 0.45rem 0.9rem;">
+                        <i class="fas fa-university" style="color:#10b981;"></i> SARFAESI / DRT
+                    </button>
+                    <button class="btn btn-sm domain-switch-tab" id="tab_domain_criminal" onclick="window.switchUserDomain('criminal', this)" style="border-radius: 8px; font-weight: 600; padding: 0.45rem 0.9rem;">
+                        <i class="fas fa-user-shield" style="color:#ef4444;"></i> Criminal (BNS / IPC)
+                    </button>
+                    <button class="btn btn-sm domain-switch-tab" id="tab_domain_civil" onclick="window.switchUserDomain('civil', this)" style="border-radius: 8px; font-weight: 600; padding: 0.45rem 0.9rem;">
+                        <i class="fas fa-balance-scale" style="color:#8b5cf6;"></i> Civil & Commercial
+                    </button>
+                </div>
+
+
                 <!-- Action Cards Grid -->
                 <div id="actionCardsGrid" class="action-cards-grid"></div>
 
@@ -1124,13 +1147,97 @@
         </div>
 
         <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- DRAFT STUDIO SCREEN (Standalone - accessible from dashboard) -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div id="draftStudioScreen" class="main-screen hidden">
+            <nav class="top-nav">
+                <div class="nav-brand" style="display: flex; align-items: center; gap: 0.6rem;">
+                    <span class="brand-title">JUDIQ AI</span>
+                    <span style="font-size: 0.78rem; color: var(--gray-400); padding-left: 0.5rem;">/ Draft Studio</span>
+                </div>
+                <div class="nav-actions">
+                    <button class="btn btn-text" onclick="showDashboard()">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </button>
+                </div>
+            </nav>
+
+            <div class="wizard-container" style="max-width: 960px;">
+
+                <!-- STEP 1: Select Draft Type -->
+                <div id="studioTypeSelection" class="draft-gen-step">
+                    <div class="draft-gen-header">
+                        <div class="draft-gen-badge"><i class="fas fa-file-contract"></i> Draft Studio</div>
+                        <h2>Select Document Type</h2>
+                        <p>Choose from 13 court-ready legal documents — cheque bounce, criminal complaints, SARFAESI notices, affidavits & more</p>
+                    </div>
+                    <div class="draft-type-grid" id="studioDraftTypeGrid"></div>
+                </div>
+
+                <!-- STEP 2: Input Form -->
+                <div id="studioInputForm" class="draft-gen-step hidden">
+                    <div class="draft-gen-header">
+                        <button class="draft-back-link" onclick="window.showStudioTypeSelection()">
+                            <i class="fas fa-arrow-left"></i> Change Document Type
+                        </button>
+                        <div class="draft-selected-badge" id="studioDraftSelectedBadge"></div>
+                        <h2 id="studioFormTitle">Fill Case Details</h2>
+                        <p id="studioFormSubtitle">All fields will be used to generate your draft</p>
+                    </div>
+                    <div class="draft-form-body" id="studioFormBody"></div>
+                    <div class="draft-form-actions" style="margin-top: 2rem; display: flex; gap: 1rem; align-items: center;">
+                        <button class="btn btn-primary btn-lg" onclick="window.generateStudioDraft()">
+                            <i class="fas fa-magic"></i> Generate Draft
+                        </button>
+                        <button class="btn btn-outline" onclick="window.showStudioTypeSelection()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Generated Draft -->
+                <div id="studioOutputView" class="draft-gen-step hidden">
+                    <div class="draft-gen-header">
+                        <button class="draft-back-link" onclick="window.showStudioInputForm()">
+                            <i class="fas fa-arrow-left"></i> Edit Details
+                        </button>
+                        <div class="draft-output-badge" id="studioDraftOutputBadge"></div>
+                        <h2 id="studioDraftOutputTitle">Generated Draft</h2>
+                        <p>Review, edit, copy or download your court-ready document</p>
+                    </div>
+                    <div class="draft-output-toolbar">
+                        <button class="btn btn-outline" onclick="window.copyStudioDraft()">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button class="btn btn-outline" onclick="window.downloadStudioDraft()">
+                            <i class="fas fa-download"></i> Download .txt
+                        </button>
+                        <button class="btn btn-outline" onclick="window.printStudioDraft()">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                        <button class="btn btn-outline" onclick="window.showStudioTypeSelection()">
+                            <i class="fas fa-plus"></i> New Draft
+                        </button>
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <textarea id="studioDraftContent" class="draft-output-textarea" spellcheck="false" style="height: 520px; width: 100%;"></textarea>
+                    </div>
+                    <div class="draft-legal-note" style="margin-top: 1rem;">
+                        <i class="fas fa-info-circle"></i>
+                        This draft is AI-generated based on your inputs. Review all details and have it vetted by a qualified advocate before filing.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- QUICK ANALYSIS MODE -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
         
         <div id="quickAnalysisScreen" class="main-screen hidden">
             <nav class="top-nav">
                 <div class="nav-brand" style="display: flex; align-items: center; gap: 0.6rem;">
-                    <img src="logo.svg" alt="JudiQ AI Logo" class="brand-logo-img" style="height: 28px; width: 28px; border-radius: 6px;">
                     <span class="brand-title">JUDIQ AI</span>
                 </div>
                 <div class="nav-actions">
@@ -1191,7 +1298,6 @@
         <div id="caseWizardScreen" class="main-screen hidden">
             <nav class="top-nav">
                 <div class="nav-brand" style="display: flex; align-items: center; gap: 0.6rem;">
-                    <img src="logo.svg" alt="JudiQ AI Logo" class="brand-logo-img" style="height: 28px; width: 28px; border-radius: 6px;">
                     <span class="brand-title">JUDIQ AI</span>
                 </div>
                 <div class="nav-actions">
@@ -1237,11 +1343,14 @@
                         <div class="wizard-step-indicator">
                             Section <span id="currentStepDisplay">1</span> of <span id="totalStepsDisplay">10</span>
                         </div>
+                        <button id="analyseNowBtn" class="btn btn-outline" onclick="submitCase()" title="Skip wizard and run analysis immediately with current data" style="display:flex;align-items:center;gap:0.4rem;">
+                            <i class="fas fa-search"></i> Analyse Now
+                        </button>
                         <button id="nextBtn" class="btn btn-primary" onclick="nextStep()">
                             Next <i class="fas fa-arrow-right"></i>
                         </button>
-                        <button id="submitBtn" class="btn btn-danger hidden" onclick="submitCase()">
-                            <span class="btn-text"><i class="fas fa-gavel"></i> Simulate Opponent Attack</span>
+                        <button id="submitBtn" class="btn btn-primary hidden" onclick="submitCase()">
+                            <span class="btn-text"><i class="fas fa-search"></i> Run Analysis</span>
                             <span class="btn-loader"></span>
                         </button>
                     </div>
@@ -1256,7 +1365,6 @@
         <div id="resultsScreen" class="main-screen hidden">
             <nav class="top-nav">
                 <div class="nav-brand" style="display: flex; align-items: center; gap: 0.6rem;">
-                    <img src="logo.svg" alt="JudiQ AI Logo" class="brand-logo-img" style="height: 28px; width: 28px; border-radius: 6px;">
                     <span class="brand-title">JUDIQ AI</span>
                     <span id="resultsDomainBadge" class="domain-badge domain-badge--ni" style="display: none;"></span>
                 </div>
@@ -1269,6 +1377,9 @@
                     </button>
                     <button class="btn btn-outline" onclick="copyStrategyMemoToClipboard()" title="Copy Strategy Memo as Markdown">
                         <i class="fas fa-copy"></i> Copy Memo
+                    </button>
+                    <button class="btn btn-success" onclick="switchResultTab('draft')" style="background: linear-gradient(135deg, #10b981, #059669); border-color: #10b981; color: white;">
+                        <i class="fas fa-file-contract"></i> Generate Draft
                     </button>
                     <button class="btn btn-primary" onclick="generateReport()">
                         <i class="fas fa-file-pdf"></i> Generate Report
@@ -1288,8 +1399,8 @@
                     <button class="tab-button" data-tab="strategy" onclick="switchResultTab('strategy')">
                         <i class="fas fa-chess"></i> Strategy
                     </button>
-                    <button class="tab-button" data-tab="draft" onclick="switchResultTab('draft')">
-                        <i class="fas fa-file-alt"></i> Draft
+                    <button class="tab-button tab-button--cta" data-tab="draft" onclick="switchResultTab('draft')" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border-color: #10b981; font-weight: 700;">
+                        <i class="fas fa-file-contract"></i> Generate Draft
                     </button>
                 </div>
                 <!-- SARFAESI / DRT Tab Group (hidden until domain applies) -->
@@ -1987,7 +2098,6 @@
         <div id="draftScreen" class="main-screen hidden">
             <nav class="top-nav">
                 <div class="nav-brand" style="display: flex; align-items: center; gap: 0.6rem;">
-                    <img src="logo.svg" alt="JudiQ AI Logo" class="brand-logo-img" style="height: 28px; width: 28px; border-radius: 6px;">
                     <span class="brand-title">JUDIQ AI</span>
                 </div>
                 <div class="nav-actions">

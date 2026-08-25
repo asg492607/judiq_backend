@@ -24,7 +24,7 @@ export const wizardSteps = [
             { name: 'filing_date', label: 'Filing Date', type: 'date', required: true },
             { name: 'court_name', label: 'Court Name', type: 'text', required: false, placeholder: 'e.g., District Court, Mumbai' },
             { name: 'condonation_attached', label: 'Condonation of Delay App Attached? (S.142)', type: 'select', options: ['Yes', 'No', 'Not Applicable'], required: false },
-            { name: 'case_type', label: 'Case Type', type: 'select', options: ['Cheque Bounce', 'SARFAESI', 'Criminal', 'Civil'], required: true },
+            { name: 'case_type', label: 'Case Type', type: 'select', options: ['Cheque Bounce', 'SARFAESI', 'Criminal', 'Civil', 'Multi-Track (SARFAESI + 138 + Criminal)'], required: true },
             { name: 'judicial_temperament', label: 'Judicial Temperament / Courtroom Mood', type: 'select', options: ['Balanced', 'Pro-Complainant', 'Pro-Accused'], required: false }
         ]
     },
@@ -36,11 +36,13 @@ export const wizardSteps = [
             { name: 'complainant_name', label: 'Complainant Name', type: 'text', required: true },
             { name: 'complainant_address', label: 'Complainant Address', type: 'textarea', required: true },
             { name: 'complainant_authorized', label: 'Board Resolution/Authorization Available? (If Entity)', type: 'select', options: ['Yes - Original', 'Yes - Copy', 'No', 'Not Applicable'], required: true },
-            { name: 'accused_name', label: 'Accused Name', type: 'text', required: true },
-            { name: 'accused_type', label: 'Accused Entity Type', type: 'select', options: ['Individual', 'Pvt Ltd/Ltd Company', 'Partnership Firm', 'Other'], required: true },
+            { name: 'accused_name', label: 'Accused Name / Company Name', type: 'text', required: true },
+            { name: 'accused_type', label: 'Accused Entity Type', type: 'select', options: ['Individual', 'Pvt Ltd/Ltd Company', 'Partnership Firm', 'LLP', 'Other'], required: true },
             { name: 'accused_address', label: 'Accused Address', type: 'textarea', required: true },
-            { name: 'directors_named', label: 'Directors Named & Operational Role Pled? (S.141)', type: 'select', options: ['Yes - Actively Managed Operations', 'Yes - Partial', 'No', 'Not Applicable'], required: true },
-            { name: 'accused_directors', label: 'Names of Directors/Partners Responsible', type: 'textarea', required: false, placeholder: 'e.g., Mr. A (Director), Mr. B (Managing Partner)' }
+            { name: 'directors_named', label: 'Company Arraigned & Directors Named? (S.141)', type: 'select', options: ['Yes - Company as A1 and Directors/Partners Named', 'Yes - Partial', 'No - Only Directors Sued (Aneeta Hada Fatal Defect)', 'Not Applicable'], required: true },
+            { name: 'director_role_category', label: 'Director / Accused Executive Role (S.M.S. Pharma Test)', type: 'select', options: ['Managing Director / Whole-Time Director (Inherent Liability)', 'Authorized Cheque Signatory (Direct Liability)', 'Executive Director (Active Operations Pled)', 'Non-Executive / Independent Director (Strict Averments Required)', 'Sleeping Partner / Nominee Director', 'Not Applicable (Individual Accused)'], required: false },
+            { name: 'active_management_averment', label: 'Specific Day-to-Day Control Pled in Complaint? (S.141)', type: 'select', options: ['Yes - Expressly averred in charge of day-to-day business (S.M.S. Pharma Standard)', 'Yes - Named as Authorized Cheque Signatory', 'No - General / Omnibus Impleadment Only (High Quashing Risk)', 'Not Applicable'], required: false },
+            { name: 'accused_directors', label: 'Names of Directors/Partners Responsible', type: 'textarea', required: false, placeholder: 'e.g., Mr. A (Managing Director), Mr. B (Director)' }
         ]
     },
     {
@@ -349,8 +351,77 @@ export const civilWizardSteps = [
     }
 ];
 
+export const compositeWizardSteps = [
+    {
+        id: 'composite_identity',
+        title: 'Loan Account & Borrower Identity',
+        subtitle: 'Master loan account and multi-track enforcement details',
+        fields: [
+            { name: 'case_id', label: 'Loan Account / Reference ID', type: 'text', required: true, placeholder: 'e.g., NPA/MULTITRACK/2026/01' },
+            { name: 'case_title', label: 'Matter Title / Caption', type: 'text', required: true, placeholder: 'e.g., Bank / Creditor vs Defaulting Borrower' },
+            { name: 'bank_name', label: 'Secured Creditor / Complainant Institution', type: 'text', required: true, placeholder: 'e.g., State Bank of India / HDFC Bank' },
+            { name: 'borrower_name', label: 'Borrower / Accused Entity / Guarantor', type: 'text', required: true, placeholder: 'e.g., Rajesh Sharma & Apex Infra Ltd' },
+            { name: 'perspective', label: 'Representation Perspective', type: 'select', options: ['Creditor (Bank / Financial Institution / Complainant)', 'Borrower / Accused / Mortgagor'], required: true },
+            { name: 'outstanding_amount', label: 'Total Outstanding Debt (₹)', type: 'number', required: true, placeholder: 'e.g., 50000000' },
+            { name: 'case_type', label: 'Case Type', type: 'select', options: ['Multi-Track (SARFAESI + 138 + Criminal)', 'SARFAESI', 'Cheque Bounce', 'Criminal', 'Civil'], required: true },
+            { name: 'filing_date', label: 'Evaluation / Intake Date', type: 'date', required: true }
+        ]
+    },
+    {
+        id: 'composite_sarfaesi_track',
+        title: 'Track 1: SARFAESI & Mortgaged Collateral',
+        subtitle: 'NPA classification, Section 13 notices, and CERSAI security check',
+        fields: [
+            { name: 'npa_date', label: 'NPA Classification Date', type: 'date', required: true },
+            { name: 'notice_13_2_date', label: 'Section 13(2) Demand Notice Date', type: 'date', required: true },
+            { name: 'cersai_registered', label: 'CERSAI Security Interest Registered? (S.26D Mandate)', type: 'select', options: ['Yes - Duly Registered with CERSAI', 'No - Unregistered (Enforcement Barred u/s 26D)'], required: true },
+            { name: 'property_description', label: 'Secured Mortgaged Asset Details', type: 'textarea', required: true, placeholder: 'e.g., Commercial Unit No. 102, MIDC Industrial Area, Pune' },
+            { name: 'is_agricultural_land', label: 'Is Collateral Agricultural Land? (S.31(i) Bar)', type: 'select', options: ['No - Commercial / Residential Property', 'Yes - Agricultural Land (SARFAESI Inapplicable)'], required: true },
+            { name: 'possession_13_4_date', label: 'Section 13(4) Possession Notice Date (if taken)', type: 'date', required: false }
+        ]
+    },
+    {
+        id: 'composite_cb_track',
+        title: 'Track 2: Section 138 Dishonoured Cheque',
+        subtitle: 'Cheque particulars, return memo, and statutory demand notice',
+        fields: [
+            { name: 'cheque_present', label: 'Original Cheque Available?', type: 'select', options: ['Yes', 'No'], required: true },
+            { name: 'cheque_number', label: 'Cheque Number', type: 'text', required: true, placeholder: 'e.g., 409821' },
+            { name: 'cheque_amount', label: 'Cheque Amount (₹)', type: 'number', required: true, placeholder: 'e.g., 15000000' },
+            { name: 'date_of_dishonour', label: 'Cheque Dishonour Date', type: 'date', required: true },
+            { name: 'dishonour_memo', label: 'Bank Return Memo Available?', type: 'select', options: ['Yes', 'No'], required: true },
+            { name: 'notice_sent', label: 'Section 138 Statutory Legal Demand Notice Sent?', type: 'select', options: ['Yes - Sent Within 30 Days', 'No - Notice Delayed / Not Sent'], required: true },
+            { name: 'date_of_notice', label: 'Statutory Notice Dispatch Date', type: 'date', required: true }
+        ]
+    },
+    {
+        id: 'composite_criminal_track',
+        title: 'Track 3: Criminal Deceit & Asset Misappropriation',
+        subtitle: 'Fraudulent intention at inception, siphoning of funds, or alienation of security',
+        fields: [
+            { name: 'contract_exists', label: 'Was Debt Incurred Under Formal Loan Agreement?', type: 'select', options: ['Yes', 'No'], required: true },
+            { name: 'entrustment_proven', label: 'Were Collateral / Funds Entrusted to Accused? (S.316 BNS / S.406 IPC)', type: 'select', options: ['Yes', 'No'], required: true },
+            { name: 'alienation_of_hypothecated_assets', label: 'Did Borrower Dishonestly Remove / Sell Hypothecated Assets?', type: 'select', options: ['Yes - Fraudulent Alienation / Missing Security', 'No - Collateral Intact', 'Suspected / Under Audit'], required: true },
+            { name: 'offense_type', label: 'Primary Criminal Allegation', type: 'select', options: ['Cheating & Alienation of Hypothecated Stocks (BNS 318/316 ↔ IPC 420/406)', 'Fabrication / Forged Financial Documentation (BNS 336 ↔ IPC 467/471)', 'Multiple Mortgages on Same Collateral', 'General Financial Fraud'], required: true }
+        ]
+    },
+    {
+        id: 'composite_remedies_strategy',
+        title: 'Concurrent Legal Strategy & Fast-Track Relief',
+        subtitle: 'Section 143A interim compensation and Section 14 physical possession',
+        fields: [
+            { name: 's143a_interim_sought', label: 'Apply for 20% Interim Cash Compensation u/s 143A NI Act?', type: 'select', options: ['Yes - Urgent Application Upon Framing Notice', 'No'], required: true },
+            { name: 'sec14_dm_application_filed', label: 'File Section 14 Application to DM/CMM for Physical Possession?', type: 'select', options: ['Yes - Apply with 9-Point Affidavit', 'No - Symbolic Possession Sufficient'], required: true },
+            { name: 'additional_notes', label: 'Special Instructions / Cross-Track Notes', type: 'textarea', required: false, placeholder: 'Enter any specific DRT stay orders, settlement negotiations, or cross-court records...' }
+        ]
+    }
+];
+
 export function getActiveWizardSteps(caseType) {
     const type = (caseType || '').toLowerCase();
+    if (type.includes('composite') || type.includes('multi_track') || type.includes('multitrack') || type.includes('unified') || type.includes('all-in-one')) {
+        return compositeWizardSteps;
+    }
     if (type.includes('criminal') || type.includes('bns') || type.includes('ipc') || type.includes('fir')) {
         return criminalWizardSteps;
     }
@@ -362,6 +433,7 @@ export function getActiveWizardSteps(caseType) {
     }
     return wizardSteps;
 }
+
 
 
 export const roleActions = {

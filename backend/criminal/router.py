@@ -53,7 +53,7 @@ class BailAssessmentRequest(BaseModel):
     summary="Analyze Criminal Litigation Case",
     description="Full strategic evaluation of criminal cases under IPC / BNS & CrPC / BNSS frameworks."
 )
-@limiter.limit("10/minute")
+@limiter.limit("120/minute")
 async def analyze_criminal_case(request_data: CriminalAnalysisRequest, request: Request):
     try:
         data = request_data.model_dump()

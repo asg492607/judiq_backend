@@ -96,7 +96,8 @@ export function switchScreen(targetScreenId) {
         'landingScreen', 'loginScreen', 'registerScreen', 
         'roleScreen', 'dashboardScreen', 'caseWizardScreen', 
         'resultsScreen', 'termsScreen', 'privacyScreen', 'refundScreen',
-        'draftGeneratorScreen'
+        'draftGeneratorScreen', 'draftStudioScreen', 'quickAnalysisScreen',
+        'reportScreen'
     ];
     
     screens.forEach(id => ui.hide(id));

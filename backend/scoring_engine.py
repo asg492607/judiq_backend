@@ -88,11 +88,38 @@ class ScoringEngineV12(BaseScoringEngine):
         notice = pillar_result["pillars"]["notice"]
         debt = pillar_result["pillars"]["debt"]
         accused_name = str(case_data.get("accused_name", "")).lower()
-        is_company = any(x in accused_name for x in ["pvt", "ltd", "corp", "inc", "co.", "company"])
-        if is_company and not cls._truthy(case_data.get("directors_named")):
-            score += PENALTY_COMPANY_DIRECTOR_NOT_NAMED
-            trace.append(f"{PENALTY_COMPANY_DIRECTOR_NOT_NAMED} FATAL: S.141 defect - Directors not named.")
-            causality_map.append({"fact": "S.141 Defect", "impact": PENALTY_COMPANY_DIRECTOR_NOT_NAMED, "rationale": "Company prosecution fails without naming responsible officers."})
+        accused_type = str(case_data.get("accused_type", "")).lower()
+        is_company = any(x in accused_name for x in ["pvt", "ltd", "corp", "inc", "co.", "company", "llp"]) or ("company" in accused_type) or ("pvt" in accused_type) or ("partnership" in accused_type)
+        
+        # S.141 Corporate Vicarious Liability Rules (Aneeta Hada & S.M.S. Pharmaceuticals tests)
+        if is_company:
+            directors_named_val = str(case_data.get("directors_named", "")).lower()
+            role_cat = str(case_data.get("director_role_category", "")).lower()
+            active_averment = str(case_data.get("active_management_averment", "")).lower()
+
+            if "only directors sued" in directors_named_val or ("no" in directors_named_val and "yes" not in directors_named_val):
+                score += PENALTY_COMPANY_DIRECTOR_NOT_NAMED
+                max_score_cap = min(max_score_cap, 20)
+                case_data["fatal_defect"] = "Aneeta Hada Trap: Principal Corporate Entity not arraigned as Accused No. 1."
+                trace.append(f"{PENALTY_COMPANY_DIRECTOR_NOT_NAMED} FATAL S.141 DEFECT: Company not arraigned (Aneeta Hada v. Godfather Travels).")
+                causality_map.append({"fact": "Aneeta Hada Defect", "impact": PENALTY_COMPANY_DIRECTOR_NOT_NAMED, "rationale": "Prosecution against directors is non-maintainable without arraigning the company as principal accused."})
+                if "corporate_impleadment_defect" not in concept_names:
+                    concepts.append({"concept": "corporate_impleadment_defect", "confidence": 0.98, "legal_impact": "Fatal Section 141 defect per Aneeta Hada precedent."})
+            
+            # S.M.S. Pharmaceuticals Test: Non-Executive / Independent Director without specific operational averments
+            if any(term in role_cat for term in ["non-executive", "independent", "sleeping", "nominee"]):
+                if not any(yes_term in active_averment for yes_term in ["yes - expressly", "signatory"]):
+                    score -= 25
+                    max_score_cap = min(max_score_cap, 40)
+                    trace.append("-25 S.141 VULNERABILITY: Non-Executive/Independent Director impleaded without specific operational averments (S.M.S. Pharma Rule).")
+                    causality_map.append({"fact": "Non-Executive Director S.141 Defect", "impact": -25, "rationale": "High S.482 quashing probability unless specific day-to-day management averments are detailed."})
+                    if "independent_director_quashing_risk" not in concept_names:
+                        concepts.append({"concept": "independent_director_quashing_risk", "confidence": 0.92, "legal_impact": "High risk of petition quashing under Sunita Palita and S.M.S. Pharma precedent."})
+            elif "general" in active_averment or "omnibus" in active_averment:
+                score -= 15
+                trace.append("-15 S.141 WARNING: Vague omnibus averments against directors. Requires amendment before summoning.")
+                causality_map.append({"fact": "Omnibus S.141 Averments", "impact": -15, "rationale": "Vague pleadings trigger Section 482 High Court quashing."})
+
         resignation_date = case_data.get("director_resignation_date")
         cheque_date = case_data.get("cheque_date")
         if resignation_date and cheque_date:

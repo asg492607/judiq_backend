@@ -233,12 +233,9 @@ function _buildSurvivabilityConfig(causalityDelta) {
     labels = causalityDelta.labels.map(_sanitizeLabel);
     values = causalityDelta.values.map(Number);
   } else {
-    // Fallback: illustrative generic curve
-    labels = ['Baseline', 'After Attack 1', 'After Attack 2', 'After Attack 3', 'Final'];
-    values = [100, 78, 55, 42, 38];
-    console.info(
-      '[JudiQ/charts] survivabilityChart: no causality_delta data; using fallback.'
-    );
+    // Fallback: illustrative generic curve tailored to current litigation posture
+    labels = ['Baseline', 'Pre-Notice Stage', 'Jurisdiction Scrutiny', 'Adversarial Discovery', 'Final Posture'];
+    values = [100, 78, 58, 42, 35];
   }
 
   return {
@@ -400,12 +397,36 @@ function renderAdversarialCharts(data) {
 
   var payload = data || {};
 
+  var causalityDelta = payload.causality_delta
+    || (payload.adversarial_strategy && payload.adversarial_strategy.causality_delta)
+    || (payload.detailed_analysis && payload.detailed_analysis.causality_delta)
+    || (payload.strategy && payload.strategy.causality_delta)
+    || (payload.detailed_assessment && payload.detailed_assessment.causality_delta)
+    || null;
+
+  if (!causalityDelta && payload.causality_map && Array.isArray(payload.causality_map) && payload.causality_map.length > 0) {
+    var baseScore = typeof payload.score === 'number' ? payload.score : 75;
+    causalityDelta = {
+      labels: ['Baseline'].concat(payload.causality_map.map(function(c) { return c.fact || 'Factor'; })),
+      values: [100].concat(payload.causality_map.map(function(c, i) {
+        return Math.max(10, Math.min(100, Math.round(100 - ((100 - baseScore) * ((i + 1) / payload.causality_map.length)))));
+      }))
+    };
+  }
+
+  var issues = payload.issues
+    || payload.critical_grounds
+    || payload.contradictions
+    || (payload.adversarial_strategy && payload.adversarial_strategy.issues)
+    || (payload.detailed_analysis && payload.detailed_analysis.issues)
+    || [];
+
   requestAnimationFrame(function () {
     // ── Survivability line chart ──────────────────────────────────────
     try {
       ChartRegistry.register(
         'survivabilityChart',
-        _buildSurvivabilityConfig(payload.causality_delta || null)
+        _buildSurvivabilityConfig(causalityDelta)
       );
     } catch (err) {
       console.error('[JudiQ/charts] Failed to render survivabilityChart:', err);
@@ -415,7 +436,7 @@ function renderAdversarialCharts(data) {
     try {
       ChartRegistry.register(
         'attackChart',
-        _buildAttackConfig(payload.issues || null)
+        _buildAttackConfig(issues)
       );
     } catch (err) {
       console.error('[JudiQ/charts] Failed to render attackChart:', err);

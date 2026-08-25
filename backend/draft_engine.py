@@ -99,8 +99,10 @@ def _safe_float(val) -> float:
         return float(val)
     except (ValueError, TypeError):
         return 0.0
-def _case_meta(case_data: Dict):
+def _case_meta(case_data: Any):
     today = datetime.now().strftime("%d %B %Y")
+    if not isinstance(case_data, dict):
+        return today, "Rs. ___________/-"
     amount = case_data.get("amount", "________ (Amount)")
     if isinstance(amount, (int, float)) and amount > 0:
         if amount >= 100000:
@@ -1033,6 +1035,8 @@ class DraftEngine:
         return DraftEngine.generate_draft(draft_type, score, concepts, case_data)
     @staticmethod
     def generate_draft(draft_type: str, score: int, concepts: List[Dict], case_data: Dict) -> str:
+        if not isinstance(case_data, dict):
+            case_data = {}
         offensive_drafts = ["LEGAL_NOTICE", "COMPLAINT", "FIR_DRAFT"]
         is_offensive = draft_type in offensive_drafts
         has_fatal_defect = case_data.get("fatal_defect")
@@ -1097,7 +1101,7 @@ class DraftEngine:
         elif draft_type == "APPLICATION_143A":
             draft_out = generate_application_143a(case_data)
         else:
-            draft_out = generate_legal_opinion(score, concepts, case_data)
+            draft_out = generate_legal_opinion(case_data, score, concepts)
 
         lang = str(case_data.get("language") or case_data.get("lang") or "").lower()
         if lang in ["mr", "marathi"]:

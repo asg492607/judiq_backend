@@ -31,6 +31,8 @@ class CaseRegistry:
             return self._engines.get("criminal")
         if key in ("civil", "cpc", "commercial"):
             return self._engines.get("civil")
+        if key in ("composite", "multi_track", "multitrack", "composite_recovery", "unified_npa", "unified", "all"):
+            return self._engines.get("composite")
         return None
 
     def list_registered_domains(self) -> List[str]:
@@ -62,3 +64,10 @@ try:
     case_registry.register("civil", CivilEngine())
 except Exception as _e:
     logger.warning(f"Could not auto-register CivilEngine: {_e}")
+
+try:
+    from composite.unified_multitrack_engine import UnifiedMultiTrackEngine
+    case_registry.register("composite", UnifiedMultiTrackEngine())
+except Exception as _e:
+    logger.warning(f"Could not auto-register UnifiedMultiTrackEngine: {_e}")
+

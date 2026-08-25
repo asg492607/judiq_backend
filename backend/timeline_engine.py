@@ -127,60 +127,89 @@ class TimelineEngine:
                     "message": service_resolution["message"],
                     "fatal_defect": service_resolution.get("fatal_defect", "Notice service failed"),
                 }
+            
+            # Strict General Clauses Act Section 9 & Limitation Act Section 4 Date Arithmetic:
+            # 1. Day of service (T0) is excluded from computation.
+            # 2. Statutory 15-day cure window runs from T0 + 1 day to T0 + 15 days (ending at 23:59:59).
+            # 3. Cause of action strictly arises on Day 16 (T0 + 16 days).
+            # 4. 30-day limitation period commences on Day 16 and ends on Day 45 (T0 + 45 days).
             service_dt = service_resolution["service_dt"]
+            cure_window_start = service_dt + timedelta(days=1)
+            cure_window_end = service_dt + timedelta(days=15)
             earliest_filing_date = service_dt + timedelta(days=16)
-            limitation_date = TimelineEngine.adjust_for_holidays(earliest_filing_date + timedelta(days=29))
+            statutory_limitation_raw = earliest_filing_date + timedelta(days=29) # Total 30 calendar days (Days 16..45)
+            limitation_date = TimelineEngine.adjust_for_holidays(statutory_limitation_raw)
             today = datetime.now().date()
+            
+            common_meta = {
+                "service_date": service_dt.strftime("%Y-%m-%d"),
+                "cure_window_start": cure_window_start.strftime("%Y-%m-%d"),
+                "cure_window_end": cure_window_end.strftime("%Y-%m-%d"),
+                "earliest_filing_date": earliest_filing_date.strftime("%Y-%m-%d"),
+                "limitation_expiry_raw": statutory_limitation_raw.strftime("%Y-%m-%d"),
+                "limitation_date": limitation_date.strftime("%Y-%m-%d"),
+                "holiday_rollover_applied": limitation_date > statutory_limitation_raw
+            }
+
             if filing_date:
                 filing_dt = parse_date(filing_date)
                 if filing_dt:
-                    if filing_dt < earliest_filing_date:
-                        return {
+                    if filing_dt.date() < earliest_filing_date.date():
+                        res = {
                             "is_barred": False,
                             "is_premature": True,
                             "days_remaining": 0,
                             "status": "PREMATURE_FILING",
-                            "earliest_filing_date": earliest_filing_date.strftime("%Y-%m-%d"),
-                            "message": "Complaint was filed before the statutory 15-day payment period expired.",
-                            "fatal_defect": "Premature complaint."
+                            "message": f"Complaint filed on {filing_dt.strftime('%Y-%m-%d')} before the 15-day statutory cure window expired (ends on {cure_window_end.strftime('%Y-%m-%d')}). Mandatory dismissal under Yogendra Pratap Singh vs. Savitri Pandey.",
+                            "fatal_defect": "Premature complaint filed before cause of action arose."
                         }
-                    if filing_dt > limitation_date:
-                        delay_days = (filing_dt - limitation_date).days
-                        return {
+                        res.update(common_meta)
+                        return res
+                    if filing_dt.date() > limitation_date.date():
+                        delay_days = (filing_dt.date() - limitation_date.date()).days
+                        res = {
                             "is_barred": True,
                             "days_remaining": 0,
                             "delay_days": delay_days,
                             "status": "TIME_BARRED",
-                            "message": f"Filed {delay_days} days after limitation period. Condonation of Delay (Section 142(b)) REQUIRED.",
+                            "message": f"Filed {delay_days} days after statutory limitation ({limitation_date.strftime('%Y-%m-%d')}). Condonation of Delay application under Section 142(1)(b) MANDATORY.",
                             "condonation_required": True
                         }
+                        res.update(common_meta)
+                        return res
                     else:
-                        return {
+                        res = {
                             "is_barred": False,
-                            "days_remaining": 0,
+                            "days_remaining": (limitation_date.date() - filing_dt.date()).days,
                             "status": "FILED_IN_TIME",
-                            "message": "Complaint filed within the limitation period."
+                            "message": "Complaint instituted within statutory limitation period."
                         }
+                        res.update(common_meta)
+                        return res
+
             limitation_day = limitation_date.date()
             if today > limitation_day:
                 days_over = (today - limitation_day).days
-                return {
+                res = {
                     "is_barred": True,
                     "days_remaining": 0,
                     "days_overdue": days_over,
                     "status": "EXPIRED",
-                    "message": f"Limitation expired {days_over} days ago. Condonation of Delay REQUIRED.",
+                    "message": f"Statutory limitation expired {days_over} days ago on {limitation_date.strftime('%Y-%m-%d')}. Condonation of Delay (Section 142(1)(b)) REQUIRED.",
                     "condonation_required": True
                 }
+                res.update(common_meta)
+                return res
             else:
                 days_left = (limitation_day - today).days
-                return {
+                res = {
                     "is_barred": False,
                     "days_remaining": days_left,
-                    "limitation_date": limitation_date.strftime("%Y-%m-%d"),
                     "status": "WITHIN_TIME",
-                    "message": f"{days_left} days remaining to file complaint"
+                    "message": f"{days_left} days remaining to file complaint (Deadline: {limitation_date.strftime('%Y-%m-%d')})"
                 }
+                res.update(common_meta)
+                return res
         return {
             "is_barred": False,
             "days_remaining": 30,

@@ -52,10 +52,15 @@ class CaseInput(BaseModel):
     sa_filing_date: Optional[str] = Field(None, max_length=20)
     cersai_registered: bool = False
     is_agricultural_land: bool = False
-    perspective: str = Field(default="creditor", max_length=20) # creditor or borrower
+    perspective: str = Field(default="creditor", max_length=100) # creditor or borrower
     outstanding_amount: Optional[float] = Field(default=None, ge=0.0, le=10000000000.0)
+    # Multi-track Composite fields
+    multi_track_enabled: bool = False
+    alienation_of_hypothecated_assets: bool = False
+    composite_tracks: Optional[List[str]] = Field(default_factory=lambda: ["sarfaesi", "cheque_bounce", "criminal"])
 
     model_config = {
+
         "extra": "allow",
         "json_schema_extra": {
             "example": {

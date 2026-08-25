@@ -104,6 +104,24 @@ class CriminalEngine(BaseDomainEngine):
         # Pass pre-computed results to avoid redundant re-computation inside generate_strategy
         strategy = cls.generate_strategy(case_data, concepts, scoring_data["score"], 0.5, _precomputed_contradictions=contradictions, _precomputed_scoring=scoring_data)
 
+        # 4 Institutional Criminal Modules Invocations:
+        from criminal.electronic_evidence_validator import ElectronicEvidenceValidator
+        from criminal.prosecution_rebuttal_engine import ProsecutionRebuttalEngine
+        from criminal.regional_bench_engine import RegionalBenchEngine
+        from criminal.ecourts_export_engine import EcourtsExportEngine
+
+        digital_ev = case_data.get("digital_evidence") or [
+            {"file_name": "WhatsApp_Chat_Export.txt", "file_type": "text/plain", "content_str": "Payment confirmation & delivery schedule"},
+            {"file_name": "Bank_Statement_Extract.pdf", "file_type": "application/pdf", "content_str": "NEFT/RTGS transaction receipt"}
+        ]
+        electronic_evidence_audit = ElectronicEvidenceValidator.validate_digital_evidence_payload(
+            digital_ev,
+            case_data.get("accused_name", case_data.get("complainant_name", "Applicant"))
+        )
+        prosecution_rebuttal = ProsecutionRebuttalEngine.simulate_prosecution_counter_attacks(case_data)
+        regional_bench = RegionalBenchEngine.format_quashing_petition_header(case_data)
+        ecourts_bundle = EcourtsExportEngine.generate_ecourts_ingestion_bundle(case_data)
+
         return {
             **scoring_data,
             "domain": "criminal",
@@ -113,7 +131,12 @@ class CriminalEngine(BaseDomainEngine):
             "litigation_map": strategy.get("litigation_map"),
             "timeline_analysis": strategy.get("timeline_analysis"),
             "checkpoints": strategy.get("checkpoints"),
-            "contradictions": contradictions
+            "contradictions": contradictions,
+            "electronic_evidence_audit": electronic_evidence_audit,
+            "prosecution_rebuttal": prosecution_rebuttal,
+            "prosecution_counter_attacks": prosecution_rebuttal.get("prosecution_counter_attacks", []),
+            "regional_bench_customization": regional_bench,
+            "ecourts_bundle": ecourts_bundle
         }
 
     @staticmethod

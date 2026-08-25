@@ -1,4 +1,4 @@
-import { wizardSteps, sarfaesiWizardSteps, criminalWizardSteps, civilWizardSteps, getActiveWizardSteps } from './config.js?v=14';
+import { wizardSteps, sarfaesiWizardSteps, criminalWizardSteps, civilWizardSteps, compositeWizardSteps, getActiveWizardSteps } from './config.js?v=14';
 import { ui, switchScreen } from './ui.js?v=14';
 import { api } from './api.js?v=14';
 import { renderResults } from './renderer.js?v=14';
@@ -10,7 +10,8 @@ function getCurrentSteps() {
     const domain = (window.state?.userDomain || 'ni_act').toLowerCase();
     let caseType = window.state?.caseData?.case_type;
     if (!caseType) {
-        if (domain === 'criminal') caseType = 'Criminal';
+        if (domain === 'composite' || domain === 'multi_track') caseType = 'Multi-Track (SARFAESI + 138 + Criminal)';
+        else if (domain === 'criminal') caseType = 'Criminal';
         else if (domain === 'sarfaesi') caseType = 'SARFAESI';
         else if (domain === 'civil') caseType = 'Civil';
         else caseType = 'Cheque Bounce';
@@ -28,7 +29,7 @@ function loadAutosave() {
             const parsed = JSON.parse(saved);
             if (parsed && typeof parsed === 'object') {
                 window.state = window.state || {};
-                window.state.caseData = { ...(window.state.caseData || {}), ...parsed };
+                window.state.caseData = { ...parsed, ...(window.state.caseData || {}) };
             }
         }
     } catch (e) {
@@ -72,7 +73,9 @@ export function renderWizardStep() {
     const step = steps[stepIdx];
 
     // Auto-lock case_type based on active steps
-    if (steps === criminalWizardSteps || (caseType && caseType.toLowerCase().includes('criminal'))) {
+    if (steps === compositeWizardSteps || (caseType && (caseType.toLowerCase().includes('composite') || caseType.toLowerCase().includes('multi_track') || caseType.toLowerCase().includes('all-in-one')))) {
+        window.state.caseData['case_type'] = 'Multi-Track (SARFAESI + 138 + Criminal)';
+    } else if (steps === criminalWizardSteps || (caseType && caseType.toLowerCase().includes('criminal'))) {
         window.state.caseData['case_type'] = 'Criminal';
     } else if (steps === sarfaesiWizardSteps || (caseType && caseType.toLowerCase().includes('sarfaesi'))) {
         window.state.caseData['case_type'] = 'SARFAESI';
@@ -81,6 +84,7 @@ export function renderWizardStep() {
     } else {
         window.state.caseData['case_type'] = 'Cheque Bounce';
     }
+
     
     ui.setText('wizardTitle', step.title);
     ui.setText('wizardSubtitle', step.subtitle);
@@ -191,8 +195,11 @@ function renderField(field) {
     let inputHtml = '';
     
     if (field.type === 'select') {
+        const changeHandler = field.name === 'case_type'
+            ? "window.setCaseType(this.value); if(typeof updateConditionalFields === 'function') updateConditionalFields();"
+            : "if(typeof updateConditionalFields === 'function') updateConditionalFields();";
         inputHtml = `
-            <select id="${field.name}" name="${field.name}" ${field.required ? 'required' : ''} onchange="if(typeof updateConditionalFields === 'function') updateConditionalFields()">
+            <select id="${field.name}" name="${field.name}" ${field.required ? 'required' : ''} onchange="${changeHandler}">
                 <option value="">Select Option</option>
                 ${field.options.map(opt => `<option value="${opt}" ${value === opt ? 'selected' : ''}>${opt}</option>`).join('')}
             </select>
@@ -368,8 +375,9 @@ window.submitCase = async () => {
     }
 };
 
-export const SAMPLE_CASE_PRESET = {
+export const SAMPLE_NI_ACT_PRESET = {
     case_title: "Apex Global vs. Vanguard Tech",
+    case_type: "Cheque Bounce",
     complainant_name: "Apex Global Traders Pvt Ltd",
     complainant_type: "Pvt Ltd/Ltd Company",
     complainant_authorized: "Yes - Original",
@@ -404,14 +412,149 @@ export const SAMPLE_CASE_PRESET = {
     condonation_attached: "No"
 };
 
+export const SAMPLE_SARFAESI_PRESET = {
+    case_id: "SARFAESI-DEMO-001",
+    case_title: "Axis Bank Ltd vs. Zenith Fabricators Pvt Ltd",
+    case_type: "SARFAESI",
+    perspective: "Creditor (Bank / Financial Institution / Complainant)",
+    bank_name: "Axis Bank Ltd (Stressed Assets Management Branch)",
+    borrower_name: "Zenith Fabricators Pvt Ltd & Rajiv Mehta",
+    outstanding_amount: 45000000.0,
+    amount: 45000000.0,
+    npa_date: "2025-09-30",
+    notice_13_2_date: "2025-10-15",
+    cersai_registered: true,
+    property_description: "Industrial Shed No. 12, Phase II, GIDC Industrial Estate, Vatva, Ahmedabad",
+    is_agricultural_land: false,
+    possession_13_4_date: "2026-01-20",
+    description: "Borrower defaulted on working capital credit facility of Rs. 4.50 Crore. Demand notice under Section 13(2) served and symbolical possession taken u/s 13(4)."
+};
+
+export const SAMPLE_CRIMINAL_PRESET = {
+    case_id: "CR-FIR-2026-882",
+    case_title: "State of Maharashtra vs Vikram Sharma & Ors",
+    case_type: "Criminal",
+    police_station: "Cyber & Financial Crime PS, BKC, Mumbai",
+    client_role: "Accused",
+    statutory_regime: "Indian Penal Code (IPC 1860 / CrPC 1973)",
+    filing_date: "2026-05-10",
+    court_name: "Additional Sessions Court, Greater Mumbai",
+    offense_type: "S.420 IPC / S.318 BNS (Cheating & Financial Fraud)",
+    ipc_section: "S. 420, 406, 120B IPC",
+    incident_date: "2024-03-15",
+    fir_date: "2026-05-10",
+    delay_explanation: "FIR registered with an unexplained inordinate delay of 2 years after commercial payment dispute arose.",
+    max_punishment_years: 7,
+    arrested_during_investigation: "No - Anticipating Arrest / Not Arrested",
+    no_s41a_notice: "Arrested Directly Without S.41A Notice (Arnesh Kumar Violation)",
+    chargesheet_filed: "No - Investigation Pending (Default Bail S.167 Check)",
+    is_public_servant: "No",
+    sanction_obtained: "Not Applicable",
+    electronic_evidence: "Yes",
+    s65b_certificate: "No - Uncertified / Missing (Inadmissible)",
+    recovery_memo_s27: "No Recovery Made",
+    contract_exists: "Yes - Commercial Contract / Debt Recovery in Criminal Garb",
+    primary_relief_sought: "High Court Quashing u/s 482 CrPC / S.528 BNSS (Bhajan Lal)",
+    additional_notes: "Pure civil contractual dispute converted into criminal prosecution (Bhajan Lal precedent)."
+};
+
+export const SAMPLE_CIVIL_PRESET = {
+    case_id: "COMM-SUIT-2026-104",
+    case_title: "Apex Real Estate Infra Pvt Ltd vs Metro Skyline Projects Ltd",
+    case_type: "Civil",
+    court_name: "City Civil Court (Commercial Division), Mumbai",
+    suit_valuation: 50000000.0,
+    s12a_mediation: "Yes - Mediation Attempted / Failed",
+    filing_date: "2026-06-15",
+    agreement_date: "2024-04-10",
+    breach_date: "2025-08-20",
+    agreement_registered: "Yes - Duly Stamped & Registered",
+    limitation_article: "Article 54 - Specific Performance (3 Years)",
+    primary_prayer: "Specific Performance of Contract",
+    order_39_injunction: "Yes - Prima Facie Case & Balance of Convenience Pled",
+    additional_notes: "Suit for Specific Performance of registered Development Agreement with Order 39 interim relief."
+};
+
+export const SAMPLE_COMPOSITE_PRESET = {
+    case_id: "SBI-NPA-MULTITRACK-2026",
+    case_title: "State Bank of India vs. Zenith Infrastructure & Allied Projects Ltd",
+    case_type: "Multi-Track (SARFAESI + 138 + Criminal)",
+    perspective: "Creditor (Bank / Financial Institution / Complainant)",
+    bank_name: "State Bank of India (SAMB Branch, Mumbai)",
+    borrower_name: "Zenith Infrastructure & Allied Projects Ltd & Rajesh Singhania",
+    outstanding_amount: 75000000.0,
+    amount: 75000000.0,
+    filing_date: "2026-06-15",
+    npa_date: "2025-11-01",
+    notice_13_2_date: "2025-11-15",
+    cersai_registered: true,
+    property_description: "Commercial Plot No. 45, Industrial Park, Sector 18, MIDC Pune",
+    is_agricultural_land: false,
+    possession_13_4_date: "2026-02-10",
+    cheque_present: true,
+    cheque_number: "981240",
+    cheque_amount: 25000000.0,
+    date_of_dishonour: "2025-12-05",
+    dishonour_memo: true,
+    notice_sent: true,
+    date_of_notice: "2025-12-20",
+    contract_exists: true,
+    entrustment_proven: true,
+    alienation_of_hypothecated_assets: true,
+    offense_type: "Cheating & Alienation of Hypothecated Stocks (BNS 318/316 ↔ IPC 420/406)",
+    s143a_interim_sought: true,
+    sec14_dm_application_filed: true,
+    description: "Defaulted commercial loan facility of Rs. 7.5 Crore with bounced cheque of Rs. 2.5 Crore and hypothecated asset alienation."
+};
+
+export const SAMPLE_CASE_PRESET = SAMPLE_NI_ACT_PRESET;
+
 window.loadSampleCaseData = () => {
-    window.state.caseData = { ...window.state.caseData, ...SAMPLE_CASE_PRESET };
+    const domain = (window.state?.userDomain || 'all').toLowerCase();
+    const currentCaseType = (window.state?.caseData?.case_type || '').toLowerCase();
+    
+    let preset = SAMPLE_NI_ACT_PRESET;
+    let label = 'Section 138';
+
+    if (domain === 'composite' || currentCaseType.includes('composite') || currentCaseType.includes('multi')) {
+        preset = SAMPLE_COMPOSITE_PRESET;
+        label = 'Multi-Track Composite';
+    } else if (domain === 'sarfaesi' || currentCaseType.includes('sarfaesi')) {
+        preset = SAMPLE_SARFAESI_PRESET;
+        label = 'SARFAESI & DRT';
+    } else if (domain === 'criminal' || currentCaseType.includes('criminal')) {
+        preset = SAMPLE_CRIMINAL_PRESET;
+        label = 'Criminal Law';
+    } else if (domain === 'civil' || currentCaseType.includes('civil')) {
+        preset = SAMPLE_CIVIL_PRESET;
+        label = 'Civil Litigation';
+    }
+
+    window.state.caseData = { ...(window.state.caseData || {}), ...preset };
     persistAutosave();
     renderWizardStep();
-    if (window.ui) {
-        window.ui.toast('⚡ Sample Section 138 Case Data Loaded!', 'success');
+    if (window.ui && typeof window.ui.toast === 'function') {
+        window.ui.toast(`⚡ Sample ${label} Case Data Loaded!`, 'success');
     }
 };
+
+window.autoAlignCourtJurisdiction = (suggestedCourt) => {
+    if (!suggestedCourt) {
+        const branch = window.state?.caseData?.branch_name || window.state?.caseData?.payee_branch || '';
+        const cityMatch = branch.match(/(?:,\s*)([A-Za-z\s]+)$/);
+        const city = cityMatch ? cityMatch[1].trim() : 'Jurisdictional';
+        suggestedCourt = `Metropolitan Magistrate Court, ${city}`;
+    }
+    window.state.caseData = window.state.caseData || {};
+    window.state.caseData.court_name = suggestedCourt;
+    const courtInput = document.getElementById('court_name');
+    if (courtInput) courtInput.value = suggestedCourt;
+    persistAutosave();
+    if (window.ui && typeof window.ui.toast === 'function') {
+        window.ui.toast(`⚡ Filing Court Auto-Aligned to: ${suggestedCourt} (S.142(2) NI Act)`, 'success');
+    }
+};
+
 
 
 

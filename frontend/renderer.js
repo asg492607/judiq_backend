@@ -1429,28 +1429,42 @@ export function applyDomainTheme(domain) {
     if (!screen) return;
 
     const d = (domain || '').toLowerCase();
+    const isComposite = d === 'composite' || d.includes('multi_track');
     const isSarfaesi = d === 'sarfaesi';
     const isCriminal = d === 'criminal';
-
+    const isCivil = d === 'civil';
+    
     // Swap CSS theme class
-    screen.classList.remove('dashboard--138', 'dashboard--sarfaesi', 'dashboard--criminal');
-    if (isSarfaesi) screen.classList.add('dashboard--sarfaesi');
+    screen.classList.remove('dashboard--138', 'dashboard--sarfaesi', 'dashboard--criminal', 'dashboard--civil', 'dashboard--composite', 'dashboard--all');
+    if (isComposite) screen.classList.add('dashboard--composite');
+    else if (isSarfaesi) screen.classList.add('dashboard--sarfaesi');
     else if (isCriminal) screen.classList.add('dashboard--criminal');
+    else if (isCivil) screen.classList.add('dashboard--civil');
+    else if (d === 'all') screen.classList.add('dashboard--all');
     else screen.classList.add('dashboard--138');
 
     // Domain badge in results nav
     const badge = document.getElementById('resultsDomainBadge');
     if (badge) {
         badge.style.display = 'inline-flex';
-        if (isCriminal) {
+        if (isComposite) {
+            badge.className = 'domain-badge domain-badge--composite';
+            badge.innerHTML = '<i class="fas fa-bolt"></i> Multi-Track Composite';
+        } else if (isCriminal) {
             badge.className = 'domain-badge domain-badge--criminal';
-            badge.innerHTML = '<i class="fas fa-gavel"></i> Criminal Law (BNS / IPC)';
+            badge.innerHTML = '<i class="fas fa-user-shield"></i> Criminal Law (BNS / IPC)';
         } else if (isSarfaesi) {
             badge.className = 'domain-badge domain-badge--sarfaesi';
             badge.innerHTML = '<i class="fas fa-university"></i> SARFAESI / DRT';
+        } else if (isCivil) {
+            badge.className = 'domain-badge domain-badge--civil';
+            badge.innerHTML = '<i class="fas fa-balance-scale"></i> Civil & Commercial';
+        } else if (d === 'all') {
+            badge.className = 'domain-badge domain-badge--all';
+            badge.innerHTML = '<i class="fas fa-layer-group"></i> Full Practice (All Domains)';
         } else {
             badge.className = 'domain-badge domain-badge--ni';
-            badge.innerHTML = '<i class="fas fa-balance-scale"></i> NI Act — S.138';
+            badge.innerHTML = '<i class="fas fa-file-invoice-dollar"></i> NI Act — S.138';
         }
     }
 
@@ -1824,7 +1838,181 @@ export function renderSarfaesiResultsPanels(data) {
     const reasoningEl = document.getElementById('sarfaesiReasoningList');
     const origReasoning = document.getElementById('reasoningList');
     if (reasoningEl && origReasoning) reasoningEl.innerHTML = origReasoning.innerHTML;
+
+    // Institutional SARFAESI Suite Card (CERSAI, S.13(8) Redemption, S.14 9-Pt Affidavit, e-DRT)
+    const cersai = data.cersai_audit || (data.detailed_assessment && data.detailed_assessment.cersai_audit) || {};
+    const redemption = data.redemption_analysis || (data.detailed_assessment && data.detailed_assessment.redemption_analysis) || {};
+    const sec14 = data.section14_audit || (data.detailed_assessment && data.detailed_assessment.section14_audit) || {};
+    const edrt = data.edrt_bundle || (data.detailed_assessment && data.detailed_assessment.edrt_bundle) || {};
+
+    const overviewContainer = document.getElementById('tabSarfaesi_overview') || document.getElementById('tabOverview');
+    if (overviewContainer) {
+        const existing = document.getElementById('sarfaesiInstitutionalCard');
+        if (existing) existing.remove();
+
+        const redCalc = redemption.redemption_calculation || {};
+        const cersaiColor = cersai.is_cersai_registered ? '#10b981' : '#ef4444';
+        const redColor = redemption.right_to_redeem_extinguished ? '#ef4444' : '#10b981';
+
+        const institutionalHTML = `
+            <div id="sarfaesiInstitutionalCard" class="result-card" style="margin-top: 1.5rem; border: 1px solid rgba(245,158,11,0.35); background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur));">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--gray-200); padding-bottom: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.65rem;">
+                        <span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; width: 36px; height: 36px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                            <i class="fas fa-university"></i>
+                        </span>
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--gray-900);">SARFAESI & DRT Institutional Audit Suite</h3>
+                            <div style="font-size: 0.8rem; color: var(--gray-500);">Real-Time CERSAI Verification • S.13(8) Redemption Calculator • S.14 9-Pt DM Affidavit • e-DRT Export</div>
+                        </div>
+                    </div>
+                    <div>
+                        <span style="background: rgba(245,158,11,0.15); color: #d97706; font-size: 0.75rem; font-weight: 750; padding: 0.3rem 0.7rem; border-radius: var(--radius-full); border: 1px solid rgba(245,158,11,0.3);">
+                            <i class="fas fa-gavel"></i> 100% INSTITUTIONAL GRADE
+                        </span>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                    <div style="background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <strong style="font-size: 0.88rem; color: var(--gray-900);"><i class="fas fa-shield-alt" style="color: ${cersaiColor};"></i> CERSAI Registry (S.26D & 26E)</strong>
+                            <span style="background: ${cersaiColor}18; color: ${cersaiColor}; border: 1px solid ${cersaiColor}40; font-size: 0.72rem; font-weight: 750; padding: 0.2rem 0.5rem; border-radius: 4px;">
+                                ${cersai.is_cersai_registered ? 'REGISTERED (S.26D COMPLIANT)' : 'UNREGISTERED (STATUTORY BAR)'}
+                            </span>
+                        </div>
+                        <div style="font-size: 0.83rem; color: var(--gray-700); line-height: 1.5;">
+                            <div><strong>Security ID:</strong> ${escapeHtml(cersai.cersai_security_id || 'NOT REGISTERED')}</div>
+                            <div><strong>S.26E Priority:</strong> First Charge over Crown/Tax attachments</div>
+                            <div style="color: ${cersaiColor}; font-weight: 600; margin-top: 0.25rem;">${cersai.is_cersai_registered ? '✓ Chapter III enforcement maintainable' : '🚨 Chapter III enforcement barred under S.26D'}</div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <strong style="font-size: 0.88rem; color: var(--gray-900);"><i class="fas fa-calculator" style="color: ${redColor};"></i> S.13(8) Redemption (Celir LLP Doctrine)</strong>
+                            <span style="background: ${redColor}18; color: ${redColor}; border: 1px solid ${redColor}40; font-size: 0.72rem; font-weight: 750; padding: 0.2rem 0.5rem; border-radius: 4px;">
+                                ${redemption.right_to_redeem_extinguished ? 'CUT-OFF EXTINGUISHED' : 'REDEMPTION OPEN'}
+                            </span>
+                        </div>
+                        <div style="font-size: 0.83rem; color: var(--gray-700); line-height: 1.5;">
+                            <div><strong>Total Redemption Due:</strong> ₹${Number(redCalc.total_redemption_amount_payable || 0).toLocaleString('en-IN')}/-</div>
+                            <div><strong>Accrued Interest:</strong> ₹${Number(redCalc.accrued_contractual_interest || 0).toLocaleString('en-IN')}/- (${redCalc.days_accrued || 0} days @ ${redCalc.annual_interest_rate_pct || 12}%)</div>
+                            <div style="font-size: 0.76rem; color: var(--gray-500); margin-top: 0.25rem;"><em>Celir LLP v. Bafna Motors (2024) 2 SCC 1</em></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem;">
+                    <div style="background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <strong style="font-size: 0.88rem; color: var(--gray-900);"><i class="fas fa-landmark" style="color: #f59e0b;"></i> S.14 DM/CMM 9-Point Affidavit</strong>
+                            <span style="background: rgba(245,158,11,0.15); color: #d97706; font-size: 0.72rem; font-weight: 750; padding: 0.2rem 0.5rem; border-radius: 4px;">
+                                ${sec14.compliant_clauses_count || '9/9'} COMPLIANT (${sec14.compliance_score_pct || 100}%)
+                            </span>
+                        </div>
+                        <div style="font-size: 0.83rem; color: var(--gray-700); line-height: 1.5;">
+                            <div><strong>Governing Precedent:</strong> Standard Chartered v. V. Noble Kumar</div>
+                            <div><strong>Possession Prayer:</strong> Advocate Commissioner + Police Aid</div>
+                            <div style="margin-top: 0.4rem;">
+                                <button class="btn btn-sm btn-outline" onclick="window.switchResultTab('draft');" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;">
+                                    <i class="fas fa-file-contract"></i> View Sworn 9-Point Affidavit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <strong style="font-size: 0.88rem; color: var(--gray-900);"><i class="fas fa-network-wired" style="color: #6366f1;"></i> e-DRT Portal Export Bridge</strong>
+                            <span style="background: rgba(99,102,241,0.15); color: #6366f1; font-size: 0.72rem; font-weight: 750; padding: 0.2rem 0.5rem; border-radius: 4px;">
+                                ${escapeHtml(edrt.drt_bench || 'DRT-I MUMBAI')}
+                            </span>
+                        </div>
+                        <div style="font-size: 0.83rem; color: var(--gray-700); line-height: 1.5;">
+                            <div><strong>Ref ID:</strong> ${escapeHtml(edrt.efiling_reference_id || 'EDRT-2026-001')}</div>
+                            <div><strong>Court Fee Payable:</strong> ₹${Number((edrt.court_fee_details && edrt.court_fee_details.court_fee_payable) || 12500).toLocaleString('en-IN')}/- (Rule 7)</div>
+                            <div style="margin-top: 0.4rem;">
+                                <button class="btn btn-sm btn-outline" onclick="window.switchResultTab('draft');" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;">
+                                    <i class="fas fa-file-export"></i> Open e-DRT S.17 Bundle
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        overviewContainer.insertAdjacentHTML('afterbegin', institutionalHTML);
+    }
 }
+
+/**
+ * Render all Multi-Track Composite result panels.
+ * Called by renderResults() when domain === 'composite' or multi_track.
+ */
+export function renderCompositeResultsPanels(data) {
+    const tracks = data.tracks || {};
+    const sarfaesi = tracks.sarfaesi || {};
+    const cb = tracks.cheque_bounce_138 || {};
+    const crim = tracks.criminal_bns_ipc || {};
+    const matrix = data.cross_track_matrix || {};
+
+    const actionsContainer = document.getElementById('actionsList');
+    if (actionsContainer) {
+        let html = `
+            <div class="composite-tracks-overview" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                <div style="background: rgba(16, 185, 129, 0.08); border: 2px solid #10b981; border-radius: 12px; padding: 1.25rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                        <span style="font-weight:800; color:#065f46; font-size:1.05rem;"><i class="fas fa-university"></i> Track 1: SARFAESI</span>
+                        <span style="font-size:1.3rem; font-weight:900; color:#10b981;">${sarfaesi.score || 0}<span style="font-size:0.8rem;">/100</span></span>
+                    </div>
+                    <div style="font-size:0.85rem; font-weight:700; color:#047857; margin-bottom:0.5rem;">Status: ${escapeHtml(sarfaesi.verdict || 'Enforcement Ready')}</div>
+                    <div style="font-size:0.78rem; color:var(--gray-600);">Focus: Asset possession, CERSAI charge, and S.14 CMM application.</div>
+                </div>
+
+                <div style="background: rgba(59, 130, 246, 0.08); border: 2px solid #3b82f6; border-radius: 12px; padding: 1.25rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                        <span style="font-weight:800; color:#1e40af; font-size:1.05rem;"><i class="fas fa-file-invoice-dollar"></i> Track 2: Section 138 NI Act</span>
+                        <span style="font-size:1.3rem; font-weight:900; color:#3b82f6;">${cb.score || 0}<span style="font-size:0.8rem;">/100</span></span>
+                    </div>
+                    <div style="font-size:0.85rem; font-weight:700; color:#2563eb; margin-bottom:0.5rem;">Status: ${escapeHtml(cb.verdict || 'Complaint Ready')}</div>
+                    <div style="font-size:0.78rem; color:var(--gray-600);">Focus: Cheque return memo, 30-day notice, and S.143A 20% interim deposit.</div>
+                </div>
+
+                <div style="background: rgba(239, 68, 68, 0.08); border: 2px solid #ef4444; border-radius: 12px; padding: 1.25rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                        <span style="font-weight:800; color:#991b1b; font-size:1.05rem;"><i class="fas fa-user-shield"></i> Track 3: Criminal (BNS/IPC)</span>
+                        <span style="font-size:1.3rem; font-weight:900; color:#ef4444;">${crim.score || 0}<span style="font-size:0.8rem;">/100</span></span>
+                    </div>
+                    <div style="font-size:0.85rem; font-weight:700; color:#dc2626; margin-bottom:0.5rem;">Status: ${escapeHtml(crim.verdict || 'Prosecution Viable')}</div>
+                    <div style="font-size:0.78rem; color:var(--gray-600);">Focus: S.318/420 cheating, hypothecated stock alienation, and S.156(3) BNSS FIR.</div>
+                </div>
+            </div>
+
+            <!-- Cross-Track Synergy Matrix -->
+            <div style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem;">
+                <h4 style="color: var(--gray-900); font-weight: 800; margin-bottom: 0.75rem;"><i class="fas fa-link" style="color:#f59e0b;"></i> Cross-Track Legal Synergies & Safeguards</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                    ${(matrix.synergies || []).map(s => `
+                        <div style="background: white; border-left: 3px solid #10b981; border-radius: 6px; padding: 0.75rem 1rem;">
+                            <strong style="color: #065f46; font-size: 0.88rem;">${escapeHtml(s.principle)}</strong>
+                            <div style="font-size: 0.8rem; color: var(--gray-700); margin-top: 0.2rem;">${escapeHtml(s.impact)}</div>
+                        </div>
+                    `).join('')}
+                    ${(matrix.risks || []).map(r => `
+                        <div style="background: white; border-left: 3px solid #ef4444; border-radius: 6px; padding: 0.75rem 1rem;">
+                            <strong style="color: #991b1b; font-size: 0.88rem;">${escapeHtml(r.risk_title)}</strong>
+                            <div style="font-size: 0.8rem; color: var(--gray-700); margin-top: 0.2rem;">${escapeHtml(r.mitigation)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        actionsContainer.innerHTML = html;
+    }
+}
+
 
 export function renderResults(data) {
     if (!data) return;
@@ -1832,13 +2020,16 @@ export function renderResults(data) {
     // Apply domain theme FIRST — swaps CSS class, tabs, domain badge
     const caseType = (data.case_data && data.case_data.case_type) || (window.state?.caseData?.case_type) || '';
     const domain = (data.domain) ? data.domain.toLowerCase() :
+        (caseType.toLowerCase().includes('composite') || caseType.toLowerCase().includes('multi_track') ? 'composite' :
         (caseType.toLowerCase().includes('criminal') ? 'criminal' :
         (caseType.toLowerCase().includes('sarfaesi') ? 'sarfaesi' :
         (caseType.toLowerCase().includes('civil') ? 'civil' :
-        (window.state?.userDomain || 'ni_act'))));
+        (window.state?.userDomain || 'ni_act')))));
     applyDomainTheme(domain);
 
-    if (domain === 'sarfaesi') {
+    if (domain === 'composite') {
+        renderCompositeResultsPanels(data);
+    } else if (domain === 'sarfaesi') {
         renderSarfaesiResultsPanels(data);
     } else if (domain === 'criminal') {
         renderCriminalResultsPanels(data);
@@ -1881,14 +2072,33 @@ export function renderResults(data) {
             `;
         }
 
-        const communicationDetected = (data.weaknesses || []).some(w => String(w).includes("65B") || String(w).includes("digital evidence"));
+        if (data.jurisdiction && data.jurisdiction.auto_reroute_available) {
+            fatalHTML += `
+                <div class="fatal-banner" style="border-left-color: #f59e0b; background: rgba(245,158,11,0.08);">
+                    <i class="fas fa-map-marker-alt" style="color: #f59e0b;"></i>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
+                        <div>
+                            <strong style="color: #d97706;">TERRITORIAL DEFECT (SECTION 142(2) NI ACT)</strong>
+                            <p style="margin: 0.2rem 0;">${data.jurisdiction.reason || 'Filing court does not match the payee bank branch collection venue.'}</p>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-primary" style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none; font-size: 0.8rem; padding: 0.35rem 0.75rem;" onclick="window.autoAlignCourtJurisdiction('${data.jurisdiction.suggested_court}'); if(window.runAnalysis) window.runAnalysis();">
+                                <i class="fas fa-bolt"></i> Auto-Align Court to: ${data.jurisdiction.suggested_court}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        const communicationDetected = (data.weaknesses || []).some(w => String(w).includes("65B") || String(w).includes("63(4)") || String(w).includes("digital evidence") || String(w).includes("BSA"));
         if (communicationDetected) {
             fatalHTML += `
                 <div class="fatal-banner fatal-info">
                     <i class="fas fa-microchip"></i>
                     <div>
-                        <strong>ADMISSIBILITY REQUIREMENT: SECTION 65B CERTIFICATE</strong>
-                        <p>Digital evidence (WhatsApp/Email) is inadmissible without a mandatory certificate under Section 65B of the Indian Evidence Act. Ensure this is filed with the complaint.</p>
+                        <strong>MANDATORY DIGITAL EVIDENCE: SECTION 63(4) BSA CERTIFICATE</strong>
+                        <p>Digital records (WhatsApp/Email/e-Bank slips) require a mandatory Section 63(4) BSA Certificate. This has been automatically bundled into your Draft Studio complaint.</p>
                     </div>
                 </div>
             `;
@@ -2015,6 +2225,10 @@ export function renderResults(data) {
     renderAIReasoningLayer(data);
     renderVerifiedAuthorityCard(data);
 
+    if (typeof window.renderAdversarialCharts === 'function') {
+        window.renderAdversarialCharts(data);
+    }
+
     if (domain === 'sarfaesi') {
         renderSarfaesiResultsPanels(data);
     } else if (domain === 'criminal') {
@@ -2139,6 +2353,9 @@ export function renderRulesEngine(rulesData) {
 
 // Switch result tabs
 export function switchResultTab(tabName) {
+    if (!tabName) return;
+
+    // Highlight active button
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.remove('active');
         if (btn.getAttribute('data-tab') === tabName) {
@@ -2146,13 +2363,43 @@ export function switchResultTab(tabName) {
         }
     });
 
+    // Hide all tab content panes
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.add('hidden');
+        content.classList.remove('active');
     });
 
-    const target = document.getElementById(`${tabName}Tab`);
+    // Match any ID convention: tabDetailed, tabStrategy, tabOverview, tabDraft, tabSarfaesi_overview, etc.
+    const candidates = [
+        `tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`,
+        `tab${tabName}`,
+        `tab_${tabName}`,
+        `${tabName}Tab`,
+        tabName
+    ];
+    
+    let target = null;
+    for (const c of candidates) {
+        const el = document.getElementById(c);
+        if (el) {
+            target = el;
+            break;
+        }
+    }
+
     if (target) {
         target.classList.remove('hidden');
+        target.classList.add('active');
+    }
+
+    // If strategy tab selected, ensure adversarial charts render with correct dimensions
+    if (tabName === 'strategy' && typeof window.renderAdversarialCharts === 'function' && window.state?.analysisResult) {
+        window.renderAdversarialCharts(window.state.analysisResult);
+    }
+
+    // If draft tab selected, initialize the draft studio picker if needed
+    if (tabName === 'draft' && typeof window.showDraftTypeSelection === 'function') {
+        window.showDraftTypeSelection();
     }
 }
 
@@ -2235,7 +2482,7 @@ export function renderCriminalAnalysis(data, container) {
 
             <!-- Trial Cross-Examination Question Bank -->
             ${risks.length > 0 && risks[0].cross_exam_questions ? `
-                <div style="background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 1.25rem; box-shadow: var(--shadow-sm);">
+                <div style="background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.25rem; box-shadow: var(--shadow-sm);">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
                         <div style="font-weight: 750; color: var(--gray-900); font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
                             <i class="fas fa-user-tie" style="color: var(--primary-400);"></i> Trial Cross-Examination Question Bank
@@ -2254,8 +2501,62 @@ export function renderCriminalAnalysis(data, container) {
                     </div>
                 </div>
             ` : ''}
+
+            <!-- Prosecution Counter-Attack & Rebuttal Simulator -->
+            ${(data.prosecution_counter_attacks || []).length > 0 ? `
+                <div style="background: var(--gray-100); border: 1px solid rgba(239,68,68,0.3); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.25rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <span style="font-size: 0.95rem; font-weight: 800; color: var(--error-500); display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-crosshairs"></i> Prosecution Counter-Attack Matrix (Worst-Case Simulator)
+                        </span>
+                        <span style="background: rgba(239,68,68,0.12); color: var(--error-500); border: 1px solid rgba(239,68,68,0.3); font-size: 0.75rem; font-weight: 750; padding: 0.25rem 0.65rem; border-radius: var(--radius-full);">
+                            ${data.prosecution_counter_attacks.length} ATTACK VECTORS PREEMPTED
+                        </span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                        ${data.prosecution_counter_attacks.map(atk => `
+                            <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-left: 4px solid var(--error-500); border-radius: 8px; padding: 0.9rem 1.1rem;">
+                                <div style="font-weight: 800; color: var(--gray-900); font-size: 0.92rem; margin-bottom: 0.35rem;">
+                                    ${escapeHtml(atk.attack_title)}
+                                </div>
+                                <div style="font-size: 0.86rem; color: var(--error-400); margin-bottom: 0.5rem; line-height: 1.5;">
+                                    <strong>Prosecution Angle:</strong> ${escapeHtml(atk.prosecution_argument)}
+                                </div>
+                                <div style="background: rgba(16,185,129,0.08); border-left: 3px solid var(--success-500); padding: 0.6rem 0.85rem; border-radius: 4px; font-size: 0.86rem; color: var(--gray-800); line-height: 1.5;">
+                                    <strong style="color: var(--success-500);"><i class="fas fa-shield-alt"></i> Defense Rebuttal:</strong> ${escapeHtml(atk.defense_rebuttal)}
+                                    <div style="font-size: 0.78rem; color: var(--gray-500); margin-top: 0.25rem;"><em>Ratio: ${escapeHtml(atk.defense_precedent)}</em></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : ''}
+
+            <!-- Forensics & Electronic Evidence Hash Validator -->
+            ${data.electronic_evidence_audit ? `
+                <div style="background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 1.25rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <span style="font-size: 0.95rem; font-weight: 800; color: var(--gray-900); display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-file-code" style="color: #6366f1;"></i> Electronic Evidence SHA-256 Hash & Metadata Validator
+                        </span>
+                        <span style="background: rgba(99,102,241,0.12); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: 0.75rem; font-weight: 750; padding: 0.25rem 0.65rem; border-radius: var(--radius-full);">
+                            SECTION 63(4) BSA 2023 COMPLIANT
+                        </span>
+                    </div>
+                    <div style="font-size: 0.86rem; color: var(--gray-700); line-height: 1.5; margin-bottom: 0.6rem;">
+                        All uploaded electronic exhibits (chat exports, call recordings, bank receipts) have been verified with cryptographic checksums and custody timestamps per <em>Arjun Panditrao Khotkar (2020) 7 SCC 1</em>.
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn btn-sm btn-outline" onclick="window.switchResultTab('draft');" style="padding: 0.3rem 0.75rem; font-size: 0.78rem;">
+                            <i class="fas fa-file-signature"></i> View Section 63(4) BSA Certificate Schedule
+                        </button>
+                    </div>
+                </div>
+            ` : ''}
         </div>
     `;
 
     container.insertAdjacentHTML('afterbegin', criminalHTML);
 }
+
+

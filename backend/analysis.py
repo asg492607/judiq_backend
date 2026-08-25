@@ -64,7 +64,7 @@ def _evict_if_full():
     summary="Analyze Legal Case",
     description="Processes raw case facts through the Timeline, Scoring, and Adversarial engines to generate a comprehensive litigation strategy."
 )
-@limiter.limit("5/minute")
+@limiter.limit("120/minute")
 async def analyze(request_data: Dict[str, Any], request: Request):
     request_id = datetime.now().strftime("%Y%m%d%H%M%S%f")
     raw_data = request_data

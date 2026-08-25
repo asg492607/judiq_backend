@@ -148,6 +148,15 @@ class JudiQEngine:
                 "domain": "sarfaesi",
                 "case_data": case_data
             }
+        elif case_type_clean in ("composite", "multi_track", "multitrack", "composite_recovery", "unified_npa", "unified", "all"):
+            from composite.unified_multitrack_engine import UnifiedMultiTrackEngine
+            composite_res = UnifiedMultiTrackEngine.analyze(case_data)
+            return {
+                **composite_res,
+                "domain": "composite",
+                "case_data": case_data
+            }
+
 
         doc_intel = registry.get("document_intelligence")
         verification_flags = _safe_call(

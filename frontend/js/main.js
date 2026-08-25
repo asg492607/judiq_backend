@@ -226,7 +226,7 @@ function setupFormListeners() {
                             }
                         } else if (code.includes('wrong-password')) {
                             if (loginError) {
-                                loginError.textContent = "Incorrect password. Please try again or use Instant Guest Access.";
+                                loginError.textContent = "Incorrect password. Please try again.";
                                 loginError.classList.add('show');
                             }
                         } else if (code.includes('invalid-email')) {
@@ -332,25 +332,54 @@ window.showDashboard = () => switchScreen('dashboardScreen');
 
 /**
  * Domain picker — called from register screen onclick
- * One-time permanent selection, locked at registration
+ * Supports all 6 domain options with immediate visual feedback
  */
 window.selectRegisterDomain = (domain) => {
-    const niCard = document.getElementById('domainCard_ni');
-    const sarfaesiCard = document.getElementById('domainCard_sarfaesi');
-    const input = document.getElementById('registerDomain');
-    const errEl = document.getElementById('domainPickerError');
+    const domainCards = ['all', 'composite', 'ni', 'sarfaesi', 'criminal', 'civil'];
+    domainCards.forEach(d => {
+        const card = document.getElementById(`domainCard_${d}`);
+        if (card) card.classList.remove('selected--all', 'selected--composite', 'selected--ni', 'selected--sarfaesi', 'selected--criminal', 'selected--civil');
+    });
 
-    // Clear previous selection
-    if (niCard) niCard.classList.remove('selected--ni', 'selected--sarfaesi');
-    if (sarfaesiCard) sarfaesiCard.classList.remove('selected--ni', 'selected--sarfaesi');
-
-    if (domain === 'ni_act') {
-        if (niCard) niCard.classList.add('selected--ni');
-    } else {
-        if (sarfaesiCard) sarfaesiCard.classList.add('selected--sarfaesi');
+    const activeCard = document.getElementById(`domainCard_${domain === 'ni_act' ? 'ni' : domain}`);
+    if (activeCard) {
+        activeCard.classList.add(`selected--${domain === 'ni_act' ? 'ni' : domain}`);
     }
+
+    const input = document.getElementById('registerDomain');
     if (input) input.value = domain;
+
+    const errEl = document.getElementById('domainPickerError');
     if (errEl) errEl.classList.remove('visible');
+};
+
+/**
+ * Switch active legal domain dynamically inside dashboard
+ */
+window.switchUserDomain = (domain, tabEl) => {
+    window.state.userDomain = domain;
+    if (window.state.currentUser) {
+        localStorage.setItem(`judiq_domain_${window.state.currentUser.uid}`, domain);
+    }
+    document.querySelectorAll('.domain-switch-tab').forEach(t => t.classList.remove('active'));
+    if (tabEl) {
+        tabEl.classList.add('active');
+    } else {
+        const targetTab = document.getElementById(`tab_domain_${domain === 'ni_act' ? 'ni' : domain}`);
+        if (targetTab) targetTab.classList.add('active');
+    }
+    renderDashboard();
+    if (window.ui && typeof window.ui.toast === 'function') {
+        const names = {
+            all: 'Full Practice (All Modules)',
+            composite: 'Multi-Track (SARFAESI + 138 + Criminal)',
+            ni_act: 'Section 138 Cheque Bounce',
+            sarfaesi: 'SARFAESI / DRT Enforcement',
+            criminal: 'Criminal Law (BNS / IPC)',
+            civil: 'Civil & Commercial Suits'
+        };
+        window.ui.toast(`Switched to ${names[domain] || domain}`, 'info');
+    }
 };
 
 window.logout = () => {
@@ -375,7 +404,12 @@ window.selectRole = (role) => {
 
 function renderDashboard() {
     const role = window.state.currentRole || 'citizen';
-    const domain = (window.state.userDomain || 'ni_act').toLowerCase();
+    const domain = (window.state.userDomain || 'all').toLowerCase();
+
+    // Update active tab highlight in quick-switch bar
+    document.querySelectorAll('.domain-switch-tab').forEach(t => t.classList.remove('active'));
+    const activeTab = document.getElementById(`tab_domain_${domain === 'ni_act' ? 'ni' : domain}`) || document.getElementById('tab_domain_all');
+    if (activeTab) activeTab.classList.add('active');
 
     // Domain badge in dashboard nav
     const dashNav = document.querySelector('#dashboardScreen .nav-brand');
@@ -385,7 +419,10 @@ function renderDashboard() {
             badge = document.createElement('span');
             dashNav.appendChild(badge);
         }
-        if (domain === 'criminal') {
+        if (domain === 'composite') {
+            badge.className = 'domain-badge domain-badge--composite';
+            badge.innerHTML = '<i class="fas fa-bolt"></i> Multi-Track Composite';
+        } else if (domain === 'criminal') {
             badge.className = 'domain-badge domain-badge--criminal';
             badge.innerHTML = '<i class="fas fa-user-shield"></i> Criminal Law (IPC/BNS)';
         } else if (domain === 'civil') {
@@ -394,9 +431,12 @@ function renderDashboard() {
         } else if (domain === 'sarfaesi') {
             badge.className = 'domain-badge domain-badge--sarfaesi';
             badge.innerHTML = '<i class="fas fa-university"></i> SARFAESI / DRT';
-        } else {
+        } else if (domain === 'ni_act') {
             badge.className = 'domain-badge domain-badge--ni';
             badge.innerHTML = '<i class="fas fa-file-invoice-dollar"></i> NI Act — S.138';
+        } else {
+            badge.className = 'domain-badge domain-badge--all';
+            badge.innerHTML = '<i class="fas fa-layer-group"></i> Full Practice OS (All Domains)';
         }
     }
 
@@ -405,7 +445,48 @@ function renderDashboard() {
     if (grid) {
         const allCases = JSON.parse(localStorage.getItem('judiq_recent_cases_v1') || '[]');
         
-        if (domain === 'criminal') {
+        if (domain === 'composite') {
+            const domainCases = allCases.filter(c => c.domain === 'composite' || (c.case_data && String(c.case_data.case_type).toLowerCase().includes('composite')));
+            const total = domainCases.length;
+
+            grid.innerHTML = `
+                <div class="domain-section-header" style="grid-column:1/-1;">
+                    <i class="fas fa-bolt" style="color:#f59e0b;"></i>
+                    <h3>Multi-Track Concurrent Legal Action (SARFAESI + 138 + Criminal)</h3>
+                </div>
+                <div class="domain-stats-grid" style="grid-column:1/-1;">
+                    <div class="domain-stat-card" style="border-left: 4px solid #f59e0b;">
+                        <div class="dsc-icon"><i class="fas fa-layer-group" style="color:#f59e0b;"></i></div>
+                        <div class="dsc-content"><div class="dsc-value">${total}</div><div class="dsc-label">Multi-Track Matters Evaluated</div></div>
+                    </div>
+                    <div class="domain-stat-card" style="border-left: 4px solid #10b981;">
+                        <div class="dsc-icon"><i class="fas fa-sync" style="color:#10b981;"></i></div>
+                        <div class="dsc-content"><div class="dsc-value">3 Tracks</div><div class="dsc-label">Concurrent Statutory Engines</div></div>
+                    </div>
+                </div>
+                <div class="domain-section-header" style="grid-column:1/-1;">
+                    <i class="fas fa-rocket" style="color:#f59e0b;"></i>
+                    <h3>Multi-Track Quick Actions</h3>
+                </div>
+                <div class="domain-actions-grid" style="grid-column:1/-1;">
+                    <div class="domain-action-card" onclick="startCaseAnalysis({case_type:'Multi-Track (SARFAESI + 138 + Criminal)'})">
+                        <div class="dac-icon" style="color:#f59e0b;"><i class="fas fa-bolt"></i></div>
+                        <div class="dac-title">Run Unified Multi-Track Analysis</div>
+                        <div class="dac-sub">Simultaneously evaluate SARFAESI asset recovery, Sec 138 cheque prosecution, and Criminal cheating charges on a single loan account.</div>
+                    </div>
+                    <div class="domain-action-card" onclick="window.loadCompositeDemoCase()">
+                        <div class="dac-icon" style="color:#10b981;"><i class="fas fa-file-invoice"></i></div>
+                        <div class="dac-title">Load Multi-Track Demo Scenario</div>
+                        <div class="dac-sub">Pre-populate a high-value loan default with concurrent cheque bounce & SARFAESI actions.</div>
+                    </div>
+                    <div class="domain-action-card" onclick="window.showDraftStudio()" style="border: 2px solid rgba(16,185,129,0.35); background: rgba(16,185,129,0.05);">
+                        <div class="dac-icon" style="color:#10b981;"><i class="fas fa-file-contract"></i></div>
+                        <div class="dac-title">Generate Legal Draft</div>
+                        <div class="dac-sub">Open the Draft Studio — 13 court-ready documents: notices, complaints, affidavits & SARFAESI notices.</div>
+                    </div>
+                </div>
+            `;
+        } else if (domain === 'criminal') {
             const domainCases = allCases.filter(c => c.domain === 'criminal' || (c.case_data && c.case_data.case_type === 'criminal'));
             const total = domainCases.length;
             const highBail = domainCases.filter(c => c.analysis_result && c.analysis_result.bail_assessment && c.analysis_result.bail_assessment.probability === 'HIGH').length;
@@ -440,10 +521,15 @@ function renderDashboard() {
                         <div class="dac-title">S.420 / Civil Dispute Audit</div>
                         <div class="dac-sub">Test civil dispute quashing grounds under Bhajan Lal & Hridaya Ranjan precedent</div>
                     </div>
-                    <div class="domain-action-card" onclick="startCaseAnalysis({case_type:'Criminal'})">
-                        <div class="dac-icon" style="color:#3b82f6;"><i class="fas fa-file-contract"></i></div>
-                        <div class="dac-title">Bail & Quashing Petition Draft</div>
-                        <div class="dac-sub">Auto-generate Anticipatory Bail application or S.482 Quashing petition</div>
+                    <div class="domain-action-card" onclick="window.loadCriminalDemoCase()">
+                        <div class="dac-icon" style="color:#ef4444;"><i class="fas fa-file-invoice"></i></div>
+                        <div class="dac-title">Load Demo Criminal Case</div>
+                        <div class="dac-sub">Pre-fill S.420/406 IPC financial fraud scenario with quashing defence grounds</div>
+                    </div>
+                    <div class="domain-action-card" onclick="window.showDraftStudio()" style="border: 2px solid rgba(16,185,129,0.35); background: rgba(16,185,129,0.05);">
+                        <div class="dac-icon" style="color:#10b981;"><i class="fas fa-file-contract"></i></div>
+                        <div class="dac-title">Generate Legal Draft</div>
+                        <div class="dac-sub">Open Draft Studio — generate criminal complaints, bail petitions, affidavits & BSA certificates.</div>
                     </div>
                 </div>
             `;
@@ -453,12 +539,12 @@ function renderDashboard() {
 
             grid.innerHTML = `
                 <div class="domain-section-header" style="grid-column:1/-1;">
-                    <i class="fas fa-balance-scale" style="color:#3b82f6;"></i>
+                    <i class="fas fa-balance-scale" style="color:#8b5cf6;"></i>
                     <h3>Civil & Commercial Litigation Overview</h3>
                 </div>
                 <div class="domain-stats-grid" style="grid-column:1/-1;">
-                    <div class="domain-stat-card" style="border-left: 4px solid #3b82f6;">
-                        <div class="dsc-icon"><i class="fas fa-file-alt" style="color:#3b82f6;"></i></div>
+                    <div class="domain-stat-card" style="border-left: 4px solid #8b5cf6;">
+                        <div class="dsc-icon"><i class="fas fa-file-alt" style="color:#8b5cf6;"></i></div>
                         <div class="dsc-content"><div class="dsc-value">${total}</div><div class="dsc-label">Civil Suits Analyzed</div></div>
                     </div>
                 </div>
@@ -468,9 +554,19 @@ function renderDashboard() {
                 </div>
                 <div class="domain-actions-grid" style="grid-column:1/-1;">
                     <div class="domain-action-card" onclick="startCaseAnalysis({case_type:'Civil'})">
-                        <div class="dac-icon" style="color:#3b82f6;"><i class="fas fa-search"></i></div>
+                        <div class="dac-icon" style="color:#8b5cf6;"><i class="fas fa-search"></i></div>
                         <div class="dac-title">Analyse Civil Suit</div>
                         <div class="dac-sub">CPC Plaint, Written Statement, Order 39 Injunction & Limitation Audit</div>
+                    </div>
+                    <div class="domain-action-card" onclick="window.loadCivilDemoCase()">
+                        <div class="dac-icon" style="color:#8b5cf6;"><i class="fas fa-file-invoice"></i></div>
+                        <div class="dac-title">Load Demo Civil Suit</div>
+                        <div class="dac-sub">Pre-fill Commercial Specific Performance suit with Order 39 interim injunction</div>
+                    </div>
+                    <div class="domain-action-card" onclick="window.showDraftStudio()" style="border: 2px solid rgba(16,185,129,0.35); background: rgba(16,185,129,0.05);">
+                        <div class="dac-icon" style="color:#10b981;"><i class="fas fa-file-contract"></i></div>
+                        <div class="dac-title">Generate Legal Draft</div>
+                        <div class="dac-sub">Open Draft Studio — generate plaints, written statements, affidavits & interim injunctions.</div>
                     </div>
                 </div>
             `;
@@ -482,7 +578,7 @@ function renderDashboard() {
 
             grid.innerHTML = `
                 <div class="domain-section-header" style="grid-column:1/-1;">
-                    <i class="fas fa-chart-bar" style="color:#f59e0b;"></i>
+                    <i class="fas fa-chart-bar" style="color:#10b981;"></i>
                     <h3>Account Overview</h3>
                 </div>
                 <div class="domain-stats-grid" style="grid-column:1/-1;">
@@ -500,7 +596,7 @@ function renderDashboard() {
                     </div>
                 </div>
                 <div class="domain-section-header" style="grid-column:1/-1;">
-                    <i class="fas fa-bolt" style="color:#f59e0b;"></i>
+                    <i class="fas fa-bolt" style="color:#10b981;"></i>
                     <h3>Quick Actions</h3>
                 </div>
                 <div class="domain-actions-grid" style="grid-column:1/-1;">
@@ -509,20 +605,19 @@ function renderDashboard() {
                         <div class="dac-title">Analyse SARFAESI Case</div>
                         <div class="dac-sub">Run full NPA enforcement audit — CERSAI, S.13(2), S.14, DRT</div>
                     </div>
-                    <div class="domain-action-card domain-action-card--sarfaesi" onclick="loadSarfaesiDemoCase()">
-                        <div class="dac-icon dac-icon--sarfaesi"><i class="fas fa-bolt"></i></div>
+                    <div class="domain-action-card" onclick="window.loadSarfaesiDemoCase()">
+                        <div class="dac-icon" style="color:#f59e0b;"><i class="fas fa-building"></i></div>
                         <div class="dac-title">Load Demo SARFAESI Case</div>
-                        <div class="dac-sub">Instantly preview a pre-populated bank enforcement scenario</div>
+                        <div class="dac-sub">Pre-fill a commercial real-estate NPA scenario with full S.13 enforcement details</div>
                     </div>
-                    <div class="domain-action-card domain-action-card--sarfaesi" onclick="startCaseAnalysis({case_type:'SARFAESI'})">
-                        <div class="dac-icon dac-icon--sarfaesi"><i class="fas fa-file-contract"></i></div>
-                        <div class="dac-title">Generate SARFAESI Draft</div>
-                        <div class="dac-sub">Auto-generate Demand Notice, S.13(4) possession, or SA reply</div>
+                    <div class="domain-action-card" onclick="window.showDraftStudio()" style="border: 2px solid rgba(16,185,129,0.35); background: rgba(16,185,129,0.05);">
+                        <div class="dac-icon" style="color:#10b981;"><i class="fas fa-file-contract"></i></div>
+                        <div class="dac-title">Generate Legal Draft</div>
+                        <div class="dac-sub">Open Draft Studio — generate SARFAESI s.13(2) notices, DRT applications & possession letters.</div>
                     </div>
                 </div>
             `;
-        } else {
-            // NI Act domain
+        } else if (domain === 'ni_act') {
             const domainCases = allCases.filter(c => !c.domain || c.domain === 'ni_act');
             const totalCases = domainCases.length;
             const fatalCases = domainCases.filter(c => c.verdict === 'DO NOT FILE').length;
@@ -530,7 +625,7 @@ function renderDashboard() {
 
             grid.innerHTML = `
                 <div class="domain-section-header" style="grid-column:1/-1;">
-                    <i class="fas fa-chart-bar" style="color:#818cf8;"></i>
+                    <i class="fas fa-chart-bar" style="color:#3b82f6;"></i>
                     <h3>Account Overview</h3>
                 </div>
                 <div class="domain-stats-grid" style="grid-column:1/-1;">
@@ -548,11 +643,11 @@ function renderDashboard() {
                     </div>
                 </div>
                 <div class="domain-section-header" style="grid-column:1/-1;">
-                    <i class="fas fa-bolt" style="color:#818cf8;"></i>
+                    <i class="fas fa-bolt" style="color:#3b82f6;"></i>
                     <h3>Quick Actions</h3>
                 </div>
                 <div class="domain-actions-grid" style="grid-column:1/-1;">
-                    <div class="domain-action-card domain-action-card--ni" onclick="startCaseAnalysis()">
+                    <div class="domain-action-card domain-action-card--ni" onclick="startCaseAnalysis({case_type:'Cheque Bounce'})">
                         <div class="dac-icon dac-icon--ni"><i class="fas fa-search"></i></div>
                         <div class="dac-title">Analyse S.138 Case</div>
                         <div class="dac-sub">Run adversarial weakness scan — Limitation, Notice, Instrument, Debt</div>
@@ -562,10 +657,51 @@ function renderDashboard() {
                         <div class="dac-title">Load Demo Case</div>
                         <div class="dac-sub">Instantly preview a pre-populated cheque bounce scenario</div>
                     </div>
-                    <div class="domain-action-card domain-action-card--ni" onclick="startCaseAnalysis()">
-                        <div class="dac-icon dac-icon--ni"><i class="fas fa-file-contract"></i></div>
+                    <div class="domain-action-card" onclick="window.showDraftStudio()" style="border: 2px solid rgba(16,185,129,0.35); background: rgba(16,185,129,0.05);">
+                        <div class="dac-icon" style="color:#10b981;"><i class="fas fa-file-contract"></i></div>
                         <div class="dac-title">Generate Legal Draft</div>
-                        <div class="dac-sub">Auto-generate demand notice, S.138 complaint, or defence reply</div>
+                        <div class="dac-sub">Open Draft Studio — demand notices, criminal complaints, reply notices, affidavits & BSA certificates.</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // "ALL" DOMAINS — Unified Multi-Domain Command Center
+            const totalCases = allCases.length;
+            grid.innerHTML = `
+                <div class="domain-section-header" style="grid-column:1/-1;">
+                    <i class="fas fa-layer-group" style="color:#38bdf8;"></i>
+                    <h3>Institutional Litigation OS — All Legal Modules</h3>
+                </div>
+                <div class="domain-actions-grid" style="grid-column:1/-1; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                    <div class="domain-action-card" onclick="startCaseAnalysis({case_type:'Multi-Track (SARFAESI + 138 + Criminal)'})" style="border: 2px solid rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.05);">
+                        <div class="dac-icon" style="color:#f59e0b;"><i class="fas fa-bolt"></i></div>
+                        <div class="dac-title">Multi-Track Composite Action</div>
+                        <div class="dac-sub">Evaluate SARFAESI + Section 138 + Criminal Fraud simultaneously on a single debt account.</div>
+                    </div>
+                    <div class="domain-action-card" onclick="startCaseAnalysis({case_type:'Cheque Bounce'})">
+                        <div class="dac-icon" style="color:#3b82f6;"><i class="fas fa-file-invoice-dollar"></i></div>
+                        <div class="dac-title">NI Act — Section 138</div>
+                        <div class="dac-sub">Cheque dishonour memo, 30-day notice, S.139 presumption, and S.143A compensation.</div>
+                    </div>
+                    <div class="domain-action-card" onclick="startCaseAnalysis({case_type:'SARFAESI'})">
+                        <div class="dac-icon" style="color:#10b981;"><i class="fas fa-university"></i></div>
+                        <div class="dac-title">SARFAESI & DRT Recovery</div>
+                        <div class="dac-sub">Secured asset enforcement, CERSAI verification, S.13(2)/13(4) notices, DM S.14 physical possession.</div>
+                    </div>
+                    <div class="domain-action-card" onclick="startCaseAnalysis({case_type:'Criminal'})">
+                        <div class="dac-icon" style="color:#ef4444;"><i class="fas fa-user-shield"></i></div>
+                        <div class="dac-title">Criminal Law (BNS & IPC)</div>
+                        <div class="dac-sub">Cheating (S.318/420), CBT (S.316/406), Anticipatory/Regular Bail, and S.482 Quashing.</div>
+                    </div>
+                    <div class="domain-action-card" onclick="startCaseAnalysis({case_type:'Civil'})">
+                        <div class="dac-icon" style="color:#8b5cf6;"><i class="fas fa-balance-scale"></i></div>
+                        <div class="dac-title">Civil & Commercial Suits</div>
+                        <div class="dac-sub">Specific performance, commercial debt recovery, and Order 39 interim injunctions.</div>
+                    </div>
+                    <div class="domain-action-card" onclick="window.showDraftStudio()" style="border: 2px solid rgba(16,185,129,0.35); background: rgba(16,185,129,0.05); grid-column: 1 / -1;">
+                        <div class="dac-icon" style="color:#10b981;"><i class="fas fa-file-contract"></i></div>
+                        <div class="dac-title" style="font-size: 1.05rem;">📄 Draft Studio — Generate Any Legal Document</div>
+                        <div class="dac-sub">13 court-ready templates: demand notices, criminal complaints, bail petitions, SARFAESI s.13(2) notices, affidavits, BSA certificates, reply notices & more — enter your inputs and generate instantly.</div>
                     </div>
                 </div>
             `;
@@ -595,12 +731,14 @@ function renderDashboard() {
         }
         greetingEl.textContent = `Welcome, Counsel ${name}`;
         const domainLabels = {
+            all: 'Full Practice Litigation Command Center',
+            composite: 'Multi-Track Composite Platform',
             criminal: 'Criminal Law Platform',
             civil: 'Civil & Commercial Litigation Strategist',
             sarfaesi: 'SARFAESI / DRT Platform',
-            ni_act: 'NI Act Litigation Strategist'
+            ni_act: 'NI Act — Section 138 Platform'
         };
-        const domainLabel = domainLabels[domain] || 'NI Act Litigation Strategist';
+        const domainLabel = domainLabels[domain] || 'Institutional Legal Intelligence OS';
         if (subtitleEl) {
             subtitleEl.textContent = firm
                 ? `${domainLabel} | ${firm} — Find the weakness before the courtroom does.`
@@ -2679,6 +2817,211 @@ window.filterPrecedentByTag = (tagQuery, element) => {
 
 
 
+// ═══════════════════════════════════════════════════════════════
+// DRAFT STUDIO — Standalone Draft Generator (accessible from dashboard)
+// ═══════════════════════════════════════════════════════════════
+
+let activeStudioDraftType = null;
+
+/**
+ * Open the Draft Studio screen from dashboard
+ */
+window.showDraftStudio = () => {
+    switchScreen('draftStudioScreen');
+    window.showStudioTypeSelection();
+};
+
+window.showStudioTypeSelection = () => {
+    const sel = document.getElementById('studioTypeSelection');
+    const form = document.getElementById('studioInputForm');
+    const out = document.getElementById('studioOutputView');
+    if (sel) sel.classList.remove('hidden');
+    if (form) form.classList.add('hidden');
+    if (out) out.classList.add('hidden');
+    renderStudioDraftTypeGrid();
+};
+
+window.showStudioInputForm = () => {
+    const sel = document.getElementById('studioTypeSelection');
+    const form = document.getElementById('studioInputForm');
+    const out = document.getElementById('studioOutputView');
+    if (sel) sel.classList.add('hidden');
+    if (form) form.classList.remove('hidden');
+    if (out) out.classList.add('hidden');
+};
+
+window.showStudioOutputView = () => {
+    const sel = document.getElementById('studioTypeSelection');
+    const form = document.getElementById('studioInputForm');
+    const out = document.getElementById('studioOutputView');
+    if (sel) sel.classList.add('hidden');
+    if (form) form.classList.add('hidden');
+    if (out) out.classList.remove('hidden');
+};
+
+function renderStudioDraftTypeGrid() {
+    const grid = document.getElementById('studioDraftTypeGrid');
+    if (!grid) return;
+    grid.innerHTML = DRAFT_TYPES.map(dt => `
+        <div class="draft-type-card" onclick="window.selectStudioDraftType('${dt.id}')">
+            <div class="draft-type-num" style="background:${dt.color}18;color:${dt.color}">${dt.number}</div>
+            <div class="draft-type-icon-wrap" style="color:${dt.color}">
+                <i class="fas ${dt.icon}"></i>
+            </div>
+            <div class="draft-type-info">
+                <h4>${dt.title}</h4>
+                <span class="draft-type-sub">${dt.subtitle}</span>
+                <p>${dt.description}</p>
+            </div>
+            <div class="draft-type-chevron" style="color:${dt.color}">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </div>
+    `).join('');
+}
+
+window.selectStudioDraftType = (id) => {
+    activeStudioDraftType = DRAFT_TYPES.find(dt => dt.id === id);
+    if (!activeStudioDraftType) return;
+
+    const badge = document.getElementById('studioDraftSelectedBadge');
+    if (badge) {
+        badge.innerHTML = `
+            <span style="background:${activeStudioDraftType.color}18;color:${activeStudioDraftType.color};padding:0.3rem 1rem;border-radius:999px;font-size:0.8rem;font-weight:600;display:inline-flex;align-items:center;gap:0.4rem;">
+                <i class="fas ${activeStudioDraftType.icon}"></i> Type ${activeStudioDraftType.number} &nbsp;·&nbsp; ${activeStudioDraftType.subtitle}
+            </span>`;
+    }
+
+    const titleEl = document.getElementById('studioFormTitle');
+    const subtitleEl = document.getElementById('studioFormSubtitle');
+    if (titleEl) titleEl.textContent = activeStudioDraftType.title;
+    if (subtitleEl) subtitleEl.textContent = activeStudioDraftType.description;
+
+    // Pre-fill from existing case data if any
+    const pre = {};
+    const s = window.state?.caseData || {};
+    const preMap = {
+        complainant_name: s.complainant_name, complainant_address: s.complainant_address,
+        accused_name: s.accused_name, accused_address: s.accused_address,
+        cheque_number: s.cheque_number, cheque_date: s.cheque_date,
+        cheque_amount: s.cheque_amount, bank_name: s.bank_name,
+        branch_name: s.branch_name, dishonour_date: s.dishonour_date || s.date_of_dishonour,
+        dishonour_reason: s.dishonour_reason, court_name: s.court_name,
+        notice_date: s.notice_date || s.date_of_notice, filing_date: s.filing_date
+    };
+    Object.assign(pre, preMap);
+
+    const body = document.getElementById('studioFormBody');
+    if (body) {
+        body.innerHTML = '<div class="draft-fields-grid">' + activeStudioDraftType.fields.map(f => {
+            const val = pre[f.name] || '';
+            const isWide = f.type === 'textarea' || f.name.includes('address') || f.name.includes('details') || f.name.includes('purpose');
+            let inputHtml = '';
+            if (f.type === 'textarea') {
+                inputHtml = `<textarea id="sfield_${f.name}" class="draft-field-input" ${f.required ? 'required' : ''} placeholder="${f.placeholder || ''}" rows="3">${val}</textarea>`;
+            } else if (f.type === 'select') {
+                inputHtml = `<select id="sfield_${f.name}" class="draft-field-input" ${f.required ? 'required' : ''}>
+                    <option value="">Select...</option>
+                    ${(f.options || []).map(o => `<option value="${o}"${val === o ? ' selected' : ''}>${o}</option>`).join('')}
+                </select>`;
+            } else {
+                inputHtml = `<input type="${f.type}" id="sfield_${f.name}" class="draft-field-input" ${f.required ? 'required' : ''} placeholder="${f.placeholder || ''}" value="${val}">`;
+            }
+            return `<div class="draft-field-group${isWide ? ' full-width' : ''}">
+                <label class="draft-field-label" for="sfield_${f.name}">
+                    ${f.label}${f.required ? ' <span class="req-star">*</span>' : ''}
+                </label>${inputHtml}
+            </div>`;
+        }).join('') + '</div>';
+    }
+
+    window.showStudioInputForm();
+};
+
+window.generateStudioDraft = () => {
+    if (!activeStudioDraftType) return;
+    const missing = [];
+    const data = {};
+    for (const f of activeStudioDraftType.fields) {
+        const el = document.getElementById('sfield_' + f.name);
+        if (!el) continue;
+        const val = el.value.trim();
+        if (f.required && !val) {
+            missing.push(f.label);
+            el.classList.add('field-error');
+        } else {
+            el.classList.remove('field-error');
+            data[f.name] = val;
+        }
+    }
+    if (missing.length > 0) {
+        if (window.ui && typeof window.ui.toast === 'function') {
+            window.ui.toast('Please fill required fields: ' + missing.slice(0, 3).join(', ') + (missing.length > 3 ? '...' : ''), 'error');
+        }
+        return;
+    }
+    try {
+        const txt = activeStudioDraftType.generate(data);
+        const ta = document.getElementById('studioDraftContent');
+        if (ta) ta.value = txt;
+
+        const badge = document.getElementById('studioDraftOutputBadge');
+        if (badge) {
+            badge.innerHTML = `<span style="background:${activeStudioDraftType.color}18;color:${activeStudioDraftType.color};padding:0.3rem 1rem;border-radius:999px;font-size:0.8rem;font-weight:600;display:inline-flex;align-items:center;gap:0.4rem;">
+                <i class="fas ${activeStudioDraftType.icon}"></i> ${activeStudioDraftType.title}
+            </span>`;
+        }
+        const titleEl = document.getElementById('studioDraftOutputTitle');
+        if (titleEl) titleEl.textContent = activeStudioDraftType.title;
+
+        window.showStudioOutputView();
+        if (window.ui && typeof window.ui.toast === 'function') {
+            window.ui.toast('Draft generated successfully!', 'success');
+        }
+    } catch (err) {
+        console.error('Draft generation error:', err);
+        if (window.ui && typeof window.ui.toast === 'function') {
+            window.ui.toast('Failed to generate draft: ' + err.message, 'error');
+        }
+    }
+};
+
+window.copyStudioDraft = () => {
+    const ta = document.getElementById('studioDraftContent');
+    if (!ta || !ta.value) return;
+    navigator.clipboard.writeText(ta.value).then(() => {
+        if (window.ui && typeof window.ui.toast === 'function') window.ui.toast('Draft copied to clipboard!', 'success');
+    }).catch(() => {
+        ta.select();
+        document.execCommand('copy');
+        if (window.ui && typeof window.ui.toast === 'function') window.ui.toast('Draft copied!', 'success');
+    });
+};
+
+window.downloadStudioDraft = () => {
+    const ta = document.getElementById('studioDraftContent');
+    if (!ta || !ta.value) return;
+    const name = (activeStudioDraftType?.title || 'Legal_Draft').replace(/\s+/g, '_');
+    const blob = new Blob([ta.value], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `JudiQ_${name}_${new Date().toISOString().slice(0, 10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+};
+
+window.printStudioDraft = () => {
+    const ta = document.getElementById('studioDraftContent');
+    if (!ta || !ta.value) return;
+    const w = window.open('', '_blank');
+    w.document.write(`<html><head><title>${activeStudioDraftType?.title || 'Legal Draft'}</title>
+    <style>body{font-family:monospace;white-space:pre-wrap;padding:2cm;font-size:12pt;line-height:1.6;}</style>
+    </head><body>${ta.value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
+    w.document.close();
+    w.print();
+};
+
 
 
 // ============================================================================
@@ -3002,3 +3345,205 @@ window.toggleMobileNav = (forceState) => {
         document.body.style.overflow = '';
     }
 };
+
+/**
+ * Universal Case Analysis Starter
+ */
+window.startCaseAnalysis = (initialData = {}) => {
+    window.state = window.state || {};
+    window.state.caseData = { ...(initialData || {}) };
+    window.state.currentStep = 1;
+    try {
+        localStorage.setItem('judiq_wizard_autosave', JSON.stringify(window.state.caseData));
+    } catch (_) {}
+    switchScreen('caseWizardScreen');
+    if (typeof window.setCaseType === 'function' && initialData.case_type) {
+        window.setCaseType(initialData.case_type);
+    } else if (typeof renderWizardStep === 'function') {
+        renderWizardStep();
+    }
+};
+
+/**
+ * Demo Case Loaders with Embedded Fallbacks
+ */
+window.loadDemoCase = async () => {
+    try {
+        const resp = await fetch('./demo_cases/demo_cb_strong.json');
+        if (resp.ok) {
+            const data = await resp.json();
+            window.startCaseAnalysis(data);
+            if (window.ui && typeof window.ui.toast === 'function') {
+                window.ui.toast('Loaded Section 138 Demo Case', 'success');
+            }
+            return;
+        }
+    } catch (e) {}
+    if (typeof window.loadSampleCaseData === 'function') window.loadSampleCaseData();
+};
+
+window.loadSarfaesiDemoCase = async () => {
+    try {
+        const resp = await fetch('./demo_cases/demo_sarfaesi_bank.json');
+        if (resp.ok) {
+            const data = await resp.json();
+            window.startCaseAnalysis(data);
+            if (window.ui && typeof window.ui.toast === 'function') {
+                window.ui.toast('Loaded SARFAESI Enforcement Demo Case', 'success');
+            }
+            return;
+        }
+    } catch (e) {}
+    const sarfaesiFallback = {
+        case_id: "SARFAESI-DEMO-001",
+        case_title: "Axis Bank vs. Zenith Fabricators Pvt Ltd",
+        case_type: "SARFAESI",
+        perspective: "Creditor (Bank / Financial Institution / Complainant)",
+        bank_name: "Axis Bank Ltd (Stressed Assets Management Branch)",
+        borrower_name: "Zenith Fabricators Pvt Ltd & Rajiv Mehta",
+        outstanding_amount: 45000000.0,
+        amount: 45000000.0,
+        npa_date: "2025-09-30",
+        notice_13_2_date: "2025-10-15",
+        cersai_registered: true,
+        property_description: "Industrial Shed No. 12, Phase II, GIDC Industrial Estate, Vatva, Ahmedabad",
+        is_agricultural_land: false,
+        possession_13_4_date: "2026-01-20",
+        description: "Borrower availed term loan and working capital credit facility of Rs. 4.50 Crore against equitable mortgage of industrial land. Account classified NPA following consecutive default. S.13(2) demand notice issued; borrower failed to pay within 60 days."
+    };
+    window.startCaseAnalysis(sarfaesiFallback);
+    if (window.ui && typeof window.ui.toast === 'function') {
+        window.ui.toast('Loaded SARFAESI Enforcement Demo Case', 'success');
+    }
+};
+
+window.loadCompositeDemoCase = async () => {
+    try {
+        const resp = await fetch('./demo_cases/demo_composite_multitrack.json');
+        if (resp.ok) {
+            const data = await resp.json();
+            window.startCaseAnalysis(data);
+            if (window.ui && typeof window.ui.toast === 'function') {
+                window.ui.toast('Loaded Multi-Track Composite Recovery Demo Scenario', 'success');
+            }
+            return;
+        }
+    } catch (e) {}
+    const compositeFallback = {
+        case_id: "SBI-NPA-MULTITRACK-2026",
+        case_title: "State Bank of India vs. Zenith Infrastructure & Allied Projects Ltd",
+        case_type: "Multi-Track (SARFAESI + 138 + Criminal)",
+        perspective: "Creditor (Bank / Financial Institution / Complainant)",
+        bank_name: "State Bank of India (SAMB Branch, Mumbai)",
+        borrower_name: "Zenith Infrastructure & Allied Projects Ltd & Rajesh Singhania",
+        outstanding_amount: 75000000.0,
+        amount: 75000000.0,
+        filing_date: "2026-06-15",
+        npa_date: "2025-11-01",
+        notice_13_2_date: "2025-11-15",
+        cersai_registered: true,
+        property_description: "Commercial Plot No. 45, Industrial Park, Sector 18, MIDC Pune",
+        is_agricultural_land: false,
+        possession_13_4_date: "2026-02-10",
+        cheque_present: true,
+        cheque_number: "981240",
+        cheque_amount: 25000000.0,
+        date_of_dishonour: "2025-12-05",
+        dishonour_memo: true,
+        notice_sent: true,
+        date_of_notice: "2025-12-20",
+        contract_exists: true,
+        entrustment_proven: true,
+        alienation_of_hypothecated_assets: true,
+        offense_type: "Cheating & Alienation of Hypothecated Stocks (BNS 318/316 ↔ IPC 420/406)",
+        s143a_interim_sought: true,
+        sec14_dm_application_filed: true,
+        description: "Defaulted commercial infrastructure loan facility. Bank issued Section 13(2) notice following NPA. Accused issued repayment cheque of Rs. 2.5 Crore which bounced for insufficient funds; Section 138 notice dispatched within 15 days. Investigation revealed borrower dishonestly removed hypothecated plant machinery without lender consent."
+    };
+    window.startCaseAnalysis(compositeFallback);
+    if (window.ui && typeof window.ui.toast === 'function') {
+        window.ui.toast('Loaded Multi-Track Composite Recovery Demo Scenario', 'success');
+    }
+};
+
+window.loadCriminalDemoCase = async () => {
+    try {
+        const resp = await fetch('./demo_cases/demo_criminal_fraud.json');
+        if (resp.ok) {
+            const data = await resp.json();
+            window.startCaseAnalysis(data);
+            if (window.ui && typeof window.ui.toast === 'function') {
+                window.ui.toast('Loaded Criminal Law Demo Scenario (S.420 Quashing)', 'success');
+            }
+            return;
+        }
+    } catch (e) {}
+    const criminalFallback = {
+        case_id: "CR-FIR-2026-882",
+        case_title: "State of Maharashtra vs Vikram Sharma & Ors",
+        case_type: "Criminal",
+        police_station: "Cyber & Financial Crime PS, BKC, Mumbai",
+        client_role: "Accused",
+        statutory_regime: "Indian Penal Code (IPC 1860 / CrPC 1973)",
+        filing_date: "2026-05-10",
+        court_name: "Additional Sessions Court, Greater Mumbai",
+        offense_type: "S.420 IPC / S.318 BNS (Cheating & Financial Fraud)",
+        ipc_section: "S. 420, 406, 120B IPC",
+        incident_date: "2024-03-15",
+        fir_date: "2026-05-10",
+        delay_explanation: "FIR registered with an unexplained inordinate delay of 2 years after commercial payment dispute arose.",
+        max_punishment_years: 7,
+        arrested_during_investigation: "No - Anticipating Arrest / Not Arrested",
+        no_s41a_notice: "Arrested Directly Without S.41A Notice (Arnesh Kumar Violation)",
+        chargesheet_filed: "No - Investigation Pending (Default Bail S.167 Check)",
+        is_public_servant: "No",
+        sanction_obtained: "Not Applicable",
+        electronic_evidence: "Yes",
+        s65b_certificate: "No - Uncertified / Missing (Inadmissible)",
+        recovery_memo_s27: "No Recovery Made",
+        contract_exists: "Yes - Commercial Contract / Debt Recovery in Criminal Garb",
+        primary_relief_sought: "High Court Quashing u/s 482 CrPC / S.528 BNSS (Bhajan Lal)",
+        additional_notes: "Pure civil contractual dispute converted into criminal prosecution (Bhajan Lal precedent)."
+    };
+    window.startCaseAnalysis(criminalFallback);
+    if (window.ui && typeof window.ui.toast === 'function') {
+        window.ui.toast('Loaded Criminal Law Demo Scenario (S.420 Quashing)', 'success');
+    }
+};
+
+window.loadCivilDemoCase = async () => {
+    try {
+        const resp = await fetch('./demo_cases/demo_civil_recovery.json');
+        if (resp.ok) {
+            const data = await resp.json();
+            window.startCaseAnalysis(data);
+            if (window.ui && typeof window.ui.toast === 'function') {
+                window.ui.toast('Loaded Commercial Civil Suit Demo Scenario', 'success');
+            }
+            return;
+        }
+    } catch (e) {}
+    const civilFallback = {
+        case_id: "COMM-SUIT-2026-104",
+        case_title: "Apex Real Estate Infra Pvt Ltd vs Metro Skyline Projects Ltd",
+        case_type: "Civil",
+        court_name: "City Civil Court (Commercial Division), Mumbai",
+        suit_valuation: 50000000.0,
+        s12a_mediation: "Yes - Mediation Attempted / Failed",
+        filing_date: "2026-06-15",
+        agreement_date: "2024-04-10",
+        breach_date: "2025-08-20",
+        agreement_registered: "Yes - Duly Stamped & Registered",
+        limitation_article: "Article 54 - Specific Performance (3 Years)",
+        primary_prayer: "Specific Performance of Contract",
+        order_39_injunction: "Yes - Prima Facie Case & Balance of Convenience Pled",
+        additional_notes: "Suit for Specific Performance of registered Development Agreement with Order 39 interim relief."
+    };
+    window.startCaseAnalysis(civilFallback);
+    if (window.ui && typeof window.ui.toast === 'function') {
+        window.ui.toast('Loaded Commercial Civil Suit Demo Scenario', 'success');
+    }
+};
+
+
+

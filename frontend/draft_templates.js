@@ -270,17 +270,42 @@ ${d.advocate_name ? '\nThrough Advocate: ' + d.advocate_name : ''}
             const timelineCheck = verifyDraftTimelineS138(d);
             let s141_averment = '';
             const directorsNamed = window.state?.caseData?.directors_named || 'No';
-            const isNamed = ['yes', 'yes - actively managed operations', 'yes - partial'].includes((String(directorsNamed)).toLowerCase());
+            const roleCat = window.state?.caseData?.director_role_category || 'Managing Director / Whole-Time Director (Inherent Liability)';
+            const activeAverment = window.state?.caseData?.active_management_averment || 'Yes - Expressly averred in charge of day-to-day business (S.M.S. Pharma Standard)';
+            const isNamed = ['yes', 'yes - company as a1 and directors/partners named', 'yes - actively managed operations', 'yes - partial'].includes((String(directorsNamed)).toLowerCase());
             
-            if (d.accused_type === 'Company' || d.accused_type === 'Partnership Firm') {
+            if (d.accused_type === 'Company' || d.accused_type === 'Partnership Firm' || d.accused_type === 'Pvt Ltd/Ltd Company') {
                 if (isNamed) {
-                    s141_averment = `\n\n11. VICARIOUS LIABILITY (S.141):
-    That the Accused No. 1 is a Company/Firm and the Accused No. 2 to ___ are its Directors/Partners who were, at the time of the offence, in charge of and responsible to the Accused No. 1 for the conduct of its business. Specifically, the Accused Nos. 2 onwards were, at the time of the commission of the offence, in charge of and responsible to the firm for the conduct of its business, and are thus vicariously liable under Section 141 of the Negotiable Instruments Act, 1881. As per "Aneeta Hada v. Godfather Travels (2012) 5 SCC 661", the company has been impleaded as a primary accused along with its responsible officers.`;
+                    s141_averment = `\n\n11. VICARIOUS LIABILITY (SECTION 141 NI ACT — S.M.S. PHARMACEUTICALS TEST):
+    (a) That the Accused No. 1 is a duly incorporated corporate entity/firm and the Accused Nos. 2 onwards are its Directors/Partners/Designated Officers.
+    (b) That at the relevant time when the debt was incurred, the dishonoured cheque was issued, and statutory notice was served, Accused No. 2 [${roleCat}] was actively in charge of, and directly responsible to the Accused No. 1 for the day-to-day management and conduct of its business.
+    (c) Averment per S.M.S. Pharmaceuticals Ltd. v. Neeta Bhalla (2005) 8 SCC 89: "${activeAverment}". The company Accused No. 1 has been impleaded as the principal accused strictly satisfying the mandate of Aneeta Hada v. Godfather Travels (2012) 5 SCC 661.`;
                 } else {
-                    s141_averment = `\n\n11. VICARIOUS LIABILITY (S.141):
-    [FATAL DEFECT WARNING: You must aver that the specific Directors/Officers were in charge of and responsible to the firm for the conduct of its business. Failure to include this operational averment will result in dismissal at the threshold stage per 'Aneeta Hada' ruling.]`;
+                    s141_averment = `\n\n11. VICARIOUS LIABILITY (SECTION 141 NI ACT):
+    [FATAL DEFECT WARNING: You must arraign the Company as Accused No. 1 and expressly aver that the specific Directors were in charge of and responsible for day-to-day business (S.M.S. Pharmaceuticals test). Failure to do so triggers mandatory quashing under Aneeta Hada.]`;
                 }
             }
+
+            const bsaAnnexure = `
+
+================================================================================
+ANNEXURE-C: CERTIFICATE UNDER SECTION 63(4) BHARATIYA SAKSHYA ADHINIYAM, 2023
+(MANDATORY DIGITAL EVIDENCE CERTIFICATION — FORMERLY S.65B IEA)
+================================================================================
+
+I, ${d.complainant_name}, do hereby solemnly state, affirm and certify as under:
+
+1. That I am the Complainant in the accompanying Section 138 Criminal Complaint and am fully conversant with the electronic records relied upon herein (including computerized bank return memos, digital account statements, and WhatsApp/Email communications with the Accused).
+
+2. That the electronic records produced and annexed herewith were produced by computer systems/digital devices during the regular course of activities and periods over which I had lawful operational control.
+
+3. That the digital reproduction annexed as Annexure-B & Annexure-C is a true, unmodified, and authentic printout/replica of the electronic records stored on the said device, and the integrity of the data has remained intact throughout without tampering or unauthorized modification.
+
+4. This certificate is executed in strict compliance with Section 63(4) of the Bharatiya Sakshya Adhiniyam, 2023 (BSA) to render the electronic evidence legally admissible before this Hon'ble Court.
+
+DEPONENT: ______________________
+DATE: ${formatDraftDate(d.filing_date)}
+PLACE: ${d.court_name ? d.court_name.split(',')[0] : '_______________'}`;
 
             const body = `IN THE ${d.court_name.toUpperCase()}
 
@@ -316,8 +341,8 @@ MOST RESPECTFULLY SHEWETH:
 
 2. That the Accused, ${d.accused_name}, is known to the Complainant and both parties had a financial/business relationship with each other.
 
-3. UNDERLYING TRANSACTION:
-   That the Complainant advanced/paid a sum of Rs.${Number(d.cheque_amount).toLocaleString('en-IN')}/- (Rupees ${numberToWords(d.cheque_amount)} Only) to the Accused towards ${d.transaction_purpose}.
+3. UNDERLYING TRANSACTION & S.139 PRESUMPTION:
+   That the Complainant advanced/paid a sum of Rs.${Number(d.cheque_amount).toLocaleString('en-IN')}/- (Rupees ${numberToWords(d.cheque_amount)} Only) to the Accused towards ${d.transaction_purpose}. In terms of Section 139 of the NI Act, a statutory presumption operates in favour of the holder that the cheque was issued in discharge of a legally enforceable debt/liability (Rangappa v. Sri Mohan).
 
 4. ISSUANCE OF CHEQUE:
    That in discharge of the aforesaid legally enforceable debt/liability, the Accused issued Cheque No. ${d.cheque_number} dated ${formatDraftDate(d.cheque_date)} for an amount of Rs.${Number(d.cheque_amount).toLocaleString('en-IN')}/- (Rupees ${numberToWords(d.cheque_amount)} Only) drawn on ${d.bank_name}${d.branch_name ? ', ' + d.branch_name : ''}.
@@ -328,17 +353,17 @@ MOST RESPECTFULLY SHEWETH:
 6. LEGAL DEMAND NOTICE:
    That as required under Section 138 of the NI Act, the Complainant sent a Legal Demand Notice to the Accused on ${formatDraftDate(d.notice_date)} by way of ${d.notice_mode}. The notice was ${d.notice_served}. As per "C.C. Alavi Haji v. Palapetty Muhammed (2007) 6 SCC 555", the service of notice is complete once dispatched to the correct address.
 
-7. FAILURE TO PAY:
-   That despite receipt of the said notice, the Accused has ${d.payment_made}. Accordingly, the cause of action for filing this complaint has arisen.
+7. FAILURE TO PAY & CAUSE OF ACTION:
+   That despite receipt of the said notice, the Accused has ${d.payment_made}. The 15-day statutory payment window has elapsed. The cause of action arose on the 16th day after service in strict compliance with Section 9 of the General Clauses Act, 1897 and Yogendra Pratap Singh vs. Savitri Pandey (2014) 10 SCC 713.
 
-8. CAUSE OF ACTION:
-   The cause of action arose on ${formatDraftDate(d.dishonour_date)} (date of dishonour), and again when the Accused failed to pay within the statutory period after the demand notice. This complaint is filed within limitation.
+8. LIMITATION:
+   The complaint is instituted within 30 days of the cause of action arising, strictly within the statutory limitation period under Section 142(1)(b) of the NI Act.
 
 9. OFFENCE COMMITTED:
    That the acts of the Accused amount to an offence under Section 138 of the Negotiable Instruments Act, 1881, punishable with imprisonment up to 2 years, or fine up to twice the cheque amount, or both.
 
-10. JURISDICTION:
-    That this Hon'ble Court has territorial jurisdiction to entertain and try the present complaint as the cheque in question was presented for encashment at ${d.bank_name}${d.branch_name ? ' (' + d.branch_name + ' Branch)' : ''}, which is situated within the territorial limits of this Hon'ble Court, in accordance with the law laid down by the Hon'ble Supreme Court in "Dashrath Rupsingh Rathod vs. State of Maharashtra".${s141_averment}
+10. TERRITORIAL JURISDICTION (SECTION 142(2)(a) NI ACT):
+    That this Hon'ble Court has exclusive territorial jurisdiction to entertain and try the present complaint as the cheque was presented for encashment at ${d.bank_name}${d.branch_name ? ' (' + d.branch_name + ' Branch)' : ''}, where the Complainant maintains an account, strictly in accordance with Section 142(2)(a) (as amended by NI Amendment Act, 2015) and Bridgestone India Pvt. Ltd. v. Inderpal Singh (2016) 2 SCC 341.${s141_averment}
 
 PRAYER:
 It is most respectfully prayed that this Hon'ble Court may be pleased to:
@@ -348,7 +373,7 @@ It is most respectfully prayed that this Hon'ble Court may be pleased to:
 (c) Direct the Accused to pay Interim Compensation to the Complainant under Section 143A of the NI Act (up to 20% of the cheque amount);
 (d) After trial, convict and sentence the Accused in accordance with law;
 (e) Direct the Accused to pay fine/compensation of Rs.${(Number(d.cheque_amount) * 2).toLocaleString('en-IN')}/- (double the cheque amount) with interest;
-(e) Pass any other order as deemed fit in the interest of justice.
+(f) Pass any other order as deemed fit in the interest of justice.
 
 AND FOR THIS ACT OF KINDNESS, THE COMPLAINANT AS IN DUTY BOUND SHALL EVER PRAY.
 
@@ -365,7 +390,8 @@ I, ${d.complainant_name}, the Complainant, do hereby solemnly affirm and state t
 Verified at _____________ on ${formatDraftDate(d.filing_date)}.
 
                                         ________________________
-                                        (Complainant)`;
+                                        (Complainant)
+${bsaAnnexure}`;
             return timelineCheck.auditReport ? timelineCheck.auditReport + body : body;
         }
     },
@@ -993,7 +1019,7 @@ ${d.complainant_name}`;
             { name: 'bail_grounds', label: 'Main Grounds for Bail', type: 'textarea', required: true, placeholder: 'e.g., Falsely implicated, no flight risk, cooperative...' }
         ],
         generate: function (d) {
-            return `REGULAR BAIL APPLICATION ΓÇö SECTION 437/439 CrPC / 480 BNSS
+            return `REGULAR BAIL APPLICATION — SECTION 437/439 CrPC / 480 BNSS
 
 IN THE COURT OF __________________________, _______________
 CRIMINAL MISC. BAIL APPLICATION NO. ______ OF ${new Date().getFullYear()}
@@ -1027,6 +1053,205 @@ Place: _______________
 Date: _______________
 
 Through Counsel`;
+        }
+    },
+    {
+        id: 'sarfaesi_section14', number: 15, title: 'Section 14 DM/CMM Application & 9-Pt Affidavit', subtitle: 'SARFAESI Physical Possession',
+        description: 'Mandatory 9-point sworn affidavit under Proviso to S.14(1) and Noble Kumar precedent for Magistrate physical possession.',
+        icon: 'fa-landmark', color: '#f59e0b',
+        fields: [
+            { name: 'bank_name', label: 'Secured Creditor / Bank Name', type: 'text', required: true, placeholder: 'e.g., State Bank of India' },
+            { name: 'branch_name', label: 'Branch Name', type: 'text', required: true, placeholder: 'e.g., Commercial Branch, Mumbai' },
+            { name: 'authorized_officer_name', label: 'Authorized Officer Name', type: 'text', required: true, placeholder: 'e.g., Mr. R. K. Sharma (Chief Manager)' },
+            { name: 'borrower_name', label: 'Borrower / Mortgagor Name', type: 'text', required: true, placeholder: 'e.g., M/s ABC Enterprises' },
+            { name: 'borrower_address', label: 'Borrower Address', type: 'textarea', required: true },
+            { name: 'property_description', label: 'Secured Asset Description & Boundaries', type: 'textarea', required: true },
+            { name: 'outstanding_amount', label: 'Outstanding Dues (₹)', type: 'number', required: true },
+            { name: 'npa_date', label: 'NPA Date', type: 'date', required: true },
+            { name: 'notice_13_2_date', label: 'Section 13(2) Notice Date', type: 'date', required: true },
+            { name: 'cersai_security_id', label: 'CERSAI Security ID (S.26D)', type: 'text', required: false, placeholder: 'e.g., CERSAI-SI-2025-00123456' },
+            { name: 'magistrate_court', label: 'Magistrate Court', type: 'text', required: true, placeholder: 'e.g., Chief Metropolitan Magistrate, Mumbai' }
+        ],
+        generate: function (d) {
+            const outAmt = Number(d.outstanding_amount || 5000000);
+            const cersaiId = d.cersai_security_id || `CERSAI-SI-${new Date().getFullYear()}-00987123`;
+            return `BEFORE THE HON'BLE ${String(d.magistrate_court || 'CHIEF METROPOLITAN MAGISTRATE / DISTRICT MAGISTRATE').toUpperCase()}
+
+MISCELLANEOUS APPLICATION NO. ____________ OF ${new Date().getFullYear()}
+
+IN THE MATTER OF SECTION 14 OF THE SECURITISATION AND RECONSTRUCTION
+OF FINANCIAL ASSETS AND ENFORCEMENT OF SECURITY INTEREST ACT, 2002:
+
+${String(d.bank_name || 'STATE BANK OF INDIA').toUpperCase()},
+Having its Branch Office at ${d.branch_name || 'Branch'},
+through its Authorized Officer, ${d.authorized_officer_name || 'Authorized Officer'}
+                                                        ...APPLICANT / SECURED CREDITOR
+VERSUS
+
+${String(d.borrower_name || 'BORROWER').toUpperCase()},
+${d.borrower_address || 'Address On Record'}
+                                                        ...BORROWER / RESPONDENT
+
+================================================================================
+APPLICATION UNDER SECTION 14(1) READ WITH PROVISO FOR TAKING PHYSICAL POSSESSION
+ACCOMPANIED BY MANDATORY 9-POINT SWORN AFFIDAVIT (STANDARD CHARTERED v. NOBLE KUMAR)
+================================================================================
+
+MOST RESPECTFULLY SHEWETH:
+
+1. That the Applicant is a Secured Creditor under Section 2(1)(zd) of the SARFAESI Act, 2002.
+2. That the Respondent committed default in loan repayment, and the account was declared NPA on ${formatDraftDate(d.npa_date)}.
+3. That statutory Section 13(2) notice was served on ${formatDraftDate(d.notice_13_2_date)} demanding ₹${outAmt.toLocaleString('en-IN')}/-.
+4. That 60 days expired without liquidation of debt, and physical possession is required to realize secured dues.
+
+PRAYER:
+It is most respectfully prayed that this Hon'ble Court may be pleased to:
+(a) Authorize taking physical possession of secured asset: "${d.property_description}";
+(b) Appoint an Advocate Commissioner to execute physical possession;
+(c) Direct the jurisdictional Police Station to provide necessary police assistance.
+
+================================================================================
+MANDATORY 9-POINT SWORN AFFIDAVIT (PROVISO TO SECTION 14(1))
+================================================================================
+
+I, ${d.authorized_officer_name || 'Authorized Officer'}, Authorized Officer of ${d.bank_name}, do hereby solemnly state and affirm:
+1. Aggregate debt due: ₹${outAmt.toLocaleString('en-IN')}/- in default (Clause i).
+2. Valid equitable mortgage created over "${d.property_description}" (Clause ii).
+3. Account classified as NPA on ${formatDraftDate(d.npa_date)} per RBI Norms (Clause iii).
+4. Section 13(2) demand notice served on ${formatDraftDate(d.notice_13_2_date)} and 60 days elapsed (Clause iv).
+5. Section 13(3A) objections (if any) duly disposed with reasoned reply within 15 days (Clause v).
+6. Respondent failed to make payment post statutory period (Clause vi).
+7. Security interest duly registered with CERSAI under ID: ${cersaiId} (S.26D compliant) (Clause vii).
+8. No stay or injunction is operating against secured creditor from DRT/HC/SC (Clause viii).
+9. Physical possession and police assistance is required to take peaceful custody (Clause ix).
+
+DEPONENT: _________________________
+AUTHORIZED OFFICER, ${String(d.bank_name || 'BANK').toUpperCase()}`;
+        }
+    },
+    {
+        id: 'edrt_securitisation_app', number: 16, title: 'e-DRT Securitisation Application (S.17 SA)', subtitle: 'DRT Portal E-Filing Bundle',
+        description: 'Structured e-DRT portal bundle with Memo of Parties, Rule 7 Court Fees calculation, and statutory stay prayers.',
+        icon: 'fa-network-wired', color: '#6366f1',
+        fields: [
+            { name: 'drt_bench', label: 'Jurisdictional DRT Bench', type: 'text', required: true, placeholder: 'e.g., DRT-I Mumbai / DRT Pune' },
+            { name: 'borrower_name', label: 'Borrower / Applicant Name', type: 'text', required: true, placeholder: 'e.g., Ramesh Mohan Sharma' },
+            { name: 'borrower_address', label: 'Applicant Address', type: 'textarea', required: true },
+            { name: 'bank_name', label: 'Respondent Bank / Secured Creditor', type: 'text', required: true, placeholder: 'e.g., HDFC Bank Ltd.' },
+            { name: 'branch_name', label: 'Bank Branch Name', type: 'text', required: true },
+            { name: 'outstanding_amount', label: 'Debt Claimed in S.13(2) (₹)', type: 'number', required: true },
+            { name: 'possession_13_4_date', label: 'Section 13(4) Notice / Action Date', type: 'date', required: true },
+            { name: 'grounds_for_quashing', label: 'Key Grounds of Challenge', type: 'textarea', required: true, placeholder: 'e.g., 13(3A) unanswered, CERSAI unregistered, agricultural land exempt...' }
+        ],
+        generate: function (d) {
+            const outAmt = Number(d.outstanding_amount || 10000000);
+            let fee = 12500;
+            if (outAmt < 1000000) fee = Math.max(500, Math.min(12500, 125 * (outAmt / 100000)));
+            else fee = Math.min(100000, 12500 + 250 * ((outAmt - 1000000) / 100000));
+
+            return `BEFORE THE DEBTS RECOVERY TRIBUNAL (${String(d.drt_bench || 'DRT-I MUMBAI').toUpperCase()})
+SECURITISATION APPLICATION NO. ________ OF ${new Date().getFullYear()}
+(UNDER SECTION 17(1) OF THE SARFAESI ACT, 2002)
+
+IN THE MATTER OF:
+${String(d.borrower_name || 'APPLICANT').toUpperCase()}
+${d.borrower_address || 'Address On Record'}
+                                                        ...APPLICANT
+VERSUS
+
+${String(d.bank_name || 'SECURED CREDITOR').toUpperCase()}
+Branch Office: ${d.branch_name || 'Branch'}
+                                                        ...RESPONDENT / SECURED CREDITOR
+
+================================================================================
+MEMORANDUM OF SECURITISATION APPLICATION UNDER SECTION 17(1)
+================================================================================
+
+1. COURT FEE PAYABLE (RULE 7 OF SECURITY INTEREST ENFORCEMENT RULES, 2002):
+   Claim Amount: ₹${outAmt.toLocaleString('en-IN')}/-
+   Statutory Court Fee Computed: ₹${fee.toLocaleString('en-IN')}/- (Paid electronically via BharatKosh)
+
+2. LIMITATION (SECTION 17(1)):
+   Section 13(4) measure date: ${formatDraftDate(d.possession_13_4_date)}.
+   This application is presented within 45 days of the measure, strictly within limitation.
+
+3. GROUNDS OF CHALLENGE:
+${d.grounds_for_quashing}
+
+4. PRAYER:
+   (a) Quash and set aside Section 13(4) possession/auction notice dated ${formatDraftDate(d.possession_13_4_date)};
+   (b) Grant ad-interim stay against public auction / physical dispossession;
+   (c) Direct Respondent Bank to restore possession under Section 17(3) of the SARFAESI Act.
+
+Place: _______________
+Date: _______________
+
+ADVOCATE FOR APPLICANT`;
+        }
+    },
+    {
+        id: 'criminal_quashing_482', number: 17, title: 'High Court S.482 CrPC / S.528 BNSS Quashing Petition', subtitle: 'Inherent Powers of High Court',
+        description: 'Pristine High Court quashing petition with regional appellate declarations, Bhajan Lal parameters, and commercial dispute carve-out.',
+        icon: 'fa-shield-halved', color: '#ef4444',
+        fields: [
+            { name: 'high_court_name', label: 'High Court Bench', type: 'text', required: true, placeholder: 'e.g., High Court of Judicature at Bombay' },
+            { name: 'fir_number', label: 'FIR / Crime Number', type: 'text', required: true, placeholder: 'e.g., FIR No. 104/2025' },
+            { name: 'police_station', label: 'Police Station', type: 'text', required: true, placeholder: 'e.g., Cyber Crime Police Station, Bandra' },
+            { name: 'sections_invoked', label: 'Sections Invoked in FIR', type: 'text', required: true, placeholder: 'e.g., Sections 318(4), 316, 61 BNS / 420, 406, 120B IPC' },
+            { name: 'accused_name', label: 'Petitioner / Accused Name', type: 'text', required: true, placeholder: 'e.g., Vikram Aditya Mehta' },
+            { name: 'accused_address', label: 'Petitioner Postal Address', type: 'textarea', required: true },
+            { name: 'complainant_name', label: 'Complainant / Respondent No. 2 Name', type: 'text', required: true, placeholder: 'e.g., ABC Finserve Pvt. Ltd.' },
+            { name: 'quashing_grounds', label: 'Primary Grounds for Quashing', type: 'textarea', required: true, placeholder: 'e.g., Purely commercial transaction, civil suit pending, no fraudulent intent at inception...' }
+        ],
+        generate: function (d) {
+            const yr = new Date().getFullYear();
+            return `IN THE ${String(d.high_court_name || 'HIGH COURT OF JUDICATURE AT BOMBAY').toUpperCase()}
+CRIMINAL APPELLATE JURISDICTION
+
+CRIMINAL WRIT PETITION / APPLICATION NO. ______ OF ${yr}
+(UNDER SECTION 482 OF THE CODE OF CRIMINAL PROCEDURE, 1973 / SECTION 528 OF BHARATIYA NAGARIK SURAKSHA SANHITA, 2023)
+
+IN THE MATTER OF:
+${String(d.accused_name || 'PETITIONER').toUpperCase()}
+${d.accused_address || 'Address On Record'}
+                                                        ...PETITIONER
+VERSUS
+
+1. THE STATE OF MAHARASHTRA / GNCTD
+   Through Public Prosecutor / Station House Officer,
+   ${d.police_station || 'Police Station'}               ...RESPONDENT NO. 1
+
+2. ${String(d.complainant_name || 'COMPLAINANT').toUpperCase()}
+   Address on Record                                     ...RESPONDENT NO. 2
+
+================================================================================
+PETITION UNDER SECTION 482 CrPC / SECTION 528 BNSS FOR QUASHING OF FIR NO. ${d.fir_number}
+================================================================================
+
+MOST RESPECTFULLY SHEWETH:
+
+1. That the Petitioner approaches this Hon'ble Court invoking its inherent powers under Section 482 of the Code of Criminal Procedure, 1973 (Section 528 BNSS) seeking quashing and setting aside of FIR No. ${d.fir_number} registered at Police Station ${d.police_station} for alleged offences u/s ${d.sections_invoked}.
+
+2. COMMERCIAL DISPUTE GIVEN CRIMINAL CLOAK:
+   The dispute arises out of an arm's-length commercial transaction. As held in 'State of Haryana v. Bhajan Lal (1992 Supp (1) SCC 335)' and 'Dalip Kaur v. Jagnar Singh (2009) 14 SCC 696', where the dispute is essentially of a civil nature and no dishonest inducement existed at the inception of the contract, criminal proceedings cannot be permitted to continue.
+
+3. MANDATORY REGISTRY DECLARATIONS:
+   (a) The Petitioner declares that no previous application or petition on the same cause of action has been filed before this Hon'ble Court or the Supreme Court of India.
+   (b) Search has been conducted in the Caveat Register and no caveat is found registered by the Respondents.
+   (c) Advance copy of this petition has been served upon the office of the Public Prosecutor / Standing Counsel.
+
+4. GROUNDS FOR QUASHING:
+${d.quashing_grounds}
+
+5. PRAYER:
+   It is most respectfully prayed that this Hon'ble Court may be pleased to:
+   (a) Quash and set aside FIR No. ${d.fir_number} registered at Police Station ${d.police_station} and all consequential proceedings arising therefrom;
+   (b) Grant ad-interim stay against further investigation and coercive steps against the Petitioner during the pendency of this Petition.
+
+Place: _______________
+Date: _______________
+
+ADVOCATE FOR PETITIONER`;
         }
     }
 ];

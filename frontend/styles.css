@@ -819,7 +819,6 @@ button.primary:hover:not(:disabled), .btn-primary:hover:not(:disabled) {
     -webkit-text-fill-color: transparent;
     flex-shrink: 0;
 }
-.brand-logo-img { height: 30px; width: 30px; object-fit: contain; }
 .landing-logo i { -webkit-text-fill-color: var(--primary-400); flex-shrink: 0; }
 
 .landing-nav-links { display: none; } /* hidden on mobile, shown on desktop */
@@ -1495,6 +1494,7 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     padding: var(--sp-4);
 }
 .auth-container { width: 100%; max-width: min(440px, 100% - 2rem); }
+#registerScreen .auth-container { max-width: min(720px, 100% - 2rem); }
 
 .auth-brand { text-align: center; margin-bottom: var(--sp-8); }
 .brand-icon {
@@ -1531,7 +1531,7 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 /* Domain Picker */
 .domain-picker-section { margin: 1.25rem 0 0.5rem; }
 .domain-picker-label { font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-400); margin-bottom: 0.75rem; display: block; }
-.domain-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.domain-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; }
 .domain-card {
     position: relative; border: 2px solid var(--gray-700); border-radius: 14px;
     padding: 1rem 0.9rem; cursor: pointer;
@@ -1539,7 +1539,7 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     background: var(--gray-900); text-align: left;
     display: flex; flex-direction: column; gap: 0.4rem; user-select: none;
 }
-.domain-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+.domain-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.25); border-color: var(--primary-400); }
 .domain-card .dc-icon  { font-size: 1.4rem; line-height: 1; }
 .domain-card .dc-title { font-size: var(--text-sm); font-weight: 700; color: var(--gray-100); line-height: 1.2; }
 .domain-card .dc-sub   { font-size: var(--text-xs); color: var(--gray-500); line-height: 1.4; }
@@ -1549,15 +1549,37 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     border: 2px solid var(--gray-600);
     display: flex; align-items: center; justify-content: center;
     font-size: 0.65rem; transition: all 0.2s;
+    opacity: 0.4;
 }
-.domain-card.selected--ni      { border-color: #6366f1; background: rgba(99,102,241,0.08); box-shadow: 0 0 0 3px rgba(99,102,241,0.18); }
-.domain-card.selected--ni .dc-check { background: #6366f1; border-color: #6366f1; color: white; }
+
+/* Domain Card Selected States */
+.domain-card.selected--all { border-color: #0ea5e9; background: rgba(14,165,233,0.08); box-shadow: 0 0 0 3px rgba(14,165,233,0.2); }
+.domain-card.selected--all .dc-check { background: #0ea5e9; border-color: #0ea5e9; color: white; opacity: 1; }
+.domain-card.selected--all .dc-title { color: #38bdf8; }
+
+.domain-card.selected--composite { border-color: #f59e0b; background: rgba(245,158,11,0.08); box-shadow: 0 0 0 3px rgba(245,158,11,0.2); }
+.domain-card.selected--composite .dc-check { background: #f59e0b; border-color: #f59e0b; color: #0f172a; opacity: 1; }
+.domain-card.selected--composite .dc-title { color: #fcd34d; }
+
+.domain-card.selected--ni { border-color: #6366f1; background: rgba(99,102,241,0.08); box-shadow: 0 0 0 3px rgba(99,102,241,0.2); }
+.domain-card.selected--ni .dc-check { background: #6366f1; border-color: #6366f1; color: white; opacity: 1; }
 .domain-card.selected--ni .dc-title { color: #a5b4fc; }
-.domain-card.selected--sarfaesi { border-color: #f59e0b; background: rgba(245,158,11,0.07); box-shadow: 0 0 0 3px rgba(245,158,11,0.18); }
-.domain-card.selected--sarfaesi .dc-check { background: #f59e0b; border-color: #f59e0b; color: #0f172a; }
-.domain-card.selected--sarfaesi .dc-title { color: #fcd34d; }
+
+.domain-card.selected--sarfaesi { border-color: #10b981; background: rgba(16,185,129,0.08); box-shadow: 0 0 0 3px rgba(16,185,129,0.2); }
+.domain-card.selected--sarfaesi .dc-check { background: #10b981; border-color: #10b981; color: white; opacity: 1; }
+.domain-card.selected--sarfaesi .dc-title { color: #6ee7b7; }
+
+.domain-card.selected--criminal { border-color: #ef4444; background: rgba(239,68,68,0.08); box-shadow: 0 0 0 3px rgba(239,68,68,0.2); }
+.domain-card.selected--criminal .dc-check { background: #ef4444; border-color: #ef4444; color: white; opacity: 1; }
+.domain-card.selected--criminal .dc-title { color: #fca5a5; }
+
+.domain-card.selected--civil { border-color: #8b5cf6; background: rgba(139,92,246,0.08); box-shadow: 0 0 0 3px rgba(139,92,246,0.2); }
+.domain-card.selected--civil .dc-check { background: #8b5cf6; border-color: #8b5cf6; color: white; opacity: 1; }
+.domain-card.selected--civil .dc-title { color: #c4b5fd; }
+
 .domain-picker-error { font-size: var(--text-xs); color: #f87171; margin-top: 0.4rem; display: none; }
 .domain-picker-error.visible { display: block; }
+
 .auth-domain-pill { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: var(--text-xs); font-weight: 700; margin-top: 0.5rem; }
 .auth-domain-pill--ni      { background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3); }
 .auth-domain-pill--sarfaesi { background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
@@ -1638,12 +1660,6 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     font-size: clamp(0.9rem, 2vw, 1.15rem);
     font-weight: 700;
     color: var(--primary-500);
-    flex-shrink: 0;
-}
-.nav-brand .brand-logo-img {
-    height: 28px;
-    width: 28px;
-    object-fit: contain;
     flex-shrink: 0;
 }
 .nav-brand .brand-title {
@@ -2022,8 +2038,9 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     scrollbar-width: none;
     /* Sticky tabs — user always knows which tab they're on */
     position: sticky;
-    top: 56px; /* matches top-nav height */
-    z-index: 50;
+    top: 60px;
+    z-index: 40;
+    margin-bottom: 0.5rem;
 }
 .results-tabs::-webkit-scrollbar { display: none; }
 
@@ -2872,3 +2889,202 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     body { background: white; color: black; }
     .result-card, .draft-output-content { box-shadow: none; border: 1px solid #e2e8f0; }
 }
+
+/* ============================================================================
+   34. UNIFIED DOMAIN COLOR SYSTEM & SWITCHER STYLING
+   ============================================================================ */
+
+/* Universal Domain Badges */
+.domain-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    font-size: var(--text-xs);
+    font-weight: 750;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    transition: all 0.25s ease;
+}
+
+.domain-badge--all {
+    background: rgba(14, 165, 233, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(14, 165, 233, 0.35);
+    box-shadow: 0 0 12px rgba(14, 165, 233, 0.15);
+}
+
+.domain-badge--composite {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
+}
+
+.domain-badge--ni {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.15);
+}
+
+.domain-badge--sarfaesi {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+}
+
+.domain-badge--criminal {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+}
+
+.domain-badge--civil {
+    background: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.15);
+}
+
+/* Light Mode Overrides for Badges */
+[data-theme="light"] .domain-badge--all { background: #e0f2fe; color: #0284c7; border-color: #7dd3fc; }
+[data-theme="light"] .domain-badge--composite { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
+[data-theme="light"] .domain-badge--ni { background: #e0e7ff; color: #4338ca; border-color: #a5b4fc; }
+[data-theme="light"] .domain-badge--sarfaesi { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+[data-theme="light"] .domain-badge--criminal { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+[data-theme="light"] .domain-badge--civil { background: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
+
+/* Dashboard Quick Switch Bar */
+.domain-quick-switch-bar {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background: rgba(14, 20, 36, 0.65) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 14px;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+[data-theme="light"] .domain-quick-switch-bar {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+}
+
+.domain-switch-tab {
+    background: transparent;
+    color: var(--gray-400);
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.45rem 0.95rem;
+    border-radius: 10px;
+    font-size: 0.84rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.domain-switch-tab:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--gray-100);
+    transform: translateY(-1px);
+}
+
+[data-theme="light"] .domain-switch-tab:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #0f172a;
+}
+
+.domain-switch-tab.active {
+    background: var(--primary-600) !important;
+    color: white !important;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Individual Domain Switch Tab Active Accents */
+#tab_domain_all.active { background: #0284c7 !important; box-shadow: 0 4px 14px rgba(14, 165, 233, 0.45) !important; }
+#tab_domain_composite.active { background: #d97706 !important; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45) !important; }
+#tab_domain_ni.active { background: #4f46e5 !important; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.45) !important; }
+#tab_domain_sarfaesi.active { background: #059669 !important; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45) !important; }
+#tab_domain_criminal.active { background: #dc2626 !important; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.45) !important; }
+#tab_domain_civil.active { background: #7c3aed !important; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.45) !important; }
+
+/* Domain Card Selection Styles in Registration Form */
+.domain-card {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.domain-card.selected--all {
+    border-color: #0ea5e9 !important;
+    background: rgba(14, 165, 233, 0.1) !important;
+    box-shadow: 0 0 0 2px #0ea5e9, 0 8px 24px rgba(14, 165, 233, 0.22) !important;
+}
+.domain-card.selected--all .dc-check { background: #0ea5e9 !important; border-color: #0ea5e9 !important; color: white !important; opacity: 1 !important; display: flex !important; }
+.domain-card.selected--all .dc-title { color: #38bdf8 !important; }
+
+.domain-card.selected--composite {
+    border-color: #f59e0b !important;
+    background: rgba(245, 158, 11, 0.1) !important;
+    box-shadow: 0 0 0 2px #f59e0b, 0 8px 24px rgba(245, 158, 11, 0.22) !important;
+}
+.domain-card.selected--composite .dc-check { background: #f59e0b !important; border-color: #f59e0b !important; color: #0f172a !important; opacity: 1 !important; display: flex !important; }
+.domain-card.selected--composite .dc-title { color: #fbbf24 !important; }
+
+.domain-card.selected--ni {
+    border-color: #6366f1 !important;
+    background: rgba(99, 102, 241, 0.1) !important;
+    box-shadow: 0 0 0 2px #6366f1, 0 8px 24px rgba(99, 102, 241, 0.22) !important;
+}
+.domain-card.selected--ni .dc-check { background: #6366f1 !important; border-color: #6366f1 !important; color: white !important; opacity: 1 !important; display: flex !important; }
+.domain-card.selected--ni .dc-title { color: #a5b4fc !important; }
+
+.domain-card.selected--sarfaesi {
+    border-color: #10b981 !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+    box-shadow: 0 0 0 2px #10b981, 0 8px 24px rgba(16, 185, 129, 0.22) !important;
+}
+.domain-card.selected--sarfaesi .dc-check { background: #10b981 !important; border-color: #10b981 !important; color: white !important; opacity: 1 !important; display: flex !important; }
+.domain-card.selected--sarfaesi .dc-title { color: #34d399 !important; }
+
+.domain-card.selected--criminal {
+    border-color: #ef4444 !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+    box-shadow: 0 0 0 2px #ef4444, 0 8px 24px rgba(239, 68, 68, 0.22) !important;
+}
+.domain-card.selected--criminal .dc-check { background: #ef4444 !important; border-color: #ef4444 !important; color: white !important; opacity: 1 !important; display: flex !important; }
+.domain-card.selected--criminal .dc-title { color: #f87171 !important; }
+
+.domain-card.selected--civil {
+    border-color: #8b5cf6 !important;
+    background: rgba(139, 92, 246, 0.1) !important;
+    box-shadow: 0 0 0 2px #8b5cf6, 0 8px 24px rgba(139, 92, 246, 0.22) !important;
+}
+.domain-card.selected--civil .dc-check { background: #8b5cf6 !important; border-color: #8b5cf6 !important; color: white !important; opacity: 1 !important; display: flex !important; }
+.domain-card.selected--civil .dc-title { color: #a78bfa !important; }
+
+/* Light Mode Overrides for Selected Domain Cards */
+[data-theme="light"] .domain-card { background: white; border-color: #cbd5e1; }
+[data-theme="light"] .domain-card .dc-title { color: #1e293b; }
+[data-theme="light"] .domain-card .dc-sub { color: #64748b; }
+[data-theme="light"] .domain-card.selected--all { background: #f0f9ff !important; border-color: #0284c7 !important; }
+[data-theme="light"] .domain-card.selected--all .dc-title { color: #0369a1 !important; }
+[data-theme="light"] .domain-card.selected--composite { background: #fffbeb !important; border-color: #d97706 !important; }
+[data-theme="light"] .domain-card.selected--composite .dc-title { color: #92400e !important; }
+[data-theme="light"] .domain-card.selected--ni { background: #eef2ff !important; border-color: #4f46e5 !important; }
+[data-theme="light"] .domain-card.selected--ni .dc-title { color: #3730a3 !important; }
+[data-theme="light"] .domain-card.selected--sarfaesi { background: #ecfdf5 !important; border-color: #059669 !important; }
+[data-theme="light"] .domain-card.selected--sarfaesi .dc-title { color: #065f46 !important; }
+[data-theme="light"] .domain-card.selected--criminal { background: #fef2f2 !important; border-color: #dc2626 !important; }
+[data-theme="light"] .domain-card.selected--criminal .dc-title { color: #991b1b !important; }
+[data-theme="light"] .domain-card.selected--civil { background: #f5f3ff !important; border-color: #7c3aed !important; }
+[data-theme="light"] .domain-card.selected--civil .dc-title { color: #5b21b6 !important; }
+
+
