@@ -5,14 +5,20 @@ from pdf_generator import PDFGenerator
 from jurisdiction_engine import map_jurisdiction
 router = APIRouter()
 logger = logging.getLogger("JudiQ.Documents")
+import re
+
 @router.post("/generate-pdf")
 def generate_pdf(data: dict = Body(...)):
     try:
         pdf_bytes = PDFGenerator.generate_report(data)
+        case_data = data.get("case_data", {}) if isinstance(data, dict) else {}
+        case_title = case_data.get("case_title") or case_data.get("case_caption") or data.get("case_title") or data.get("case_id") or "Legal_Report"
+        safe_title = re.sub(r'[^a-zA-Z0-9_\-\s]', '', str(case_title)).strip().replace(' ', '_')[:60] or "Legal_Report"
+        filename = f"JUDIQ_Report_{safe_title}.pdf"
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",
-            headers={"Content-Disposition": "attachment; filename=JudiQ_Legal_Report.pdf"}
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'}
         )
     except ImportError as e:
         logger.error(f"PDF library missing: {e}")

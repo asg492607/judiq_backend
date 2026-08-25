@@ -1463,7 +1463,8 @@ window.downloadGeneratedDraft = async () => {
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = url;
-        a.download = `JudiQ_Dossier_${metadata.caseId}.pdf`;
+        const draftTitle = metadata.docType || title || 'Dossier';
+        a.download = getSanitizedCaseFilename(draftTitle, metadata, 'pdf');
         document.body.appendChild(a);
         a.click();
         
@@ -1668,6 +1669,44 @@ window.startNewCase = () => {
     }
 };
 
+export function getSanitizedCaseFilename(prefix = 'Report', data = null, ext = 'pdf') {
+    const d = data || window.state.analysisResult || window.state.caseData || {};
+    const cd = (d && d.case_data) ? d.case_data : (d || {});
+    
+    // Extract most descriptive name available
+    let title = cd.case_title || cd.case_caption || cd.title || '';
+    if (!title && cd.complainant_name && cd.accused_name) {
+        title = `${cd.complainant_name}_vs_${cd.accused_name}`;
+    }
+    if (!title && cd.bank_name && cd.borrower_name) {
+        title = `${cd.bank_name}_vs_${cd.borrower_name}`;
+    }
+    if (!title && cd.case_id) {
+        title = cd.case_id;
+    }
+    if (!title && d.case_id) {
+        title = d.case_id;
+    }
+    if (!title) {
+        title = 'Legal_Matter';
+    }
+    
+    // Clean string for safe cross-platform file naming
+    const safeTitle = String(title)
+        .replace(/[^a-zA-Z0-9_\-\s]/g, '')
+        .trim()
+        .replace(/\s+/g, '_')
+        .slice(0, 60);
+        
+    const safePrefix = String(prefix)
+        .replace(/[^a-zA-Z0-9_\-\s]/g, '')
+        .trim()
+        .replace(/\s+/g, '_');
+        
+    return `JUDIQ_${safePrefix}_${safeTitle}.${ext.replace(/^\./, '')}`;
+}
+window.getSanitizedCaseFilename = getSanitizedCaseFilename;
+
 window.downloadPDF = async () => {
     if (!window.state.analysisResult) {
         ui.toast('No analysis result available.', 'warning');
@@ -1681,8 +1720,7 @@ window.downloadPDF = async () => {
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = url;
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-        a.download = `JUDIQ_Report_${timestamp}.pdf`;
+        a.download = getSanitizedCaseFilename('Report', window.state.analysisResult, 'pdf');
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -1696,7 +1734,7 @@ window.downloadPDF = async () => {
         const b = new Blob([content], { type: "text/plain" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(b);
-        link.download = `judiq_report_fallback.txt`;
+        link.download = getSanitizedCaseFilename('Report', window.state.analysisResult, 'txt');
         link.click();
     }
 };
@@ -1717,7 +1755,9 @@ window.downloadDraft = () => {
     const blob = new Blob([ta.value], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `JUDIQ_Draft_${Date.now()}.txt`; a.click();
+    a.href = url;
+    a.download = getSanitizedCaseFilename('Draft', window.state.analysisResult || window.state.caseData, 'txt');
+    a.click();
     URL.revokeObjectURL(url);
     ui.toast('Draft downloaded!', 'success');
 };
@@ -1813,7 +1853,8 @@ window.downloadDraftWord = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `JudiQ_Legal_Draft_${window.currentDraftTemplate}_${Date.now()}.doc`;
+    const templateLabel = (window.currentDraftTemplate || 'Draft').replace(/_/g, ' ');
+    a.download = getSanitizedCaseFilename(templateLabel, window.state.analysisResult || window.state.caseData, 'doc');
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
