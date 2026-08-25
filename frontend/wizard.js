@@ -1,7 +1,7 @@
-import { wizardSteps, sarfaesiWizardSteps, criminalWizardSteps, civilWizardSteps, getActiveWizardSteps } from './config.js?v=13';
-import { ui, switchScreen } from './ui.js?v=13';
-import { api } from './api.js?v=13';
-import { renderResults } from './renderer.js?v=13';
+import { wizardSteps, sarfaesiWizardSteps, criminalWizardSteps, civilWizardSteps, getActiveWizardSteps } from './config.js?v=14';
+import { ui, switchScreen } from './ui.js?v=14';
+import { api } from './api.js?v=14';
+import { renderResults } from './renderer.js?v=14';
 
 let isWizardInitialized = false;
 let currentCaseType = null;

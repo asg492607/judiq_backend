@@ -1,6 +1,6 @@
-import { ui, switchScreen } from './ui.js?v=13';
-import { api } from './api.js?v=13';
-import { escapeHtml } from './js/modules/utils.js?v=13';
+import { ui, switchScreen } from './ui.js?v=14';
+import { api } from './api.js?v=14';
+import { escapeHtml } from './js/modules/utils.js?v=14';
 
 // Helper: isTruthy check
 function isTruthy(val) {
