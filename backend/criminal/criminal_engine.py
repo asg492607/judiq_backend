@@ -5,16 +5,7 @@ from criminal.criminal_scoring_engine import CriminalScoringEngine
 from criminal.criminal_timeline_engine import CriminalTimelineEngine
 from criminal.criminal_economics_engine import CriminalEconomicsEngine
 from criminal.criminal_rules_engine import CriminalRulesEngine
-
-def _is_true(val: Any) -> bool:
-    if isinstance(val, bool):
-        return val
-    if isinstance(val, (int, float)):
-        return val > 0
-    if isinstance(val, str):
-        val_lower = val.strip().lower()
-        return val_lower in ("true", "yes", "1") or val_lower.startswith("yes") or "violation" in val_lower or "unlawful" in val_lower or "missing" in val_lower or "without" in val_lower
-    return False
+from criminal.criminal_utils import _is_true
 
 class CriminalEngine(BaseDomainEngine):
     """
@@ -110,7 +101,8 @@ class CriminalEngine(BaseDomainEngine):
             concepts = case_data.get("concepts", [])
         contradictions = CriminalAdversarialEngine.detect_contradictions(case_data, concepts)
         scoring_data = CriminalScoringEngine.calculate_score(case_data, concepts, contradictions)
-        strategy = cls.generate_strategy(case_data, concepts, scoring_data["score"], 0.5)
+        # Pass pre-computed results to avoid redundant re-computation inside generate_strategy
+        strategy = cls.generate_strategy(case_data, concepts, scoring_data["score"], 0.5, _precomputed_contradictions=contradictions, _precomputed_scoring=scoring_data)
 
         return {
             **scoring_data,
@@ -125,9 +117,10 @@ class CriminalEngine(BaseDomainEngine):
         }
 
     @staticmethod
-    def generate_strategy(case_data: Dict[str, Any], concepts: List[Dict[str, Any]], severity_score: int, adversarial_risk: float = 0.5) -> Dict[str, Any]:
-        contradictions = CriminalAdversarialEngine.detect_contradictions(case_data, concepts)
-        scoring_data = CriminalScoringEngine.calculate_score(case_data, concepts, contradictions)
+    def generate_strategy(case_data: Dict[str, Any], concepts: List[Dict[str, Any]], severity_score: int, adversarial_risk: float = 0.5, *, _precomputed_contradictions=None, _precomputed_scoring=None) -> Dict[str, Any]:
+        # Reuse pre-computed results when available to avoid ~2x performance cost
+        contradictions = _precomputed_contradictions if _precomputed_contradictions is not None else CriminalAdversarialEngine.detect_contradictions(case_data, concepts)
+        scoring_data = _precomputed_scoring if _precomputed_scoring is not None else CriminalScoringEngine.calculate_score(case_data, concepts, contradictions)
         litigation_map = CriminalEngine.generate_litigation_map(case_data, severity_score, concepts)
         bail_assessment = CriminalEngine.assess_bail_probability(case_data, concepts)
         checkpoints = CriminalEngine.get_advocate_checkpoints(severity_score, case_data)
@@ -220,6 +213,9 @@ class CriminalEngine(BaseDomainEngine):
                 probability = "HIGH"
                 rationale = "Bail is the rule, jail is the exception (State of Rajasthan v. Balchand). Triple test satisfied."
 
+        arnesh_applicable = category.startswith("Category A") and not flight_risk and not evidence_tampering
+        heinous_offense = category.startswith("Category B") or punishment_years > 7 or any(c.get("concept") == "heinous_crime" for c in (concepts or []))
+
         return {
             "probability": probability,
             "antil_category": category,
@@ -230,7 +226,9 @@ class CriminalEngine(BaseDomainEngine):
                 "flight_risk": flight_risk,
                 "evidence_tampering": evidence_tampering,
                 "days_in_custody": days_in_custody,
-                "punishment_years": punishment_years
+                "punishment_years": punishment_years,
+                "arnesh_kumar_applicable": arnesh_applicable,
+                "heinous_offense": heinous_offense
             },
             "strategic_rationale": rationale
         }
@@ -275,3 +273,16 @@ class CriminalEngine(BaseDomainEngine):
         if _is_true(case_data.get("is_public_servant")):
             checkpoints.append("JURISDICTIONAL: Verify compliance with Section 197 CrPC / Section 218 BNSS sanction requirement.")
         return checkpoints
+
+# Auto-register engine instance in central CaseRegistry on module load
+try:
+    from core.case_registry import case_registry
+    criminal_engine_instance = CriminalEngine()
+    case_registry.register("criminal", criminal_engine_instance)
+    case_registry.register("ipc", criminal_engine_instance)
+    case_registry.register("bns", criminal_engine_instance)
+    case_registry.register("crpc", criminal_engine_instance)
+    case_registry.register("bnss", criminal_engine_instance)
+except Exception:
+    pass
+

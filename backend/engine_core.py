@@ -46,7 +46,6 @@ class EngineRegistry:
             except Exception as e:
                 logger.error(f"Failed to preload {module_name}: {e}")
 registry = EngineRegistry()
-registry.preload_all()
 from llm_engine import LLM_AVAILABLE
 try:
     from rag_engine import rag_manager
@@ -121,6 +120,7 @@ class JudiQEngine:
             next_actions = CriminalEngine().get_next_actions(case_data, criminal_res)
             return {
                 "score": score,
+                "final_score": float(score),
                 "verdict": verdict,
                 "domain": "criminal",
                 "risk_level": "Low" if score >= 70 else ("Moderate" if score >= 40 else "High"),
@@ -617,3 +617,7 @@ class JudiQEngine:
         full_result = {**scoring_result, **adversarial_result, **engine_output}
         return ResponseBuilder.build_final_response(full_result, case_data)
 analyze_case = JudiQEngine.analyze_case
+try:
+    registry.preload_all()
+except Exception as _preload_err:
+    logger.warning(f"[ENGINE] Lazy preload encountered non-fatal error: {_preload_err}")

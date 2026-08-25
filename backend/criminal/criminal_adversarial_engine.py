@@ -202,14 +202,16 @@ class CriminalAdversarialEngine(AdversarialEngine):
                 "penalty": -45
             })
 
-        if any(x in offense_type for x in ["420", "406", "318", "316"]) and case_data.get("contract_exists"):
-            contradictions.append({
-                "severity": "Strategic Contradiction",
-                "issue": "Civil Dispute Clothed with Criminal Offense",
-                "detail": "Transaction arose out of a commercial contract with partial performance, refuting fraudulent intent at inception.",
-                "remediation": "File Section 482 CrPC / Section 528 BNSS quashing petition citing Hridaya Ranjan Prasad Verma.",
-                "penalty": -40
-            })
+        if any(x in offense_type for x in ["420", "406", "467", "468", "471", "318", "316", "336", "338"]) and case_data.get("contract_exists"):
+            if not case_data.get("fake_identity_used") and not case_data.get("forged_seals_recovered"):
+                has_partial = bool(case_data.get("partial_performance_done") or case_data.get("commercial_dispute") or case_data.get("recovery_suit_pending"))
+                contradictions.append({
+                    "severity": "Strategic Contradiction" if has_partial else "Procedural Defense",
+                    "issue": "Civil Dispute Clothed with Criminal Offense",
+                    "detail": "Transaction arose out of a commercial contract" + (" with partial performance, refuting fraudulent intent at inception." if has_partial else "."),
+                    "remediation": "File Section 482 CrPC / Section 528 BNSS quashing petition citing Hridaya Ranjan Prasad Verma.",
+                    "penalty": -40 if has_partial else -15
+                })
 
         if case_data.get("witness_statements_inconsistent") or case_data.get("s161_s164_contradiction"):
             contradictions.append({

@@ -317,3 +317,5 @@ class ScoringEngineV12(BaseScoringEngine):
         if not case_data.get("has_bsa_certificate"):
             sims.append({"action": "Execute S.63(4) BSA Certificate", "delta": 11, "priority": "HIGH"})
         return sims[:4]
+
+ScoringEngine = ScoringEngineV12

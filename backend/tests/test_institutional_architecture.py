@@ -11,10 +11,16 @@ def test_unified_case_registry():
     registered_domains = case_registry.list_registered_domains()
     assert "sarfaesi" in registered_domains
     assert "drt" in registered_domains
+    assert "criminal" in registered_domains
+    assert "ipc" in registered_domains
 
     engine = case_registry.get("sarfaesi")
     assert engine is not None
     assert engine.domain_name == "sarfaesi"
+
+    crim_engine = case_registry.get("criminal")
+    assert crim_engine is not None
+    assert crim_engine.domain_name == "criminal"
 
 def test_evidence_intelligence_classification_and_gaps():
     doc_meta = EvidenceIntelligenceEngine.classify_document("Demand notice under section 13(2).pdf")

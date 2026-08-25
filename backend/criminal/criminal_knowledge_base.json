@@ -67,6 +67,7 @@
         "2. Shows original document was never seized or sent for FSL expert comparison.",
         "3. Court discharges accused under Section 227/239 CrPC."
       ],
+      "probability_collapse": 0.82,
       "rebuttal_tree": {
         "defence_evidence": "Cross-examination of handwriting expert, proof of execution authority.",
         "prosecution_counter": "Rely on witness statements alleging signature was forged in their presence.",

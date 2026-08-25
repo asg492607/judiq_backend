@@ -1,25 +1,8 @@
 from typing import Dict, List, Any
 import logging
+from criminal.criminal_utils import _is_true, _is_false
 
 logger = logging.getLogger(__name__)
-
-def _is_true(val: Any) -> bool:
-    if isinstance(val, bool):
-        return val
-    if isinstance(val, (int, float)):
-        return val > 0
-    if isinstance(val, str):
-        val_lower = val.strip().lower()
-        return val_lower in ("true", "yes", "1") or val_lower.startswith("yes") or "violation" in val_lower or "unlawful" in val_lower or "missing" in val_lower or "without" in val_lower
-    return False
-
-def _is_false(val: Any) -> bool:
-    if isinstance(val, bool):
-        return not val
-    if isinstance(val, str):
-        val_lower = val.strip().lower()
-        return val_lower in ("false", "no", "0") or val_lower.startswith("no") or "not applicable" in val_lower or "not arrested" in val_lower
-    return False
 
 class CriminalRulesEngine:
     """
@@ -159,7 +142,7 @@ class CriminalRulesEngine:
         # 8. Omnibus Family Impleadment in Matrimonial Disputes (S.498A IPC <-> S.85 BNS)
         if ("498A" in offense or "85" in offense or "DOWRY" in offense or "304B" in offense) and (_is_true(case_data.get("relative_impleaded")) or _is_true(case_data.get("separate_residence"))):
             triggered_rules.append({
-                "rule_name": "Omnibus Allegations Against In-Laws / Distant Relatives (S.498A)",
+                "rule_name": "Kahkashan Kausar Doctrine: Omnibus Allegations Against In-Laws (S.498A)",
                 "severity": "HIGH QUASHING GROUND",
                 "status": "KAHKASHAN KAUSAR COMPLIANCE",
                 "description": "General and omnibus allegations leveled against relatives of husband without attributing specific overt acts of harassment or cruelty.",
@@ -189,9 +172,9 @@ class CriminalRulesEngine:
                 })
 
         # 10. False Promise to Marry vs. Consensual Relationship (S.376 IPC <-> S.64 / S.69 BNS)
-        if ("376" in offense or "64" in offense or "69" in offense or "RAPE" in offense) and (_is_true(case_data.get("consensual_relationship")) or _is_true(case_data.get("promise_to_marry"))):
+        if ("376" in offense or "64" in offense or "69" in offense or "RAPE" in offense) and (_is_true(case_data.get("consensual_relationship")) or _is_true(case_data.get("promise_to_marry")) or _is_true(case_data.get("courtship_failed"))):
             triggered_rules.append({
-                "rule_name": "Consensual Relationship vs. False Promise of Marriage (S.376)",
+                "rule_name": "Pramod Suryabhan Pawar Doctrine: Consensual Courtship vs. S.376 Rape",
                 "severity": "PRIMARY DEFENSE / QUASHING GROUND",
                 "status": "PRAMOD SURYABHAN PAWAR PRECEDENT",
                 "description": "Physical intimacy occurred in the context of mutual courtship where marriage subsequently failed.",
@@ -200,7 +183,7 @@ class CriminalRulesEngine:
             })
 
         # 11. PMLA Long Custody / Article 21 Speedy Trial
-        if ("PMLA" in offense or "MONEY LAUNDERING" in offense or "ED" in offense) and days_in_custody >= 180 and not chargesheet_filed:
+        if ("PMLA" in offense or "MONEY LAUNDERING" in offense or "ED" in offense) and (days_in_custody >= 180 or _is_true(case_data.get("pmla_trial_delay"))):
             triggered_rules.append({
                 "rule_name": "PMLA S.45 Twin Conditions Overridden by Article 21 (Manish Sisodia Doctrine)",
                 "severity": "CONSTITUTIONAL SAFEGUARD",
@@ -211,13 +194,13 @@ class CriminalRulesEngine:
             })
 
         # 12. Section 27 IEA / Section 23 BSA Discovery Memo Flaws
-        if _is_true(case_data.get("recovery_memo_s27")) and (_is_true(case_data.get("open_place_recovery")) or _is_true(case_data.get("joint_disclosure"))):
+        if _is_true(case_data.get("open_place_recovery")) or _is_true(case_data.get("joint_disclosure_recovery")) or _is_true(case_data.get("joint_disclosure")):
             triggered_rules.append({
-                "rule_name": "Inadmissibility of Open Place / Joint Disclosure Memo (S.27 IEA)",
+                "rule_name": "Inadmissibility of Open Place / Joint Disclosure Memo (S.27 IEA / S.23 BSA)",
                 "severity": "EVIDENTIARY VULNERABILITY",
-                "status": "PULUKURI KOTTAYA BREACH",
+                "status": "PULUKURI KOTTAYA & GIAN CHAND BREACH",
                 "description": "Weapon/article recovery effected from an open place accessible to general public, or recorded as a joint statement of multiple accused.",
-                "legal_effect": "Joint disclosure statements and open-access discoveries are strictly inadmissible under Section 27 IEA / Section 23 BSA (Pulukuri Kottaya v. King-Emperor).",
+                "legal_effect": "Joint disclosure statements and open-access discoveries are strictly inadmissible under Section 27 IEA / Section 23 BSA (Gian Chand v. State of Haryana; Pulukuri Kottaya).",
                 "action": "Cross-examine Panch witnesses and I.O. on accessibility of recovery spot to general public."
             })
 

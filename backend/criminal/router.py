@@ -54,9 +54,9 @@ class BailAssessmentRequest(BaseModel):
     description="Full strategic evaluation of criminal cases under IPC / BNS & CrPC / BNSS frameworks."
 )
 @limiter.limit("10/minute")
-async def analyze_criminal_case(request_data: Dict[str, Any], request: Request):
+async def analyze_criminal_case(request_data: CriminalAnalysisRequest, request: Request):
     try:
-        data = dict(request_data)
+        data = request_data.model_dump()
         data["case_type"] = "criminal"
         result = await asyncio.to_thread(JudiQEngine.analyze_case, data)
         return {"success": True, "data": result, **result}
