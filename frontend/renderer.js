@@ -2049,46 +2049,46 @@ export function renderVerifiedAuthorityCard(data) {
     const isTreat = ver.current_treatment_checked;
 
     const cardHTML = `
-        <div class="verified-authority-card" style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; margin-top: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); font-family: inherit;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 0.75rem;">
+        <div class="verified-authority-card" style="background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1.25rem; margin-top: 1rem; box-shadow: var(--shadow-md); font-family: inherit;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; border-bottom: 1px solid var(--gray-200); padding-bottom: 0.75rem; margin-bottom: 0.75rem;">
                 <div>
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                        <span style="background: #eff6ff; color: #1d4ed8; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 4px;">
+                        <span style="background: rgba(99,102,241,0.15); color: var(--primary-400); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid rgba(99,102,241,0.3);">
                             ${auth.type || 'PRIMARY_AUTHORITY'}
                         </span>
-                        <span style="background: ${statusColor}15; color: ${statusColor}; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.3rem;">
+                        <span style="background: ${statusColor}18; color: ${statusColor}; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid ${statusColor}40; display: inline-flex; align-items: center; gap: 0.3rem;">
                             <i class="fas fa-shield-alt"></i> ${status}
                         </span>
                     </div>
-                    <h4 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #0f172a;">${auth.title || auth.citation}</h4>
-                    <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.2rem;">
+                    <h4 style="margin: 0; font-size: 1.1rem; font-weight: 750; color: var(--gray-900);">${auth.title || auth.citation}</h4>
+                    <div style="font-size: 0.85rem; color: var(--gray-500); margin-top: 0.2rem;">
                         <i class="fas fa-university"></i> ${auth.court || auth.issuing_authority || 'Supreme Court of India'} &bull; ${auth.date || 'Verified Statutory Authority'}
                     </div>
                 </div>
                 ${src.official_url ? `
-                    <a href="${officialUrl}" target="_blank" rel="noopener noreferrer" style="background: #2563eb; color: #ffffff; font-size: 0.8rem; font-weight: 700; padding: 0.5rem 0.85rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; transition: background 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+                    <a href="${officialUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding: 0.4rem 0.85rem; font-size: 0.8rem; border-radius: 8px;">
                         <i class="fas fa-external-link-alt"></i> VIEW OFFICIAL SOURCE
                     </a>
                 ` : ''}
             </div>
 
-            <div style="font-size: 0.88rem; color: #334155; line-height: 1.5; margin-bottom: 0.85rem;">
-                <strong>Proposition Mapped:</strong> ${auth.proposition_supported || (auth.principles && auth.principles[0]) || 'Legal principles mapped to statutory posture.'}
+            <div style="font-size: 0.9rem; color: var(--gray-700); line-height: 1.6; margin-bottom: 0.85rem;">
+                <strong style="color: var(--gray-900);">Proposition Mapped:</strong> ${auth.proposition_supported || (auth.principles && auth.principles[0]) || 'Legal principles mapped to statutory posture.'}
             </div>
 
             <!-- Distinct 4-Badge Verification Grid -->
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; font-size: 0.78rem; color: #475569;">
+            <div style="background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: 8px; padding: 0.75rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; font-size: 0.78rem; color: var(--gray-600);">
                 <div style="display: flex; align-items: center; gap: 0.4rem;">
-                    <i class="fas fa-check-circle" style="color: ${isPrimary ? '#16a34a' : '#cbd5e1'};"></i> Official Source Verified
+                    <i class="fas fa-check-circle" style="color: ${isPrimary ? 'var(--success-500)' : 'var(--gray-400)'};"></i> Official Source Verified
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.4rem;">
-                    <i class="fas fa-check-circle" style="color: ${isIntegrity ? '#16a34a' : '#cbd5e1'};"></i> Document Integrity (${docHash})
+                    <i class="fas fa-check-circle" style="color: ${isIntegrity ? 'var(--success-500)' : 'var(--gray-400)'};"></i> Document Integrity (${docHash})
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.4rem;">
-                    <i class="fas fa-check-circle" style="color: ${isPropMapped ? '#16a34a' : '#d97706'};"></i> Proposition Mapped to KB Ratio
+                    <i class="fas fa-check-circle" style="color: ${isPropMapped ? 'var(--success-500)' : 'var(--warning-500)'};"></i> Proposition Mapped to KB Ratio
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.4rem;">
-                    <i class="fas fa-check-circle" style="color: ${isTreat ? '#16a34a' : '#cbd5e1'};"></i> Treatment Checked (${status})
+                    <i class="fas fa-check-circle" style="color: ${isTreat ? 'var(--success-500)' : 'var(--gray-400)'};"></i> Treatment Checked (${status})
                 </div>
             </div>
         </div>
@@ -2112,23 +2112,23 @@ export function renderRulesEngine(rulesData) {
     }
 
     let html = `
-        <div style="background: var(--error-50); border: 2px solid var(--error-600); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.1);">
-            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; color: var(--error-700); border-bottom: 1px solid var(--error-200); padding-bottom: 0.75rem;">
+        <div style="background: var(--error-50); border: 2px solid var(--error-600); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.15);">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; color: var(--error-400); border-bottom: 1px solid rgba(239,68,68,0.2); padding-bottom: 0.75rem;">
                 <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem; animation: pulse 2s infinite;"></i>
-                <h3 style="margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Statutory Bars Detected</h3>
+                <h3 style="margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--error-400);">Statutory Bars Detected</h3>
             </div>
     `;
 
     html += rulesData.map(rule => `
-        <div style="background: white; border-left: 4px solid var(--error-500); padding: 1rem; margin-bottom: 1rem; border-radius: var(--radius-sm); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="background: var(--glass-bg); border-left: 4px solid var(--error-500); padding: 1rem; margin-bottom: 1rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--glass-border); border-left: 4px solid var(--error-500);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <div style="font-weight: 700; color: var(--gray-900); font-size: 1.1rem;">${rule.rule_name}</div>
-                <div style="background: var(--error-100); color: var(--error-800); font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.5rem; border-radius: 4px;">${rule.status}</div>
+                <div style="font-weight: 750; color: var(--gray-900); font-size: 1.1rem;">${rule.rule_name}</div>
+                <div style="background: rgba(239,68,68,0.15); color: var(--error-400); font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid rgba(239,68,68,0.3);">${rule.status}</div>
             </div>
-            <div style="font-size: 0.95rem; color: var(--gray-700); margin-bottom: 0.75rem;"><strong>Trigger:</strong> ${rule.description}</div>
-            <div style="font-size: 0.95rem; color: var(--error-700); font-weight: 600; margin-bottom: 0.75rem;"><i class="fas fa-gavel"></i> <strong>Legal Effect:</strong> ${rule.legal_effect}</div>
-            <div style="font-size: 0.9rem; background: var(--gray-50); padding: 0.5rem; border-radius: 4px; border: 1px solid var(--gray-200);">
-                <i class="fas fa-arrow-right" style="color: var(--primary-500);"></i> <strong>Action Required:</strong> ${rule.action}
+            <div style="font-size: 0.92rem; color: var(--gray-700); margin-bottom: 0.75rem;"><strong>Trigger:</strong> ${rule.description}</div>
+            <div style="font-size: 0.92rem; color: var(--error-400); font-weight: 600; margin-bottom: 0.75rem;"><i class="fas fa-gavel"></i> <strong>Legal Effect:</strong> ${rule.legal_effect}</div>
+            <div style="font-size: 0.88rem; background: var(--gray-100); padding: 0.6rem 0.85rem; border-radius: 6px; border: 1px solid var(--gray-200); color: var(--gray-800);">
+                <i class="fas fa-arrow-right" style="color: var(--primary-400);"></i> <strong>Action Required:</strong> ${rule.action}
             </div>
         </div>
     `).join('');
@@ -2148,35 +2148,22 @@ export function switchResultTab(tabName) {
 
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.add('hidden');
-        content.classList.remove('active');
     });
 
-    const tabId = `tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
-    const targetTab = document.getElementById(tabId);
-    if (targetTab) {
-        targetTab.classList.remove('hidden');
-        targetTab.classList.add('active');
-        if (tabName === 'strategy' && window.renderAdversarialCharts) {
-            setTimeout(() => {
-                window.renderAdversarialCharts(window.state.analysisResult);
-            }, 150);
-        }
-        if (tabName === 'draft' && typeof window.renderSelectedDraft === 'function') {
-            window.renderSelectedDraft();
-        }
+    const target = document.getElementById(`${tabName}Tab`);
+    if (target) {
+        target.classList.remove('hidden');
     }
 }
 
-// Render Criminal Litigation & Statutory Defense Panels
-export function renderCriminalResultsPanels(data) {
-    const container = document.getElementById('statutoryRulesContainer') || document.getElementById('overviewContent');
-    if (!container) return;
+// Render criminal defense & statutory safeguard matrix
+export function renderCriminalAnalysis(data, container) {
+    if (!container || !data) return;
 
-    const bail = data.bail_assessment || {};
-    const rules = data.statutory_rules || data.triggered_rules || [];
-    const adv = data.adversarial_risk_model || {};
-    const risks = adv.risks_and_rebuttals || [];
-    const econ = data.economics || data.criminal_economics || {};
+    const bail = data.bail || data.bail_assessment || {};
+    const quashing = data.quashing || data.quashing_assessment || {};
+    const risks = data.adversarial_vulnerabilities || [];
+    const econ = data.litigation_economics || {};
     const comp = econ.compounding_and_settlement || {};
     const bailEcon = econ.bail_economics || {};
     const plea = econ.trial_vs_plea || {};
@@ -2185,42 +2172,42 @@ export function renderCriminalResultsPanels(data) {
 
     const antilCategory = bail.antil_category || "Category A (Offenses <= 7 Years)";
     const bailProb = bail.probability || "HIGH";
-    const bailProbColor = (bailProb.includes("VERY HIGH") || bailProb.includes("HIGH")) ? "#16a34a" : (bailProb.includes("MEDIUM") ? "#d97706" : "#dc2626");
+    const bailProbColor = (bailProb.includes("VERY HIGH") || bailProb.includes("HIGH")) ? "var(--success-500)" : (bailProb.includes("MEDIUM") ? "var(--warning-500)" : "var(--error-500)");
 
     let criminalHTML = `
-        <div class="criminal-dashboard-panel" style="background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%); border: 1.5px solid #bfdbfe; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(37,99,235,0.06); font-family: inherit;">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #dbeafe; padding-bottom: 1rem; margin-bottom: 1.25rem;">
+        <div class="criminal-dashboard-panel" style="background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur)); border: 1px solid rgba(99,102,241,0.25); border-radius: var(--radius-xl); padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-xl); font-family: inherit;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--gray-200); padding-bottom: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <span style="background: #2563eb; color: #ffffff; width: 36px; height: 36px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                    <span style="background: linear-gradient(135deg, var(--primary-600), var(--primary-800)); color: #ffffff; width: 40px; height: 40px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(99,102,241,0.3);">
                         <i class="fas fa-balance-scale"></i>
                     </span>
                     <div>
-                        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #1e3a8a;">Criminal Defense & Statutory Safeguard Matrix</h3>
-                        <div style="font-size: 0.85rem; color: #475569;">Governed by IPC 1860 / CrPC 1973 & Bharatiya Nyaya Sanhita (BNS / BNSS 2023)</div>
+                        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--gray-900);">Criminal Defense & Statutory Safeguard Matrix</h3>
+                        <div style="font-size: 0.85rem; color: var(--gray-500);">Governed by IPC 1860 / CrPC 1973 & Bharatiya Nyaya Sanhita (BNS / BNSS 2023)</div>
                     </div>
                 </div>
                 <div style="text-align: right;">
-                    <span style="background: ${bailProbColor}15; color: ${bailProbColor}; font-size: 0.8rem; font-weight: 800; padding: 0.35rem 0.75rem; border-radius: 6px; border: 1px solid ${bailProbColor}33; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <span style="background: ${bailProbColor}18; color: ${bailProbColor}; font-size: 0.82rem; font-weight: 800; padding: 0.4rem 0.85rem; border-radius: var(--radius-full); border: 1px solid ${bailProbColor}40; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 0 10px ${bailProbColor}20;">
                         <i class="fas fa-gavel"></i> BAIL PROBABILITY: ${escapeHtml(bailProb)}
                     </span>
                 </div>
             </div>
 
             <!-- Satender Kumar Antil 4-Category Matrix -->
-            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
-                    <span style="font-size: 0.78rem; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.5px;">
+            <div style="background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.25rem; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <span style="font-size: 0.8rem; font-weight: 750; color: var(--primary-400); text-transform: uppercase; letter-spacing: 0.5px;">
                         <i class="fas fa-shield-alt"></i> Satender Kumar Antil (2022) 10 SCC 51 Taxonomy
                     </span>
-                    <span style="background: #eff6ff; color: #1e40af; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px;">
+                    <span style="background: rgba(99,102,241,0.15); color: var(--primary-300); border: 1px solid rgba(99,102,241,0.3); font-size: 0.75rem; font-weight: 750; padding: 0.25rem 0.65rem; border-radius: var(--radius-full);">
                         ${escapeHtml(antilCategory)}
                     </span>
                 </div>
-                <div style="font-size: 0.92rem; color: #1e293b; line-height: 1.5; margin-bottom: 0.6rem;">
-                    <strong>Strategic Rationale:</strong> ${escapeHtml(bail.strategic_rationale || 'Bail is the rule, jail is the exception (State of Rajasthan v. Balchand).')}
+                <div style="font-size: 0.92rem; color: var(--gray-800); line-height: 1.6; margin-bottom: 0.6rem;">
+                    <strong style="color: var(--gray-900);">Strategic Rationale:</strong> ${escapeHtml(bail.strategic_rationale || 'Bail is the rule, jail is the exception (State of Rajasthan v. Balchand).')}
                 </div>
                 ${bail.default_bail_triggered ? `
-                    <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.88rem; color: #991b1b; margin-top: 0.5rem;">
+                    <div style="background: rgba(239,68,68,0.12); border-left: 4px solid var(--error-500); padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.88rem; color: var(--error-400); margin-top: 0.5rem; border: 1px solid rgba(239,68,68,0.25); border-left: 4px solid var(--error-500);">
                         <i class="fas fa-clock"></i> <strong>S.167(2) Default Bail Right Accrued:</strong> Mandatory statutory bail must be filed immediately prior to submission of the police charge sheet (Ritu Chhabaria v. UOI).
                     </div>
                 ` : ''}
@@ -2228,19 +2215,19 @@ export function renderCriminalResultsPanels(data) {
 
             <!-- Compounding & Settlement Dynamics (S.320 CrPC / S.359 BNSS) -->
             ${comp.statutory_mechanism ? `
-                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                        <span style="font-size: 0.8rem; font-weight: 800; color: #0f172a;">
-                            <i class="fas fa-handshake" style="color: #2563eb;"></i> Compounding & Dispute Settlement Viability
+                <div style="background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.25rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.55rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <span style="font-size: 0.82rem; font-weight: 750; color: var(--gray-900);">
+                            <i class="fas fa-handshake" style="color: var(--primary-400);"></i> Compounding & Dispute Settlement Viability
                         </span>
-                        <span style="background: ${comp.is_compoundable ? '#dcfce7' : '#fef3c7'}; color: ${comp.is_compoundable ? '#166534' : '#92400e'}; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 4px;">
+                        <span style="background: ${comp.is_compoundable ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)'}; color: ${comp.is_compoundable ? 'var(--success-400)' : 'var(--gold-400)'}; border: 1px solid ${comp.is_compoundable ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'}; font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: var(--radius-full);">
                             ${comp.is_compoundable ? 'COMPOUNDABLE' : 'NON-COMPOUNDABLE (S.482 REQUIRED)'}
                         </span>
                     </div>
-                    <div style="font-size: 0.88rem; color: #334155; margin-bottom: 0.4rem;">
-                        <strong>Mechanism:</strong> ${escapeHtml(comp.statutory_mechanism)}
+                    <div style="font-size: 0.9rem; color: var(--gray-700); margin-bottom: 0.4rem; line-height: 1.5;">
+                        <strong style="color: var(--gray-900);">Mechanism:</strong> ${escapeHtml(comp.statutory_mechanism)}
                     </div>
-                    <div style="font-size: 0.82rem; color: #64748b;">
+                    <div style="font-size: 0.84rem; color: var(--gray-500);">
                         <strong>Surety Bond Exposure:</strong> Approx. Rs. ${(bailEcon.estimated_surety_bond || 25000).toLocaleString('en-IN')} | ${escapeHtml(bailEcon.cash_bail_viability || 'Standard Surety')}
                     </div>
                 </div>
@@ -2248,18 +2235,18 @@ export function renderCriminalResultsPanels(data) {
 
             <!-- Trial Cross-Examination Question Bank -->
             ${risks.length > 0 && risks[0].cross_exam_questions ? `
-                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
-                        <div style="font-weight: 800; color: #0f172a; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="fas fa-user-tie" style="color: #2563eb;"></i> Trial Cross-Examination Question Bank
+                <div style="background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 1.25rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <div style="font-weight: 750; color: var(--gray-900); font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-user-tie" style="color: var(--primary-400);"></i> Trial Cross-Examination Question Bank
                         </div>
-                        <span style="font-size: 0.75rem; color: #64748b;">Ready for Courtroom Deposition</span>
+                        <span style="font-size: 0.75rem; color: var(--gray-500); font-weight: 600;">Ready for Courtroom Deposition</span>
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="display: flex; flex-direction: column; gap: 0.65rem;">
                         ${(risks[0].cross_exam_questions || []).map((q, idx) => `
-                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.65rem 0.85rem; font-size: 0.88rem; color: #334155; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;">
-                                <div><strong style="color: #2563eb;">Q${idx + 1}:</strong> ${escapeHtml(q)}</div>
-                                <button type="button" onclick="navigator.clipboard.writeText('${escapeHtml(q).replace(/'/g, "\\'")}'); this.innerHTML='<i class=\\'fas fa-check\\'></i> Copied'; setTimeout(() => this.innerHTML='<i class=\\'fas fa-copy\\'></i> Copy', 2000);" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 0.25rem 0.55rem; font-size: 0.75rem; color: #475569; cursor: pointer; white-space: nowrap;">
+                            <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.88rem; color: var(--gray-800); display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; transition: border-color 0.2s;">
+                                <div><strong style="color: var(--primary-400);">Q${idx + 1}:</strong> ${escapeHtml(q)}</div>
+                                <button type="button" onclick="navigator.clipboard.writeText('${escapeHtml(q).replace(/'/g, "\\'")}'); this.innerHTML='<i class=\\'fas fa-check\\'></i> Copied'; setTimeout(() => this.innerHTML='<i class=\\'fas fa-copy\\'></i> Copy', 2000);" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; border-radius: 6px; white-space: nowrap;">
                                     <i class="fas fa-copy"></i> Copy
                                 </button>
                             </div>
@@ -2272,6 +2259,3 @@ export function renderCriminalResultsPanels(data) {
 
     container.insertAdjacentHTML('afterbegin', criminalHTML);
 }
-
-
-

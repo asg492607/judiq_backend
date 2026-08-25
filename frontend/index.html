@@ -1412,43 +1412,43 @@
                 <!-- ═══════════════════════════════════════════════════ -->
                 <!-- WHAT-IF DASHBOARD (SCENARIO MODELING)               -->
                 <!-- ═══════════════════════════════════════════════════ -->
-                <div class="result-card" style="margin-top: 1.5rem; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #cbd5e1;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div class="result-card" style="margin-top: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
                         <div>
-                            <h3 style="margin-bottom: 0;"><i class="fas fa-sliders-h" style="color:#4f46e5;"></i> "What-If" Scenario Modeler</h3>
+                            <h3 style="margin-bottom: 0;"><i class="fas fa-sliders-h" style="color: var(--primary-400);"></i> "What-If" Scenario Modeler</h3>
                             <p class="card-subtitle" style="margin-top: 0.2rem;">Toggle parameters below to instantly re-analyze the case without navigating the wizard.</p>
                         </div>
-                        <button onclick="window.runAnalysis()" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;"><i class="fas fa-sync-alt"></i> Re-Calculate</button>
+                        <button onclick="window.runAnalysis()" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;"><i class="fas fa-sync-alt"></i> Re-Calculate</button>
                     </div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; padding: 1rem; background: var(--gray-100); border-radius: var(--radius-lg); border: 1px solid var(--gray-200);">
                         <!-- Condonation Toggle -->
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
-                            <label style="font-size: 0.85rem; font-weight: 600; color: #334155; margin: 0;">Condonation Attached (S.142)</label>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.65rem 0.85rem; background: var(--glass-bg); border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-800); margin: 0;">Condonation Attached (S.142)</label>
                             <label class="switch" style="margin: 0;">
                                 <input type="checkbox" id="whatif_condonation" onchange="window.updateWhatIf('condonation_attached', this.checked)">
                                 <span class="slider round"></span>
                             </label>
                         </div>
                         <!-- BSA Certificate Toggle -->
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
-                            <label style="font-size: 0.85rem; font-weight: 600; color: #334155; margin: 0;">BSA S.63(4) Included</label>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.65rem 0.85rem; background: var(--glass-bg); border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-800); margin: 0;">BSA S.63(4) Included</label>
                             <label class="switch" style="margin: 0;">
                                 <input type="checkbox" id="whatif_bsa" onchange="window.updateWhatIf('bsa_certificate', this.checked ? 'Yes' : 'No')">
                                 <span class="slider round"></span>
                             </label>
                         </div>
                         <!-- Directors Named Toggle -->
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
-                            <label style="font-size: 0.85rem; font-weight: 600; color: #334155; margin: 0;">Specific Directors Averred (S.141)</label>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.65rem 0.85rem; background: var(--glass-bg); border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-800); margin: 0;">Specific Directors Averred (S.141)</label>
                             <label class="switch" style="margin: 0;">
                                 <input type="checkbox" id="whatif_directors" onchange="window.updateWhatIf('directors_named', this.checked ? 'Yes' : 'No')">
                                 <span class="slider round"></span>
                             </label>
                         </div>
                         <!-- Transaction Type Dropdown -->
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
-                            <label style="font-size: 0.85rem; font-weight: 600; color: #334155; margin: 0;">Transaction Type</label>
-                            <select id="whatif_transaction" onchange="window.updateWhatIf('agreement_type', this.value)" style="padding: 0.25rem; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 0.8rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.65rem 0.85rem; background: var(--glass-bg); border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-800); margin: 0;">Transaction Type</label>
+                            <select id="whatif_transaction" onchange="window.updateWhatIf('agreement_type', this.value)" style="padding: 0.35rem 0.65rem; border-radius: var(--radius-sm); border: 1px solid var(--gray-300); font-size: 0.8rem; background: var(--gray-200); color: var(--gray-900);">
                                 <option value="Personal Loan">Personal Loan</option>
                                 <option value="Commercial Invoice">Commercial Invoice</option>
                                 <option value="Investment/Business">Investment/Business</option>
