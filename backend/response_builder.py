@@ -381,7 +381,7 @@ class ResponseBuilder:
         draft_label = "AI Enhanced" if LLM_AVAILABLE and enhanced_draft and enhanced_draft != base_draft else "Rule-Based"
         enhanced_draft = ResponseBuilder._prefix_text(enhanced_draft, draft_label)
         base_draft = ResponseBuilder._prefix_text(base_draft, "Rule-Based")
-        return {
+        response_dict = {
             "score": score,
             "final_score": score,
             "verdict": verdict,

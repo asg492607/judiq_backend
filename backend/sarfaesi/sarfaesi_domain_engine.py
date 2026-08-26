@@ -143,6 +143,8 @@ class SarfaesiDomainEngine(BaseDomainEngine):
             "domain": "sarfaesi",
             "score": score,
             "verdict": verdict,
+            "fatal_defect": fatal_defect,
+            "issues": all_fatal,
             "reasoning_trace": scoring_res.get("trace", []) + eval_result.get("all_grounds", []),
             "abstain_recommended": abstain_recommended,
             "decision_status": decision_status,
