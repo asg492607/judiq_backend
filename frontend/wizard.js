@@ -468,40 +468,61 @@ window.submitCase = async () => {
 };
 
 export const SAMPLE_NI_ACT_PRESET = {
-    case_title: "Apex Global vs. Vanguard Tech",
+    case_id: "CC/2026/89412",
+    case_title: "Apex Global Traders vs. Vanguard Tech Solutions",
     case_type: "Cheque Bounce",
-    complainant_name: "Apex Global Traders Pvt Ltd",
     complainant_type: "Pvt Ltd/Ltd Company",
+    filing_date: "2026-06-15",
+    court_name: "JMFC Court, Pune",
+    condonation_attached: "No",
+    judicial_temperament: "Balanced",
+    complainant_name: "Apex Global Traders Pvt Ltd",
+    complainant_address: "Plot 12, Commercial Hub, Hinjewadi, Pune - 411057",
     complainant_authorized: "Yes - Original",
     authorized_person_name: "Mr. Vikram Joshi",
     board_resolution_date: "2026-04-01",
     accused_name: "Vanguard Tech Solutions Pvt Ltd",
     accused_type: "Pvt Ltd/Ltd Company",
-    directors_named: "Yes - Actively Managed Operations",
+    accused_address: "Office 402, High-Tech Tower, Wakad Road, Pune - 411057",
+    directors_named: "Yes - Company as A1 and Directors/Partners Named",
+    director_role_category: "Managing Director / Whole-Time Director (Inherent Liability)",
+    active_management_averment: "Yes - Expressly averred in charge of day-to-day business (S.M.S. Pharma Standard)",
     accused_directors: "Mr. Rahul Verma (Managing Director)",
     director_roles: "Managing Director in charge of financial operations and cheque issuance",
+    transaction_date: "2026-01-15",
+    purpose: "Supply of Enterprise IT Equipment and Commercial Servers",
+    agreement_type: "Written Agreement",
+    itr_available: "Yes",
+    loan_advanced_via: "Bank Transfer (NEFT/RTGS/IMPS)",
     cheque_number: "482019",
+    cheque_date: "2026-04-10",
+    cheque_amount: 1550000,
+    amount: 1550000,
+    debt_amount: 1550000,
     bank_name: "HDFC Bank Ltd",
     branch_name: "Hinjewadi Branch, Pune",
-    cheque_amount: 1550000,
-    cheque_date: "2026-04-10",
+    cheque_type: "Account Payee Cheque",
+    post_dated: "No",
     dishonour_date: "2026-05-02",
     dishonour_reason: "Funds Insufficient",
+    bank_memo_received: "Yes",
+    memo_date: "2026-05-03",
+    memo_signed: "Yes - Signed & Stamped",
+    presentation_date: "2026-05-02",
+    second_presentation: "No",
+    notice_sent: "Yes",
     notice_date: "2026-05-18",
+    notice_mode: "Registered Post AD",
+    notice_received: "Yes - Acknowledged",
+    notice_received_date: "2026-05-22",
     notice_delivery_date: "2026-05-22",
-    complaint_date: "2026-07-01",
-    court_name: "JMFC Court, Pune",
-    jurisdiction_city: "Pune",
-    agreement_type: "Written Contract / Invoice",
-    purpose: "Supply of IT Hardware Equipment and Enterprise Servers",
-    debt_amount: 1550000,
+    complaint_date: "2026-06-15",
+    reply_received: "Yes - Denial",
+    original_cheque: "Yes - Original",
+    agreement_documents: "Yes - Signed Agreement",
+    witness_available: "Yes - One",
     debt_proven: "Yes - Documented",
-    itr_available: "Yes",
-    signature_dispute: "No",
-    cheque_security_claim: "No",
-    reply_received: "Yes - Denied Liability",
-    within_30_days: "Yes",
-    condonation_attached: "No"
+    within_30_days: "Yes"
 };
 
 export const SAMPLE_SARFAESI_PRESET = {
@@ -681,6 +702,14 @@ window.autoAlignCourtJurisdiction = (suggestedCourt) => {
     }
 };
 
+window.SAMPLE_NI_ACT_PRESET = SAMPLE_NI_ACT_PRESET;
+window.SAMPLE_SARFAESI_PRESET = SAMPLE_SARFAESI_PRESET;
+window.SAMPLE_CRIMINAL_PRESET = SAMPLE_CRIMINAL_PRESET;
+window.SAMPLE_CIVIL_PRESET = SAMPLE_CIVIL_PRESET;
+window.SAMPLE_COMPOSITE_PRESET = SAMPLE_COMPOSITE_PRESET;
 
-
-
+window.loadDemoCase = () => window.loadSampleCaseData(SAMPLE_NI_ACT_PRESET);
+window.loadSarfaesiDemoCase = () => window.loadSampleCaseData(SAMPLE_SARFAESI_PRESET);
+window.loadCompositeDemoCase = () => window.loadSampleCaseData(SAMPLE_COMPOSITE_PRESET);
+window.loadCriminalDemoCase = () => window.loadSampleCaseData(SAMPLE_CRIMINAL_PRESET);
+window.loadCivilDemoCase = () => window.loadSampleCaseData(SAMPLE_CIVIL_PRESET);
