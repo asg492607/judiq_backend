@@ -188,8 +188,43 @@ class DatabaseManager:
                     updated_at TEXT
                 )
             """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS bank_officers (
+                    officer_id TEXT PRIMARY KEY,
+                    name TEXT,
+                    bank_name TEXT,
+                    branch_name TEXT,
+                    role TEXT DEFAULT 'bank_officer',
+                    email TEXT,
+                    monthly_audit_limit INTEGER DEFAULT 100,
+                    audits_used_this_month INTEGER DEFAULT 0,
+                    current_month_period TEXT,
+                    is_active INTEGER DEFAULT 1,
+                    created_at TEXT,
+                    updated_at TEXT
+                )
+            """)
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS bank_recovery_audits (
+                    id {serial_primary},
+                    audit_id TEXT UNIQUE NOT NULL,
+                    officer_id TEXT NOT NULL,
+                    bank_name TEXT,
+                    branch_name TEXT,
+                    case_type TEXT,
+                    borrower_name TEXT,
+                    loan_account_no TEXT,
+                    default_amount REAL,
+                    viability_score REAL,
+                    verdict TEXT,
+                    defect_count INTEGER DEFAULT 0,
+                    details_json TEXT,
+                    timestamp TEXT
+                )
+            """)
             conn.commit()
-            logger.info("Database, Caseroom, and User Quota tables initialized successfully.")
+            logger.info("Database, Caseroom, User Quota, and Bank Recovery tables initialized successfully.")
+            DatabaseManager._seed_initial_bank_officers(cursor, conn)
         except Exception as e:
             logger.error(f"Database init failed: {e}")
             raise e
@@ -815,6 +850,315 @@ class DatabaseManager:
                 "total_reports_this_month": 0,
                 "total_saved_cases": 0,
                 "total_audit_events": 0,
+                "current_period": datetime.now().strftime("%Y-%m")
+            }
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def _seed_initial_bank_officers(cursor, conn):
+        try:
+            now_iso = datetime.now().isoformat()
+            current_month = datetime.now().strftime("%Y-%m")
+            seed_officers = [
+                ("OFFICER_SARB_842", "Rajesh Nambiar", "State Bank of India", "SBI — Stressed Asset Recovery Branch (SARB Mumbai)", "sarb_manager", "rajesh.nambiar@sbi.co.in", 250, 18, current_month, 1, now_iso, now_iso),
+                ("OFFICER_MUM_SARB_104", "Ananya Deshmukh", "State Bank of India", "SBI — Stressed Asset Recovery Cell (SARB Mumbai)", "bank_officer", "ananya.d@sbi.co.in", 150, 12, current_month, 1, now_iso, now_iso),
+                ("OFFICER_DEL_LCR_419", "Vikram Rathore", "Punjab National Bank", "PNB — Large Corporate Recovery Division (Delhi)", "bank_officer", "vikram.rathore@pnb.co.in", 100, 8, current_month, 1, now_iso, now_iso),
+                ("OFFICER_MUM_WLR_302", "Anand Kulkarni", "HDFC Bank", "HDFC Bank — Wholesale Recovery Dept (Mumbai)", "recovery_head", "anand.kulkarni@hdfcbank.com", 300, 24, current_month, 1, now_iso, now_iso),
+                ("OFFICER_PUN_SAMB_512", "Priya Patel", "Bank of Baroda", "BOB — Stressed Assets Management Branch (SAMB Ahmedabad)", "bank_officer", "priya.patel@bankofbaroda.co.in", 100, 5, current_month, 1, now_iso, now_iso),
+            ]
+            for off in seed_officers:
+                cursor.execute("""
+                    INSERT OR IGNORE INTO bank_officers
+                    (officer_id, name, bank_name, branch_name, role, email, monthly_audit_limit, audits_used_this_month, current_month_period, is_active, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, off)
+            conn.commit()
+        except Exception as e:
+            logger.warning(f"Seed bank officers skipped or failed: {e}")
+
+    @staticmethod
+    def get_or_create_bank_officer(officer_id: str, name: str = "", bank_name: str = "", branch_name: str = "", email: str = "") -> dict:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            current_month = datetime.now().strftime("%Y-%m")
+            now_iso = datetime.now().isoformat()
+
+            cursor.execute(f"SELECT officer_id, name, bank_name, branch_name, role, email, monthly_audit_limit, audits_used_this_month, current_month_period, is_active FROM bank_officers WHERE officer_id = {p}", (officer_id,))
+            row = cursor.fetchone()
+
+            if not row:
+                default_name = name or officer_id.replace("_", " ").title()
+                default_bank = bank_name or "Institutional Bank Partner"
+                default_branch = branch_name or "Stressed Asset Recovery Branch"
+                default_email = email or f"{officer_id.lower()}@bankpartner.in"
+
+                cursor.execute(f"""
+                    INSERT INTO bank_officers
+                    (officer_id, name, bank_name, branch_name, role, email, monthly_audit_limit, audits_used_this_month, current_month_period, is_active, created_at, updated_at)
+                    VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+                """, (officer_id, default_name, default_bank, default_branch, "bank_officer", default_email, 100, 0, current_month, 1, now_iso, now_iso))
+                conn.commit()
+
+                return {
+                    "officer_id": officer_id,
+                    "name": default_name,
+                    "bank_name": default_bank,
+                    "branch_name": default_branch,
+                    "role": "bank_officer",
+                    "email": default_email,
+                    "monthly_audit_limit": 100,
+                    "audits_used_this_month": 0,
+                    "current_month_period": current_month,
+                    "is_active": True,
+                    "remaining_audits": 100
+                }
+
+            off_id, o_name, o_bank, o_branch, o_role, o_email, limit_val, used_val, month_period, active_val = row
+            if month_period != current_month:
+                cursor.execute(f"UPDATE bank_officers SET audits_used_this_month = 0, current_month_period = {p}, updated_at = {p} WHERE officer_id = {p}", (current_month, now_iso, officer_id))
+                conn.commit()
+                used_val = 0
+
+            rem = -1 if limit_val == -1 else max(0, limit_val - used_val)
+            return {
+                "officer_id": off_id,
+                "name": o_name,
+                "bank_name": o_bank,
+                "branch_name": o_branch,
+                "role": o_role,
+                "email": o_email,
+                "monthly_audit_limit": limit_val,
+                "audits_used_this_month": used_val,
+                "current_month_period": current_month,
+                "is_active": bool(active_val),
+                "remaining_audits": rem
+            }
+        except Exception as e:
+            logger.error(f"Error in get_or_create_bank_officer: {e}")
+            return {
+                "officer_id": officer_id,
+                "name": name or officer_id,
+                "bank_name": bank_name or "Institutional Partner",
+                "branch_name": branch_name or "SARB Recovery Branch",
+                "role": "bank_officer",
+                "email": email or "",
+                "monthly_audit_limit": 100,
+                "audits_used_this_month": 0,
+                "current_month_period": datetime.now().strftime("%Y-%m"),
+                "is_active": True,
+                "remaining_audits": 100
+            }
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def get_all_bank_officers() -> list:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            current_month = datetime.now().strftime("%Y-%m")
+            cursor.execute("SELECT officer_id, name, bank_name, branch_name, role, email, monthly_audit_limit, audits_used_this_month, current_month_period, is_active, created_at FROM bank_officers ORDER BY created_at DESC")
+            rows = cursor.fetchall()
+            officers = []
+            for r in rows:
+                off_id, name, bank, branch, role, email, limit_val, used_val, period, is_active, created = r
+                if period != current_month:
+                    used_val = 0
+                rem = -1 if limit_val == -1 else max(0, limit_val - used_val)
+                officers.append({
+                    "officer_id": off_id,
+                    "name": name,
+                    "bank_name": bank,
+                    "branch_name": branch,
+                    "role": role,
+                    "email": email or "",
+                    "monthly_audit_limit": limit_val,
+                    "audits_used_this_month": used_val,
+                    "current_month_period": current_month,
+                    "is_active": bool(is_active),
+                    "remaining_audits": rem,
+                    "created_at": created
+                })
+            return officers
+        except Exception as e:
+            logger.error(f"Error getting all bank officers: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def update_bank_officer_allocation(officer_id: str, monthly_limit: int = None, is_active: bool = None, role: str = None, name: str = None, bank_name: str = None, branch_name: str = None, email: str = None) -> bool:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now_iso = datetime.now().isoformat()
+
+            updates = [f"updated_at = {p}"]
+            params = [now_iso]
+
+            if monthly_limit is not None:
+                updates.append(f"monthly_audit_limit = {p}")
+                params.append(int(monthly_limit))
+            if is_active is not None:
+                updates.append(f"is_active = {p}")
+                params.append(1 if is_active else 0)
+            if role is not None:
+                updates.append(f"role = {p}")
+                params.append(str(role))
+            if name is not None and name.strip():
+                updates.append(f"name = {p}")
+                params.append(str(name).strip())
+            if bank_name is not None and bank_name.strip():
+                updates.append(f"bank_name = {p}")
+                params.append(str(bank_name).strip())
+            if branch_name is not None and branch_name.strip():
+                updates.append(f"branch_name = {p}")
+                params.append(str(branch_name).strip())
+            if email is not None and email.strip():
+                updates.append(f"email = {p}")
+                params.append(str(email).strip())
+
+            params.append(officer_id)
+            query = f"UPDATE bank_officers SET {', '.join(updates)} WHERE officer_id = {p}"
+            cursor.execute(query, tuple(params))
+            conn.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Error updating bank officer: {e}")
+            return False
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def log_bank_audit(officer_id: str, bank_name: str, branch_name: str, case_type: str, borrower_name: str, loan_account_no: str, default_amount: float, viability_score: float, verdict: str, defect_count: int, details_json: dict = None) -> str:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now_iso = datetime.now().isoformat()
+            current_month = datetime.now().strftime("%Y-%m")
+            import uuid
+            audit_id = f"AUD_BANK_{uuid.uuid4().hex[:10].upper()}"
+
+            cursor.execute(f"""
+                INSERT INTO bank_recovery_audits
+                (audit_id, officer_id, bank_name, branch_name, case_type, borrower_name, loan_account_no, default_amount, viability_score, verdict, defect_count, details_json, timestamp)
+                VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+            """, (audit_id, officer_id, bank_name, branch_name, case_type, borrower_name, loan_account_no, default_amount, viability_score, verdict, defect_count, json.dumps(details_json or {}), now_iso))
+
+            # Increment audits_used_this_month for officer
+            cursor.execute(f"""
+                UPDATE bank_officers
+                SET audits_used_this_month = audits_used_this_month + 1, updated_at = {p}
+                WHERE officer_id = {p}
+            """, (now_iso, officer_id))
+
+            conn.commit()
+            return audit_id
+        except Exception as e:
+            logger.error(f"Error logging bank audit: {e}")
+            return ""
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def get_all_bank_audits(limit: int = 50) -> list:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"""
+                SELECT audit_id, officer_id, bank_name, branch_name, case_type, borrower_name, loan_account_no, default_amount, viability_score, verdict, defect_count, timestamp
+                FROM bank_recovery_audits
+                ORDER BY timestamp DESC
+                LIMIT {limit}
+            """)
+            rows = cursor.fetchall()
+            audits = []
+            for r in rows:
+                a_id, off_id, b_name, br_name, c_type, b_borrower, acc_no, amount, score, verdict, defects, ts = r
+                audits.append({
+                    "audit_id": a_id,
+                    "officer_id": off_id,
+                    "bank_name": b_name,
+                    "branch_name": br_name,
+                    "case_type": c_type,
+                    "borrower_name": b_borrower,
+                    "loan_account_no": acc_no,
+                    "default_amount": amount,
+                    "viability_score": score,
+                    "verdict": verdict,
+                    "defect_count": defects,
+                    "timestamp": ts
+                })
+            return audits
+        except Exception as e:
+            logger.error(f"Error fetching bank audits: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def get_bank_admin_stats() -> dict:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            current_month = datetime.now().strftime("%Y-%m")
+
+            cursor.execute("SELECT COUNT(*) FROM bank_officers")
+            total_officers = cursor.fetchone()[0]
+
+            cursor.execute("SELECT COUNT(*) FROM bank_officers WHERE is_active = 1")
+            active_officers = cursor.fetchone()[0]
+
+            cursor.execute("SELECT COUNT(DISTINCT bank_name) FROM bank_officers")
+            total_banks = cursor.fetchone()[0]
+
+            cursor.execute("SELECT COUNT(*) FROM bank_recovery_audits")
+            total_audits = cursor.fetchone()[0]
+
+            cursor.execute("SELECT SUM(default_amount) FROM bank_recovery_audits")
+            res_amt = cursor.fetchone()[0]
+            total_recovery_volume = float(res_amt) if res_amt is not None else 0.0
+
+            cursor.execute("SELECT SUM(audits_used_this_month) FROM bank_officers WHERE current_month_period = ?", (current_month,))
+            res_aud = cursor.fetchone()[0]
+            audits_this_month = int(res_aud) if res_aud is not None else 0
+
+            return {
+                "total_bank_officers": total_officers,
+                "active_bank_officers": active_officers,
+                "total_institutional_partners": max(1, total_banks),
+                "total_audits_performed": total_audits,
+                "audits_this_month": audits_this_month,
+                "total_recovery_volume_evaluated": total_recovery_volume,
+                "current_period": current_month
+            }
+        except Exception as e:
+            logger.error(f"Error fetching bank admin stats: {e}")
+            return {
+                "total_bank_officers": 0,
+                "active_bank_officers": 0,
+                "total_institutional_partners": 0,
+                "total_audits_performed": 0,
+                "audits_this_month": 0,
+                "total_recovery_volume_evaluated": 0.0,
                 "current_period": datetime.now().strftime("%Y-%m")
             }
         finally:
