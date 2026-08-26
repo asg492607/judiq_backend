@@ -38,6 +38,23 @@ export async function fetchWithRetry(url, options = {}, maxRetries = 2, baseDela
             } finally {
                 clearTimeout(timeout);
             }
+            if (response.status === 401 && !url.includes('/auth/anonymous')) {
+                localStorage.removeItem("judiq_jwt");
+                try {
+                    const authRes = await fetch(`${API_BASE_URL}/api/v1/auth/anonymous`, { method: 'POST' });
+                    if (authRes.ok) {
+                        const authData = await authRes.json();
+                        token = authData.access_token;
+                        localStorage.setItem("judiq_jwt", token);
+                        if (window.state) window.state.user_id = authData.user_id;
+                        options.headers = options.headers || {};
+                        options.headers['Authorization'] = `Bearer ${token}`;
+                        continue;
+                    }
+                } catch (e) {
+                    console.error("Token refresh failed:", e);
+                }
+            }
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
                 // Backend may return: { error: "..." }, { message: "..." }, or { detail: "..." }

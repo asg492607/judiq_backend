@@ -109,6 +109,19 @@ async def health_check():
 
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    fav_svg = frontend_dir / "favicon.svg"
+    if fav_svg.exists():
+        return FileResponse(str(fav_svg), media_type="image/svg+xml")
+    fav_icon = frontend_dir / "favicon.ico"
+    if fav_icon.exists():
+        return FileResponse(str(fav_icon))
+    return JSONResponse(status_code=204, content={})
 
 # All routes are served exclusively under /api/v1 prefix.
 # Legacy duplicate route registrations removed to eliminate route conflicts.
