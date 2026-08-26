@@ -1346,7 +1346,12 @@
                 <!-- Dashboard Content -->
                 <div class="wizard-content">
                     <div class="wizard-header">
-                        <div class="step-badge">Section <span id="stepBadgeNumber">1</span> of <span id="totalBadgeNumber">9</span></div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+                            <div class="step-badge">Section <span id="stepBadgeNumber">1</span> of <span id="totalBadgeNumber">9</span></div>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="window.loadSampleCaseData()" style="border-color: var(--primary-500); color: var(--primary-500); display: flex; align-items: center; gap: 0.4rem; font-weight: 600; padding: 0.35rem 0.75rem;">
+                                <i class="fas fa-magic"></i> Auto-Fill Demo Case
+                            </button>
+                        </div>
                         <h2 id="wizardTitle">Case Information</h2>
                         <p id="wizardSubtitle">Provide case details for strategic profiling</p>
                     </div>

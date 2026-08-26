@@ -1029,18 +1029,18 @@ window.deleteCaseFromHistory = async (caseId, event) => {
 
 // Wizard starting function
 window.startCaseAnalysis = (initialData = null) => {
+    window.state = window.state || {};
+    let flatData = initialData ? (typeof window.flattenDemoData === 'function' ? window.flattenDemoData(initialData) : { ...initialData }) : {};
     window.state.currentStep = 1;
-    window.state.caseData = initialData ? { ...initialData } : {};
-    if (initialData && initialData.case_type) {
-        if (typeof window.setCaseType === 'function') {
-            window.setCaseType(initialData.case_type);
-        }
-    } else {
-        if (typeof renderWizardStep === 'function') {
-            renderWizardStep();
-        }
-    }
+    window.state.caseData = flatData;
+    try {
+        localStorage.setItem('judiq_wizard_autosave', JSON.stringify(window.state.caseData));
+    } catch (_) {}
+    
     switchScreen('caseWizardScreen');
+    if (typeof renderWizardStep === 'function') {
+        renderWizardStep();
+    }
 };
 
 window.setUserDomain = (domain) => {
@@ -1078,144 +1078,6 @@ window.addEventListener('click', (event) => {
         event.target.classList.add('hidden');
     }
 });
-
-/**
- * Demo Case Loading Functions
- */
-window.loadDemoCase = () => {
-    // Dynamically calculate dates based on today to always have a perfect timeline
-    const today = new Date();
-    const formatDate = (d) => d.toISOString().split('T')[0];
-    
-    const filing_date = new Date(today);
-    const dishonour_date = new Date(today); dishonour_date.setDate(today.getDate() - 30);
-    const memo_date = new Date(today); memo_date.setDate(today.getDate() - 29);
-    const notice_date = new Date(today); notice_date.setDate(today.getDate() - 25);
-    const notice_received_date = new Date(today); notice_received_date.setDate(today.getDate() - 20);
-    const cheque_date = new Date(today); cheque_date.setDate(today.getDate() - 35);
-    const transaction_date = new Date(today); transaction_date.setDate(today.getDate() - 150);
-
-    const randomId = Math.floor(Math.random() * 90000) + 10000;
-
-    window.startCaseAnalysis({
-        "case_id": `CC/2026/${randomId}`,
-        "case_title": "Atharva Enterprises vs. TechNova Solutions",
-        "complainant_type": "Pvt Ltd/Ltd Company",
-        "filing_date": formatDate(filing_date),
-        "court_name": "JMFC, Pune",
-        "case_type": "Cheque Bounce",
-        "condonation_attached": "Yes",
-        "complainant_name": "Atharva Enterprises Pvt. Ltd.",
-        "complainant_address": "Plot 42, Hinjewadi Phase 1, Pune, 411057",
-        "complainant_phone": "+91-9876543210",
-        "complainant_authorized": "Yes - Original",
-        "authorized_person_name": "Mr. Vikram Joshi",
-        "board_resolution_date": "2026-06-10",
-        "accused_name": "TechNova Solutions Pvt. Ltd.",
-        "accused_type": "Pvt Ltd/Ltd Company",
-        "accused_address": "Office 10, Wakad Road, Pune, 411057",
-        "directors_named": "Yes - Actively Managed Operations",
-        "accused_directors": "Mr. Rahul Verma (Managing Director)",
-        "director_roles": "Managing Director responsible for the day-to-day operations and financial affairs of the company",
-        "debt_amount": 1050000,
-        "transaction_date": formatDate(transaction_date),
-        "purpose": "Business transaction / Advance",
-        "agreement_type": "Written Agreement",
-        "supporting_documents": "Yes - All Documents",
-        "debt_acknowledgment": "Yes - Written",
-        "itr_available": "Yes",
-        "loan_advanced_via": "Bank Transfer (NEFT/RTGS/IMPS)",
-        "cheque_number": "000456",
-        "cheque_date": formatDate(cheque_date),
-        "cheque_amount": 1050000,
-        "bank_name": "HDFC Bank",
-        "payee_bank_city": "Pune",
-        "payee_branch": "Main Branch, Pune",
-        "cheque_type": "Account Payee Cheque",
-        "post_dated": "No",
-        "dishonour_date": formatDate(dishonour_date),
-        "dishonour_reason": "Funds Insufficient",
-        "bank_memo_received": "Yes",
-        "memo_date": formatDate(memo_date),
-        "presentation_date": formatDate(dishonour_date),
-        "second_presentation": "No",
-        "notice_sent": "Yes",
-        "notice_date": formatDate(notice_date),
-        "notice_mode": "Registered Post AD",
-        "notice_received": "Yes - Acknowledged",
-        "notice_received_date": formatDate(notice_received_date),
-        "reply_received": "Yes - Denial",
-        "within_30_days": "Yes",
-        "original_cheque": "Yes - Original",
-        "dishonour_memo": "Yes - Original",
-        "agreement_documents": "Yes - Signed Agreement",
-        "witness_available": "Yes - One",
-        "communication_records": "Yes - Extensive",
-        "has_bsa_certificate": "Yes - Signed Certificate",
-        "bank_statements": "Yes - Complete",
-        "signature_dispute": "No",
-        "debt_denial": "Yes - Complete Denial",
-        "cheque_security_claim": "No",
-        "limitation_claim": "No",
-        "already_paid_claim": "No",
-        "jurisdiction_challenge": "No",
-        "payment_offered": "No",
-        "partial_payment_amount": 0,
-        "partial_payment": "No",
-        "evasive_conduct": "No",
-        "communication_ignored": "Yes",
-        "settlement_attempted": "No",
-        "settlement_amount": 0,
-        "mediation_attempted": "No",
-        "urgency_level": "Urgent",
-        "previous_litigation": "No",
-        "additional_notes": "Ironclad Corporate Case (S.141 compliant). Notice served properly. Jurisdiction set to Pune."
-    });
-    
-    // Jump to last step for review
-    window.state.currentStep = wizardSteps.length;
-    renderWizardStep();
-    ui.toast('Civil demo case loaded successfully!', 'success');
-};
-
-window.loadSarfaesiDemoCase = () => {
-    const today = new Date();
-    const formatDate = (d) => d.toISOString().split('T')[0];
-    
-    const npa_date = new Date(today); npa_date.setDate(today.getDate() - 120);
-    const notice_date = new Date(today); notice_date.setDate(today.getDate() - 90);
-    const possession_date = new Date(today); possession_date.setDate(today.getDate() - 30);
-    const randomId = Math.floor(Math.random() * 90000) + 10000;
-
-    window.startCaseAnalysis({
-        "case_id": `SARFAESI/2026/${randomId}`,
-        "case_title": "State Bank of India vs. Apex Industries & Ors.",
-        "case_type": "SARFAESI",
-        "borrower_name": "Apex Industries Ltd.",
-        "lender_name": "State Bank of India",
-        "secured_asset": "Industrial Factory Plot No. 88, MIDC Bhosari, Pune - 411026",
-        "sanction_amount": 25000000,
-        "outstanding_amount": 18500000,
-        "npa_date": formatDate(npa_date),
-        "npa_classification": "Sub-Standard Asset",
-        "cersai_registered": "Yes",
-        "cersai_registration_date": "2024-03-15",
-        "notice_13_2_date": formatDate(notice_date),
-        "notice_13_2_served": "Yes - Registered Post AD",
-        "borrower_objection": "Yes - Disputed Interest Calculation",
-        "bank_reply_13_3a": "Yes - Served within 15 Days",
-        "possession_13_4_date": formatDate(possession_date),
-        "possession_type": "Symbolic Possession",
-        "sec_14_application": "Filed before DM Pune",
-        "sec_14_status": "Pending Order",
-        "drt_sa_filed": "Yes - SA No. 142/2026 filed by Borrower",
-        "drt_stay_status": "No Stay Granted",
-        "ibc_moratorium": "No",
-        "additional_notes": "Clean SARFAESI enforcement trail. CERSAI registered, 13(2) served, 13(3A) replied within statutory 15 days."
-    });
-    renderWizardStep();
-    ui.toast('SARFAESI demo case loaded successfully!', 'success');
-};
 
 /**
  * Quick Analysis Mode Functions

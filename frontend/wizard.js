@@ -37,9 +37,48 @@ function loadAutosave() {
     }
 }
 
-function persistAutosave() {
+export function flattenDemoData(data) {
+    if (!data || typeof data !== 'object') return {};
+    const flat = { ...data };
+    if (data.case_identity) {
+        if (data.case_identity.case_id) flat.case_id = data.case_identity.case_id;
+        if (data.case_identity.court) flat.court_name = data.case_identity.court;
+        if (data.case_identity.case_type) flat.case_type = data.case_identity.case_type;
+    }
+    if (data.parties) {
+        if (data.parties.complainant) flat.complainant_name = data.parties.complainant;
+        if (data.parties.accused) flat.accused_name = data.parties.accused;
+        if (data.parties.complainant_type) flat.complainant_type = data.parties.complainant_type;
+        if (data.parties.accused_entity_type) flat.accused_type = data.parties.accused_entity_type;
+    }
+    if (data.transaction) {
+        if (data.transaction.amount) flat.debt_amount = data.transaction.amount;
+        if (data.transaction.transaction_type) flat.agreement_type = data.transaction.transaction_type;
+        if (data.transaction.loan_date) flat.transaction_date = data.transaction.loan_date;
+        if (data.transaction.loan_mode) flat.loan_advanced_via = data.transaction.loan_mode;
+    }
+    if (data.cheque) {
+        if (data.cheque.cheque_number) flat.cheque_number = data.cheque.cheque_number;
+        if (data.cheque.bank) flat.bank_name = data.cheque.bank;
+        if (data.cheque.branch) flat.branch_name = data.cheque.branch;
+        if (data.cheque.cheque_date) flat.cheque_date = data.cheque.cheque_date;
+    }
+    if (data.dishonour) {
+        if (data.dishonour.dishonour_date) flat.dishonour_date = data.dishonour.dishonour_date;
+        if (data.dishonour.dishonour_reason) flat.dishonour_reason = data.dishonour.dishonour_reason;
+    }
+    if (data.notice) {
+        if (data.notice.notice_date) flat.notice_date = data.notice.notice_date;
+        if (data.notice.delivery_date) flat.notice_delivery_date = data.notice.delivery_date;
+    }
+    return flat;
+}
+
+function persistAutosave(syncFromInputs = false) {
     try {
-        saveCurrentStepValues();
+        if (syncFromInputs) {
+            saveCurrentStepValues();
+        }
         localStorage.setItem('judiq_wizard_autosave', JSON.stringify(window.state?.caseData || {}));
     } catch (e) {
         console.warn('Failed to persist autosave state:', e);
@@ -58,6 +97,66 @@ window.setCaseType = (type) => {
     currentCaseType = null;
     renderWizardStep();
 };
+
+export function populateAllInputs() {
+    const steps = getCurrentSteps();
+    const caseData = window.state?.caseData || {};
+    steps.forEach((s) => {
+        s.fields.forEach(field => {
+            const el = document.getElementById(field.name);
+            if (!el) return;
+            let val = caseData[field.name];
+            if (val === undefined || val === null || val === '') {
+                if (field.name === 'amount' && caseData['cheque_amount'] !== undefined) {
+                    val = caseData['cheque_amount'];
+                } else if (field.name === 'cheque_amount' && caseData['amount'] !== undefined) {
+                    val = caseData['amount'];
+                } else if (field.name === 'debt_amount' && caseData['amount'] !== undefined) {
+                    val = caseData['amount'];
+                } else if (field.name === 'amount' && caseData['debt_amount'] !== undefined) {
+                    val = caseData['debt_amount'];
+                }
+            }
+            if (val !== undefined && val !== null) {
+                if (el.tagName === 'SELECT') {
+                    let matched = false;
+                    for (let i = 0; i < el.options.length; i++) {
+                        const optVal = el.options[i].value;
+                        if (String(optVal).toLowerCase() === String(val).toLowerCase()) {
+                            el.selectedIndex = i;
+                            matched = true;
+                            break;
+                        }
+                    }
+                    if (!matched) {
+                        for (let i = 0; i < el.options.length; i++) {
+                            const optVal = el.options[i].value.toLowerCase();
+                            const valStr = String(val).toLowerCase();
+                            if ((valStr === 'true' || valStr === '1' || valStr === 'yes') && optVal.startsWith('yes')) {
+                                el.selectedIndex = i;
+                                matched = true;
+                                break;
+                            } else if ((valStr === 'false' || valStr === '0' || valStr === 'no') && optVal.startsWith('no')) {
+                                el.selectedIndex = i;
+                                matched = true;
+                                break;
+                            } else if (valStr && optVal.includes(valStr)) {
+                                el.selectedIndex = i;
+                                matched = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!matched) el.value = val;
+                } else if (el.type === 'checkbox') {
+                    el.checked = (val === true || val === 'true' || val === 1 || String(val).toLowerCase().startsWith('yes'));
+                } else {
+                    el.value = val;
+                }
+            }
+        });
+    });
+}
 
 export function renderWizardStep() {
     const steps = getCurrentSteps();
@@ -85,7 +184,6 @@ export function renderWizardStep() {
         window.state.caseData['case_type'] = 'Cheque Bounce';
     }
 
-    
     ui.setText('wizardTitle', step.title);
     ui.setText('wizardSubtitle', step.subtitle);
     ui.setText('stepBadgeNumber', stepIdx + 1);
@@ -97,7 +195,6 @@ export function renderWizardStep() {
     if (!container) return;
     
     if (!isWizardInitialized) {
-        loadAutosave();
         window.wizardStepsLength = steps.length;
         container.innerHTML = steps.map((s, idx) => `
             <form id="stepForm_${idx}" class="step-form fade-in ${idx === stepIdx ? '' : 'hidden'}" onsubmit="event.preventDefault(); nextStep();">
@@ -115,15 +212,10 @@ export function renderWizardStep() {
                     form.classList.add('hidden');
                 }
             }
-            s.fields.forEach(field => {
-                const el = document.getElementById(field.name);
-                if (el) {
-                    el.value = window.state.caseData[field.name] || '';
-                }
-            });
         });
     }
     
+    populateAllInputs();
     updateProgress();
     updateNavigationButtons();
     updateConditionalFields();
@@ -509,14 +601,17 @@ export const SAMPLE_COMPOSITE_PRESET = {
 
 export const SAMPLE_CASE_PRESET = SAMPLE_NI_ACT_PRESET;
 
-window.loadSampleCaseData = () => {
+window.loadSampleCaseData = (forcedPreset = null) => {
     const domain = (window.state?.userDomain || 'all').toLowerCase();
     const currentCaseType = (window.state?.caseData?.case_type || '').toLowerCase();
     
     let preset = SAMPLE_NI_ACT_PRESET;
     let label = 'Section 138';
 
-    if (domain === 'composite' || currentCaseType.includes('composite') || currentCaseType.includes('multi')) {
+    if (forcedPreset && typeof forcedPreset === 'object') {
+        preset = flattenDemoData(forcedPreset);
+        label = preset.case_type || 'Custom';
+    } else if (domain === 'composite' || currentCaseType.includes('composite') || currentCaseType.includes('multi')) {
         preset = SAMPLE_COMPOSITE_PRESET;
         label = 'Multi-Track Composite';
     } else if (domain === 'sarfaesi' || currentCaseType.includes('sarfaesi')) {
@@ -530,9 +625,40 @@ window.loadSampleCaseData = () => {
         label = 'Civil Litigation';
     }
 
-    window.state.caseData = { ...(window.state.caseData || {}), ...preset };
-    persistAutosave();
+    // Assign fresh realistic dates
+    const today = new Date();
+    const fmt = (d) => d.toISOString().split('T')[0];
+    const filingDate = fmt(today);
+    const d30 = new Date(today); d30.setDate(today.getDate() - 30);
+    const d25 = new Date(today); d25.setDate(today.getDate() - 25);
+    const d20 = new Date(today); d20.setDate(today.getDate() - 20);
+    const d60 = new Date(today); d60.setDate(today.getDate() - 60);
+
+    const enrichedPreset = {
+        ...preset,
+        filing_date: preset.filing_date || filingDate,
+        date_of_complaint: preset.date_of_complaint || filingDate,
+        cheque_date: preset.cheque_date || fmt(d60),
+        dishonour_date: preset.dishonour_date || fmt(d30),
+        date_of_dishonour: preset.date_of_dishonour || fmt(d30),
+        notice_date: preset.notice_date || fmt(d25),
+        date_of_notice: preset.date_of_notice || fmt(d25),
+        notice_delivery_date: preset.notice_delivery_date || fmt(d20)
+    };
+
+    window.state = window.state || {};
+    window.state.caseData = { ...enrichedPreset };
+    window.state.currentStep = 1;
+    isWizardInitialized = false;
+    currentCaseType = enrichedPreset.case_type || null;
+
+    try {
+        localStorage.setItem('judiq_wizard_autosave', JSON.stringify(window.state.caseData));
+    } catch (_) {}
+
+    switchScreen('caseWizardScreen');
     renderWizardStep();
+
     if (window.ui && typeof window.ui.toast === 'function') {
         window.ui.toast(`⚡ Sample ${label} Case Data Loaded!`, 'success');
     }
