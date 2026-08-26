@@ -1,6 +1,11 @@
 import pytest
-from backend.banking.recovery_engine import BankRecoveryEngine
-from backend.banking.rule_registry import STATUTORY_RULE_REGISTRY, DefectSeverity
+try:
+    from banking.recovery_engine import BankRecoveryEngine
+    from banking.rule_registry import STATUTORY_RULE_REGISTRY, DefectSeverity
+except ImportError:
+    from backend.banking.recovery_engine import BankRecoveryEngine
+    from backend.banking.rule_registry import STATUTORY_RULE_REGISTRY, DefectSeverity
+from session import DatabaseManager
 
 
 class TestBankMultiTierScenarios:
@@ -200,3 +205,63 @@ class TestBankMultiTierScenarios:
         assert result["verdict"] == "FATAL_STATUTORY_BAR"
         fatal_rules = [f["rule_id"] for f in result["fatal_defects"]]
         assert "RULE_NI_138B_NOTICE_30D" in fatal_rules
+
+    def test_bank_officer_management_and_audit_logging(self):
+        """
+        Tests DatabaseManager bank officer provisioning, quota allocation, status toggling, and audit persistence.
+        """
+        import uuid
+        DatabaseManager.init_db()
+        test_id = f"TEST_OFFICER_{uuid.uuid4().hex[:6].upper()}"
+
+        # 1. Create or get bank officer
+        officer = DatabaseManager.get_or_create_bank_officer(
+            officer_id=test_id,
+            name="Rohit Sharma",
+            bank_name="Union Bank of India",
+            branch_name="UBI — SAMB Mumbai",
+            email=f"{test_id.lower()}@unionbank.in"
+        )
+        assert officer["officer_id"] == test_id
+        assert officer["is_active"] is True
+        assert officer["monthly_audit_limit"] == 100
+
+        # 2. Update quota allocation
+        update_ok = DatabaseManager.update_bank_officer_allocation(
+            officer_id=test_id,
+            monthly_limit=200,
+            role="sarb_manager"
+        )
+        assert update_ok is True
+        updated = DatabaseManager.get_or_create_bank_officer(test_id)
+        assert updated["monthly_audit_limit"] == 200
+        assert updated["role"] == "sarb_manager"
+
+        # 3. Log recovery audit
+        audit_id = DatabaseManager.log_bank_audit(
+            officer_id=test_id,
+            bank_name="Union Bank of India",
+            branch_name="UBI — SAMB Mumbai",
+            case_type="Cheque Bounce (S.138)",
+            borrower_name="Shree Ganesh Traders",
+            loan_account_no="UBI/SAMB/2026/9981",
+            default_amount=1500000.0,
+            viability_score=92.5,
+            verdict="READY_FOR_ADVOCATE_DISPATCH",
+            defect_count=0,
+            details_json={"test": True}
+        )
+        assert audit_id is not None
+        assert audit_id.startswith("AUD_BANK_")
+
+        # 4. Check admin stats & audit history
+        all_officers = DatabaseManager.get_all_bank_officers()
+        assert len(all_officers) >= 1
+        all_audits = DatabaseManager.get_all_bank_audits()
+        assert len(all_audits) >= 1
+        assert any(a["audit_id"] == audit_id for a in all_audits)
+
+        stats = DatabaseManager.get_bank_admin_stats()
+        assert stats["total_bank_officers"] >= 1
+        assert stats["total_audits_performed"] >= 1
+        assert stats["total_recovery_volume_evaluated"] >= 1500000.0
