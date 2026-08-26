@@ -3299,11 +3299,29 @@ window.loadCivilDemoCase = () => {
 };
 
 // ============================================================================
-// ADMIN CONTROL CENTER FUNCTIONS
+// ADMIN CONTROL CENTER & BANK GOVERNANCE FUNCTIONS
 // ============================================================================
 
 let adminCachedUsers = [];
+let adminCachedBankOfficers = [];
+let adminCachedBankAudits = [];
 let adminAuthToken = null;
+
+window.switchAdminTab = (tabName) => {
+    const tabs = ['litigators', 'bank', 'security'];
+    tabs.forEach(t => {
+        const btn = document.getElementById(`adminTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        const content = document.getElementById(`admin${t.charAt(0).toUpperCase() + t.slice(1)}TabContent`);
+        if (btn) {
+            if (t === tabName) btn.classList.add('active');
+            else btn.classList.remove('active');
+        }
+        if (content) {
+            if (t === tabName) content.classList.remove('hidden');
+            else content.classList.add('hidden');
+        }
+    });
+};
 
 window.openAdminPortal = async () => {
     const user = window.state.currentUser;
@@ -3330,7 +3348,7 @@ window.loadAdminPortalData = async () => {
         }
         adminAuthToken = authRes.token;
 
-        // Fetch stats
+        // 1. Fetch Platform Litigator stats
         const statsRes = await api.getAdminStats(adminAuthToken);
         if (statsRes && statsRes.success && statsRes.stats) {
             const s = statsRes.stats;
@@ -3343,12 +3361,53 @@ window.loadAdminPortalData = async () => {
             setStat('statAuditEvents', s.total_audit_events || 0);
         }
 
-        // Fetch users
+        // 2. Fetch Litigator Users
         const usersRes = await api.getAdminUsers(adminAuthToken);
         if (usersRes && usersRes.success && Array.isArray(usersRes.users)) {
             adminCachedUsers = usersRes.users;
             window.renderAdminUsersTable(adminCachedUsers);
         }
+
+        // 3. Fetch Bank Stats
+        try {
+            const bStatsRes = await api.getAdminBankStats(adminAuthToken);
+            if (bStatsRes && bStatsRes.success && bStatsRes.stats) {
+                const bs = bStatsRes.stats;
+                const setBStat = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+                setBStat('statBankOfficers', bs.total_bank_officers || 0);
+                setBStat('statActiveBankOfficers', bs.active_bank_officers || 0);
+                setBStat('statBankPartners', bs.total_institutional_partners || 0);
+                setBStat('statBankAudits', bs.total_audits_performed || 0);
+                setBStat('statBankAuditsMonth', bs.audits_this_month || 0);
+                const vol = bs.total_recovery_volume_evaluated || 0;
+                setBStat('statBankVolume', vol >= 10000000 ? `₹${(vol/10000000).toFixed(2)} Cr` : (vol >= 100000 ? `₹${(vol/100000).toFixed(1)} L` : `₹${vol.toLocaleString('en-IN')}`));
+            }
+        } catch (e) {
+            console.warn('Bank stats load skipped:', e);
+        }
+
+        // 4. Fetch Bank Officers
+        try {
+            const bOfficersRes = await api.getAdminBankOfficers(adminAuthToken);
+            if (bOfficersRes && bOfficersRes.success && Array.isArray(bOfficersRes.officers)) {
+                adminCachedBankOfficers = bOfficersRes.officers;
+                window.renderAdminBankOfficersTable(adminCachedBankOfficers);
+            }
+        } catch (e) {
+            console.warn('Bank officers load skipped:', e);
+        }
+
+        // 5. Fetch Bank Audits Stream
+        try {
+            const bAuditsRes = await api.getAdminBankAudits(adminAuthToken);
+            if (bAuditsRes && bAuditsRes.success && Array.isArray(bAuditsRes.audits)) {
+                adminCachedBankAudits = bAuditsRes.audits;
+                window.renderAdminBankAuditsTable(adminCachedBankAudits);
+            }
+        } catch (e) {
+            console.warn('Bank audits stream load skipped:', e);
+        }
+
     } catch (err) {
         console.error('Error loading admin portal data:', err);
         if (window.ui) window.ui.toast('Failed to load admin data: ' + err.message, 'error');
@@ -3439,6 +3498,132 @@ window.renderAdminUsersTable = (users) => {
     }).join('');
 };
 
+window.renderAdminBankOfficersTable = (officers) => {
+    const tbody = document.getElementById('adminBankOfficersTableBody');
+    if (!tbody) return;
+
+    if (!officers || officers.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
+                    <i class="fas fa-building-columns" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+                    No institutional bank officers registered.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = officers.map(o => {
+        const isUnlimited = o.monthly_audit_limit === -1;
+        const used = o.audits_used_this_month || 0;
+        const limit = isUnlimited ? '∞' : o.monthly_audit_limit;
+        const pct = isUnlimited ? 0 : Math.min(100, Math.round((used / Math.max(1, o.monthly_audit_limit)) * 100));
+        const isWarning = pct >= 80;
+
+        const statusBadge = o.is_active
+            ? `<span class="status-badge-active"><i class="fas fa-circle-check"></i> Active</span>`
+            : `<span class="status-badge-suspended"><i class="fas fa-circle-xmark"></i> Suspended</span>`;
+
+        return `
+            <tr id="adminBankRow_${o.officer_id}">
+                <td>
+                    <div style="font-weight: 700; color: var(--gray-900);">${o.name || o.officer_id}</div>
+                    <div style="font-size: 0.75rem; color: #0284c7; font-weight: 600;">${o.bank_name || 'Bank Partner'}</div>
+                    <div style="font-size: 0.72rem; color: var(--gray-400); font-family: monospace;">${o.officer_id}</div>
+                </td>
+                <td>
+                    <div style="font-size: 0.82rem; color: var(--gray-800); max-width: 260px;">${o.branch_name || '--'}</div>
+                    <div style="font-size: 0.72rem; color: var(--gray-400);">${o.email || ''}</div>
+                </td>
+                <td>
+                    <select id="adminBankRole_${o.officer_id}" style="padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--gray-50); font-size: 0.78rem; font-weight: 600;">
+                        <option value="bank_officer" ${o.role === 'bank_officer' ? 'selected' : ''}>Bank Officer</option>
+                        <option value="sarb_manager" ${o.role === 'sarb_manager' ? 'selected' : ''}>SARB Manager</option>
+                        <option value="recovery_head" ${o.role === 'recovery_head' ? 'selected' : ''}>Recovery Head</option>
+                    </select>
+                </td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.3rem;">
+                        <input type="number" id="adminBankLimit_${o.officer_id}" value="${o.monthly_audit_limit}" style="width: 70px; padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 700; text-align: center;">
+                        <span style="font-size: 0.75rem; color: var(--gray-500);">audits/mo</span>
+                    </div>
+                </td>
+                <td>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; color: var(--gray-800);">
+                        <span>${used} used</span>
+                        <span>/ ${limit}</span>
+                    </div>
+                    <div class="quota-progress-track">
+                        <div class="quota-progress-fill ${isWarning ? 'warning' : ''}" style="width: ${pct}%; background: linear-gradient(90deg, #0284c7, #0369a1);"></div>
+                    </div>
+                </td>
+                <td>
+                    ${statusBadge}
+                </td>
+                <td style="text-align: right;">
+                    <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                        <button class="btn btn-sm btn-primary" onclick="window.saveBankOfficerQuota('${o.officer_id}')" title="Save Changes" style="padding: 0.3rem 0.6rem; font-size: 0.78rem; background: #0284c7;">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button class="btn btn-sm ${o.is_active ? 'btn-danger' : 'btn-secondary'}" onclick="window.toggleBankOfficerStatus('${o.officer_id}', ${o.is_active})" title="${o.is_active ? 'Suspend Officer' : 'Activate Officer'}" style="padding: 0.3rem 0.55rem; font-size: 0.78rem;">
+                            <i class="fas ${o.is_active ? 'fa-ban' : 'fa-check-circle'}"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+};
+
+window.renderAdminBankAuditsTable = (audits) => {
+    const tbody = document.getElementById('adminBankAuditsTableBody');
+    if (!tbody) return;
+
+    if (!audits || audits.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="padding: 2rem; text-align: center; color: var(--gray-400);">
+                    No institutional audits recorded yet.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = audits.map(a => {
+        const amt = a.default_amount ? `₹${Number(a.default_amount).toLocaleString('en-IN')}` : '--';
+        const isReady = a.verdict === 'READY_FOR_ADVOCATE_DISPATCH';
+        const verdictBadge = isReady
+            ? `<span style="color: #10b981; font-weight: 700;"><i class="fas fa-circle-check"></i> Clean / Ready</span>`
+            : `<span style="color: #ef4444; font-weight: 700;"><i class="fas fa-triangle-exclamation"></i> Defective (${a.defect_count || 0})</span>`;
+
+        return `
+            <tr>
+                <td style="font-family: monospace; font-size: 0.78rem; color: #0284c7; font-weight: 700;">${a.audit_id || '--'}</td>
+                <td>
+                    <div style="font-weight: 700; color: var(--gray-900); font-size: 0.82rem;">${a.officer_id || '--'}</div>
+                    <div style="font-size: 0.72rem; color: var(--gray-500);">${a.bank_name || ''}</div>
+                </td>
+                <td>
+                    <div style="font-weight: 600; color: var(--gray-800);">${a.borrower_name || '--'}</div>
+                    <div style="font-size: 0.72rem; color: var(--gray-400); font-family: monospace;">${a.loan_account_no || ''}</div>
+                </td>
+                <td style="font-weight: 700; color: var(--gray-900);">${amt}</td>
+                <td>
+                    <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 12px; font-weight: 700; font-size: 0.78rem; background: ${a.viability_score >= 80 ? 'rgba(16, 185, 129, 0.15); color: #10b981;' : 'rgba(239, 68, 68, 0.15); color: #ef4444;'}">
+                        ${Math.round(a.viability_score || 0)}/100
+                    </span>
+                </td>
+                <td>${verdictBadge}</td>
+                <td style="text-align: right; font-size: 0.75rem; color: var(--gray-400);">
+                    ${a.timestamp ? new Date(a.timestamp).toLocaleString() : '--'}
+                </td>
+            </tr>
+        `;
+    }).join('');
+};
+
 window.filterAdminUsersTable = () => {
     const input = document.getElementById('adminUserSearchInput');
     const query = (input ? input.value : '').toLowerCase().trim();
@@ -3452,6 +3637,22 @@ window.filterAdminUsersTable = () => {
         (u.role && u.role.toLowerCase().includes(query))
     );
     window.renderAdminUsersTable(filtered);
+};
+
+window.filterAdminBankOfficersTable = () => {
+    const input = document.getElementById('adminBankSearchInput');
+    const query = (input ? input.value : '').toLowerCase().trim();
+    if (!query) {
+        window.renderAdminBankOfficersTable(adminCachedBankOfficers);
+        return;
+    }
+    const filtered = adminCachedBankOfficers.filter(o => 
+        (o.name && o.name.toLowerCase().includes(query)) ||
+        (o.officer_id && o.officer_id.toLowerCase().includes(query)) ||
+        (o.bank_name && o.bank_name.toLowerCase().includes(query)) ||
+        (o.branch_name && o.branch_name.toLowerCase().includes(query))
+    );
+    window.renderAdminBankOfficersTable(filtered);
 };
 
 window.setQuotaPreset = (userId, limit) => {
@@ -3476,6 +3677,90 @@ window.saveUserQuota = async (userId, email) => {
         }
     } catch (err) {
         if (window.ui) window.ui.toast('Quota update error: ' + err.message, 'error');
+    }
+};
+
+window.saveBankOfficerQuota = async (officerId) => {
+    if (!adminAuthToken) return;
+    const limitInput = document.getElementById(`adminBankLimit_${officerId}`);
+    const roleSelect = document.getElementById(`adminBankRole_${officerId}`);
+    const monthlyLimit = limitInput ? parseInt(limitInput.value, 10) : 100;
+    const role = roleSelect ? roleSelect.value : 'bank_officer';
+
+    try {
+        const res = await api.allocateBankOfficerQuota(officerId, monthlyLimit, role, null, null, null, adminAuthToken);
+        if (res && res.success) {
+            if (window.ui) window.ui.toast(`Bank quota updated: ${monthlyLimit === -1 ? 'Unlimited' : monthlyLimit} audits/mo.`, 'success');
+            await window.loadAdminPortalData();
+        } else {
+            if (window.ui) window.ui.toast(res.detail || 'Failed to update bank quota', 'error');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Bank quota update error: ' + err.message, 'error');
+    }
+};
+
+window.toggleBankOfficerStatus = async (officerId, currentStatus) => {
+    if (!adminAuthToken) return;
+    const newStatus = !currentStatus;
+    const actionName = newStatus ? 'Activate' : 'Suspend';
+    if (!confirm(`${actionName} access for bank officer ${officerId}?`)) return;
+
+    try {
+        const res = await api.toggleBankOfficerStatus(officerId, newStatus, adminAuthToken);
+        if (res && res.success) {
+            if (window.ui) window.ui.toast(`Bank officer ${newStatus ? 'activated' : 'suspended'}.`, 'success');
+            await window.loadAdminPortalData();
+        } else {
+            if (window.ui) window.ui.toast(res.detail || 'Failed to update bank officer status', 'error');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Status error: ' + err.message, 'error');
+    }
+};
+
+window.openCreateBankOfficerModal = () => {
+    const modal = document.getElementById('createBankOfficerModal');
+    if (modal) modal.classList.remove('hidden');
+};
+
+window.closeCreateBankOfficerModal = () => {
+    const modal = document.getElementById('createBankOfficerModal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.submitCreateBankOfficer = async (e) => {
+    if (e) e.preventDefault();
+    if (!adminAuthToken) return;
+
+    const officerId = document.getElementById('newBankOfficerId').value.trim();
+    const name = document.getElementById('newBankOfficerName').value.trim();
+    const bankName = document.getElementById('newBankName').value.trim();
+    const branchName = document.getElementById('newBankBranchName').value.trim();
+    const role = document.getElementById('newBankRole').value;
+    const email = document.getElementById('newBankEmail').value.trim();
+    const limit = parseInt(document.getElementById('newBankLimit').value, 10) || 100;
+
+    try {
+        const res = await api.createAdminBankOfficer({
+            officer_id: officerId,
+            name: name,
+            bank_name: bankName,
+            branch_name: branchName,
+            role: role,
+            email: email,
+            monthly_audit_limit: limit
+        }, adminAuthToken);
+
+        if (res && res.success) {
+            if (window.ui) window.ui.toast(`Bank officer account ${officerId} provisioned successfully!`, 'success');
+            window.closeCreateBankOfficerModal();
+            await window.loadAdminPortalData();
+        } else {
+            if (window.ui) window.ui.toast(res.detail || 'Failed to provision bank officer', 'error');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Creation error: ' + err.message, 'error');
     }
 };
 
