@@ -2226,13 +2226,16 @@
             <nav class="top-nav" style="border-bottom: 2px solid #d97706; background: #0f172a; color: #ffffff;">
                 <div class="nav-brand" style="display: flex; align-items: center; gap: 0.75rem;">
                     <span class="brand-title" style="color: #f59e0b;">JUDIQ AI</span>
-                    <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 6px;">ADMIN CONTROL</span>
+                    <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 6px;">MASTER ADMIN CONTROL</span>
                 </div>
                 <div class="nav-actions" style="display: flex; align-items: center; gap: 1rem;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #cbd5e1;">
                         <i class="fas fa-user-shield" style="color: #f59e0b;"></i>
                         <span id="adminSessionEmail">admin@judiq.ai</span>
                     </div>
+                    <button class="theme-toggle-btn" title="Toggle Light/Dark Mode" onclick="toggleTheme()" style="color: #cbd5e1; border-color: rgba(255,255,255,0.2);">
+                        <i class="fas fa-moon"></i>
+                    </button>
                     <button class="btn btn-outline btn-sm" onclick="showDashboard()" style="color: #ffffff; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05);">
                         <i class="fas fa-arrow-left"></i> <span>Back to Dashboard</span>
                     </button>
@@ -2246,107 +2249,289 @@
                 <div class="admin-header-card" style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: var(--radius-xl); padding: 1.75rem 2rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);">
                     <div>
                         <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 0.3rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em;">
-                            <i class="fas fa-sliders"></i> System Resource Allocation & Governance
+                            <i class="fas fa-sliders"></i> Master Platform Governance & Operations
                         </div>
-                        <h1 style="color: #ffffff; font-size: 1.75rem; font-weight: 800; margin: 0 0 0.4rem 0;">Institutional Litigator Allocation Hub</h1>
-                        <p style="color: #94a3b8; font-size: 0.95rem; margin: 0;">Manage user accounts, assign monthly report limits, reset billing periods, and audit platform usage.</p>
+                        <h1 style="color: #ffffff; font-size: 1.75rem; font-weight: 800; margin: 0 0 0.4rem 0;">Universal System Administration</h1>
+                        <p style="color: #94a3b8; font-size: 0.95rem; margin: 0;">Master control across Litigator Quotas, Institutional Bank Recovery Cells, and Tamper-Proof Audit Ledgers.</p>
                     </div>
                     <div style="display: flex; gap: 0.75rem;">
+                        <button class="btn btn-outline" onclick="switchScreen('bankRecoveryScreen')" style="display: flex; align-items: center; gap: 0.5rem; color: #38bdf8; border-color: rgba(56,189,248,0.4); background: rgba(14,165,233,0.1);">
+                            <i class="fas fa-building-columns"></i> <span>Open Bank Recovery OS</span>
+                        </button>
                         <button class="btn btn-primary" onclick="loadAdminPortalData()" style="display: flex; align-items: center; gap: 0.5rem;">
                             <i class="fas fa-rotate"></i> <span>Refresh Data</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Admin Metrics Overview Cards -->
-                <div class="admin-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
-                    
-                    <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                            <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Total Users</span>
-                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(59, 130, 246, 0.1); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
-                                <i class="fas fa-users"></i>
-                            </div>
-                        </div>
-                        <div id="statTotalUsers" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
-                        <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">Active Accounts: <strong id="statActiveUsers" style="color: #10b981;">--</strong></div>
-                    </div>
-
-                    <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                            <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Monthly Reports Used</span>
-                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
-                                <i class="fas fa-file-waveform"></i>
-                            </div>
-                        </div>
-                        <div id="statReportsThisMonth" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
-                        <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">Current Period: <strong id="statCurrentPeriod">--</strong></div>
-                    </div>
-
-                    <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                            <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Total Saved Cases</span>
-                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(16, 185, 129, 0.1); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
-                                <i class="fas fa-folder-closed"></i>
-                            </div>
-                        </div>
-                        <div id="statTotalCases" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
-                        <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">Across all legal domains</div>
-                    </div>
-
-                    <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                            <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Security Audit Events</span>
-                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(139, 92, 246, 0.1); color: #8b5cf6; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
-                                <i class="fas fa-shield-halved"></i>
-                            </div>
-                        </div>
-                        <div id="statAuditEvents" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
-                        <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">Deterministic tamper-proof log</div>
-                    </div>
-
+                <!-- Admin Tab Navigation Strip -->
+                <div class="admin-tab-nav">
+                    <button class="admin-tab-btn active" id="adminTabBtnLitigators" onclick="switchAdminTab('litigators')">
+                        <i class="fas fa-users-gear"></i> Litigator Accounts &amp; Quotas
+                    </button>
+                    <button class="admin-tab-btn" id="adminTabBtnBank" onclick="switchAdminTab('bank')">
+                        <i class="fas fa-building-columns"></i> Bank &amp; Recovery Operations
+                    </button>
+                    <button class="admin-tab-btn" id="adminTabBtnSecurity" onclick="switchAdminTab('security')">
+                        <i class="fas fa-shield-halved"></i> Platform Security &amp; Compliance Logs
+                    </button>
                 </div>
 
-                <!-- User Management & Quota Table Section -->
-                <div class="admin-users-panel" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.75rem; box-shadow: var(--shadow-sm);">
-                    
-                    <!-- Table Toolbar -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
-                        <div>
-                            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--gray-900); margin: 0 0 0.25rem 0;">User Allocation &amp; Access Controls</h2>
-                            <p style="font-size: 0.85rem; color: var(--gray-500); margin: 0;">Configure monthly report allocations (enter <code style="background: var(--gray-100); padding: 2px 5px; border-radius: 4px;">-1</code> for Unlimited), reset monthly counters, or suspend accounts.</p>
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <!-- TAB 1: LITIGATOR ACCOUNTS & QUOTAS -->
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <div id="adminLitigatorsTabContent" class="admin-tab-content">
+                    <!-- Admin Metrics Overview Cards -->
+                    <div class="admin-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+                        
+                        <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Total Litigators</span>
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(59, 130, 246, 0.1); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                            </div>
+                            <div id="statTotalUsers" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
+                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">Active Accounts: <strong id="statActiveUsers" style="color: #10b981;">--</strong></div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 0.75rem;">
-                            <div class="search-input-wrapper" style="position: relative;">
-                                <i class="fas fa-search" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--gray-400); font-size: 0.85rem;"></i>
-                                <input type="text" id="adminUserSearchInput" placeholder="Filter by email or User ID..." oninput="filterAdminUsersTable()" style="padding: 0.5rem 1rem 0.5rem 2.2rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--gray-50); font-size: 0.85rem; width: 260px; outline: none;">
+
+                        <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Monthly Reports Used</span>
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                    <i class="fas fa-file-waveform"></i>
+                                </div>
+                            </div>
+                            <div id="statReportsThisMonth" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
+                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">Current Period: <strong id="statCurrentPeriod">--</strong></div>
+                        </div>
+
+                        <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Total Saved Cases</span>
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(16, 185, 129, 0.1); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                    <i class="fas fa-folder-closed"></i>
+                                </div>
+                            </div>
+                            <div id="statTotalCases" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
+                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">Across all legal domains</div>
+                        </div>
+
+                        <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Security Audit Events</span>
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(139, 92, 246, 0.1); color: #8b5cf6; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                    <i class="fas fa-shield-halved"></i>
+                                </div>
+                            </div>
+                            <div id="statAuditEvents" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
+                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">Deterministic tamper-proof log</div>
+                        </div>
+
+                    </div>
+
+                    <!-- User Management & Quota Table Section -->
+                    <div class="admin-users-panel" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.75rem; box-shadow: var(--shadow-sm);">
+                        
+                        <!-- Table Toolbar -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div>
+                                <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--gray-900); margin: 0 0 0.25rem 0;">Litigator Resource Allocation &amp; Access Controls</h2>
+                                <p style="font-size: 0.85rem; color: var(--gray-500); margin: 0;">Configure monthly report allocations (enter <code style="background: var(--gray-100); padding: 2px 5px; border-radius: 4px;">-1</code> for Unlimited), reset monthly counters, or suspend accounts.</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div class="search-input-wrapper" style="position: relative;">
+                                    <i class="fas fa-search" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--gray-400); font-size: 0.85rem;"></i>
+                                    <input type="text" id="adminUserSearchInput" placeholder="Filter by email or User ID..." oninput="filterAdminUsersTable()" style="padding: 0.5rem 1rem 0.5rem 2.2rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--gray-50); font-size: 0.85rem; width: 260px; outline: none;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Responsive Table Container -->
+                        <div style="overflow-x: auto;">
+                            <table class="admin-data-table" style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.88rem;">
+                                <thead>
+                                    <tr style="background: var(--gray-50); color: var(--gray-600); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; text-align: left;">
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); border-top-left-radius: 8px;">Litigator</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Role / Plan</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 220px;">Monthly Allocation</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 180px;">Usage This Month</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Status</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); text-align: right; border-top-right-radius: 8px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminUsersTableBody">
+                                    <tr>
+                                        <td colspan="6" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
+                                            <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i> Loading litigator accounts...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <!-- TAB 2: BANK & RECOVERY OPERATIONS -->
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <div id="adminBankTabContent" class="admin-tab-content hidden">
+                    <!-- Bank Metrics Overview Cards -->
+                    <div class="admin-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+                        
+                        <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Bank Officers</span>
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(14, 165, 233, 0.1); color: #0ea5e9; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                            </div>
+                            <div id="statBankOfficers" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
+                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">Active Officers: <strong id="statActiveBankOfficers" style="color: #10b981;">--</strong></div>
+                        </div>
+
+                        <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Institutional Partners</span>
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                    <i class="fas fa-building-columns"></i>
+                                </div>
+                            </div>
+                            <div id="statBankPartners" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
+                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">SBI, PNB, HDFC, BOB &amp; Private</div>
+                        </div>
+
+                        <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Audits Performed</span>
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(16, 185, 129, 0.1); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                    <i class="fas fa-scale-balanced"></i>
+                                </div>
+                            </div>
+                            <div id="statBankAudits" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
+                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">This Month: <strong id="statBankAuditsMonth">--</strong></div>
+                        </div>
+
+                        <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Recovery Volume Audited</span>
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99, 102, 241, 0.1); color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                    <i class="fas fa-indian-rupee-sign"></i>
+                                </div>
+                            </div>
+                            <div id="statBankVolume" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">₹0.00</div>
+                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">Deterministic rule evaluated</div>
+                        </div>
+
+                    </div>
+
+                    <!-- Bank Officers Management Table Section -->
+                    <div class="admin-users-panel" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.75rem; box-shadow: var(--shadow-sm); margin-bottom: 2rem;">
+                        
+                        <!-- Table Toolbar -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div>
+                                <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--gray-900); margin: 0 0 0.25rem 0;">Institutional Bank Officers &amp; Branch Allocations</h2>
+                                <p style="font-size: 0.85rem; color: var(--gray-500); margin: 0;">Manage recovery cell branches, assign monthly statutory audit allowances, or suspend bank access.</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div class="search-input-wrapper" style="position: relative;">
+                                    <i class="fas fa-search" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--gray-400); font-size: 0.85rem;"></i>
+                                    <input type="text" id="adminBankSearchInput" placeholder="Filter bank or officer code..." oninput="filterAdminBankOfficersTable()" style="padding: 0.5rem 1rem 0.5rem 2.2rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--gray-50); font-size: 0.85rem; width: 260px; outline: none;">
+                                </div>
+                                <button class="btn btn-sm btn-primary" onclick="openCreateBankOfficerModal()" style="display: flex; align-items: center; gap: 0.4rem;">
+                                    <i class="fas fa-plus"></i> <span>Add Bank Officer</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Responsive Table Container -->
+                        <div style="overflow-x: auto;">
+                            <table class="admin-data-table" style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.88rem;">
+                                <thead>
+                                    <tr style="background: var(--gray-50); color: var(--gray-600); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; text-align: left;">
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); border-top-left-radius: 8px;">Officer / Bank</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Branch / Recovery Cell</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Role</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 200px;">Monthly Audit Quota</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 170px;">Audits Run</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Status</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); text-align: right; border-top-right-radius: 8px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminBankOfficersTableBody">
+                                    <tr>
+                                        <td colspan="7" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
+                                            <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i> Loading bank officers...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+
+                    <!-- Tamper-Proof Bank Compliance Audit Stream -->
+                    <div class="admin-users-panel" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.75rem; box-shadow: var(--shadow-sm);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                            <div>
+                                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--gray-900); margin: 0 0 0.25rem 0;">Institutional Compliance Ledger Stream</h3>
+                                <p style="font-size: 0.82rem; color: var(--gray-500); margin: 0;">Deterministic rule evaluation history across all bank branches.</p>
+                            </div>
+                            <span class="badge" style="background: rgba(14, 165, 233, 0.1); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.3);">
+                                <i class="fas fa-shield-check"></i> Tamper-Proof Audit
+                            </span>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="admin-data-table" style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem;">
+                                <thead>
+                                    <tr style="background: var(--gray-50); color: var(--gray-600); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em; text-align: left;">
+                                        <th style="padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border-color);">Audit Ref</th>
+                                        <th style="padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border-color);">Branch / Officer</th>
+                                        <th style="padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border-color);">Borrower / Account</th>
+                                        <th style="padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border-color);">Claim Amount</th>
+                                        <th style="padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border-color);">Viability Score</th>
+                                        <th style="padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border-color);">Statutory Verdict</th>
+                                        <th style="padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border-color); text-align: right;">Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminBankAuditsTableBody">
+                                    <tr>
+                                        <td colspan="7" style="padding: 2rem; text-align: center; color: var(--gray-400);">
+                                            No institutional audits recorded yet.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <!-- TAB 3: PLATFORM SECURITY & COMPLIANCE LOGS -->
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <div id="adminSecurityTabContent" class="admin-tab-content hidden">
+                    <div class="admin-users-panel" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.75rem; box-shadow: var(--shadow-sm);">
+                        <div style="margin-bottom: 1.5rem;">
+                            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--gray-900); margin: 0 0 0.25rem 0;">System Security Telemetry &amp; Threat Defences</h2>
+                            <p style="font-size: 0.85rem; color: var(--gray-500); margin: 0;">Multi-layered defense telemetry: SQL injection detection, rate limiting, and access authorization.</p>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+                            <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem;">
+                                <div style="font-weight: 700; color: var(--gray-900); margin-bottom: 0.5rem;"><i class="fas fa-shield-halved" style="color: #10b981;"></i> JWT Token Guard</div>
+                                <div style="font-size: 0.85rem; color: var(--gray-600);">HS256 cryptographic signature validation with automatic expiration and refresh token rotation.</div>
+                            </div>
+                            <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem;">
+                                <div style="font-weight: 700; color: var(--gray-900); margin-bottom: 0.5rem;"><i class="fas fa-filter" style="color: #6366f1;"></i> Input Sanitization</div>
+                                <div style="font-size: 0.85rem; color: var(--gray-600);">Deterministic payload threat inspection for SQLi, XSS, and path traversal signatures.</div>
+                            </div>
+                            <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem;">
+                                <div style="font-weight: 700; color: var(--gray-900); margin-bottom: 0.5rem;"><i class="fas fa-gauge-high" style="color: #f59e0b;"></i> Distributed Rate Limiting</div>
+                                <div style="font-size: 0.85rem; color: var(--gray-600);">SlowAPI in-memory limiter guarding against DDoS and abusive automated analysis loops.</div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Responsive Table Container -->
-                    <div style="overflow-x: auto;">
-                        <table class="admin-data-table" style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.88rem;">
-                            <thead>
-                                <tr style="background: var(--gray-50); color: var(--gray-600); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; text-align: left;">
-                                    <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); border-top-left-radius: 8px;">Litigator</th>
-                                    <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Role / Plan</th>
-                                    <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 220px;">Monthly Allocation</th>
-                                    <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 180px;">Usage This Month</th>
-                                    <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Status</th>
-                                    <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); text-align: right; border-top-right-radius: 8px;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminUsersTableBody">
-                                <tr>
-                                    <td colspan="6" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
-                                        <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i> Loading litigator accounts...
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
                 </div>
 
             </div>
@@ -2367,7 +2552,22 @@
                         <div class="bank-portal-subtitle">Institutional Stressed Asset Audit &amp; Procedural Compliance Engine (Deterministic Rule-Based Core)</div>
                     </div>
                 </div>
-                <div class="bank-header-right">
+                <div class="bank-header-right" style="display: flex; align-items: center; gap: 0.75rem;">
+                    <!-- Active Bank Officer Badge -->
+                    <div id="bankOfficerBadge" class="bank-officer-badge" style="display: inline-flex;">
+                        <i class="fas fa-user-check"></i>
+                        <span id="bankOfficerBadgeText">Officer: SBI SARB Mumbai (OFFICER_SARB_842)</span>
+                    </div>
+                    <!-- Master Admin Badge (shown if admin) -->
+                    <div id="bankMasterAdminBadge" class="admin-master-badge" style="display: none;">
+                        <i class="fas fa-crown"></i> Master Admin Access
+                    </div>
+                    <button id="bankSwitchOfficerBtn" class="btn btn-sm btn-outline" onclick="openBankAuthModal()" style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem;">
+                        <i class="fas fa-right-left"></i> <span>Switch Officer / Login</span>
+                    </button>
+                    <button class="theme-toggle-btn" title="Toggle Light/Dark Mode" onclick="toggleTheme()" style="color: #38bdf8; border-color: rgba(56,189,248,0.3);">
+                        <i class="fas fa-moon"></i>
+                    </button>
                     <button class="btn btn-outline btn-sm" onclick="switchScreen('landingScreen')" style="gap: 0.4rem;">
                         <i class="fas fa-arrow-left"></i> Return to Advocate OS
                     </button>
@@ -3092,6 +3292,171 @@
                     </div>
                     <span class="command-shortcut-hint">i18n</span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- BANK OFFICER AUTHENTICATION & BRANCH SWITCHER MODAL -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div id="bankAuthModal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(7, 11, 20, 0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 1.5rem;">
+        <div class="modal-container" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-2xl); width: 100%; max-width: 580px; box-shadow: var(--shadow-2xl); overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; padding: 1.5rem 2rem; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 0.85rem;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; font-size: 1.35rem;">
+                        <i class="fas fa-building-columns"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff;">Bank Recovery Officer Sign In</h3>
+                        <p style="margin: 0.2rem 0 0; font-size: 0.82rem; color: #e0f2fe;">Institutional credentials for stressed asset compliance audit</p>
+                    </div>
+                </div>
+                <button onclick="closeBankAuthModal()" style="background: transparent; border: none; color: #ffffff; font-size: 1.4rem; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+            
+            <div class="modal-body" style="padding: 1.75rem 2rem; max-height: 75vh; overflow-y: auto;">
+                <!-- Quick Institutional Branch Profiles -->
+                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--gray-700); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.5rem;">
+                    <i class="fas fa-bolt" style="color: #f59e0b;"></i> Quick Institutional Branch Profiles:
+                </label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-bottom: 1.5rem;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="selectBankPreset('SBI_SARB_MUM')" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem; border-radius: 10px; font-size: 0.8rem; line-height: 1.3;">
+                        <i class="fas fa-landmark" style="color: #0ea5e9;"></i>
+                        <div><strong>SBI SARB Mumbai</strong><div style="font-size: 0.72rem; color: var(--gray-500);">OFFICER_SARB_842</div></div>
+                    </button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="selectBankPreset('PNB_CFS_DEL')" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem; border-radius: 10px; font-size: 0.8rem; line-height: 1.3;">
+                        <i class="fas fa-landmark" style="color: #f59e0b;"></i>
+                        <div><strong>PNB CFS Delhi</strong><div style="font-size: 0.72rem; color: var(--gray-500);">OFFICER_DEL_LCR_419</div></div>
+                    </button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="selectBankPreset('HDFC_WLR_MUM')" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem; border-radius: 10px; font-size: 0.8rem; line-height: 1.3;">
+                        <i class="fas fa-landmark" style="color: #6366f1;"></i>
+                        <div><strong>HDFC Wholesale</strong><div style="font-size: 0.72rem; color: var(--gray-500);">OFFICER_MUM_WLR_302</div></div>
+                    </button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="selectBankPreset('BOB_SAMB_AHM')" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem; border-radius: 10px; font-size: 0.8rem; line-height: 1.3;">
+                        <i class="fas fa-landmark" style="color: #10b981;"></i>
+                        <div><strong>BOB SAMB Ahmedabad</strong><div style="font-size: 0.72rem; color: var(--gray-500);">OFFICER_PUN_SAMB_512</div></div>
+                    </button>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+                    <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
+                    <span style="font-size: 0.75rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase;">Or Enter Officer Credentials</span>
+                    <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
+                </div>
+
+                <form id="bankAuthForm" onsubmit="submitBankLogin(event)">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 0.85rem;">
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Officer ID / Code</label>
+                            <input type="text" id="bankAuthOfficerId" required class="bank-input-text" placeholder="e.g. OFFICER_SARB_842" style="width: 100%;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Officer Full Name</label>
+                            <input type="text" id="bankAuthOfficerName" class="bank-input-text" placeholder="e.g. Rajesh Nambiar" style="width: 100%;">
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 0.85rem;">
+                        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Bank / Financial Institution</label>
+                        <input type="text" id="bankAuthBankName" class="bank-input-text" placeholder="e.g. State Bank of India" value="State Bank of India" style="width: 100%;">
+                    </div>
+
+                    <div style="margin-bottom: 0.85rem;">
+                        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Recovery Branch / Cell Designation</label>
+                        <input type="text" id="bankAuthBranchName" class="bank-input-text" placeholder="e.g. SBI — Stressed Asset Recovery Branch (SARB Mumbai)" value="SBI — Stressed Asset Recovery Branch (SARB Mumbai)" style="width: 100%;">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.25rem;">
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Official Bank Email</label>
+                            <input type="email" id="bankAuthEmail" class="bank-input-text" placeholder="e.g. officer@sbi.co.in" style="width: 100%;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Access Passcode / PIN</label>
+                            <input type="password" id="bankAuthPin" class="bank-input-text" placeholder="••••••••" style="width: 100%;">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                        <button type="button" class="btn btn-outline" onclick="closeBankAuthModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-weight: 700;">
+                            <i class="fas fa-shield-check"></i> Authorize &amp; Proceed
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- PROVISION NEW BANK OFFICER MODAL (ADMIN CONTROL CENTER) -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div id="createBankOfficerModal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(7, 11, 20, 0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 1.5rem;">
+        <div class="modal-container" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-2xl); width: 100%; max-width: 580px; box-shadow: var(--shadow-2xl); overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #d97706, #b45309); color: #ffffff; padding: 1.5rem 2rem; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 0.85rem;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; font-size: 1.35rem;">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff;">Provision Bank Branch Officer</h3>
+                        <p style="margin: 0.2rem 0 0; font-size: 0.82rem; color: #fef3c7;">Allocate recovery audit allowances for partner financial institutions</p>
+                    </div>
+                </div>
+                <button onclick="closeCreateBankOfficerModal()" style="background: transparent; border: none; color: #ffffff; font-size: 1.4rem; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+            
+            <div class="modal-body" style="padding: 1.75rem 2rem;">
+                <form id="createBankOfficerForm" onsubmit="submitCreateBankOfficer(event)">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 0.85rem;">
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Officer ID / Code *</label>
+                            <input type="text" id="newBankOfficerId" required class="bank-input-text" placeholder="e.g. OFFICER_ICICI_REC_101" style="width: 100%;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Officer Full Name *</label>
+                            <input type="text" id="newBankOfficerName" required class="bank-input-text" placeholder="e.g. Meera Sunder" style="width: 100%;">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 0.85rem;">
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Bank / Institution *</label>
+                            <input type="text" id="newBankName" required class="bank-input-text" placeholder="e.g. ICICI Bank" style="width: 100%;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Role Designation</label>
+                            <select id="newBankRole" class="bank-input-select" style="width: 100%;">
+                                <option value="bank_officer">Bank Officer (Legal)</option>
+                                <option value="sarb_manager">SARB Branch Manager</option>
+                                <option value="recovery_head">Recovery Vertical Head</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 0.85rem;">
+                        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Branch / Recovery Cell Name *</label>
+                        <input type="text" id="newBankBranchName" required class="bank-input-text" placeholder="e.g. ICICI Bank — Special Asset Management Cell (Pune)" style="width: 100%;">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.25rem;">
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Official Email *</label>
+                            <input type="email" id="newBankEmail" required class="bank-input-text" placeholder="e.g. meera.s@icicibank.com" style="width: 100%;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Monthly Audit Quota</label>
+                            <input type="number" id="newBankLimit" class="bank-input-text" value="100" style="width: 100%;">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                        <button type="button" class="btn btn-outline" onclick="closeCreateBankOfficerModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #d97706, #b45309); font-weight: 700;">
+                            <i class="fas fa-plus"></i> Create Officer Account
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
