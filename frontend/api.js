@@ -221,6 +221,91 @@ export const api = {
             body: JSON.stringify({ user_id: userId, is_active: isActive })
         });
         try { return await response.json(); } catch (e) { throw new Error("Failed to toggle user status."); }
+    },
+
+    // ── Bank Auth & Recovery OS Methods ──
+    async bankLogin(payload) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/bank/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Bank authentication failed."); }
+    },
+
+    async getBankProfile(officerId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/bank/auth/profile?officer_id=${encodeURIComponent(officerId)}`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load bank profile."); }
+    },
+
+    async getBankBranches() {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/bank/branches`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load institutional branches."); }
+    },
+
+    // ── Admin Bank Operations Governance ──
+    async getAdminBankStats(token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/bank/stats`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load bank stats."); }
+    },
+
+    async getAdminBankOfficers(token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/bank/officers`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load bank officers."); }
+    },
+
+    async createAdminBankOfficer(officerData, token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/bank/officers/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(officerData)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to provision bank officer."); }
+    },
+
+    async allocateBankOfficerQuota(officerId, monthlyLimit, role, branchName, bankName, email, token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/bank/officers/allocate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                officer_id: officerId,
+                monthly_audit_limit: monthlyLimit,
+                role: role,
+                branch_name: branchName,
+                bank_name: bankName,
+                email: email
+            })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to update bank officer quota."); }
+    },
+
+    async toggleBankOfficerStatus(officerId, isActive, token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/bank/officers/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ officer_id: officerId, is_active: isActive })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to toggle bank officer status."); }
+    },
+
+    async getAdminBankAudits(token, limit = 50) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/bank/audits?limit=${limit}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load bank audits."); }
     }
 };
 
