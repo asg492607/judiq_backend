@@ -2,7 +2,7 @@ import logging
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Body, Query
 from pydantic import BaseModel, Field
-from security import require_admin, get_current_user, get_current_user_optional, is_admin_user, SecurityManager
+from security import require_admin, get_current_user, get_current_user_optional, is_admin_user, verify_admin_credentials, SecurityManager
 from session import DatabaseManager
 
 logger = logging.getLogger("JudiQ.Admin")
@@ -22,28 +22,39 @@ class ResetUsageRequest(BaseModel):
     user_id: str = Field(..., description="Target User ID")
 
 class AdminAuthRequest(BaseModel):
-    email: str = Field(..., description="Admin Email Address")
-    admin_secret: Optional[str] = Field(None, description="Optional Admin Access Key")
+    email: str = Field(..., description="Admin Email Address / Username")
+    password: Optional[str] = Field(None, description="Admin Password")
+    admin_secret: Optional[str] = Field(None, description="Optional Admin Access Key / Secret")
 
 @router.post("/auth/verify", tags=["Admin Control"])
 def verify_admin_status(payload: AdminAuthRequest = Body(...)):
     """
-    Checks if an email/user has administrative privileges and issues an authorized admin token.
+    Verifies admin credentials (email/username and password/secret) and issues an authorized admin JWT token.
     """
     email = payload.email.strip().lower()
-    if is_admin_user(email, email):
-        token = SecurityManager.create_access_token(data={"sub": email, "email": email, "role": "admin"})
+    provided_password = payload.password or payload.admin_secret or ""
+
+    if not is_admin_user(email, email):
         return {
-            "success": True,
-            "is_admin": True,
-            "token": token,
-            "email": email,
-            "role": "admin"
+            "success": False,
+            "is_admin": False,
+            "message": "User does not have administrative privileges."
         }
+
+    if not verify_admin_credentials(email, provided_password):
+        return {
+            "success": False,
+            "is_admin": False,
+            "message": "Invalid administrator password or credentials."
+        }
+
+    token = SecurityManager.create_access_token(data={"sub": email, "email": email, "role": "admin"})
     return {
-        "success": False,
-        "is_admin": False,
-        "message": "User does not have administrative privileges."
+        "success": True,
+        "is_admin": True,
+        "token": token,
+        "email": email,
+        "role": "admin"
     }
 
 @router.get("/stats", tags=["Admin Control"])

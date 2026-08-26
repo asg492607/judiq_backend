@@ -1,20 +1,26 @@
 import os
 from functools import lru_cache
-from pydantic_settings import BaseSettings
+from pathlib import Path
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
+_base_dir = Path(__file__).resolve().parent
+_root_dir = _base_dir.parent
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=(str(_root_dir / ".env"), str(_base_dir / ".env")),
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
+
     PROJECT_NAME: str = "JudiQ Legal AI"
     VERSION: str = "12.5.0-ENTERPRISE"
     API_V1_STR: str = "/api/v1"
     # SECURITY: Never fall back to a weak default in production.
-    # Set SECRET_KEY as an environment variable before deploying.
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "changeme_secure_key_for_dev_only")
+    SECRET_KEY: str = "changeme_secure_key_for_dev_only"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
-    # SECURITY: DATABASE_URL must be provided via environment variable.
-    # No credentials are hardcoded here. Set DATABASE_URL in your environment.
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "")
+    DATABASE_URL: str = ""
     BACKEND_CORS_ORIGINS: list = [
         "https://cold-smoke-f63f.judiqai.workers.dev",
         "https://judiq.netlify.app",
@@ -29,9 +35,15 @@ class Settings(BaseSettings):
         "http://localhost:5501",
         "http://127.0.0.1:5501",
     ]
-    ENCRYPTION_KEY: str = os.getenv("ENCRYPTION_KEY", "c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnk=")
-    DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
-    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    ENCRYPTION_KEY: str = "c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnk="
+    DEBUG: bool = False
+    GROQ_API_KEY: str = ""
+
+    # Administrator Authentication Configuration (from .env)
+    ADMIN_EMAIL: str = "gandhiatharv565@gmail.com"
+    ADMIN_PASSWORD: str = "492607"
+    ADMIN_PASSWORD_HASH: str = ""
+    ADMIN_EMAILS: str = "admin@judiq.ai,gandhiatharv565@gmail.com"
 
 
 @lru_cache()
@@ -53,3 +65,4 @@ def get_settings():
 
 
 settings = get_settings()
+

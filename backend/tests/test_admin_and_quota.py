@@ -107,3 +107,24 @@ def test_admin_api_endpoints_protection():
     resp_quota = client.get("/api/v1/user/quota?user_id=client_test_505")
     assert resp_quota.status_code == 200
     assert resp_quota.json()["quota"]["monthly_report_limit"] == 50
+
+def test_admin_password_verification():
+    # 1. Correct email and correct password
+    resp_ok = client.post("/api/v1/admin/auth/verify", json={"email": "gandhiatharv565@gmail.com", "password": "492607"})
+    assert resp_ok.status_code == 200
+    data_ok = resp_ok.json()
+    assert data_ok["success"] is True
+    assert data_ok["is_admin"] is True
+    assert "token" in data_ok
+
+    # 2. Correct email and wrong password
+    resp_wrong = client.post("/api/v1/admin/auth/verify", json={"email": "gandhiatharv565@gmail.com", "password": "wrong_password"})
+    assert resp_wrong.status_code == 200
+    assert resp_wrong.json()["success"] is False
+    assert resp_wrong.json()["is_admin"] is False
+
+    # 3. Non-admin email
+    resp_non_admin = client.post("/api/v1/admin/auth/verify", json={"email": "unauthorized@law.com", "password": "492607"})
+    assert resp_non_admin.status_code == 200
+    assert resp_non_admin.json()["success"] is False
+

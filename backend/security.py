@@ -101,20 +101,73 @@ def get_current_user_optional(credentials: HTTPAuthorizationCredentials = Depend
             return payload["sub"]
     return "ANONYMOUS"
 
-DEFAULT_ADMIN_EMAILS = {"admin@judiq.ai", "gandhiatharv565@gmail.com"}
-ENV_ADMIN_EMAILS = {e.strip().lower() for e in os.getenv("ADMIN_EMAILS", "").split(",") if e.strip()}
-ADMIN_EMAILS = DEFAULT_ADMIN_EMAILS.union(ENV_ADMIN_EMAILS)
+import hmac
+
+def get_admin_emails_set() -> set:
+    admin_set = {"admin@judiq.ai", "gandhiatharv565@gmail.com"}
+    configured_list = getattr(settings, "ADMIN_EMAILS", "")
+    if configured_list:
+        admin_set.update({e.strip().lower() for e in configured_list.split(",") if e.strip()})
+    primary_email = getattr(settings, "ADMIN_EMAIL", "")
+    if primary_email:
+        admin_set.add(primary_email.strip().lower())
+    return admin_set
+
 
 def is_admin_user(user_id: str, email: str = "") -> bool:
     if not user_id:
         return False
-    if email and email.strip().lower() in ADMIN_EMAILS:
+    admin_emails = get_admin_emails_set()
+    if email and email.strip().lower() in admin_emails:
         return True
-    if user_id.strip().lower() in ADMIN_EMAILS:
+    if user_id.strip().lower() in admin_emails:
         return True
     if user_id.startswith("admin_") or user_id == "admin":
         return True
     return False
+
+
+def verify_admin_credentials(email: str, password: Optional[str] = None) -> bool:
+    """
+    Verifies admin credentials dynamically from environment/settings.
+    Supports secure constant-time comparison and bcrypt/sha256 hashed passwords.
+    """
+    if not email:
+        return False
+    
+    if not is_admin_user(email, email):
+        return False
+
+    configured_pwd = getattr(settings, "ADMIN_PASSWORD", "")
+    configured_hash = getattr(settings, "ADMIN_PASSWORD_HASH", "")
+
+    # If no password verification configured, accept valid admin identity
+    if not configured_pwd and not configured_hash:
+        return True
+
+    if not password:
+        return False
+
+    # 1. Hashed password check
+    if configured_hash:
+        if configured_hash.startswith("$2b$") or configured_hash.startswith("$2a$"):
+            try:
+                import bcrypt
+                if bcrypt.checkpw(password.encode("utf-8"), configured_hash.encode("utf-8")):
+                    return True
+            except Exception:
+                pass
+        sha_candidate = hashlib.sha256(password.encode("utf-8")).hexdigest()
+        if hmac.compare_digest(sha_candidate, configured_hash):
+            return True
+
+    # 2. Configured environment password check (constant time comparison)
+    if configured_pwd:
+        if hmac.compare_digest(str(password), str(configured_pwd)):
+            return True
+
+    return False
+
 
 def require_admin(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)) -> dict:
     if not credentials:
