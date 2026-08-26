@@ -559,11 +559,183 @@ function setCheckbox(id, checked) {
     if (el) el.checked = !!checked;
 }
 
+// ============================================================================
+// BANK OFFICER AUTHENTICATION & SESSION MANAGEMENT
+// ============================================================================
+
+let currentBankUser = JSON.parse(localStorage.getItem('judiq_bank_user') || 'null') || {
+    officer_id: "OFFICER_SARB_842",
+    name: "Rajesh Nambiar",
+    bank_name: "State Bank of India",
+    branch_name: "SBI — Stressed Asset Recovery Branch (SARB Mumbai)",
+    role: "sarb_manager",
+    email: "rajesh.nambiar@sbi.co.in"
+};
+
+window.openBankAuthModal = () => {
+    const modal = document.getElementById("bankAuthModal");
+    if (modal) {
+        modal.classList.remove("hidden");
+        if (currentBankUser) {
+            setVal("bankAuthOfficerId", currentBankUser.officer_id || "");
+            setVal("bankAuthOfficerName", currentBankUser.name || "");
+            setVal("bankAuthBankName", currentBankUser.bank_name || "");
+            setVal("bankAuthBranchName", currentBankUser.branch_name || "");
+            setVal("bankAuthEmail", currentBankUser.email || "");
+        }
+    }
+};
+
+window.closeBankAuthModal = () => {
+    const modal = document.getElementById("bankAuthModal");
+    if (modal) modal.classList.add("hidden");
+};
+
+window.selectBankPreset = (branchId) => {
+    const presets = {
+        "SBI_SARB_MUM": {
+            officer_id: "OFFICER_SARB_842",
+            name: "Rajesh Nambiar (Chief Recovery Manager)",
+            bank_name: "State Bank of India",
+            branch_name: "SBI — Stressed Asset Recovery Branch (SARB Mumbai)",
+            email: "rajesh.nambiar@sbi.co.in"
+        },
+        "PNB_CFS_DEL": {
+            officer_id: "OFFICER_DEL_LCR_419",
+            name: "Vikram Rathore (Senior Manager - Legal)",
+            bank_name: "Punjab National Bank",
+            branch_name: "PNB — Large Corporate Recovery Division (Delhi)",
+            email: "vikram.rathore@pnb.co.in"
+        },
+        "HDFC_WLR_MUM": {
+            officer_id: "OFFICER_MUM_WLR_302",
+            name: "Anand Kulkarni (Vice President - Stressed Assets)",
+            bank_name: "HDFC Bank",
+            branch_name: "HDFC Bank — Wholesale Recovery Dept (Mumbai)",
+            email: "anand.kulkarni@hdfcbank.com"
+        },
+        "BOB_SAMB_AHM": {
+            officer_id: "OFFICER_PUN_SAMB_512",
+            name: "Priya Patel (Legal Counsel & Recovery Officer)",
+            bank_name: "Bank of Baroda",
+            branch_name: "BOB — Stressed Assets Management Branch (SAMB Ahmedabad)",
+            email: "priya.patel@bankofbaroda.co.in"
+        }
+    };
+
+    const p = presets[branchId];
+    if (!p) return;
+    setVal("bankAuthOfficerId", p.officer_id);
+    setVal("bankAuthOfficerName", p.name);
+    setVal("bankAuthBankName", p.bank_name);
+    setVal("bankAuthBranchName", p.branch_name);
+    setVal("bankAuthEmail", p.email);
+};
+
+window.submitBankLogin = async (e) => {
+    if (e) e.preventDefault();
+    const officerId = getVal("bankAuthOfficerId").trim();
+    const officerName = getVal("bankAuthOfficerName").trim();
+    const bankName = getVal("bankAuthBankName").trim();
+    const branchName = getVal("bankAuthBranchName").trim();
+    const email = getVal("bankAuthEmail").trim();
+    const pin = getVal("bankAuthPin").trim();
+
+    if (!officerId) {
+        if (window.toast) window.toast.show("Please enter Officer ID", "warning");
+        return;
+    }
+
+    try {
+        const payload = {
+            officer_id: officerId,
+            officer_name: officerName,
+            bank_name: bankName,
+            branch_name: branchName,
+            email: email,
+            password: pin
+        };
+
+        const res = await fetch(`${API_BASE}/api/v1/bank/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.detail || errData.error || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        currentBankUser = {
+            officer_id: officerId,
+            name: officerName || officerId,
+            bank_name: bankName,
+            branch_name: branchName,
+            email: email,
+            role: data.role || 'bank_officer',
+            is_admin: data.is_admin || false
+        };
+        localStorage.setItem('judiq_bank_user', JSON.stringify(currentBankUser));
+
+        if (data.token) {
+            localStorage.setItem('judiq_bank_jwt', data.token);
+        }
+
+        window.updateBankOfficerUI();
+        window.closeBankAuthModal();
+        if (window.toast) window.toast.show(data.message || `Authenticated as ${currentBankUser.name}`, "success");
+    } catch (err) {
+        console.error("Bank auth error:", err);
+        if (window.toast) window.toast.show(`Authentication failed: ${err.message}`, "error");
+    }
+};
+
+window.updateBankOfficerUI = () => {
+    const badgeText = document.getElementById("bankOfficerBadgeText");
+    const adminBadge = document.getElementById("bankMasterAdminBadge");
+
+    const currentUser = window.state && window.state.currentUser;
+    const userEmail = (currentUser && currentUser.email ? currentUser.email : '').toLowerCase().trim();
+    const isUniversalAdmin = ['admin@judiq.ai', 'gandhiatharv565@gmail.com'].includes(userEmail) || userEmail.startsWith('admin');
+
+    if (adminBadge) {
+        adminBadge.style.display = isUniversalAdmin ? 'inline-flex' : 'none';
+    }
+
+    if (currentBankUser && badgeText) {
+        badgeText.textContent = `${currentBankUser.bank_name || 'Bank'} — ${currentBankUser.name || currentBankUser.officer_id} (${currentBankUser.officer_id})`;
+    }
+
+    const branchSelector = document.getElementById("bankBranchName");
+    if (branchSelector && currentBankUser && currentBankUser.branch_name) {
+        let found = false;
+        for (let i = 0; i < branchSelector.options.length; i++) {
+            if (branchSelector.options[i].value === currentBankUser.branch_name) {
+                branchSelector.selectedIndex = i;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            const opt = document.createElement("option");
+            opt.value = currentBankUser.branch_name;
+            opt.text = currentBankUser.branch_name;
+            branchSelector.add(opt);
+            branchSelector.value = currentBankUser.branch_name;
+        }
+    }
+};
+
 window.bankRecovery = {
     init: initBankRecoveryModule,
     runAudit: runBankRecoveryAudit,
     loadPreset: loadBankPreset,
     copyDossier: copyAdvocateDossier,
     dispatch: openDispatchModal,
-    exportLedger: exportComplianceLedger
+    exportLedger: exportComplianceLedger,
+    openAuth: window.openBankAuthModal,
+    closeAuth: window.closeBankAuthModal,
+    updateUI: window.updateBankOfficerUI
 };
