@@ -97,7 +97,7 @@ export function switchScreen(targetScreenId) {
         'roleScreen', 'dashboardScreen', 'caseWizardScreen', 
         'resultsScreen', 'termsScreen', 'privacyScreen', 'refundScreen',
         'draftGeneratorScreen', 'draftStudioScreen', 'quickAnalysisScreen',
-        'reportScreen'
+        'reportScreen', 'bankRecoveryScreen'
     ];
     
     screens.forEach(id => ui.hide(id));

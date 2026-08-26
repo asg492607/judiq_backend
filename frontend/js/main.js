@@ -12,6 +12,7 @@ import { renderAdversarialCharts, renderScoreBreakdownChart } from './modules/ch
 import { JudiQValidator } from './modules/validation.js?v=14';
 import { JudiQCoCounselDock } from './modules/counsel_dock.js?v=14';
 import { JudiQStrategySimulator } from './modules/simulator.js?v=14';
+import { initBankRecoveryModule } from './bank_recovery.js?v=14';
 
 
 import { store } from './modules/store.js?v=14';
@@ -36,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAuthListeners();
     setupFormListeners();
     initTheme();
+    initBankRecoveryModule();
     
     // Initialize Co-Counsel Dock & Strategy Simulator
     window.judiqDock = new JudiQCoCounselDock();

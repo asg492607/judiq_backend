@@ -76,6 +76,9 @@
                     </button>
                 </div>
                 <div class="landing-nav">
+                    <button class="btn btn-outline hide-on-mobile bank-nav-btn" onclick="switchScreen('bankRecoveryScreen')" style="font-size: 0.82rem; padding: 0.4rem 0.85rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 0.45rem; background: rgba(14,165,233,0.15); color: #38bdf8; border-color: rgba(56,189,248,0.45); font-weight: 600;">
+                        <i class="fas fa-building-columns"></i> Bank Recovery OS
+                    </button>
                     <button class="btn btn-outline btn-sm cmd-palette-trigger" title="Command Palette (Ctrl+K)" onclick="toggleCommandPalette()" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.05); color: var(--gray-300); border-color: rgba(255,255,255,0.2);">
                         <i class="fas fa-terminal" style="color: #38bdf8;"></i> <span class="hide-on-mobile">Ctrl K</span>
                     </button>
@@ -109,6 +112,9 @@
                     <a href="#" onclick="toggleMobileNav(false); openLegalModal('documentationModal', event)" data-i18n="nav_docs"><i class="fas fa-book"></i> Docs</a>
                 </div>
                 <div class="mobile-nav-actions">
+                    <button class="btn btn-outline" onclick="toggleMobileNav(false); switchScreen('bankRecoveryScreen');" style="width: 100%; justify-content: center; gap: 0.5rem; margin-bottom: 0.75rem; padding: 0.6rem; color: #38bdf8; border-color: rgba(56,189,248,0.4); background: rgba(14,165,233,0.1); font-weight: 600;">
+                        <i class="fas fa-building-columns"></i> Bank & Recovery OS
+                    </button>
                     <button class="btn btn-outline btn-sm lang-toggle-btn" onclick="toggleLanguage();" style="width: 100%; justify-content: center; gap: 0.5rem; margin-bottom: 0.75rem; padding: 0.6rem;">
                         <i class="fas fa-globe"></i> <span>मराठी / English</span>
                     </button>
@@ -2346,6 +2352,258 @@
             </div>
         </div>
 
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- BANKING & RECOVERY OS SECTION (INSTITUTIONAL VERTICAL) -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div id="bankRecoveryScreen" class="bank-screen hidden">
+            <!-- Top Institutional Ribbon -->
+            <div class="bank-portal-header">
+                <div class="bank-header-left">
+                    <div class="bank-logo-badge">
+                        <i class="fas fa-building-columns"></i>
+                    </div>
+                    <div>
+                        <div class="bank-portal-title">JUDIQ RECOVERY INTELLIGENCE OS</div>
+                        <div class="bank-portal-subtitle">Institutional Stressed Asset Audit &amp; Procedural Compliance Engine (Deterministic Rule-Based Core)</div>
+                    </div>
+                </div>
+                <div class="bank-header-right">
+                    <button class="btn btn-outline btn-sm" onclick="switchScreen('landingScreen')" style="gap: 0.4rem;">
+                        <i class="fas fa-arrow-left"></i> Return to Advocate OS
+                    </button>
+                </div>
+            </div>
+
+            <!-- Synthetic Environment Simulation Notice -->
+            <div class="bank-synthetic-notice" style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.25); border-radius: 6px; padding: 0.5rem 1rem; margin-bottom: 0.75rem; font-size: 0.78rem; color: #94a3b8; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-flask" style="color: #38bdf8;"></i>
+                <span><strong>Synthetic Simulation Environment:</strong> Case profiles, loan references, and branch designations are synthetic test scenarios designed for institutional workflow simulation and legal audit review.</span>
+            </div>
+
+            <!-- Unit & Scenario Quick Launcher Bar -->
+            <div class="bank-control-strip">
+                <div class="bank-unit-selector">
+                    <label><i class="fas fa-landmark"></i> Recovery Cell / Branch:</label>
+                    <select id="bankBranchName" class="bank-input-select">
+                        <option value="JudiQ Demo Bank — Stressed Asset Recovery Cell (SARB Mumbai Simulation)">JudiQ Demo Bank — Stressed Asset Recovery Cell (SARB Mumbai Simulation)</option>
+                        <option value="JudiQ Demo Bank — SAMB (Ahmedabad Simulation)">JudiQ Demo Bank — SAMB (Ahmedabad Simulation)</option>
+                        <option value="JudiQ Demo Bank — Large Corporate Recovery Division (Delhi Simulation)">JudiQ Demo Bank — Large Corporate Recovery Division (Delhi Simulation)</option>
+                        <option value="JudiQ Demo Bank — Wholesale Recovery Dept (Mumbai Simulation)">JudiQ Demo Bank — Wholesale Recovery Dept (Mumbai Simulation)</option>
+                    </select>
+                </div>
+                <div class="bank-quick-scenarios">
+                    <span class="preset-label"><i class="fas fa-bolt"></i> Scenarios (Basic to Critical):</span>
+                    <button id="bankLoadDemo85L" class="btn btn-primary btn-sm" title="Tier 1: 100% compliant S.138 default file">
+                        <i class="fas fa-circle-check"></i> Tier 1: ₹8.5L (Clean File)
+                    </button>
+                    <button id="bankLoadDemo14L" class="btn btn-outline btn-sm" title="Tier 2: Missing postal tracking report and 65B statement (Curable)">
+                        <i class="fas fa-wrench"></i> Tier 2: ₹14L (Curable Gap)
+                    </button>
+                    <button id="bankLoadDemo25L" class="btn btn-outline btn-sm" title="Tier 3: Premature complaint filing u/s 138(c) (Fatal Yogendra Pratap Singh bar)">
+                        <i class="fas fa-triangle-exclamation"></i> Tier 3: ₹25L (Premature Trap)
+                    </button>
+                    <button id="bankLoadDemo18Cr" class="btn btn-outline btn-sm" title="Tier 4: SARFAESI S.26D CERSAI missing & S.31(i) Agri land bar">
+                        <i class="fas fa-ban"></i> Tier 4: ₹1.8Cr (SARFAESI Bar)
+                    </button>
+                    <button id="bankLoadDemo65L" class="btn btn-outline btn-sm" title="Tier 5: Delayed filing with S.142(1)(b) condonation affidavit">
+                        <i class="fas fa-file-signature"></i> Tier 5: ₹65L (S.142 Condonation)
+                    </button>
+                    <span id="bankAuditStatusBadge" class="bank-status-pill">
+                        <i class="fas fa-shield-halved"></i> Statutory Rule Engine Ready
+                    </span>
+                </div>
+            </div>
+
+            <!-- Main Dual Column Workspace -->
+            <div class="bank-workspace-grid">
+                <!-- LEFT COLUMN: Recovery Intake & Evidence Checklist -->
+                <div class="bank-panel bank-intake-panel">
+                    <div class="bank-panel-header">
+                        <h4><i class="fas fa-folder-open"></i> Default Account &amp; Statutory Parameters</h4>
+                        <span class="badge-subtle">Deterministic Input</span>
+                    </div>
+
+                    <div class="bank-form-group">
+                        <label>Statutory Recovery Track / Case Type</label>
+                        <select id="bankCaseType" class="bank-input-select">
+                            <option value="Cheque Bounce (S.138)">Section 138 Negotiable Instruments Act (Cheque Dishonour)</option>
+                            <option value="SARFAESI & Cheque Bounce Concurrent Recovery">SARFAESI S.13(2) + Section 138 Concurrent Enforcement</option>
+                            <option value="SARFAESI Act 2002 (Secured Recovery)">SARFAESI Act 2002 (Chapter III Security Enforcement)</option>
+                        </select>
+                    </div>
+
+                    <div class="bank-form-row">
+                        <div class="bank-form-group flex-2">
+                            <label>Borrower / Accused Entity Name</label>
+                            <input type="text" id="bankBorrowerName" class="bank-input-text" placeholder="e.g. M/s Apex Retailers Pvt Ltd">
+                        </div>
+                        <div class="bank-form-group flex-1">
+                            <label>Loan Ref / Account No</label>
+                            <input type="text" id="bankLoanRefNo" class="bank-input-text" placeholder="SBI/SARB/MUM/2026/85012">
+                        </div>
+                    </div>
+
+                    <div class="bank-form-row">
+                        <div class="bank-form-group">
+                            <label>Default Claim Amount (INR ₹)</label>
+                            <input type="number" id="bankDefaultAmount" class="bank-input-text" value="850000">
+                        </div>
+                        <div class="bank-form-group">
+                            <label>Cheque Issue Date</label>
+                            <input type="date" id="bankChequeDate" class="bank-input-text" value="2024-01-10">
+                        </div>
+                        <div class="bank-form-group">
+                            <label>Cheque Dishonour Date</label>
+                            <input type="date" id="bankDishonourDate" class="bank-input-text" value="2024-01-18">
+                        </div>
+                    </div>
+
+                    <div class="bank-form-row">
+                        <div class="bank-form-group">
+                            <label>Statutory Notice Date (S.138b)</label>
+                            <input type="date" id="bankNoticeDate" class="bank-input-text" value="2024-01-30">
+                        </div>
+                        <div class="bank-form-group">
+                            <label>Notice Delivery Date (Receipt)</label>
+                            <input type="date" id="bankDeliveryDate" class="bank-input-text" value="2024-02-04">
+                        </div>
+                        <div class="bank-form-group">
+                            <label>Complaint Filing Date (S.142)</label>
+                            <input type="date" id="bankComplaintDate" class="bank-input-text" value="2024-02-28">
+                        </div>
+                    </div>
+
+                    <!-- Special Legal Conditions -->
+                    <div class="bank-sub-card">
+                        <h5><i class="fas fa-scale-balanced"></i> Statutory Flags &amp; Collateral Status</h5>
+                        <div class="bank-checkbox-grid">
+                            <label class="bank-checkbox-label">
+                                <input type="checkbox" id="bankCondonationAttached">
+                                <span>S.142(1)(b) Condonation Attached</span>
+                            </label>
+                            <label class="bank-checkbox-label">
+                                <input type="checkbox" id="bankIsSecured">
+                                <span>Secured Asset Available</span>
+                            </label>
+                            <label class="bank-checkbox-label">
+                                <input type="checkbox" id="bankCersaiRegistered" checked>
+                                <span>CERSAI Registered (S.26D)</span>
+                            </label>
+                            <label class="bank-checkbox-label">
+                                <input type="checkbox" id="bankIsAgriLand">
+                                <span>Agricultural Land (S.31i Bar)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Evidentiary Assets Checklist -->
+                    <div class="bank-sub-card">
+                        <h5><i class="fas fa-clipboard-check"></i> Evidentiary Assets &amp; Proof of Service</h5>
+                        <div class="bank-checkbox-grid">
+                            <label class="bank-checkbox-label">
+                                <input type="checkbox" id="bankHasCheque" checked>
+                                <span>Original Stamped Cheque</span>
+                            </label>
+                            <label class="bank-checkbox-label">
+                                <input type="checkbox" id="bankHasMemo" checked>
+                                <span>Bank Dishonour Memo</span>
+                            </label>
+                            <label class="bank-checkbox-label">
+                                <input type="checkbox" id="bankHasSanction" checked>
+                                <span>Stamped Sanction Letter</span>
+                            </label>
+                            <label class="bank-checkbox-label">
+                                <input type="checkbox" id="bankHasPostalSlip" checked>
+                                <span>Speed Post Consignment Receipt</span>
+                            </label>
+                            <label class="bank-checkbox-label">
+                                <input type="checkbox" id="bankHasTracking" checked>
+                                <span>India Post Delivery Report</span>
+                            </label>
+                            <label class="bank-checkbox-label">
+                                <input type="checkbox" id="bankHasStatement" checked>
+                                <span>Banker's Books 65B Statement</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button id="bankRunAuditBtn" class="btn btn-primary btn-large btn-block" style="margin-top: 1rem;">
+                        <i class="fas fa-play"></i> Re-Calculate Statutory Recovery Audit
+                    </button>
+                </div>
+
+                <!-- RIGHT COLUMN: Statutory Audit Output, Advocate Dossier & Compliance Ledger -->
+                <div class="bank-panel bank-output-panel">
+                    <!-- Recovery Viability Score Banner -->
+                    <div class="bank-score-card">
+                        <div class="score-card-left">
+                            <div class="score-label">LEGAL RECOVERY READINESS SCORE</div>
+                            <div class="score-display">
+                                <span id="bankScoreValue" class="score-number">95/100</span>
+                                <div class="score-gauge-container">
+                                    <div id="bankScoreGauge" class="bank-gauge-fill gauge-green" style="width: 95%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="score-card-right">
+                            <div id="bankVerdictBadge" class="bank-verdict-chip verdict-ready">
+                                <i class="fas fa-circle-check"></i> High Probability Recovery (File Compliant)
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statutory Timeline Milestones -->
+                    <div class="bank-output-section">
+                        <h5><i class="fas fa-timeline"></i> Statutory Procedural Timeline &amp; Milestone Compliance</h5>
+                        <div id="bankMilestonesContainer" class="bank-milestones-grid">
+                            <!-- Populated dynamically by bank_recovery.js -->
+                        </div>
+                    </div>
+
+                    <!-- Defect Classification & Remediation Guidance -->
+                    <div class="bank-output-section">
+                        <h5><i class="fas fa-triangle-exclamation"></i> Statutory Defect Audit &amp; Remediation Matrix</h5>
+                        <div id="bankDefectContainer">
+                            <!-- Populated dynamically by bank_recovery.js -->
+                        </div>
+                    </div>
+
+                    <!-- Empaneled Advocate Case Dossier -->
+                    <div class="bank-output-section">
+                        <div class="section-header-row">
+                            <h5><i class="fas fa-gavel"></i> Empaneled Advocate Case Dossier (Actionable Brief)</h5>
+                            <button id="bankCopyDossierBtn" class="btn btn-outline btn-xs">
+                                <i class="fas fa-copy"></i> Copy Dossier
+                            </button>
+                        </div>
+                        <div id="bankDossierContent">
+                            <!-- Populated dynamically by bank_recovery.js -->
+                        </div>
+                    </div>
+
+                    <!-- Regulatory Audit Trail / Compliance Evidence Ledger -->
+                    <div class="bank-output-section">
+                        <div class="section-header-row">
+                            <h5><i class="fas fa-stamp"></i> Regulatory Audit Trail / Compliance Evidence Ledger</h5>
+                            <button id="bankExportLedgerBtn" class="btn btn-outline btn-xs">
+                                <i class="fas fa-download"></i> Download Audit Record (JSON)
+                            </button>
+                        </div>
+                        <div id="bankLedgerBox">
+                            <!-- Populated dynamically by bank_recovery.js -->
+                        </div>
+                    </div>
+
+                    <!-- Final Action & Dispatch Bar -->
+                    <div class="bank-action-footer">
+                        <button id="bankDispatchBtn" class="btn btn-primary btn-large">
+                            <i class="fas fa-paper-plane"></i> Dispatch Dossier to Empaneled Advocate
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -2848,7 +3106,7 @@
     <!-- Chart.js for Visualizations --><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Main Application Script (ES6 Module) -->
-    <script type="module" src="js/main.js?v=14"></script>
+    <script type="module" src="js/main.js?v=15"></script>
 </body>
 </html>
 
