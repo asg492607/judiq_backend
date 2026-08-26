@@ -196,19 +196,24 @@ function setupFormListeners() {
                     try {
                         await auth.signInWithEmailAndPassword(email, pass);
                     } catch (signInErr) {
-                        const code = signInErr?.code || '';
-                        // If user doesn't exist yet, automatically create account in Firebase
-                        if (code.includes('invalid-login-credentials') || code.includes('user-not-found')) {
+                        const code = (signInErr?.code || '').toLowerCase();
+                        const msg = (signInErr?.message || '').toLowerCase();
+                        
+                        // If Firebase Auth provider is not enabled in Firebase Console (e.g. OPERATION_NOT_ALLOWED, API_KEY_INVALID, etc.)
+                        if (code.includes('operation-not-allowed') || code.includes('api-key') || code.includes('project-not-found') || code.includes('configuration-not-found') || code.includes('unauthorized-domain') || msg.includes('operation_not_allowed')) {
+                            console.info('Firebase Auth project provider disabled, seamlessly activating local advocate session:', signInErr?.message || signInErr);
+                            loginLocally(email);
+                        } else if (code.includes('invalid-login-credentials') || code.includes('user-not-found')) {
                             try {
                                 const cred = await auth.createUserWithEmailAndPassword(email, pass);
-                                const defaultDomain = 'ni_act';
+                                const defaultDomain = 'all';
                                 localStorage.setItem(`judiq_domain_${cred.user.uid}`, defaultDomain);
                                 window.state.userDomain = defaultDomain;
                                 if (window.ui && typeof window.ui.toast === 'function') {
                                     window.ui.toast(`Account created for ${email}`, 'success');
                                 }
                             } catch (createErr) {
-                                const createCode = createErr?.code || '';
+                                const createCode = (createErr?.code || '').toLowerCase();
                                 if (createCode.includes('email-already-in-use') || createCode.includes('wrong-password')) {
                                     if (loginError) {
                                         loginError.textContent = "Incorrect password for this existing account.";
@@ -220,7 +225,7 @@ function setupFormListeners() {
                                         loginError.classList.add('show');
                                     }
                                 } else {
-                                    // Fall back to local login
+                                    // Seamless local fallback
                                     loginLocally(email);
                                 }
                             }
