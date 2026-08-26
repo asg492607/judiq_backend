@@ -624,7 +624,7 @@ export const SAMPLE_CASE_PRESET = SAMPLE_NI_ACT_PRESET;
 
 window.loadSampleCaseData = (forcedPreset = null) => {
     const domain = (window.state?.userDomain || 'all').toLowerCase();
-    const currentCaseType = (window.state?.caseData?.case_type || '').toLowerCase();
+    const activeCaseType = (window.state?.caseData?.case_type || '').toLowerCase();
     
     let preset = SAMPLE_NI_ACT_PRESET;
     let label = 'Section 138';
@@ -632,16 +632,16 @@ window.loadSampleCaseData = (forcedPreset = null) => {
     if (forcedPreset && typeof forcedPreset === 'object') {
         preset = flattenDemoData(forcedPreset);
         label = preset.case_type || 'Custom';
-    } else if (domain === 'composite' || currentCaseType.includes('composite') || currentCaseType.includes('multi')) {
+    } else if (domain === 'composite' || activeCaseType.includes('composite') || activeCaseType.includes('multi')) {
         preset = SAMPLE_COMPOSITE_PRESET;
         label = 'Multi-Track Composite';
-    } else if (domain === 'sarfaesi' || currentCaseType.includes('sarfaesi')) {
+    } else if (domain === 'sarfaesi' || activeCaseType.includes('sarfaesi')) {
         preset = SAMPLE_SARFAESI_PRESET;
         label = 'SARFAESI & DRT';
-    } else if (domain === 'criminal' || currentCaseType.includes('criminal')) {
+    } else if (domain === 'criminal' || activeCaseType.includes('criminal')) {
         preset = SAMPLE_CRIMINAL_PRESET;
         label = 'Criminal Law';
-    } else if (domain === 'civil' || currentCaseType.includes('civil')) {
+    } else if (domain === 'civil' || activeCaseType.includes('civil')) {
         preset = SAMPLE_CIVIL_PRESET;
         label = 'Civil Litigation';
     }
