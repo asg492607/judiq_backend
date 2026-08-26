@@ -97,7 +97,7 @@ export function switchScreen(targetScreenId) {
         'roleScreen', 'dashboardScreen', 'caseWizardScreen', 
         'resultsScreen', 'termsScreen', 'privacyScreen', 'refundScreen',
         'draftGeneratorScreen', 'draftStudioScreen', 'quickAnalysisScreen',
-        'reportScreen', 'bankRecoveryScreen'
+        'reportScreen', 'bankRecoveryScreen', 'adminPortalScreen'
     ];
     
     screens.forEach(id => ui.hide(id));
@@ -105,6 +105,11 @@ export function switchScreen(targetScreenId) {
     
     // Reset scroll
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Update bank UI if switching to bank screen
+    if (targetScreenId === 'bankRecoveryScreen' && typeof window.updateBankOfficerUI === 'function') {
+        window.updateBankOfficerUI();
+    }
 
     // First-time visit guided tour check
     if (targetScreenId === 'dashboardScreen') {
