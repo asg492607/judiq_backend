@@ -445,6 +445,38 @@ function renderDashboard() {
         }
     }
 
+    // Admin check & Quota synchronization
+    const currentUser = window.state.currentUser;
+    const userEmail = (currentUser && currentUser.email ? currentUser.email : '').toLowerCase().trim();
+    const adminBtn = document.getElementById('adminPortalBtn');
+    const isAdmin = ['admin@judiq.ai', 'gandhiatharv565@gmail.com'].includes(userEmail) || userEmail.startsWith('admin');
+    
+    if (adminBtn) {
+        adminBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+    }
+
+    // Update User Monthly Quota Pill
+    if (currentUser && typeof api !== 'undefined' && api.getUserQuota) {
+        const uid = currentUser.uid || 'demo_user_123';
+        api.getUserQuota(uid, userEmail).then(res => {
+            if (res && res.success && res.quota) {
+                const q = res.quota;
+                const pill = document.getElementById('userQuotaPill');
+                const qText = document.getElementById('userQuotaText');
+                if (pill && qText) {
+                    if (q.monthly_report_limit === -1) {
+                        qText.textContent = `${q.reports_used_this_month} Reports (Unlimited)`;
+                    } else {
+                        qText.textContent = `${q.remaining_reports}/${q.monthly_report_limit} Reports`;
+                    }
+                    pill.style.display = 'inline-flex';
+                }
+            }
+        }).catch(err => {
+            console.warn('Quota load failed:', err);
+        });
+    }
+
     // Domain-specific stats and actions
     const grid = document.getElementById('actionCardsGrid');
     if (grid) {
@@ -3261,6 +3293,223 @@ window.loadCriminalDemoCase = () => {
 window.loadCivilDemoCase = () => {
     if (typeof window.loadSampleCaseData === 'function') {
         window.loadSampleCaseData(window.SAMPLE_CIVIL_PRESET);
+    }
+};
+
+// ============================================================================
+// ADMIN CONTROL CENTER FUNCTIONS
+// ============================================================================
+
+let adminCachedUsers = [];
+let adminAuthToken = null;
+
+window.openAdminPortal = async () => {
+    const user = window.state.currentUser;
+    const userEmail = (user && user.email ? user.email : 'admin@judiq.ai').toLowerCase().trim();
+    
+    const adminEmailEl = document.getElementById('adminSessionEmail');
+    if (adminEmailEl) adminEmailEl.textContent = userEmail;
+
+    switchScreen('adminPortalScreen');
+    await window.loadAdminPortalData();
+};
+
+window.loadAdminPortalData = async () => {
+    const user = window.state.currentUser;
+    const userEmail = (user && user.email ? user.email : 'admin@judiq.ai').toLowerCase().trim();
+
+    try {
+        // Authenticate admin session
+        const authRes = await api.verifyAdminAuth(userEmail);
+        if (!authRes || !authRes.is_admin) {
+            if (window.ui) window.ui.toast('Access Denied: Administrative privileges required.', 'error');
+            showDashboard();
+            return;
+        }
+        adminAuthToken = authRes.token;
+
+        // Fetch stats
+        const statsRes = await api.getAdminStats(adminAuthToken);
+        if (statsRes && statsRes.success && statsRes.stats) {
+            const s = statsRes.stats;
+            const setStat = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+            setStat('statTotalUsers', s.total_users || 0);
+            setStat('statActiveUsers', s.active_users || 0);
+            setStat('statReportsThisMonth', s.total_reports_this_month || 0);
+            setStat('statCurrentPeriod', s.current_period || '--');
+            setStat('statTotalCases', s.total_saved_cases || 0);
+            setStat('statAuditEvents', s.total_audit_events || 0);
+        }
+
+        // Fetch users
+        const usersRes = await api.getAdminUsers(adminAuthToken);
+        if (usersRes && usersRes.success && Array.isArray(usersRes.users)) {
+            adminCachedUsers = usersRes.users;
+            window.renderAdminUsersTable(adminCachedUsers);
+        }
+    } catch (err) {
+        console.error('Error loading admin portal data:', err);
+        if (window.ui) window.ui.toast('Failed to load admin data: ' + err.message, 'error');
+    }
+};
+
+window.renderAdminUsersTable = (users) => {
+    const tbody = document.getElementById('adminUsersTableBody');
+    if (!tbody) return;
+
+    if (!users || users.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
+                    <i class="fas fa-user-slash" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+                    No litigator accounts found matching filter.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = users.map(u => {
+        const isUnlimited = u.monthly_report_limit === -1;
+        const used = u.reports_used_this_month || 0;
+        const limit = isUnlimited ? '∞' : u.monthly_report_limit;
+        const pct = isUnlimited ? 0 : Math.min(100, Math.round((used / Math.max(1, u.monthly_report_limit)) * 100));
+        const isWarning = pct >= 80;
+
+        const statusBadge = u.is_active
+            ? `<span class="status-badge-active"><i class="fas fa-circle-check"></i> Active</span>`
+            : `<span class="status-badge-suspended"><i class="fas fa-circle-xmark"></i> Suspended</span>`;
+
+        return `
+            <tr id="adminRow_${u.user_id}">
+                <td>
+                    <div style="font-weight: 700; color: var(--gray-900);">${u.email || 'Anonymous Litigator'}</div>
+                    <div style="font-size: 0.75rem; color: var(--gray-400); font-family: monospace;">${u.user_id}</div>
+                </td>
+                <td>
+                    <select id="adminRole_${u.user_id}" style="padding: 0.3rem 0.6rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--gray-50); font-size: 0.8rem; font-weight: 600; color: var(--gray-800);">
+                        <option value="law_firm" ${u.role === 'law_firm' ? 'selected' : ''}>Law Firm</option>
+                        <option value="enterprise" ${u.role === 'enterprise' ? 'selected' : ''}>Enterprise / Corporate</option>
+                        <option value="citizen" ${u.role === 'citizen' ? 'selected' : ''}>Independent Litigator</option>
+                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>System Administrator</option>
+                    </select>
+                </td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.3rem;">
+                        <input type="number" id="adminLimit_${u.user_id}" value="${u.monthly_report_limit}" style="width: 70px; padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 700; text-align: center;">
+                        <span style="font-size: 0.75rem; color: var(--gray-500);">reports/mo</span>
+                    </div>
+                    <div style="display: flex; gap: 0.25rem;">
+                        <button class="quota-preset-btn" onclick="window.setQuotaPreset('${u.user_id}', 10)">10</button>
+                        <button class="quota-preset-btn" onclick="window.setQuotaPreset('${u.user_id}', 25)">25</button>
+                        <button class="quota-preset-btn" onclick="window.setQuotaPreset('${u.user_id}', 50)">50</button>
+                        <button class="quota-preset-btn" onclick="window.setQuotaPreset('${u.user_id}', 100)">100</button>
+                        <button class="quota-preset-btn" onclick="window.setQuotaPreset('${u.user_id}', -1)" title="Unlimited">∞</button>
+                    </div>
+                </td>
+                <td>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; color: var(--gray-800);">
+                        <span>${used} used</span>
+                        <span>/ ${limit}</span>
+                    </div>
+                    <div class="quota-progress-track">
+                        <div class="quota-progress-fill ${isWarning ? 'warning' : ''}" style="width: ${pct}%;"></div>
+                    </div>
+                </td>
+                <td>
+                    ${statusBadge}
+                </td>
+                <td style="text-align: right;">
+                    <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                        <button class="btn btn-sm btn-primary" onclick="window.saveUserQuota('${u.user_id}', '${u.email || ''}')" title="Save Allocation Changes" style="padding: 0.3rem 0.6rem; font-size: 0.78rem;">
+                            <i class="fas fa-check"></i> Save
+                        </button>
+                        <button class="btn btn-sm btn-outline" onclick="window.resetUserUsage('${u.user_id}')" title="Reset Monthly Usage" style="padding: 0.3rem 0.55rem; font-size: 0.78rem;">
+                            <i class="fas fa-arrow-rotate-left"></i> Reset
+                        </button>
+                        <button class="btn btn-sm ${u.is_active ? 'btn-danger' : 'btn-secondary'}" onclick="window.toggleUserStatus('${u.user_id}', ${u.is_active})" title="${u.is_active ? 'Suspend Account' : 'Activate Account'}" style="padding: 0.3rem 0.55rem; font-size: 0.78rem;">
+                            <i class="fas ${u.is_active ? 'fa-ban' : 'fa-check-circle'}"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+};
+
+window.filterAdminUsersTable = () => {
+    const input = document.getElementById('adminUserSearchInput');
+    const query = (input ? input.value : '').toLowerCase().trim();
+    if (!query) {
+        window.renderAdminUsersTable(adminCachedUsers);
+        return;
+    }
+    const filtered = adminCachedUsers.filter(u => 
+        (u.email && u.email.toLowerCase().includes(query)) ||
+        (u.user_id && u.user_id.toLowerCase().includes(query)) ||
+        (u.role && u.role.toLowerCase().includes(query))
+    );
+    window.renderAdminUsersTable(filtered);
+};
+
+window.setQuotaPreset = (userId, limit) => {
+    const input = document.getElementById(`adminLimit_${userId}`);
+    if (input) input.value = limit;
+};
+
+window.saveUserQuota = async (userId, email) => {
+    if (!adminAuthToken) return;
+    const limitInput = document.getElementById(`adminLimit_${userId}`);
+    const roleSelect = document.getElementById(`adminRole_${userId}`);
+    const monthlyLimit = limitInput ? parseInt(limitInput.value, 10) : 25;
+    const role = roleSelect ? roleSelect.value : 'law_firm';
+
+    try {
+        const res = await api.allocateUserQuota(userId, monthlyLimit, role, email, adminAuthToken);
+        if (res && res.success) {
+            if (window.ui) window.ui.toast(`Quota updated: ${monthlyLimit === -1 ? 'Unlimited' : monthlyLimit} reports/mo.`, 'success');
+            await window.loadAdminPortalData();
+        } else {
+            if (window.ui) window.ui.toast(res.detail || 'Failed to update quota', 'error');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Quota update error: ' + err.message, 'error');
+    }
+};
+
+window.resetUserUsage = async (userId) => {
+    if (!adminAuthToken) return;
+    if (!confirm('Reset monthly report usage counter to 0 for this litigator?')) return;
+
+    try {
+        const res = await api.resetUserUsage(userId, adminAuthToken);
+        if (res && res.success) {
+            if (window.ui) window.ui.toast('Usage counter reset to 0.', 'success');
+            await window.loadAdminPortalData();
+        } else {
+            if (window.ui) window.ui.toast(res.detail || 'Failed to reset usage', 'error');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Reset error: ' + err.message, 'error');
+    }
+};
+
+window.toggleUserStatus = async (userId, currentStatus) => {
+    if (!adminAuthToken) return;
+    const newStatus = !currentStatus;
+    const actionName = newStatus ? 'Activate' : 'Suspend';
+    if (!confirm(`${actionName} this user account?`)) return;
+
+    try {
+        const res = await api.toggleUserStatus(userId, newStatus, adminAuthToken);
+        if (res && res.success) {
+            if (window.ui) window.ui.toast(`Account ${newStatus ? 'activated' : 'suspended'}.`, 'success');
+            await window.loadAdminPortalData();
+        } else {
+            if (window.ui) window.ui.toast(res.detail || 'Failed to toggle status', 'error');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Status error: ' + err.message, 'error');
     }
 };
 

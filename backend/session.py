@@ -175,8 +175,21 @@ class DatabaseManager:
                     timestamp TEXT
                 )
             """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS user_quotas (
+                    user_id TEXT PRIMARY KEY,
+                    email TEXT,
+                    role TEXT DEFAULT 'law_firm',
+                    monthly_report_limit INTEGER DEFAULT 25,
+                    reports_used_this_month INTEGER DEFAULT 0,
+                    current_month_period TEXT,
+                    is_active INTEGER DEFAULT 1,
+                    created_at TEXT,
+                    updated_at TEXT
+                )
+            """)
             conn.commit()
-            logger.info("Database and Caseroom tables initialized successfully.")
+            logger.info("Database, Caseroom, and User Quota tables initialized successfully.")
         except Exception as e:
             logger.error(f"Database init failed: {e}")
             raise e
@@ -513,6 +526,297 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Failed to fetch draft history: {e}")
             return []
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def get_or_create_user_quota(user_id: str, email: str = "", role: str = "law_firm", default_limit: int = 25) -> dict:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            current_month = datetime.now().strftime("%Y-%m")
+            now_iso = datetime.now().isoformat()
+
+            cursor.execute(f"""
+                SELECT user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at
+                FROM user_quotas
+                WHERE user_id = {p}
+            """, (user_id,))
+            row = cursor.fetchone()
+
+            if not row:
+                cursor.execute(f"""
+                    INSERT INTO user_quotas
+                    (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at)
+                    VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+                """, (user_id, email, role, default_limit, 0, current_month, 1, now_iso, now_iso))
+                conn.commit()
+                return {
+                    "user_id": user_id,
+                    "email": email,
+                    "role": role,
+                    "monthly_report_limit": default_limit,
+                    "reports_used_this_month": 0,
+                    "remaining_reports": default_limit if default_limit != -1 else 999999,
+                    "current_month_period": current_month,
+                    "is_active": True,
+                    "created_at": now_iso,
+                    "updated_at": now_iso
+                }
+
+            # If existing user, check if month period rolled over
+            db_user_id, db_email, db_role, db_limit, db_used, db_period, db_active, db_created, db_updated = row
+            if db_period != current_month:
+                db_used = 0
+                cursor.execute(f"""
+                    UPDATE user_quotas
+                    SET reports_used_this_month = 0, current_month_period = {p}, updated_at = {p}
+                    WHERE user_id = {p}
+                """, (current_month, now_iso, user_id))
+                conn.commit()
+
+            # Update email or role if provided and changed
+            if email and email != db_email:
+                cursor.execute(f"UPDATE user_quotas SET email = {p}, updated_at = {p} WHERE user_id = {p}", (email, now_iso, user_id))
+                conn.commit()
+                db_email = email
+
+            limit = int(db_limit)
+            used = int(db_used)
+            remaining = (limit - used) if limit != -1 else 999999
+
+            return {
+                "user_id": db_user_id,
+                "email": db_email or email,
+                "role": db_role,
+                "monthly_report_limit": limit,
+                "reports_used_this_month": used,
+                "remaining_reports": max(0, remaining),
+                "current_month_period": current_month,
+                "is_active": bool(db_active),
+                "created_at": db_created,
+                "updated_at": db_updated
+            }
+        except Exception as e:
+            logger.error(f"Error in get_or_create_user_quota: {e}")
+            return {
+                "user_id": user_id,
+                "email": email,
+                "role": role,
+                "monthly_report_limit": default_limit,
+                "reports_used_this_month": 0,
+                "remaining_reports": default_limit,
+                "current_month_period": datetime.now().strftime("%Y-%m"),
+                "is_active": True
+            }
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def check_and_consume_report_quota(user_id: str, email: str = "", cost: int = 1) -> dict:
+        """
+        Atomically checks if the user has available monthly report quota and consumes `cost` units.
+        Returns dict with `allowed`, `current_usage`, `monthly_limit`, `remaining`.
+        """
+        quota = DatabaseManager.get_or_create_user_quota(user_id, email)
+        if not quota["is_active"]:
+            return {
+                "allowed": False,
+                "reason": "USER_SUSPENDED",
+                "message": "Your account has been suspended by the administrator.",
+                "quota": quota
+            }
+
+        limit = quota["monthly_report_limit"]
+        used = quota["reports_used_this_month"]
+
+        # -1 represents unlimited reports
+        if limit != -1 and (used + cost) > limit:
+            return {
+                "allowed": False,
+                "reason": "QUOTA_EXCEEDED",
+                "message": f"Monthly report limit reached ({used}/{limit} reports used). Please contact your administrator for an allocation increase.",
+                "quota": quota
+            }
+
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now_iso = datetime.now().isoformat()
+            new_used = used + cost
+
+            cursor.execute(f"""
+                UPDATE user_quotas
+                SET reports_used_this_month = {p}, updated_at = {p}
+                WHERE user_id = {p}
+            """, (new_used, now_iso, user_id))
+            conn.commit()
+
+            quota["reports_used_this_month"] = new_used
+            quota["remaining_reports"] = (limit - new_used) if limit != -1 else 999999
+            return {
+                "allowed": True,
+                "reason": "OK",
+                "quota": quota
+            }
+        except Exception as e:
+            logger.error(f"Error consuming report quota: {e}")
+            return {
+                "allowed": True,
+                "reason": "FALLBACK_ALLOWED",
+                "quota": quota
+            }
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def get_all_users_quotas() -> list:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at
+                FROM user_quotas
+                ORDER BY updated_at DESC
+            """)
+            rows = cursor.fetchall()
+            current_month = datetime.now().strftime("%Y-%m")
+            users = []
+            for r in rows:
+                limit = int(r[3])
+                used = int(r[4]) if r[5] == current_month else 0
+                remaining = (limit - used) if limit != -1 else 999999
+                users.append({
+                    "user_id": r[0],
+                    "email": r[1] or "N/A",
+                    "role": r[2] or "law_firm",
+                    "monthly_report_limit": limit,
+                    "reports_used_this_month": used,
+                    "remaining_reports": max(0, remaining),
+                    "current_month_period": current_month,
+                    "is_active": bool(r[6]),
+                    "created_at": r[7],
+                    "updated_at": r[8]
+                })
+            return users
+        except Exception as e:
+            logger.error(f"Error fetching all user quotas: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def update_user_quota_allocation(user_id: str, monthly_limit: int = None, is_active: bool = None, role: str = None, email: str = None) -> bool:
+        conn = None
+        try:
+            # Ensure user exists first
+            DatabaseManager.get_or_create_user_quota(user_id, email or "")
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now_iso = datetime.now().isoformat()
+
+            updates = ["updated_at = " + p]
+            params = [now_iso]
+
+            if monthly_limit is not None:
+                updates.append("monthly_report_limit = " + p)
+                params.append(int(monthly_limit))
+            if is_active is not None:
+                updates.append("is_active = " + p)
+                params.append(1 if is_active else 0)
+            if role is not None:
+                updates.append("role = " + p)
+                params.append(str(role))
+            if email is not None and email.strip():
+                updates.append("email = " + p)
+                params.append(str(email).strip())
+
+            params.append(user_id)
+            query = f"UPDATE user_quotas SET {', '.join(updates)} WHERE user_id = {p}"
+            cursor.execute(query, tuple(params))
+            conn.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Error updating user quota: {e}")
+            return False
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def reset_user_monthly_usage(user_id: str) -> bool:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now_iso = datetime.now().isoformat()
+            cursor.execute(f"""
+                UPDATE user_quotas
+                SET reports_used_this_month = 0, updated_at = {p}
+                WHERE user_id = {p}
+            """, (now_iso, user_id))
+            conn.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Error resetting user monthly usage: {e}")
+            return False
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def get_platform_admin_stats() -> dict:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            current_month = datetime.now().strftime("%Y-%m")
+
+            cursor.execute("SELECT COUNT(*) FROM user_quotas")
+            total_users = cursor.fetchone()[0]
+
+            cursor.execute("SELECT COUNT(*) FROM user_quotas WHERE is_active = 1")
+            active_users = cursor.fetchone()[0]
+
+            cursor.execute("SELECT SUM(reports_used_this_month) FROM user_quotas WHERE current_month_period = ?", (current_month,))
+            res = cursor.fetchone()[0]
+            total_reports_this_month = int(res) if res is not None else 0
+
+            cursor.execute("SELECT COUNT(*) FROM saved_cases")
+            total_saved_cases = cursor.fetchone()[0]
+
+            cursor.execute("SELECT COUNT(*) FROM audit_logs")
+            total_audit_events = cursor.fetchone()[0]
+
+            return {
+                "total_users": total_users,
+                "active_users": active_users,
+                "total_reports_this_month": total_reports_this_month,
+                "total_saved_cases": total_saved_cases,
+                "total_audit_events": total_audit_events,
+                "current_period": current_month
+            }
+        except Exception as e:
+            logger.error(f"Error getting platform admin stats: {e}")
+            return {
+                "total_users": 0,
+                "active_users": 0,
+                "total_reports_this_month": 0,
+                "total_saved_cases": 0,
+                "total_audit_events": 0,
+                "current_period": datetime.now().strftime("%Y-%m")
+            }
         finally:
             if conn:
                 conn.close()

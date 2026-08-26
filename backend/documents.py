@@ -10,8 +10,21 @@ import re
 @router.post("/generate-pdf")
 def generate_pdf(data: dict = Body(...)):
     try:
-        pdf_bytes = PDFGenerator.generate_report(data)
+        from session import DatabaseManager
         case_data = data.get("case_data", {}) if isinstance(data, dict) else {}
+        user_id = data.get("user_id") or case_data.get("user_id") or ""
+        email = data.get("email") or ""
+        
+        if user_id and user_id not in {"ANONYMOUS", "demo_user_123"}:
+            quota_res = DatabaseManager.check_and_consume_report_quota(user_id, email, cost=1)
+            if not quota_res["allowed"]:
+                return JSONResponse(status_code=429, content={
+                    "error": quota_res["message"],
+                    "reason": quota_res["reason"],
+                    "quota": quota_res.get("quota")
+                })
+
+        pdf_bytes = PDFGenerator.generate_report(data)
         case_title = case_data.get("case_title") or case_data.get("case_caption") or data.get("case_title") or data.get("case_id") or "Legal_Report"
         safe_title = re.sub(r'[^a-zA-Z0-9_\-\s]', '', str(case_title)).strip().replace(' ', '_')[:60] or "Legal_Report"
         filename = f"JUDIQ_Report_{safe_title}.pdf"

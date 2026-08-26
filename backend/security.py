@@ -93,12 +93,44 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     if not payload or "sub" not in payload:
         raise HTTPException(status_code=401, detail="Invalid or Expired Token")
     return payload["sub"]
+
 def get_current_user_optional(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)) -> str:
     if credentials:
         payload = SecurityManager.verify_token(credentials.credentials)
         if payload and "sub" in payload:
             return payload["sub"]
     return "ANONYMOUS"
+
+DEFAULT_ADMIN_EMAILS = {"admin@judiq.ai", "gandhiatharv565@gmail.com"}
+ENV_ADMIN_EMAILS = {e.strip().lower() for e in os.getenv("ADMIN_EMAILS", "").split(",") if e.strip()}
+ADMIN_EMAILS = DEFAULT_ADMIN_EMAILS.union(ENV_ADMIN_EMAILS)
+
+def is_admin_user(user_id: str, email: str = "") -> bool:
+    if not user_id:
+        return False
+    if email and email.strip().lower() in ADMIN_EMAILS:
+        return True
+    if user_id.strip().lower() in ADMIN_EMAILS:
+        return True
+    if user_id.startswith("admin_") or user_id == "admin":
+        return True
+    return False
+
+def require_admin(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)) -> dict:
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Missing Authentication Token")
+    payload = SecurityManager.verify_token(credentials.credentials)
+    if not payload or "sub" not in payload:
+        raise HTTPException(status_code=401, detail="Invalid or Expired Token")
+    
+    user_id = payload.get("sub", "")
+    email = payload.get("email", "")
+    role = payload.get("role", "")
+
+    if role == "admin" or is_admin_user(user_id, email):
+        return {"user_id": user_id, "email": email, "role": "admin"}
+
+    raise HTTPException(status_code=403, detail="Access Denied: Administrator Privileges Required")
 class SecurityTelemetry:
     # Basic injection pattern signatures to flag for manual review
     _THREAT_PATTERNS = [

@@ -155,6 +155,72 @@ export const api = {
             body: formData
         }, 0);
         try { return await response.json(); } catch (e) { throw new Error("Invalid JSON from server."); }
+    },
+
+    async getUserQuota(userId, email = '') {
+        const response = await fetchWithRetry(
+            `${API_BASE_URL}/api/v1/user/quota?user_id=${encodeURIComponent(userId)}&email=${encodeURIComponent(email)}`
+        );
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load user quota."); }
+    },
+
+    async verifyAdminAuth(email) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/auth/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Admin verification failed."); }
+    },
+
+    async getAdminStats(token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/stats`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load admin stats."); }
+    },
+
+    async getAdminUsers(token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/users`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load user list."); }
+    },
+
+    async allocateUserQuota(userId, monthlyLimit, role = 'law_firm', email = '', token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/users/allocate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ user_id: userId, monthly_limit: monthlyLimit, role, email })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to update user quota."); }
+    },
+
+    async resetUserUsage(userId, token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/users/reset-usage`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ user_id: userId })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to reset user usage."); }
+    },
+
+    async toggleUserStatus(userId, isActive, token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/users/toggle-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ user_id: userId, is_active: isActive })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to toggle user status."); }
     }
 };
 

@@ -3208,4 +3208,102 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 [data-theme="light"] .domain-card.selected--civil { background: #f5f3ff !important; border-color: #7c3aed !important; }
 [data-theme="light"] .domain-card.selected--civil .dc-title { color: #5b21b6 !important; }
 
+/* ============================================================================
+   22. ADMIN CONTROL CENTER & USER QUOTA STYLES
+   ============================================================================ */
+
+.admin-portal-btn {
+    transition: all 0.2s ease;
+}
+.admin-portal-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.45) !important;
+}
+
+.user-quota-pill {
+    transition: all 0.2s ease;
+}
+.user-quota-pill:hover {
+    background: var(--primary-100) !important;
+}
+
+.admin-data-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+.admin-data-table th {
+    font-weight: 700;
+    color: var(--gray-600);
+}
+.admin-data-table td {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+.admin-data-table tr:hover td {
+    background: rgba(245, 158, 11, 0.03);
+}
+
+.quota-preset-btn {
+    padding: 0.2rem 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background: var(--gray-100);
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.quota-preset-btn:hover {
+    background: var(--primary-500);
+    color: #ffffff;
+    border-color: var(--primary-500);
+}
+
+.quota-progress-track {
+    width: 100%;
+    height: 6px;
+    background: var(--gray-200);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+.quota-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #3b82f6);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+.quota-progress-fill.warning {
+    background: linear-gradient(90deg, #f59e0b, #ef4444);
+}
+
+.status-badge-active {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.status-badge-suspended {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+
 
