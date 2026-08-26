@@ -1723,21 +1723,21 @@
                 <div id="tabDetailed" class="tab-content hidden">
                 
                 <!-- Limitation Countdown (Expert Fix) -->
-                <div id="limitationCountdown" class="result-card hidden" style="border-left: 5px solid var(--error-500);">
-                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <div>
-                            <h3 style="color: var(--error-600); margin-bottom: 0.25rem;">
+                <div id="limitationCountdown" class="result-card limitation-clock-card hidden">
+                    <div class="limitation-clock-header">
+                        <div class="limitation-clock-info">
+                            <div class="limitation-clock-badge">
                                 <i class="fas fa-hourglass-half"></i> Statutory Limitation Clock
-                            </h3>
-                            <p id="limitationMessage" style="font-size: 0.9rem; color: var(--gray-600);">Calculating remaining filing window...</p>
+                            </div>
+                            <p id="limitationMessage" class="limitation-clock-desc">Calculating remaining filing window...</p>
                         </div>
-                        <div style="text-align: right;">
-                            <div id="countdownDays" style="font-size: 2rem; font-weight: 800; color: var(--error-600);">--</div>
-                            <div style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Days Remaining</div>
+                        <div class="limitation-clock-status">
+                            <div id="countdownDays" class="limitation-days-number">--</div>
+                            <div class="limitation-days-label">Days Remaining</div>
                         </div>
                     </div>
-                    <div id="limitationStatusBar" style="height: 6px; background: var(--gray-100); border-radius: 99px; margin-top: 1rem; overflow: hidden;">
-                        <div id="limitationStatusFill" style="height: 100%; width: 0%; background: var(--error-500); transition: width 0.5s ease;"></div>
+                    <div id="limitationStatusBar" class="limitation-progress-track">
+                        <div id="limitationStatusFill" class="limitation-progress-bar"></div>
                     </div>
                 </div>
 

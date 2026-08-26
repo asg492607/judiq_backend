@@ -538,42 +538,43 @@ export function renderLimitationClock(data) {
 
     if (condonationActive) {
         clockEl.classList.remove('hidden');
-        clockEl.style.borderLeft = "5px solid var(--primary-500)";
-        clockEl.style.background = "var(--primary-50)";
+        clockEl.style.borderLeftColor = "var(--primary-500)";
+        clockEl.style.background = "#f0fdf4";
         daysEl.textContent = "CONDONED";
-        daysEl.style.fontSize = "1.2rem";
-        daysEl.style.color = "var(--primary-600)";
-        msgEl.innerHTML = "<strong><i class='fas fa-clock-rotate-left'></i> DELAY CONDONED:</strong> Section 142(1)(b) Condonation of Delay Application attached. Statutory clock extension active.";
+        daysEl.style.fontSize = "1.3rem";
+        daysEl.style.color = "#16a34a";
+        msgEl.innerHTML = "<strong><i class='fas fa-clock-rotate-left'></i> Delay Condoned:</strong> Section 142(1)(b) Condonation Application attached. Statutory filing clock extended.";
         fillEl.style.width = "100%";
-        fillEl.style.background = "var(--primary-500)";
+        fillEl.style.background = "linear-gradient(90deg, #10b981, #059669)";
     } else if (daysRemaining !== null) {
         clockEl.classList.remove('hidden');
-        clockEl.style.background = "var(--white)";
-        
         if (daysRemaining <= 0) {
-            clockEl.style.borderLeft = "5px solid var(--error-500)";
+            clockEl.style.borderLeftColor = "var(--error-500)";
+            clockEl.style.background = "#fffbfb";
             daysEl.textContent = "EXPIRED";
-            daysEl.style.fontSize = "1.3rem";
+            daysEl.style.fontSize = "1.35rem";
             daysEl.style.color = "var(--error-600)";
             msgEl.innerHTML = "<strong>CRITICAL: Limitation period has expired.</strong> Case may be time-barred unless Condonation of Delay (S.142(1)(b)) is attached.";
             fillEl.style.width = "100%";
-            fillEl.style.background = "var(--error-600)";
+            fillEl.style.background = "linear-gradient(90deg, #ef4444, #dc2626)";
         } else if (daysRemaining <= 7) {
-            clockEl.style.borderLeft = "5px solid var(--warning-500)";
-            daysEl.textContent = daysRemaining;
-            daysEl.style.fontSize = "2rem";
+            clockEl.style.borderLeftColor = "var(--warning-500)";
+            clockEl.style.background = "#fffdfa";
+            daysEl.textContent = `${daysRemaining} Days`;
+            daysEl.style.fontSize = "1.55rem";
             daysEl.style.color = "var(--warning-600)";
-            msgEl.textContent = message;
-            fillEl.style.width = `${((30 - daysRemaining) / 30) * 100}%`;
-            fillEl.style.background = "var(--warning-500)";
+            msgEl.textContent = message || `Urgent: Only ${daysRemaining} days remaining in statutory filing window.`;
+            fillEl.style.width = `${Math.min(100, Math.max(10, ((30 - daysRemaining) / 30) * 100))}%`;
+            fillEl.style.background = "linear-gradient(90deg, #f59e0b, #d97706)";
         } else {
-            clockEl.style.borderLeft = "5px solid var(--primary-500)";
-            daysEl.textContent = daysRemaining;
-            daysEl.style.fontSize = "2rem";
+            clockEl.style.borderLeftColor = "var(--primary-500)";
+            clockEl.style.background = "#ffffff";
+            daysEl.textContent = `${daysRemaining} Days`;
+            daysEl.style.fontSize = "1.55rem";
             daysEl.style.color = "var(--primary-600)";
-            msgEl.textContent = message;
-            fillEl.style.width = `${((30 - daysRemaining) / 30) * 100}%`;
-            fillEl.style.background = "var(--primary-500)";
+            msgEl.textContent = message || `Statutory window open. ${daysRemaining} days remaining to file.`;
+            fillEl.style.width = `${Math.min(100, Math.max(10, ((30 - daysRemaining) / 30) * 100))}%`;
+            fillEl.style.background = "linear-gradient(90deg, #3b82f6, #2563eb)";
         }
     } else {
         clockEl.classList.add('hidden');
