@@ -1,13 +1,24 @@
 import logging
 from typing import Dict, Any, Optional, List
-from fastapi import APIRouter, Body, Query, HTTPException
+from fastapi import APIRouter, Body, Query, HTTPException, Depends
 from pydantic import BaseModel, Field
 
 from .recovery_engine import BankRecoveryEngine
 from .rule_registry import STATUTORY_RULE_REGISTRY
+from security import SecurityManager, get_current_user_optional, is_admin_user
+from session import DatabaseManager
 
 logger = logging.getLogger("JudiQ.BankRouter")
 router = APIRouter()
+
+
+class BankLoginRequest(BaseModel):
+    officer_id: str = Field(..., description="Bank Officer ID or Employee Code")
+    bank_name: Optional[str] = Field("State Bank of India", description="Bank / Financial Institution Name")
+    branch_name: Optional[str] = Field("SBI — Stressed Asset Recovery Branch (SARB Mumbai)", description="Branch / Recovery Cell Name")
+    officer_name: Optional[str] = Field(None, description="Officer Full Name")
+    email: Optional[str] = Field(None, description="Official Bank Email")
+    password: Optional[str] = Field(None, description="Optional Access PIN or Passcode")
 
 
 class RecoveryAuditRequest(BaseModel):
@@ -42,6 +53,100 @@ class DispatchBriefRequest(BaseModel):
     notes: Optional[str] = Field(None, description="Special Instructions / Recovery Mandate")
 
 
+@router.post("/auth/login", tags=["Banking & Recovery OS"])
+def bank_officer_login(req: BankLoginRequest = Body(...)):
+    """
+    Authenticates a Bank Recovery Officer or institutional representative.
+    Supports instant branch switching, institutional accounts, and universal admin elevation.
+    """
+    off_id = req.officer_id.strip()
+    if not off_id:
+        raise HTTPException(status_code=400, detail="Officer ID cannot be empty.")
+
+    # Check if universal admin
+    is_admin = is_admin_user(off_id, req.email or "")
+
+    officer_profile = DatabaseManager.get_or_create_bank_officer(
+        officer_id=off_id,
+        name=req.officer_name or "",
+        bank_name=req.bank_name or "",
+        branch_name=req.branch_name or "",
+        email=req.email or ""
+    )
+
+    if not officer_profile.get("is_active", True) and not is_admin:
+        raise HTTPException(status_code=403, detail="Bank officer account has been suspended by system administrator.")
+
+    role = "admin" if is_admin else officer_profile.get("role", "bank_officer")
+    token = SecurityManager.create_access_token(data={
+        "sub": off_id,
+        "officer_id": off_id,
+        "bank_name": officer_profile.get("bank_name"),
+        "branch_name": officer_profile.get("branch_name"),
+        "email": officer_profile.get("email"),
+        "role": role,
+        "is_admin": is_admin
+    })
+
+    return {
+        "success": True,
+        "token": token,
+        "officer": officer_profile,
+        "is_admin": is_admin,
+        "role": role,
+        "message": f"Successfully authenticated as {officer_profile.get('name', off_id)} ({officer_profile.get('bank_name', 'Bank')})"
+    }
+
+
+@router.get("/auth/profile", tags=["Banking & Recovery OS"])
+def get_bank_profile(officer_id: str = Query(..., description="Officer ID")):
+    """
+    Retrieves the current bank officer profile, branch designation, and remaining monthly recovery audit quota.
+    """
+    profile = DatabaseManager.get_or_create_bank_officer(officer_id)
+    return {"success": True, "officer": profile}
+
+
+@router.get("/branches", tags=["Banking & Recovery OS"])
+def get_institutional_branches():
+    """
+    Returns pre-configured institutional partner branches and recovery units.
+    """
+    return {
+        "success": True,
+        "branches": [
+            {
+                "id": "SBI_SARB_MUM",
+                "bank_name": "State Bank of India",
+                "branch_name": "SBI — Stressed Asset Recovery Branch (SARB Mumbai)",
+                "default_officer_id": "OFFICER_SARB_842",
+                "officer_name": "Rajesh Nambiar (Chief Recovery Manager)"
+            },
+            {
+                "id": "PNB_CFS_DEL",
+                "bank_name": "Punjab National Bank",
+                "branch_name": "PNB — Large Corporate Recovery Division (Delhi)",
+                "default_officer_id": "OFFICER_DEL_LCR_419",
+                "officer_name": "Vikram Rathore (Senior Manager - Legal)"
+            },
+            {
+                "id": "HDFC_WLR_MUM",
+                "bank_name": "HDFC Bank",
+                "branch_name": "HDFC Bank — Wholesale Recovery Dept (Mumbai)",
+                "default_officer_id": "OFFICER_MUM_WLR_302",
+                "officer_name": "Anand Kulkarni (Vice President - Stressed Assets)"
+            },
+            {
+                "id": "BOB_SAMB_AHM",
+                "bank_name": "Bank of Baroda",
+                "branch_name": "BOB — Stressed Assets Management Branch (SAMB Ahmedabad)",
+                "default_officer_id": "OFFICER_PUN_SAMB_512",
+                "officer_name": "Priya Patel (Legal Counsel & Recovery Officer)"
+            }
+        ]
+    }
+
+
 @router.post("/recovery-audit", tags=["Banking & Recovery OS"])
 def run_recovery_audit(req: RecoveryAuditRequest = Body(...)):
     """
@@ -50,11 +155,37 @@ def run_recovery_audit(req: RecoveryAuditRequest = Body(...)):
     evidence completeness, and generates an auditable compliance ledger entry.
     """
     data = req.model_dump()
+    off_id = req.officer_id or "OFFICER_SARB_842"
+    branch = req.branch_name or "State Bank of India — SARB"
+
     result = BankRecoveryEngine.evaluate_recovery_case(
         case_data=data,
-        officer_id=req.officer_id or "OFFICER_SARB_842",
-        branch_name=req.branch_name or "State Bank of India — SARB"
+        officer_id=off_id,
+        branch_name=branch
     )
+
+    # Persist audit to DB ledger
+    try:
+        viability = result.get("readiness_score", 0)
+        verdict = result.get("verdict_classification", "UNKNOWN")
+        defects = len(result.get("detected_defects", []))
+        audit_id = DatabaseManager.log_bank_audit(
+            officer_id=off_id,
+            bank_name=branch.split("—")[0].strip() if "—" in branch else branch,
+            branch_name=branch,
+            case_type=req.case_type,
+            borrower_name=req.borrower_name,
+            loan_account_no=req.loan_account_no,
+            default_amount=req.default_amount,
+            viability_score=float(viability),
+            verdict=verdict,
+            defect_count=defects,
+            details_json=result
+        )
+        result["persisted_audit_id"] = audit_id
+    except Exception as e:
+        logger.warning(f"Failed to persist bank audit log: {e}")
+
     return result
 
 
