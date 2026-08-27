@@ -2549,35 +2549,29 @@
                     </div>
                     <div>
                         <div class="bank-portal-title">JUDIQ RECOVERY INTELLIGENCE OS</div>
-                        <div class="bank-portal-subtitle">Institutional Stressed Asset Audit &amp; Procedural Compliance Engine (Deterministic Rule-Based Core)</div>
+                        <div class="bank-portal-subtitle">Institutional Banking &amp; Stressed Asset Procedural Compliance Engine</div>
                     </div>
                 </div>
                 <div class="bank-header-right" style="display: flex; align-items: center; gap: 0.75rem;">
                     <!-- Active Bank Officer Badge -->
                     <div id="bankOfficerBadge" class="bank-officer-badge" style="display: inline-flex;">
                         <i class="fas fa-user-check"></i>
-                        <span id="bankOfficerBadgeText">Officer: SBI SARB Mumbai (OFFICER_SARB_842)</span>
+                        <span id="bankOfficerBadgeText">Authorized Bank Officer: State Bank of India</span>
                     </div>
                     <!-- Master Admin Badge (shown if admin) -->
                     <div id="bankMasterAdminBadge" class="admin-master-badge" style="display: none;">
                         <i class="fas fa-crown"></i> Master Admin Access
                     </div>
                     <button id="bankSwitchOfficerBtn" class="btn btn-sm btn-outline" onclick="openBankAuthModal()" style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem;">
-                        <i class="fas fa-right-left"></i> <span>Switch Officer / Login</span>
+                        <i class="fas fa-user-plus"></i> <span>Officer Sign In / Register</span>
                     </button>
-                    <button class="theme-toggle-btn" title="Toggle Light/Dark Mode" onclick="toggleTheme()" style="color: #38bdf8; border-color: rgba(56,189,248,0.3);">
+                    <button class="theme-toggle-btn" title="Toggle Light/Dark Mode" onclick="toggleTheme()" style="color: #0284c7; border-color: rgba(2,132,199,0.3);">
                         <i class="fas fa-moon"></i>
                     </button>
                     <button class="btn btn-outline btn-sm" onclick="switchScreen('landingScreen')" style="gap: 0.4rem;">
-                        <i class="fas fa-arrow-left"></i> Return to Advocate OS
+                        <i class="fas fa-arrow-left"></i> Return to Main Portal
                     </button>
                 </div>
-            </div>
-
-            <!-- Synthetic Environment Simulation Notice -->
-            <div class="bank-synthetic-notice" style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.25); border-radius: 6px; padding: 0.5rem 1rem; margin-bottom: 0.75rem; font-size: 0.78rem; color: #94a3b8; display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-flask" style="color: #38bdf8;"></i>
-                <span><strong>Synthetic Simulation Environment:</strong> Case profiles, loan references, and branch designations are synthetic test scenarios designed for institutional workflow simulation and legal audit review.</span>
             </div>
 
             <!-- Unit & Scenario Quick Launcher Bar -->
@@ -2585,28 +2579,35 @@
                 <div class="bank-unit-selector">
                     <label><i class="fas fa-landmark"></i> Recovery Cell / Branch:</label>
                     <select id="bankBranchName" class="bank-input-select">
-                        <option value="JudiQ Demo Bank — Stressed Asset Recovery Cell (SARB Mumbai Simulation)">JudiQ Demo Bank — Stressed Asset Recovery Cell (SARB Mumbai Simulation)</option>
-                        <option value="JudiQ Demo Bank — SAMB (Ahmedabad Simulation)">JudiQ Demo Bank — SAMB (Ahmedabad Simulation)</option>
-                        <option value="JudiQ Demo Bank — Large Corporate Recovery Division (Delhi Simulation)">JudiQ Demo Bank — Large Corporate Recovery Division (Delhi Simulation)</option>
-                        <option value="JudiQ Demo Bank — Wholesale Recovery Dept (Mumbai Simulation)">JudiQ Demo Bank — Wholesale Recovery Dept (Mumbai Simulation)</option>
+                        <option value="State Bank of India — Stressed Asset Recovery Branch (SARB Mumbai)">State Bank of India — Stressed Asset Recovery Branch (SARB Mumbai)</option>
+                        <option value="Punjab National Bank — Large Corporate Recovery Division (Delhi)">Punjab National Bank — Large Corporate Recovery Division (Delhi)</option>
+                        <option value="HDFC Bank — Wholesale Recovery Dept (Mumbai)">HDFC Bank — Wholesale Recovery Dept (Mumbai)</option>
+                        <option value="Bank of Baroda — SAMB (Ahmedabad)">Bank of Baroda — SAMB (Ahmedabad)</option>
+                        <option value="ICICI Bank — Special Asset Management Group (Pune)">ICICI Bank — Special Asset Management Group (Pune)</option>
+                        <option value="State Bank of India — SAMB (New Delhi)">State Bank of India — SAMB (New Delhi)</option>
+                        <option value="Axis Bank — Stressed Assets Resolution Dept (Bangalore)">Axis Bank — Stressed Assets Resolution Dept (Bangalore)</option>
+                        <option value="Canara Bank — Recovery &amp; Legal Section (Hyderabad)">Canara Bank — Recovery &amp; Legal Section (Hyderabad)</option>
                     </select>
                 </div>
                 <div class="bank-quick-scenarios">
-                    <span class="preset-label"><i class="fas fa-bolt"></i> Scenarios (Basic to Critical):</span>
+                    <button id="bankNewCaseBtn" class="btn btn-outline btn-sm" onclick="resetToBlankCase()" style="background: #ffffff; color: #0284c7; border-color: #0284c7; font-weight: 700;">
+                        <i class="fas fa-plus"></i> New Blank Case
+                    </button>
+                    <span class="preset-label"><i class="fas fa-folder-tree"></i> Institutional Portfolios:</span>
                     <button id="bankLoadDemo85L" class="btn btn-primary btn-sm" title="Tier 1: 100% compliant S.138 default file">
-                        <i class="fas fa-circle-check"></i> Tier 1: ₹8.5L (Clean File)
+                        <i class="fas fa-circle-check"></i> Portfolio 1: ₹8.5L (Clean S.138)
                     </button>
                     <button id="bankLoadDemo14L" class="btn btn-outline btn-sm" title="Tier 2: Missing postal tracking report and 65B statement (Curable)">
-                        <i class="fas fa-wrench"></i> Tier 2: ₹14L (Curable Gap)
+                        <i class="fas fa-wrench"></i> Portfolio 2: ₹14L (Proof of Service Gap)
                     </button>
                     <button id="bankLoadDemo25L" class="btn btn-outline btn-sm" title="Tier 3: Premature complaint filing u/s 138(c) (Fatal Yogendra Pratap Singh bar)">
-                        <i class="fas fa-triangle-exclamation"></i> Tier 3: ₹25L (Premature Trap)
+                        <i class="fas fa-triangle-exclamation"></i> Portfolio 3: ₹25L (Premature Filing Trap)
                     </button>
                     <button id="bankLoadDemo18Cr" class="btn btn-outline btn-sm" title="Tier 4: SARFAESI S.26D CERSAI missing & S.31(i) Agri land bar">
-                        <i class="fas fa-ban"></i> Tier 4: ₹1.8Cr (SARFAESI Bar)
+                        <i class="fas fa-ban"></i> Portfolio 4: ₹1.8Cr (SARFAESI CERSAI Bar)
                     </button>
                     <button id="bankLoadDemo65L" class="btn btn-outline btn-sm" title="Tier 5: Delayed filing with S.142(1)(b) condonation affidavit">
-                        <i class="fas fa-file-signature"></i> Tier 5: ₹65L (S.142 Condonation)
+                        <i class="fas fa-file-signature"></i> Portfolio 5: ₹65L (S.142 Condonation)
                     </button>
                     <span id="bankAuditStatusBadge" class="bank-status-pill">
                         <i class="fas fa-shield-halved"></i> Statutory Rule Engine Ready
@@ -2614,194 +2615,408 @@
                 </div>
             </div>
 
-            <!-- Main Dual Column Workspace -->
-            <div class="bank-workspace-grid">
-                <!-- LEFT COLUMN: Recovery Intake & Evidence Checklist -->
-                <div class="bank-panel bank-intake-panel">
-                    <div class="bank-panel-header">
-                        <h4><i class="fas fa-folder-open"></i> Default Account &amp; Statutory Parameters</h4>
-                        <span class="badge-subtle">Deterministic Input</span>
-                    </div>
+            <!-- Executive Bank OS Function Navigation Strip -->
+            <div class="bank-function-tabs-strip">
+                <button class="bank-fn-tab active" id="bankTabBtnAudit" onclick="switchBankFunctionTab('audit')">
+                    <i class="fas fa-scale-balanced"></i> 1. Statutory Case Intake &amp; Audit
+                </button>
+                <button class="bank-fn-tab" id="bankTabBtnMultiTrack" onclick="switchBankFunctionTab('multiTrack')">
+                    <i class="fas fa-arrows-split-up-and-left"></i> 2. Multi-Track Statutory Orchestrator
+                </button>
+                <button class="bank-fn-tab" id="bankTabBtnDrafter" onclick="switchBankFunctionTab('drafter')">
+                    <i class="fas fa-file-contract"></i> 3. Statutory Legal Notice &amp; 65B Drafter
+                </button>
+                <button class="bank-fn-tab" id="bankTabBtnOTS" onclick="switchBankFunctionTab('ots')">
+                    <i class="fas fa-calculator"></i> 4. OTS vs Litigation NPV Optimizer
+                </button>
+                <button class="bank-fn-tab" id="bankTabBtnAdvocates" onclick="switchBankFunctionTab('advocates')">
+                    <i class="fas fa-user-tie"></i> 5. Empaneled Advocate SLA &amp; Dispatch
+                </button>
+            </div>
 
-                    <div class="bank-form-group">
-                        <label>Statutory Recovery Track / Case Type</label>
-                        <select id="bankCaseType" class="bank-input-select">
-                            <option value="Cheque Bounce (S.138)">Section 138 Negotiable Instruments Act (Cheque Dishonour)</option>
-                            <option value="SARFAESI & Cheque Bounce Concurrent Recovery">SARFAESI S.13(2) + Section 138 Concurrent Enforcement</option>
-                            <option value="SARFAESI Act 2002 (Secured Recovery)">SARFAESI Act 2002 (Chapter III Security Enforcement)</option>
-                        </select>
-                    </div>
-
-                    <div class="bank-form-row">
-                        <div class="bank-form-group flex-2">
-                            <label>Borrower / Accused Entity Name</label>
-                            <input type="text" id="bankBorrowerName" class="bank-input-text" placeholder="e.g. M/s Apex Retailers Pvt Ltd">
+            <!-- ================================================================= -->
+            <!-- VIEW 1: STATUTORY CASE INTAKE & AUDIT                             -->
+            <!-- ================================================================= -->
+            <div id="bankViewAudit" class="bank-function-view active">
+                <div class="bank-workspace-grid">
+                    <!-- LEFT COLUMN: Recovery Intake & Evidence Checklist -->
+                    <div class="bank-panel bank-intake-panel">
+                        <div class="bank-panel-header">
+                            <h4><i class="fas fa-folder-open"></i> Default Account &amp; Statutory Parameters</h4>
+                            <span class="badge-subtle">Deterministic Input</span>
                         </div>
-                        <div class="bank-form-group flex-1">
-                            <label>Loan Ref / Account No</label>
-                            <input type="text" id="bankLoanRefNo" class="bank-input-text" placeholder="SBI/SARB/MUM/2026/85012">
-                        </div>
-                    </div>
 
-                    <div class="bank-form-row">
                         <div class="bank-form-group">
-                            <label>Default Claim Amount (INR ₹)</label>
-                            <input type="number" id="bankDefaultAmount" class="bank-input-text" value="850000">
+                            <label>Statutory Recovery Track / Case Type</label>
+                            <select id="bankCaseType" class="bank-input-select">
+                                <option value="Cheque Bounce (S.138)">Section 138 Negotiable Instruments Act (Cheque Dishonour)</option>
+                                <option value="SARFAESI & Cheque Bounce Concurrent Recovery">SARFAESI S.13(2) + Section 138 Concurrent Enforcement</option>
+                                <option value="SARFAESI Act 2002 (Secured Recovery)">SARFAESI Act 2002 (Chapter III Security Enforcement)</option>
+                            </select>
                         </div>
-                        <div class="bank-form-group">
-                            <label>Cheque Issue Date</label>
-                            <input type="date" id="bankChequeDate" class="bank-input-text" value="2024-01-10">
+
+                        <div class="bank-form-row">
+                            <div class="bank-form-group flex-2">
+                                <label>Borrower / Accused Entity Name</label>
+                                <input type="text" id="bankBorrowerName" class="bank-input-text" placeholder="e.g. Modern Infra &amp; Logistix Ltd">
+                            </div>
+                            <div class="bank-form-group flex-1">
+                                <label>Loan Ref / Account No</label>
+                                <input type="text" id="bankLoanRefNo" class="bank-input-text" placeholder="e.g. SBI/SARB/MUM/2026/04918">
+                            </div>
                         </div>
-                        <div class="bank-form-group">
-                            <label>Cheque Dishonour Date</label>
-                            <input type="date" id="bankDishonourDate" class="bank-input-text" value="2024-01-18">
+
+                        <div class="bank-form-row">
+                            <div class="bank-form-group">
+                                <label>Default Claim Amount (INR ₹)</label>
+                                <input type="number" id="bankDefaultAmount" class="bank-input-text" placeholder="e.g. 1500000">
+                            </div>
+                            <div class="bank-form-group">
+                                <label>Cheque Issue Date</label>
+                                <input type="date" id="bankChequeDate" class="bank-input-text">
+                            </div>
+                            <div class="bank-form-group">
+                                <label>Cheque Dishonour Date</label>
+                                <input type="date" id="bankDishonourDate" class="bank-input-text">
+                            </div>
                         </div>
+
+                        <div class="bank-form-row">
+                            <div class="bank-form-group">
+                                <label>Statutory Notice Date (S.138b)</label>
+                                <input type="date" id="bankNoticeDate" class="bank-input-text">
+                            </div>
+                            <div class="bank-form-group">
+                                <label>Notice Delivery Date (Receipt)</label>
+                                <input type="date" id="bankDeliveryDate" class="bank-input-text">
+                            </div>
+                            <div class="bank-form-group">
+                                <label>Complaint Filing Date (S.142)</label>
+                                <input type="date" id="bankComplaintDate" class="bank-input-text">
+                            </div>
+                        </div>
+
+                        <!-- Special Legal Conditions -->
+                        <div class="bank-sub-card">
+                            <h5><i class="fas fa-scale-balanced"></i> Statutory Flags &amp; Collateral Status</h5>
+                            <div class="bank-checkbox-grid">
+                                <label class="bank-checkbox-label">
+                                    <input type="checkbox" id="bankCondonationAttached">
+                                    <span>S.142(1)(b) Condonation Attached</span>
+                                </label>
+                                <label class="bank-checkbox-label">
+                                    <input type="checkbox" id="bankIsSecured">
+                                    <span>Secured Asset Available</span>
+                                </label>
+                                <label class="bank-checkbox-label">
+                                    <input type="checkbox" id="bankCersaiRegistered" checked>
+                                    <span>CERSAI Registered (S.26D)</span>
+                                </label>
+                                <label class="bank-checkbox-label">
+                                    <input type="checkbox" id="bankIsAgriLand">
+                                    <span>Agricultural Land (S.31i Bar)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Evidentiary Assets Checklist -->
+                        <div class="bank-sub-card">
+                            <h5><i class="fas fa-clipboard-check"></i> Evidentiary Assets &amp; Proof of Service</h5>
+                            <div class="bank-checkbox-grid">
+                                <label class="bank-checkbox-label">
+                                    <input type="checkbox" id="bankHasCheque" checked>
+                                    <span>Original Stamped Cheque</span>
+                                </label>
+                                <label class="bank-checkbox-label">
+                                    <input type="checkbox" id="bankHasMemo" checked>
+                                    <span>Bank Dishonour Memo</span>
+                                </label>
+                                <label class="bank-checkbox-label">
+                                    <input type="checkbox" id="bankHasSanction" checked>
+                                    <span>Stamped Sanction Letter</span>
+                                </label>
+                                <label class="bank-checkbox-label">
+                                    <input type="checkbox" id="bankHasPostalSlip" checked>
+                                    <span>Speed Post Consignment Receipt</span>
+                                </label>
+                                <label class="bank-checkbox-label">
+                                    <input type="checkbox" id="bankHasTracking" checked>
+                                    <span>India Post Delivery Report</span>
+                                </label>
+                                <label class="bank-checkbox-label">
+                                    <input type="checkbox" id="bankHasStatement" checked>
+                                    <span>Banker's Books 65B Statement</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button id="bankRunAuditBtn" class="btn btn-primary btn-large btn-block" style="margin-top: 1rem;">
+                            <i class="fas fa-play"></i> Run Statutory Recovery Audit
+                        </button>
                     </div>
 
-                    <div class="bank-form-row">
-                        <div class="bank-form-group">
-                            <label>Statutory Notice Date (S.138b)</label>
-                            <input type="date" id="bankNoticeDate" class="bank-input-text" value="2024-01-30">
-                        </div>
-                        <div class="bank-form-group">
-                            <label>Notice Delivery Date (Receipt)</label>
-                            <input type="date" id="bankDeliveryDate" class="bank-input-text" value="2024-02-04">
-                        </div>
-                        <div class="bank-form-group">
-                            <label>Complaint Filing Date (S.142)</label>
-                            <input type="date" id="bankComplaintDate" class="bank-input-text" value="2024-02-28">
-                        </div>
-                    </div>
-
-                    <!-- Special Legal Conditions -->
-                    <div class="bank-sub-card">
-                        <h5><i class="fas fa-scale-balanced"></i> Statutory Flags &amp; Collateral Status</h5>
-                        <div class="bank-checkbox-grid">
-                            <label class="bank-checkbox-label">
-                                <input type="checkbox" id="bankCondonationAttached">
-                                <span>S.142(1)(b) Condonation Attached</span>
-                            </label>
-                            <label class="bank-checkbox-label">
-                                <input type="checkbox" id="bankIsSecured">
-                                <span>Secured Asset Available</span>
-                            </label>
-                            <label class="bank-checkbox-label">
-                                <input type="checkbox" id="bankCersaiRegistered" checked>
-                                <span>CERSAI Registered (S.26D)</span>
-                            </label>
-                            <label class="bank-checkbox-label">
-                                <input type="checkbox" id="bankIsAgriLand">
-                                <span>Agricultural Land (S.31i Bar)</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Evidentiary Assets Checklist -->
-                    <div class="bank-sub-card">
-                        <h5><i class="fas fa-clipboard-check"></i> Evidentiary Assets &amp; Proof of Service</h5>
-                        <div class="bank-checkbox-grid">
-                            <label class="bank-checkbox-label">
-                                <input type="checkbox" id="bankHasCheque" checked>
-                                <span>Original Stamped Cheque</span>
-                            </label>
-                            <label class="bank-checkbox-label">
-                                <input type="checkbox" id="bankHasMemo" checked>
-                                <span>Bank Dishonour Memo</span>
-                            </label>
-                            <label class="bank-checkbox-label">
-                                <input type="checkbox" id="bankHasSanction" checked>
-                                <span>Stamped Sanction Letter</span>
-                            </label>
-                            <label class="bank-checkbox-label">
-                                <input type="checkbox" id="bankHasPostalSlip" checked>
-                                <span>Speed Post Consignment Receipt</span>
-                            </label>
-                            <label class="bank-checkbox-label">
-                                <input type="checkbox" id="bankHasTracking" checked>
-                                <span>India Post Delivery Report</span>
-                            </label>
-                            <label class="bank-checkbox-label">
-                                <input type="checkbox" id="bankHasStatement" checked>
-                                <span>Banker's Books 65B Statement</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <button id="bankRunAuditBtn" class="btn btn-primary btn-large btn-block" style="margin-top: 1rem;">
-                        <i class="fas fa-play"></i> Re-Calculate Statutory Recovery Audit
-                    </button>
-                </div>
-
-                <!-- RIGHT COLUMN: Statutory Audit Output, Advocate Dossier & Compliance Ledger -->
-                <div class="bank-panel bank-output-panel">
-                    <!-- Recovery Viability Score Banner -->
-                    <div class="bank-score-card">
-                        <div class="score-card-left">
-                            <div class="score-label">LEGAL RECOVERY READINESS SCORE</div>
-                            <div class="score-display">
-                                <span id="bankScoreValue" class="score-number">95/100</span>
-                                <div class="score-gauge-container">
-                                    <div id="bankScoreGauge" class="bank-gauge-fill gauge-green" style="width: 95%;"></div>
+                    <!-- RIGHT COLUMN: Statutory Audit Output, Advocate Dossier & Compliance Ledger -->
+                    <div class="bank-panel bank-output-panel">
+                        <!-- Recovery Viability Score Banner -->
+                        <div class="bank-score-card">
+                            <div class="score-card-left">
+                                <div class="score-label">LEGAL RECOVERY READINESS SCORE</div>
+                                <div class="score-display">
+                                    <span id="bankScoreValue" class="score-number">--/100</span>
+                                    <div class="score-gauge-container">
+                                        <div id="bankScoreGauge" class="bank-gauge-fill" style="width: 0%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="score-card-right">
+                                <div id="bankVerdictBadge" class="bank-verdict-chip" style="background: #f1f5f9; color: #475569; border: 1.5px solid #cbd5e1;">
+                                    <i class="fas fa-circle-info"></i> Ready for Statutory Audit
                                 </div>
                             </div>
                         </div>
-                        <div class="score-card-right">
-                            <div id="bankVerdictBadge" class="bank-verdict-chip verdict-ready">
-                                <i class="fas fa-circle-check"></i> High Probability Recovery (File Compliant)
+
+                        <!-- Statutory Timeline Milestones -->
+                        <div class="bank-output-section">
+                            <h5><i class="fas fa-timeline"></i> Statutory Procedural Timeline &amp; Milestone Compliance</h5>
+                            <div id="bankMilestonesContainer" class="bank-milestones-grid">
+                                <p style="color: #64748b; font-size: 0.85rem; padding: 0.75rem;">Select an institutional portfolio template above or enter dates to calculate statutory milestones.</p>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Statutory Timeline Milestones -->
-                    <div class="bank-output-section">
-                        <h5><i class="fas fa-timeline"></i> Statutory Procedural Timeline &amp; Milestone Compliance</h5>
-                        <div id="bankMilestonesContainer" class="bank-milestones-grid">
-                            <!-- Populated dynamically by bank_recovery.js -->
+                        <!-- Defect Classification & Remediation Guidance -->
+                        <div class="bank-output-section">
+                            <h5><i class="fas fa-triangle-exclamation"></i> Statutory Defect Audit &amp; Remediation Matrix</h5>
+                            <div id="bankDefectContainer">
+                                <p style="color: #64748b; font-size: 0.85rem; padding: 0.75rem;">Run statutory audit to evaluate limitation, presentation, and service defects.</p>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Defect Classification & Remediation Guidance -->
-                    <div class="bank-output-section">
-                        <h5><i class="fas fa-triangle-exclamation"></i> Statutory Defect Audit &amp; Remediation Matrix</h5>
-                        <div id="bankDefectContainer">
-                            <!-- Populated dynamically by bank_recovery.js -->
+                        <!-- Empaneled Advocate Case Dossier -->
+                        <div class="bank-output-section">
+                            <div class="section-header-row">
+                                <h5><i class="fas fa-gavel"></i> Empaneled Advocate Case Dossier (Actionable Brief)</h5>
+                                <button id="bankCopyDossierBtn" class="btn btn-outline btn-xs">
+                                    <i class="fas fa-copy"></i> Copy Dossier
+                                </button>
+                            </div>
+                            <div id="bankDossierContent">
+                                <p style="color: #64748b; font-size: 0.85rem; padding: 0.75rem;">Empaneled advocate brief will automatically populate upon statutory audit.</p>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Empaneled Advocate Case Dossier -->
-                    <div class="bank-output-section">
-                        <div class="section-header-row">
-                            <h5><i class="fas fa-gavel"></i> Empaneled Advocate Case Dossier (Actionable Brief)</h5>
-                            <button id="bankCopyDossierBtn" class="btn btn-outline btn-xs">
-                                <i class="fas fa-copy"></i> Copy Dossier
+                        <!-- Regulatory Audit Trail / Compliance Evidence Ledger -->
+                        <div class="bank-output-section">
+                            <div class="section-header-row">
+                                <h5><i class="fas fa-stamp"></i> Regulatory Audit Trail / Compliance Evidence Ledger</h5>
+                                <button id="bankExportLedgerBtn" class="btn btn-outline btn-xs">
+                                    <i class="fas fa-download"></i> Download Audit Record (JSON)
+                                </button>
+                            </div>
+                            <div id="bankLedgerBox">
+                                <p style="color: #64748b; font-size: 0.85rem; padding: 0.75rem;">Cryptographic compliance ledger record will generate upon statutory audit.</p>
+                            </div>
+                        </div>
+
+                        <!-- Final Action & Dispatch Bar -->
+                        <div class="bank-action-footer">
+                            <button id="bankDispatchBtn" class="btn btn-primary btn-large">
+                                <i class="fas fa-paper-plane"></i> Dispatch Dossier to Empaneled Advocate
                             </button>
                         </div>
-                        <div id="bankDossierContent">
-                            <!-- Populated dynamically by bank_recovery.js -->
-                        </div>
-                    </div>
-
-                    <!-- Regulatory Audit Trail / Compliance Evidence Ledger -->
-                    <div class="bank-output-section">
-                        <div class="section-header-row">
-                            <h5><i class="fas fa-stamp"></i> Regulatory Audit Trail / Compliance Evidence Ledger</h5>
-                            <button id="bankExportLedgerBtn" class="btn btn-outline btn-xs">
-                                <i class="fas fa-download"></i> Download Audit Record (JSON)
-                            </button>
-                        </div>
-                        <div id="bankLedgerBox">
-                            <!-- Populated dynamically by bank_recovery.js -->
-                        </div>
-                    </div>
-
-                    <!-- Final Action & Dispatch Bar -->
-                    <div class="bank-action-footer">
-                        <button id="bankDispatchBtn" class="btn btn-primary btn-large">
-                            <i class="fas fa-paper-plane"></i> Dispatch Dossier to Empaneled Advocate
-                        </button>
                     </div>
                 </div>
             </div>
+
+            <!-- ================================================================= -->
+            <!-- VIEW 2: MULTI-TRACK STATUTORY ORCHESTRATOR                        -->
+            <!-- ================================================================= -->
+            <div id="bankViewMultiTrack" class="bank-function-view">
+                <div class="bank-multi-track-header">
+                    <div>
+                        <h3><i class="fas fa-arrows-split-up-and-left"></i> Multi-Track Concurrent Recovery Strategy Engine</h3>
+                        <p>Simultaneously evaluate statutory viability, limitation periods, and jurisdictional precedence across 5 Indian legal recovery tracks.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="runMultiTrackEvaluation()">
+                        <i class="fas fa-bolt"></i> Evaluate Multi-Track Viability
+                    </button>
+                </div>
+
+                <div id="bankMultiTrackResultsContainer" class="bank-multitrack-grid">
+                    <div class="bank-card" style="text-align: center; padding: 3rem; grid-column: 1 / -1;">
+                        <i class="fas fa-network-wired" style="font-size: 3rem; color: #0284c7; margin-bottom: 1rem;"></i>
+                        <h4>Awaiting Multi-Track Analysis</h4>
+                        <p style="color: #64748b; max-width: 500px; margin: 0 auto 1.5rem auto;">Click 'Evaluate Multi-Track Viability' to calculate concurrent forum leverage across S.138, SARFAESI, DRT OA, IBC Insolvency, and RBI Wilful Defaulter tracks.</p>
+                        <button class="btn btn-primary" onclick="runMultiTrackEvaluation()">Run Multi-Track Strategy Audit</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- VIEW 3: STATUTORY LEGAL NOTICE & 65B DRAFTER                      -->
+            <!-- ================================================================= -->
+            <div id="bankViewDrafter" class="bank-function-view">
+                <div class="bank-drafter-grid">
+                    <!-- Left: Drafter Controls -->
+                    <div class="bank-panel">
+                        <div class="bank-panel-header">
+                            <h4><i class="fas fa-file-contract"></i> Statutory Document Generator</h4>
+                            <span class="badge-subtle">Court Admissible</span>
+                        </div>
+
+                        <div class="bank-form-group">
+                            <label>Target Legal Document / Notice Type</label>
+                            <select id="bankDraftDocType" class="bank-input-select" onchange="updateDraftTypeFields()">
+                                <option value="S138_DEMAND_NOTICE">1. Statutory Demand Notice u/s 138(b) NI Act (15-Day Cure)</option>
+                                <option value="SARFAESI_13_2_NOTICE">2. SARFAESI S.13(2) Demand Notice (60-Day Schedule)</option>
+                                <option value="SECTION_65B_CERTIFICATE">3. Section 65B Evidence Act / S.63 BSA Computerized Statement Certificate</option>
+                                <option value="S142_CONDONATION_PETITION">4. S.142(1)(b) Condonation of Delay Application &amp; Affidavit</option>
+                                <option value="S143A_INTERIM_COMPENSATION">5. Section 143A Petition (20% Interim Compensation)</option>
+                            </select>
+                        </div>
+
+                        <div class="bank-form-row">
+                            <div class="bank-form-group">
+                                <label>Cheque / Instrument No</label>
+                                <input type="text" id="bankDraftChequeNo" class="bank-input-text" value="490182">
+                            </div>
+                            <div class="bank-form-group">
+                                <label>Delay Days (for S.142)</label>
+                                <input type="number" id="bankDraftDelayDays" class="bank-input-text" value="18">
+                            </div>
+                        </div>
+
+                        <div class="bank-form-group">
+                            <label>Property / Collateral Description (SARFAESI)</label>
+                            <input type="text" id="bankDraftPropertyDesc" class="bank-input-text" value="Commercial Unit No. 402, 4th Floor, Apex Business Center, MIDC Area">
+                        </div>
+
+                        <div class="bank-form-group">
+                            <label>Delay Justification Cause (S.142 Affidavit)</label>
+                            <textarea id="bankDraftDelayReason" class="bank-input-text" rows="2" style="resize: vertical;">Administrative processing delays during branch asset reconstruction and legal vetting.</textarea>
+                        </div>
+
+                        <button class="btn btn-primary btn-large btn-block" onclick="generateStatutoryLegalDraft()">
+                            <i class="fas fa-pen-nib"></i> Generate Court-Admissible Draft
+                        </button>
+                    </div>
+
+                    <!-- Right: Document Preview & Export -->
+                    <div class="bank-panel">
+                        <div class="bank-panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <h4><i class="fas fa-file-lines"></i> Document Preview &amp; Verification</h4>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-outline btn-xs" onclick="copyStatutoryDraft()">
+                                    <i class="fas fa-copy"></i> Copy Text
+                                </button>
+                                <button class="btn btn-primary btn-xs" onclick="downloadStatutoryDraft()">
+                                    <i class="fas fa-download"></i> Download Draft
+                                </button>
+                            </div>
+                        </div>
+                        <div id="bankDraftPreviewBox" class="bank-legal-draft-box">
+                            <p style="color: #64748b; font-size: 0.9rem; text-align: center; padding: 2rem;">Select a document type on the left and click 'Generate Court-Admissible Draft' to preview and export.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- VIEW 4: OTS (ONE-TIME SETTLEMENT) VS LITIGATION OPTIMIZER         -->
+            <!-- ================================================================= -->
+            <div id="bankViewOTS" class="bank-function-view">
+                <div class="bank-ots-grid">
+                    <!-- Left: Parameters -->
+                    <div class="bank-panel">
+                        <div class="bank-panel-header">
+                            <h4><i class="fas fa-calculator"></i> OTS vs Litigation Financial Parameters</h4>
+                            <span class="badge-subtle">NPV &amp; Capital Provisioning</span>
+                        </div>
+
+                        <div class="bank-form-row">
+                            <div class="bank-form-group">
+                                <label>Principal Ledger Outstanding (₹)</label>
+                                <input type="number" id="bankOtsPrincipal" class="bank-input-text" value="5000000">
+                            </div>
+                            <div class="bank-form-group">
+                                <label>Total Dues with Interest (₹)</label>
+                                <input type="number" id="bankOtsTotalDues" class="bank-input-text" value="6500000">
+                            </div>
+                        </div>
+
+                        <div class="bank-form-row">
+                            <div class="bank-form-group">
+                                <label>Borrower OTS Offer Amount (₹)</label>
+                                <input type="number" id="bankOtsOfferAmt" class="bank-input-text" value="5200000">
+                            </div>
+                            <div class="bank-form-group">
+                                <label>Litigation Duration (Months)</label>
+                                <select id="bankOtsLitMonths" class="bank-input-select">
+                                    <option value="12">12 Months (Fast-Track JMFC/DRT)</option>
+                                    <option value="24" selected>24 Months (Standard Contested)</option>
+                                    <option value="36">36 Months (Complex High-Court Appeals)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="bank-form-row">
+                            <div class="bank-form-group">
+                                <label>Estimated Legal &amp; Court Fees (₹)</label>
+                                <input type="number" id="bankOtsLegalCosts" class="bank-input-text" value="250000">
+                            </div>
+                            <div class="bank-form-group">
+                                <label>Litigation Recovery Probability (%)</label>
+                                <input type="number" id="bankOtsProb" class="bank-input-text" value="75" min="10" max="100">
+                            </div>
+                        </div>
+
+                        <div class="bank-form-row">
+                            <div class="bank-form-group">
+                                <label>Bank Cost of Capital (Discount %)</label>
+                                <input type="number" id="bankOtsDiscount" class="bank-input-text" value="9" step="0.5">
+                            </div>
+                            <div class="bank-form-group">
+                                <label>NPA Classification Age (Years)</label>
+                                <input type="number" id="bankOtsNpaAge" class="bank-input-text" value="2.5" step="0.5">
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary btn-large btn-block" onclick="runOtsNpvOptimization()">
+                            <i class="fas fa-chart-line"></i> Calculate OTS vs Litigation NPV
+                        </button>
+                    </div>
+
+                    <!-- Right: NPV Results & Decision Matrix -->
+                    <div class="bank-panel">
+                        <div class="bank-panel-header">
+                            <h4><i class="fas fa-scale-balanced"></i> Financial Recommendation &amp; Time Decay</h4>
+                            <span id="bankOtsVerdictBadge" class="bank-verdict-chip" style="background: #f1f5f9; color: #475569;">Awaiting Calculation</span>
+                        </div>
+                        <div id="bankOtsResultsBox">
+                            <p style="color: #64748b; font-size: 0.9rem; text-align: center; padding: 2rem;">Adjust financial inputs on the left and calculate NPV to compare immediate OTS realization vs time-discounted litigation yield.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- VIEW 5: EMPANELED ADVOCATE SLA & DISPATCH HUB                     -->
+            <!-- ================================================================= -->
+            <div id="bankViewAdvocates" class="bank-function-view">
+                <div class="bank-multi-track-header">
+                    <div>
+                        <h3><i class="fas fa-user-tie"></i> Empaneled Legal Counsel Directory &amp; SLA Registry</h3>
+                        <p>Track advocate performance, High Court &amp; DRT win rates, filing turnaround SLAs, fee schedules, and dispatch actionable recovery briefs.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="loadEmpaneledAdvocatesUI()">
+                        <i class="fas fa-rotate"></i> Refresh Counsel Registry
+                    </button>
+                </div>
+
+                <div id="bankAdvocatesGridContainer" class="bank-advocates-cards-grid">
+                    <!-- Loaded dynamically by bank_recovery.js -->
+                </div>
+            </div>
+
         </div>
 
     </div>
@@ -3297,93 +3512,192 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- BANK OFFICER AUTHENTICATION & BRANCH SWITCHER MODAL -->
+    <!-- BANK OFFICER AUTHENTICATION & REGISTRATION MODAL -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
     <div id="bankAuthModal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(7, 11, 20, 0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 1.5rem;">
-        <div class="modal-container" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-2xl); width: 100%; max-width: 580px; box-shadow: var(--shadow-2xl); overflow: hidden;">
-            <div class="modal-header" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; padding: 1.5rem 2rem; display: flex; align-items: center; justify-content: space-between;">
+        <div class="modal-container" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-2xl); width: 100%; max-width: 620px; box-shadow: var(--shadow-2xl); overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; padding: 1.35rem 2rem; display: flex; align-items: center; justify-content: space-between;">
                 <div style="display: flex; align-items: center; gap: 0.85rem;">
                     <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; font-size: 1.35rem;">
                         <i class="fas fa-building-columns"></i>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff;">Bank Recovery Officer Sign In</h3>
-                        <p style="margin: 0.2rem 0 0; font-size: 0.82rem; color: #e0f2fe;">Institutional credentials for stressed asset compliance audit</p>
+                        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff;">Bank Recovery Portal Access</h3>
+                        <p style="margin: 0.2rem 0 0; font-size: 0.82rem; color: #e0f2fe;">Institutional credentials with mandatory @*.bank.com verification</p>
                     </div>
                 </div>
                 <button onclick="closeBankAuthModal()" style="background: transparent; border: none; color: #ffffff; font-size: 1.4rem; cursor: pointer; line-height: 1;">&times;</button>
             </div>
+
+            <!-- Modal Nav Tabs -->
+            <div style="display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0.5rem 1.5rem 0; gap: 0.5rem;">
+                <button id="bankAuthTabLoginBtn" type="button" class="btn btn-sm" onclick="switchBankAuthTab('login')" style="border-radius: 8px 8px 0 0; border: 1px solid #0284c7; border-bottom: none; background: #ffffff; color: #0284c7; font-weight: 700; padding: 0.6rem 1.25rem;">
+                    <i class="fas fa-right-to-bracket"></i> Officer Sign In
+                </button>
+                <button id="bankAuthTabRegisterBtn" type="button" class="btn btn-sm" onclick="switchBankAuthTab('register')" style="border-radius: 8px 8px 0 0; border: 1px solid transparent; background: transparent; color: #64748b; font-weight: 700; padding: 0.6rem 1.25rem;">
+                    <i class="fas fa-user-plus"></i> Register Bank / Officer
+                </button>
+            </div>
             
-            <div class="modal-body" style="padding: 1.75rem 2rem; max-height: 75vh; overflow-y: auto;">
-                <!-- Quick Institutional Branch Profiles -->
-                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--gray-700); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.5rem;">
-                    <i class="fas fa-bolt" style="color: #f59e0b;"></i> Quick Institutional Branch Profiles:
-                </label>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-bottom: 1.5rem;">
-                    <button type="button" class="btn btn-outline btn-sm" onclick="selectBankPreset('SBI_SARB_MUM')" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem; border-radius: 10px; font-size: 0.8rem; line-height: 1.3;">
-                        <i class="fas fa-landmark" style="color: #0ea5e9;"></i>
-                        <div><strong>SBI SARB Mumbai</strong><div style="font-size: 0.72rem; color: var(--gray-500);">OFFICER_SARB_842</div></div>
-                    </button>
-                    <button type="button" class="btn btn-outline btn-sm" onclick="selectBankPreset('PNB_CFS_DEL')" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem; border-radius: 10px; font-size: 0.8rem; line-height: 1.3;">
-                        <i class="fas fa-landmark" style="color: #f59e0b;"></i>
-                        <div><strong>PNB CFS Delhi</strong><div style="font-size: 0.72rem; color: var(--gray-500);">OFFICER_DEL_LCR_419</div></div>
-                    </button>
-                    <button type="button" class="btn btn-outline btn-sm" onclick="selectBankPreset('HDFC_WLR_MUM')" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem; border-radius: 10px; font-size: 0.8rem; line-height: 1.3;">
-                        <i class="fas fa-landmark" style="color: #6366f1;"></i>
-                        <div><strong>HDFC Wholesale</strong><div style="font-size: 0.72rem; color: var(--gray-500);">OFFICER_MUM_WLR_302</div></div>
-                    </button>
-                    <button type="button" class="btn btn-outline btn-sm" onclick="selectBankPreset('BOB_SAMB_AHM')" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem; border-radius: 10px; font-size: 0.8rem; line-height: 1.3;">
-                        <i class="fas fa-landmark" style="color: #10b981;"></i>
-                        <div><strong>BOB SAMB Ahmedabad</strong><div style="font-size: 0.72rem; color: var(--gray-500);">OFFICER_PUN_SAMB_512</div></div>
-                    </button>
-                </div>
-
-                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
-                    <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
-                    <span style="font-size: 0.75rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase;">Or Enter Officer Credentials</span>
-                    <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
-                </div>
-
-                <form id="bankAuthForm" onsubmit="submitBankLogin(event)">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 0.85rem;">
-                        <div>
-                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Officer ID / Code</label>
-                            <input type="text" id="bankAuthOfficerId" required class="bank-input-text" placeholder="e.g. OFFICER_SARB_842" style="width: 100%;">
-                        </div>
-                        <div>
-                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Officer Full Name</label>
-                            <input type="text" id="bankAuthOfficerName" class="bank-input-text" placeholder="e.g. Rajesh Nambiar" style="width: 100%;">
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 0.85rem;">
-                        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Bank / Financial Institution</label>
-                        <input type="text" id="bankAuthBankName" class="bank-input-text" placeholder="e.g. State Bank of India" value="State Bank of India" style="width: 100%;">
-                    </div>
-
-                    <div style="margin-bottom: 0.85rem;">
-                        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Recovery Branch / Cell Designation</label>
-                        <input type="text" id="bankAuthBranchName" class="bank-input-text" placeholder="e.g. SBI — Stressed Asset Recovery Branch (SARB Mumbai)" value="SBI — Stressed Asset Recovery Branch (SARB Mumbai)" style="width: 100%;">
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.25rem;">
-                        <div>
-                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Official Bank Email</label>
-                            <input type="email" id="bankAuthEmail" class="bank-input-text" placeholder="e.g. officer@sbi.co.in" style="width: 100%;">
-                        </div>
-                        <div>
-                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Access Passcode / PIN</label>
-                            <input type="password" id="bankAuthPin" class="bank-input-text" placeholder="••••••••" style="width: 100%;">
-                        </div>
-                    </div>
-
-                    <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
-                        <button type="button" class="btn btn-outline" onclick="closeBankAuthModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-weight: 700;">
-                            <i class="fas fa-shield-check"></i> Authorize &amp; Proceed
+            <div class="modal-body" style="padding: 1.5rem 2rem; max-height: 75vh; overflow-y: auto;">
+                
+                <!-- TAB 1: SIGN IN -->
+                <div id="bankAuthTabLogin">
+                    <!-- Quick Institutional Branch Profiles -->
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--gray-700); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.5rem;">
+                        <i class="fas fa-bolt" style="color: #f59e0b;"></i> Quick National Bank Branch Profiles:
+                    </label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-bottom: 1.25rem;">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="selectBankPreset('SBI_SARB_MUM')" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem; border-radius: 10px; font-size: 0.8rem; line-height: 1.3; background: #ffffff;">
+                            <i class="fas fa-landmark" style="color: #0ea5e9;"></i>
+                            <div><strong>SBI SARB Mumbai</strong><div style="font-size: 0.72rem; color: var(--gray-500);">OFFICER_SARB_842</div></div>
+                        </button>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="selectBankPreset('PNB_CFS_DEL')" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem; border-radius: 10px; font-size: 0.8rem; line-height: 1.3; background: #ffffff;">
+                            <i class="fas fa-landmark" style="color: #f59e0b;"></i>
+                            <div><strong>PNB CFS Delhi</strong><div style="font-size: 0.72rem; color: var(--gray-500);">OFFICER_DEL_LCR_419</div></div>
+                        </button>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="selectBankPreset('HDFC_WLR_MUM')" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem; border-radius: 10px; font-size: 0.8rem; line-height: 1.3; background: #ffffff;">
+                            <i class="fas fa-landmark" style="color: #6366f1;"></i>
+                            <div><strong>HDFC Wholesale</strong><div style="font-size: 0.72rem; color: var(--gray-500);">OFFICER_MUM_WLR_302</div></div>
+                        </button>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="selectBankPreset('BOB_SAMB_AHM')" style="justify-content: flex-start; text-align: left; padding: 0.6rem 0.85rem; border-radius: 10px; font-size: 0.8rem; line-height: 1.3; background: #ffffff;">
+                            <i class="fas fa-landmark" style="color: #10b981;"></i>
+                            <div><strong>BOB SAMB Ahmedabad</strong><div style="font-size: 0.72rem; color: var(--gray-500);">OFFICER_PUN_SAMB_512</div></div>
                         </button>
                     </div>
-                </form>
+
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+                        <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
+                        <span style="font-size: 0.75rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase;">Or Enter Officer Credentials</span>
+                        <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
+                    </div>
+
+                    <form id="bankAuthForm" onsubmit="submitBankLogin(event)">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 0.85rem;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Officer ID / Code *</label>
+                                <input type="text" id="bankAuthOfficerId" required class="bank-input-text" placeholder="e.g. OFFICER_SARB_842" style="width: 100%;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Officer Full Name</label>
+                                <input type="text" id="bankAuthOfficerName" class="bank-input-text" placeholder="e.g. Rajesh Nambiar" style="width: 100%;">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 0.85rem;">
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Bank / Financial Institution</label>
+                            <input type="text" id="bankAuthBankName" class="bank-input-text" placeholder="e.g. State Bank of India" value="State Bank of India" style="width: 100%;">
+                        </div>
+
+                        <div style="margin-bottom: 0.85rem;">
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Recovery Branch / Unit Designation</label>
+                            <input type="text" id="bankAuthBranchName" class="bank-input-text" placeholder="e.g. SBI — Stressed Asset Recovery Branch (SARB Mumbai)" value="State Bank of India — Stressed Asset Recovery Branch (SARB Mumbai)" style="width: 100%;">
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.25rem;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Official Bank Email</label>
+                                <input type="email" id="bankAuthEmail" class="bank-input-text" placeholder="e.g. officer@sbi.co.in" oninput="checkBankEmailDomain(this, 'loginEmailDomainFeedback')" style="width: 100%;">
+                                <div id="loginEmailDomainFeedback" style="font-size: 0.74rem; margin-top: 0.25rem;"></div>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Access Passcode / PIN</label>
+                                <input type="password" id="bankAuthPin" class="bank-input-text" placeholder="••••••••" style="width: 100%;">
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.8rem; color: #64748b;">
+                                Need an account? <a href="javascript:void(0)" onclick="switchBankAuthTab('register')" style="color: #0284c7; font-weight: 700;">Register Bank Unit</a>
+                            </span>
+                            <div style="display: flex; gap: 0.75rem;">
+                                <button type="button" class="btn btn-outline" onclick="closeBankAuthModal()">Cancel</button>
+                                <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-weight: 700;">
+                                    <i class="fas fa-shield-check"></i> Sign In to Recovery OS
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- TAB 2: REGISTER NEW BANK / RECOVERY UNIT -->
+                <div id="bankAuthTabRegister" class="hidden">
+                    <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.82rem; color: #0369a1; display: flex; gap: 0.5rem; align-items: center;">
+                        <i class="fas fa-shield-halved" style="font-size: 1.1rem;"></i>
+                        <span><strong>Compulsory Bank Domain:</strong> Registration requires an authorized institutional bank email (e.g., <code>@sbi.co.in</code>, <code>@hdfcbank.com</code>, <code>@icicibank.com</code>, <code>@*.bank.com</code>).</span>
+                    </div>
+
+                    <form id="bankRegisterForm" onsubmit="submitBankRegister(event)">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 0.85rem;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Bank / Entity Name *</label>
+                                <input type="text" id="regBankName" required class="bank-input-text" placeholder="e.g. ICICI Bank Ltd" style="width: 100%;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Branch IFSC / Code</label>
+                                <input type="text" id="regBankIfsc" class="bank-input-text" placeholder="e.g. ICIC0000104" style="width: 100%;">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 0.85rem;">
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Recovery Unit / Branch Designation *</label>
+                            <input type="text" id="regBankBranchName" required class="bank-input-text" placeholder="e.g. ICICI Bank — Special Asset Management Group (Pune)" style="width: 100%;">
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 0.85rem;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Officer ID / Employee Code *</label>
+                                <input type="text" id="regBankOfficerId" required class="bank-input-text" placeholder="e.g. OFFICER_ICICI_REC_701" style="width: 100%;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Officer Full Name *</label>
+                                <input type="text" id="regBankOfficerName" required class="bank-input-text" placeholder="e.g. Meera Sunder" style="width: 100%;">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 0.85rem; margin-bottom: 0.85rem;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">
+                                    Official Bank Email * <span style="color: #dc2626; font-size: 0.74rem;">(@*.bank.com / @*.co.in)</span>
+                                </label>
+                                <input type="email" id="regBankEmail" required class="bank-input-text" placeholder="e.g. meera.s@icicibank.com" oninput="checkBankEmailDomain(this, 'regEmailDomainFeedback')" style="width: 100%;">
+                                <div id="regEmailDomainFeedback" style="font-size: 0.74rem; margin-top: 0.25rem;"></div>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Recovery Role</label>
+                                <select id="regBankRole" class="bank-input-select" style="width: 100%;">
+                                    <option value="bank_officer">Bank Legal Officer</option>
+                                    <option value="sarb_manager">SARB Branch Manager</option>
+                                    <option value="recovery_head">Recovery Vertical Head</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.25rem;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Create Access Password / PIN *</label>
+                                <input type="password" id="regBankPassword" required minlength="4" class="bank-input-text" placeholder="••••••••" style="width: 100%;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem;">Confirm Access Password *</label>
+                                <input type="password" id="regBankPasswordConfirm" required minlength="4" class="bank-input-text" placeholder="••••••••" style="width: 100%;">
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.8rem; color: #64748b;">
+                                Already registered? <a href="javascript:void(0)" onclick="switchBankAuthTab('login')" style="color: #0284c7; font-weight: 700;">Sign In</a>
+                            </span>
+                            <div style="display: flex; gap: 0.75rem;">
+                                <button type="button" class="btn btn-outline" onclick="closeBankAuthModal()">Cancel</button>
+                                <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-weight: 700;">
+                                    <i class="fas fa-building-circle-check"></i> Complete Bank Registration
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
             </div>
         </div>
     </div>
