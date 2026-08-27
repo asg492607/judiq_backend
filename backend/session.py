@@ -3,6 +3,7 @@ import json
 import logging
 import os
 from datetime import datetime
+from typing import Optional, Dict, Any, List, Union
 
 logger = logging.getLogger(__name__)
 DB_PATH = os.environ.get("SQLITE_DB_PATH", "analytics.db")
@@ -196,6 +197,9 @@ class DatabaseManager:
                     branch_name TEXT,
                     role TEXT DEFAULT 'bank_officer',
                     email TEXT,
+                    password_hash TEXT,
+                    ifsc_code TEXT,
+                    department TEXT,
                     monthly_audit_limit INTEGER DEFAULT 100,
                     audits_used_this_month INTEGER DEFAULT 0,
                     current_month_period TEXT,
@@ -204,6 +208,13 @@ class DatabaseManager:
                     updated_at TEXT
                 )
             """)
+            # Migration check for existing databases
+            for col, col_type in [("password_hash", "TEXT"), ("ifsc_code", "TEXT"), ("department", "TEXT")]:
+                try:
+                    cursor.execute(f"ALTER TABLE bank_officers ADD COLUMN {col} {col_type}")
+                except Exception:
+                    pass
+
             cursor.execute(f"""
                 CREATE TABLE IF NOT EXISTS bank_recovery_audits (
                     id {serial_primary},
@@ -1036,6 +1047,148 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Error updating bank officer: {e}")
             return False
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def register_bank_officer(
+        officer_id: str,
+        name: str,
+        bank_name: str,
+        branch_name: str,
+        email: str,
+        password: str,
+        ifsc_code: str = "",
+        role: str = "bank_officer",
+        department: str = "Stressed Asset Recovery Branch (SARB)",
+        monthly_limit: int = 150
+    ) -> dict:
+        """
+        Registers a new institutional bank officer / recovery unit account with hashed credentials.
+        """
+        import hashlib
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            current_month = datetime.now().strftime("%Y-%m")
+            now_iso = datetime.now().isoformat()
+
+            # Hash password with SHA-256 for secure constant-time verification
+            pwd_hash = hashlib.sha256(password.encode("utf-8")).hexdigest() if password else ""
+
+            # Check if officer_id or email already exists
+            cursor.execute(
+                f"SELECT officer_id, email FROM bank_officers WHERE officer_id = {p} OR LOWER(email) = {p}",
+                (officer_id.strip(), email.strip().lower())
+            )
+            existing = cursor.fetchone()
+            if existing:
+                # Update existing officer
+                cursor.execute(f"""
+                    UPDATE bank_officers 
+                    SET name = {p}, bank_name = {p}, branch_name = {p}, email = {p}, 
+                        password_hash = {p}, ifsc_code = {p}, department = {p}, role = {p},
+                        updated_at = {p}, is_active = 1
+                    WHERE officer_id = {p}
+                """, (
+                    name.strip(), bank_name.strip(), branch_name.strip(), email.strip(),
+                    pwd_hash, ifsc_code.strip().upper(), department.strip(), role,
+                    now_iso, existing[0]
+                ))
+                conn.commit()
+                return DatabaseManager.get_or_create_bank_officer(existing[0])
+
+            # Insert new record
+            cursor.execute(f"""
+                INSERT INTO bank_officers
+                (officer_id, name, bank_name, branch_name, role, email, password_hash, ifsc_code, department, monthly_audit_limit, audits_used_this_month, current_month_period, is_active, created_at, updated_at)
+                VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+            """, (
+                officer_id.strip(), name.strip(), bank_name.strip(), branch_name.strip(),
+                role, email.strip(), pwd_hash, ifsc_code.strip().upper(), department.strip(),
+                monthly_limit, 0, current_month, 1, now_iso, now_iso
+            ))
+            conn.commit()
+
+            return {
+                "officer_id": officer_id.strip(),
+                "name": name.strip(),
+                "bank_name": bank_name.strip(),
+                "branch_name": branch_name.strip(),
+                "ifsc_code": ifsc_code.strip().upper(),
+                "department": department.strip(),
+                "role": role,
+                "email": email.strip(),
+                "monthly_audit_limit": monthly_limit,
+                "audits_used_this_month": 0,
+                "current_month_period": current_month,
+                "is_active": True,
+                "remaining_audits": monthly_limit
+            }
+        except Exception as e:
+            logger.error(f"Error registering bank officer: {e}")
+            raise e
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def verify_bank_officer_credentials(identifier: str, password: str = "") -> Optional[dict]:
+        """
+        Verifies bank officer credentials by officer_id or email, validating password hash if set.
+        """
+        import hashlib
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            clean_id = identifier.strip()
+
+            cursor.execute(
+                f"SELECT officer_id, name, bank_name, branch_name, role, email, monthly_audit_limit, audits_used_this_month, current_month_period, is_active, password_hash, ifsc_code, department FROM bank_officers WHERE officer_id = {p} OR LOWER(email) = {p}",
+                (clean_id, clean_id.lower())
+            )
+            row = cursor.fetchone()
+            if not row:
+                return None
+
+            off_id, name, bank, branch, role, email, limit_val, used_val, period, is_active, pwd_hash, ifsc, dept = row
+            if not is_active:
+                return None
+
+            # Verify password if a password_hash is stored and password provided
+            if pwd_hash and password:
+                cand_hash = hashlib.sha256(password.encode("utf-8")).hexdigest()
+                if cand_hash != pwd_hash:
+                    return None
+
+            current_month = datetime.now().strftime("%Y-%m")
+            if period != current_month:
+                used_val = 0
+
+            rem = -1 if limit_val == -1 else max(0, limit_val - used_val)
+            return {
+                "officer_id": off_id,
+                "name": name,
+                "bank_name": bank,
+                "branch_name": branch,
+                "ifsc_code": ifsc or "",
+                "department": dept or "Stressed Asset Recovery",
+                "role": role,
+                "email": email or "",
+                "monthly_audit_limit": limit_val,
+                "audits_used_this_month": used_val,
+                "current_month_period": current_month,
+                "is_active": bool(is_active),
+                "remaining_audits": rem
+            }
+        except Exception as e:
+            logger.error(f"Error verifying bank officer credentials: {e}")
+            return None
         finally:
             if conn:
                 conn.close()
