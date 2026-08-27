@@ -3351,14 +3351,14 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     font-weight: 700;
 }
 
-/* ==========================================================================
-   BANKING & RECOVERY OS — PREMIUM INSTITUTIONAL SUITE
+/* ============================================================================
+   BANKING & RECOVERY OS — EXECUTIVE INSTITUTIONAL SUITE (LIGHT THEME)
    ========================================================================== */
 .bank-screen {
     width: 100%;
     min-height: calc(100vh - 40px);
-    background: radial-gradient(ellipse at 50% 0%, #1e293b 0%, #0f172a 45%, #020617 100%);
-    color: #f8fafc;
+    background: radial-gradient(ellipse at 50% 0%, #f0f9ff 0%, #f8fafc 45%, #ffffff 100%);
+    color: #0f172a;
     padding: 2rem 2.5rem 5rem;
     box-sizing: border-box;
     animation: fadeIn 0.35s ease-out;
@@ -3369,13 +3369,13 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
-    border: 1px solid rgba(56, 189, 248, 0.3);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(240, 249, 255, 0.95));
+    border: 1.5px solid rgba(14, 165, 233, 0.25);
     border-radius: 16px;
     padding: 1.25rem 2rem;
     margin-bottom: 1.5rem;
     backdrop-filter: blur(16px);
-    box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.6), 0 0 20px rgba(14, 165, 233, 0.12);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 0 15px rgba(14, 165, 233, 0.08);
 }
 
 .bank-header-left {
@@ -3394,8 +3394,8 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.45);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(2, 132, 199, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .bank-portal-title {
@@ -3403,21 +3403,33 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     font-size: 1.45rem;
     font-weight: 800;
     letter-spacing: 0.08em;
-    color: #ffffff;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    color: #0369a1;
 }
 
 .bank-portal-subtitle {
     font-size: 0.88rem;
-    color: #94a3b8;
+    color: #475569;
     margin-top: 0.25rem;
     font-weight: 500;
 }
 
+.bank-officer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f0f9ff;
+    color: #0284c7;
+    border: 1.5px solid #bae6fd;
+    padding: 0.45rem 0.95rem;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
 .bank-header-right .btn-outline {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    color: #f8fafc !important;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    color: #0369a1 !important;
     font-weight: 600;
     padding: 0.55rem 1.1rem;
     border-radius: 8px;
@@ -3425,10 +3437,10 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 }
 
 .bank-header-right .btn-outline:hover {
-    background: rgba(56, 189, 248, 0.15);
-    border-color: #38bdf8;
-    color: #38bdf8 !important;
-    box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+    background: #f0f9ff;
+    border-color: #0284c7;
+    color: #0284c7 !important;
+    box-shadow: 0 0 12px rgba(2, 132, 199, 0.15);
     transform: translateY(-1px);
 }
 
@@ -3439,12 +3451,12 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     align-items: center;
     flex-wrap: wrap;
     gap: 1.25rem;
-    background: rgba(15, 23, 42, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
     border-radius: 14px;
     padding: 1rem 1.5rem;
     margin-bottom: 1.75rem;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
 }
 
 .bank-unit-selector {
@@ -3456,7 +3468,7 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 .bank-unit-selector label {
     font-size: 0.88rem;
     font-weight: 700;
-    color: #cbd5e1;
+    color: #0369a1;
     white-space: nowrap;
     display: flex;
     align-items: center;
@@ -3465,9 +3477,9 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 
 .bank-unit-selector .bank-input-select {
     min-width: 380px;
-    background: #1e293b;
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    color: #f8fafc;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    color: #0f172a;
     font-weight: 600;
 }
 
@@ -3481,7 +3493,7 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 .preset-label {
     font-size: 0.8rem;
     font-weight: 800;
-    color: #38bdf8;
+    color: #0284c7;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     margin-right: 0.3rem;
@@ -3490,30 +3502,30 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 .bank-quick-scenarios .btn-primary {
     background: linear-gradient(135deg, #0284c7, #2563eb);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
     font-weight: 600;
 }
 
 .bank-quick-scenarios .btn-outline {
-    background: rgba(30, 41, 59, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    color: #cbd5e1;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    color: #334155;
     font-weight: 600;
 }
 
 .bank-quick-scenarios .btn-outline:hover {
-    background: rgba(56, 189, 248, 0.15);
-    border-color: #38bdf8;
-    color: #ffffff;
+    background: #f0f9ff;
+    border-color: #0284c7;
+    color: #0284c7;
 }
 
 .bank-status-pill {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background: rgba(16, 185, 129, 0.15);
-    color: #34d399;
-    border: 1px solid rgba(16, 185, 129, 0.35);
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1.5px solid #bbf7d0;
     padding: 0.4rem 0.9rem;
     border-radius: 20px;
     font-size: 0.8rem;
@@ -3535,12 +3547,12 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 }
 
 .bank-panel {
-    background: linear-gradient(180deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.92) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
     border-radius: 16px;
     padding: 1.75rem;
     backdrop-filter: blur(14px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
 }
 
 .bank-panel-header {
@@ -3548,14 +3560,14 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1.5px solid #f1f5f9;
     padding-bottom: 0.85rem;
 }
 
 .bank-panel-header h4 {
     font-size: 1.15rem;
     font-weight: 800;
-    color: #ffffff;
+    color: #0f172a;
     display: flex;
     align-items: center;
     gap: 0.6rem;
@@ -3564,9 +3576,9 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 
 .badge-subtle {
     font-size: 0.74rem;
-    background: rgba(56, 189, 248, 0.15);
-    color: #38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.35);
+    background: #f0f9ff;
+    color: #0284c7;
+    border: 1px solid #bae6fd;
     padding: 0.25rem 0.6rem;
     border-radius: 6px;
     font-weight: 700;
@@ -3583,7 +3595,7 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     display: block;
     font-size: 0.84rem;
     font-weight: 700;
-    color: #94a3b8;
+    color: #334155;
     margin-bottom: 0.4rem;
     letter-spacing: 0.01em;
 }
@@ -3603,11 +3615,11 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 
 .bank-input-text, .bank-input-select {
     width: 100%;
-    background: #0f172a;
-    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
     border-radius: 10px;
     padding: 0.7rem 0.95rem;
-    color: #ffffff;
+    color: #0f172a;
     font-size: 0.92rem;
     font-weight: 500;
     outline: none;
@@ -3616,14 +3628,14 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 }
 
 .bank-input-text:focus, .bank-input-select:focus {
-    border-color: #38bdf8;
-    background: #1e293b;
-    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+    border-color: #0284c7;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18);
 }
 
 .bank-sub-card {
-    background: rgba(15, 23, 42, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 1.15rem 1.25rem;
     margin-bottom: 1.25rem;
@@ -3632,7 +3644,7 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 .bank-sub-card h5 {
     font-size: 0.9rem;
     font-weight: 800;
-    color: #38bdf8;
+    color: #0369a1;
     margin-bottom: 0.85rem;
     display: flex;
     align-items: center;
@@ -3651,9 +3663,19 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     align-items: center;
     gap: 0.6rem;
     font-size: 0.85rem;
-    color: #cbd5e1;
+    color: #1e293b;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem;
     cursor: pointer;
     font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.bank-checkbox-label:hover {
+    border-color: #0284c7;
+    background: #f0f9ff;
 }
 
 .bank-checkbox-label input[type="checkbox"] {
@@ -3669,18 +3691,18 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
-    border: 1.5px solid rgba(56, 189, 248, 0.25);
+    background: linear-gradient(135deg, #f0f9ff, #ffffff);
+    border: 1.5px solid rgba(14, 165, 233, 0.3);
     border-radius: 14px;
     padding: 1.35rem 1.75rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 4px 15px rgba(2, 132, 199, 0.08);
 }
 
 .score-label {
     font-size: 0.78rem;
     font-weight: 800;
-    color: #94a3b8;
+    color: #64748b;
     letter-spacing: 0.06em;
     text-transform: uppercase;
 }
@@ -3695,7 +3717,7 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 .score-number {
     font-size: 2.3rem;
     font-weight: 900;
-    color: #ffffff;
+    color: #0f172a;
     font-family: 'Outfit', sans-serif;
     letter-spacing: -0.02em;
 }
@@ -3703,7 +3725,7 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 .score-gauge-container {
     width: 180px;
     height: 14px;
-    background: rgba(255, 255, 255, 0.12);
+    background: #e2e8f0;
     border-radius: 7px;
     overflow: hidden;
     padding: 2px;
@@ -3716,9 +3738,9 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     transition: width 0.5s ease-out;
 }
 
-.gauge-green { background: linear-gradient(90deg, #10b981, #059669); box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
-.gauge-amber { background: linear-gradient(90deg, #f59e0b, #d97706); box-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
-.gauge-red   { background: linear-gradient(90deg, #ef4444, #b91c1c); box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+.gauge-green { background: linear-gradient(90deg, #10b981, #059669); }
+.gauge-amber { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.gauge-red   { background: linear-gradient(90deg, #ef4444, #b91c1c); }
 
 .bank-verdict-chip {
     padding: 0.65rem 1.15rem;
@@ -3728,35 +3750,35 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     display: inline-flex;
     align-items: center;
     gap: 0.55rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .verdict-ready {
-    background: rgba(16, 185, 129, 0.18);
-    color: #34d399;
-    border: 1.5px solid rgba(16, 185, 129, 0.45);
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1.5px solid #bbf7d0;
 }
 .verdict-remedy {
-    background: rgba(245, 158, 11, 0.18);
-    color: #fbbf24;
-    border: 1.5px solid rgba(245, 158, 11, 0.45);
+    background: #fffbeb;
+    color: #d97706;
+    border: 1.5px solid #fde68a;
 }
 .verdict-fatal {
-    background: rgba(239, 68, 68, 0.18);
-    color: #f87171;
-    border: 1.5px solid rgba(239, 68, 68, 0.45);
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1.5px solid #fecaca;
 }
 
 .bank-output-section {
     margin-bottom: 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1.5px solid #f1f5f9;
     padding-top: 1.25rem;
 }
 
 .bank-output-section h5 {
     font-size: 0.95rem;
     font-weight: 800;
-    color: #ffffff;
+    color: #0f172a;
     margin-bottom: 0.85rem;
     display: flex;
     align-items: center;
@@ -3771,15 +3793,15 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 }
 
 .section-header-row .btn-outline {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #cbd5e1;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #0369a1;
 }
 
 .section-header-row .btn-outline:hover {
-    background: rgba(56, 189, 248, 0.15);
-    border-color: #38bdf8;
-    color: #38bdf8;
+    background: #f0f9ff;
+    border-color: #0284c7;
+    color: #0284c7;
 }
 
 .btn-xs {
@@ -3796,20 +3818,23 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 }
 
 .bank-milestone-card {
-    background: rgba(15, 23, 42, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 10px;
     padding: 0.9rem 1rem;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
     transition: transform 0.2s ease;
 }
 
 .bank-milestone-card:hover {
     transform: translateY(-2px);
+    border-color: #cbd5e1;
+    background: #f8fafc;
 }
 
-.milestone-passed { border-left: 4px solid #10b981; }
-.milestone-fatal  { border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.1); }
-.milestone-warning{ border-left: 4px solid #f59e0b; background: rgba(245, 158, 11, 0.1); }
+.milestone-passed { border-left: 4px solid #16a34a; background: rgba(22, 163, 74, 0.04); }
+.milestone-fatal  { border-left: 4px solid #dc2626; background: rgba(220, 38, 38, 0.04); }
+.milestone-warning{ border-left: 4px solid #d97706; background: rgba(217, 119, 6, 0.04); }
 
 .milestone-header {
     display: flex;
@@ -3826,13 +3851,13 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     white-space: nowrap;
 }
 
-.milestone-passed .milestone-badge { color: #34d399; }
-.milestone-fatal .milestone-badge  { color: #f87171; }
-.milestone-warning .milestone-badge{ color: #fbbf24; }
+.milestone-passed .milestone-badge { color: #16a34a; }
+.milestone-fatal .milestone-badge  { color: #dc2626; }
+.milestone-warning .milestone-badge{ color: #d97706; }
 
 .milestone-statute {
     font-size: 0.7rem;
-    color: #94a3b8;
+    color: #64748b;
     font-weight: 600;
     text-align: right;
     max-width: 60%;
@@ -3842,13 +3867,13 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 .milestone-title {
     font-size: 0.88rem;
     font-weight: 800;
-    color: #ffffff;
+    color: #0f172a;
     margin-bottom: 0.4rem;
 }
 
 .milestone-meta {
     font-size: 0.78rem;
-    color: #94a3b8;
+    color: #64748b;
     display: flex;
     gap: 0.85rem;
     font-weight: 500;
@@ -3857,8 +3882,8 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 .milestone-defect-note {
     margin-top: 0.5rem;
     font-size: 0.76rem;
-    color: #f87171;
-    background: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+    background: #fef2f2;
     padding: 0.3rem 0.55rem;
     border-radius: 4px;
     font-weight: 600;
@@ -3869,20 +3894,20 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     display: flex;
     align-items: center;
     gap: 1rem;
-    background: rgba(16, 185, 129, 0.12);
-    border: 1px solid rgba(16, 185, 129, 0.35);
+    background: #f0fdf4;
+    border: 1.5px solid #bbf7d0;
     border-radius: 10px;
     padding: 1rem 1.25rem;
-    color: #cbd5e1;
+    color: #166534;
 }
 
 .bank-clean-file-alert i {
     font-size: 1.8rem;
-    color: #10b981;
+    color: #16a34a;
 }
 
 .bank-clean-file-alert strong {
-    color: #34d399;
+    color: #15803d;
     font-size: 0.95rem;
     display: block;
     margin-bottom: 0.2rem;
@@ -3891,7 +3916,7 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 .bank-clean-file-alert p {
     font-size: 0.84rem;
     margin: 0;
-    color: #cbd5e1;
+    color: #1e293b;
 }
 
 .bank-defect-card {
@@ -3899,21 +3924,24 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     padding: 1rem 1.2rem;
     margin-bottom: 0.75rem;
     font-size: 0.85rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 }
 
 .defect-fatal {
-    background: rgba(239, 68, 68, 0.12);
-    border: 1.5px solid rgba(239, 68, 68, 0.35);
+    border-left: 4px solid #dc2626;
+    background: #fef2f2;
 }
 
 .defect-limitation {
-    background: rgba(245, 158, 11, 0.12);
-    border: 1.5px solid rgba(245, 158, 11, 0.35);
+    border-left: 4px solid #d97706;
+    background: #fffbeb;
 }
 
 .defect-curable {
-    background: rgba(56, 189, 248, 0.12);
-    border: 1.5px solid rgba(56, 189, 248, 0.35);
+    border-left: 4px solid #0284c7;
+    background: #f0f9ff;
 }
 
 .defect-header {
@@ -3929,34 +3957,35 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     letter-spacing: 0.04em;
 }
 
-.defect-fatal .defect-badge { color: #f87171; }
-.defect-limitation .defect-badge { color: #fbbf24; }
-.defect-curable .defect-badge { color: #38bdf8; }
+.defect-fatal .defect-badge { color: #dc2626; }
+.defect-limitation .defect-badge { color: #d97706; }
+.defect-curable .defect-badge { color: #0284c7; }
 
-.defect-statute { font-size: 0.76rem; color: #94a3b8; font-weight: 600; }
-.defect-title { font-weight: 800; color: #ffffff; margin-bottom: 0.3rem; font-size: 0.92rem; }
-.defect-finding { color: #cbd5e1; margin-bottom: 0.4rem; line-height: 1.45; }
-.defect-precedent { font-size: 0.78rem; color: #94a3b8; margin-bottom: 0.3rem; font-style: italic; }
-.defect-remediation { font-size: 0.82rem; color: #38bdf8; font-weight: 600; background: rgba(56, 189, 248, 0.1); padding: 0.35rem 0.6rem; border-radius: 6px; }
+.defect-statute { font-size: 0.76rem; color: #64748b; font-weight: 600; }
+.defect-title { font-weight: 800; color: #0f172a; margin-bottom: 0.3rem; font-size: 0.92rem; }
+.defect-finding { color: #334155; margin-bottom: 0.4rem; line-height: 1.45; }
+.defect-precedent { font-size: 0.78rem; color: #64748b; margin-bottom: 0.3rem; font-style: italic; }
+.defect-remediation { font-size: 0.82rem; color: #0369a1; font-weight: 600; background: #e0f2fe; padding: 0.35rem 0.6rem; border-radius: 6px; }
 
 /* Advocate Dossier Box */
 .dossier-box {
-    background: #090d16;
-    border: 1px solid rgba(56, 189, 248, 0.25);
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
     border-radius: 10px;
     padding: 1.25rem;
     font-size: 0.86rem;
-    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+    color: #1e293b;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
 }
 
 .dossier-header-strip {
     display: flex;
     justify-content: space-between;
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.18);
+    border-bottom: 1.5px dashed #cbd5e1;
     padding-bottom: 0.7rem;
     margin-bottom: 0.85rem;
     font-weight: 700;
-    color: #e2e8f0;
+    color: #0f172a;
 }
 
 .dossier-section {
@@ -3966,7 +3995,7 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 .dossier-section h6 {
     font-size: 0.8rem;
     font-weight: 800;
-    color: #38bdf8;
+    color: #0284c7;
     margin-bottom: 0.4rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -3975,40 +4004,40 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 .dossier-chronology-list {
     margin: 0;
     padding-left: 1.3rem;
-    color: #cbd5e1;
+    color: #334155;
     line-height: 1.5;
 }
 
 .chrono-date {
     font-weight: 800;
-    color: #ffffff;
+    color: #0f172a;
 }
 
 .dossier-instructions {
-    background: rgba(30, 41, 59, 0.85);
-    border-left: 3.5px solid #38bdf8;
+    background: #f0f9ff;
+    border-left: 3.5px solid #0284c7;
     padding: 0.65rem 0.85rem;
     border-radius: 6px;
-    color: #f8fafc;
+    color: #0c4a6e;
     margin: 0;
     line-height: 1.5;
 }
 
 /* Compliance Evidence Ledger */
 .compliance-ledger-card {
-    background: #060911;
-    border: 1.5px solid rgba(56, 189, 248, 0.3);
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
     border-radius: 10px;
     padding: 1.15rem;
     font-size: 0.82rem;
-    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.7);
+    box-shadow: none;
 }
 
 .ledger-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid #e2e8f0;
     padding-bottom: 0.6rem;
     margin-bottom: 0.75rem;
 }
@@ -4016,7 +4045,7 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 .ledger-seal {
     font-size: 0.82rem;
     font-weight: 900;
-    color: #38bdf8;
+    color: #0284c7;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     display: flex;
@@ -4027,27 +4056,27 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 .ledger-hash-chip {
     font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
     font-size: 0.74rem;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
     padding: 0.25rem 0.6rem;
     border-radius: 6px;
-    color: #94a3b8;
+    color: #0369a1;
 }
 
 .ledger-row {
     display: flex;
     justify-content: space-between;
     margin-bottom: 0.35rem;
-    color: #94a3b8;
+    color: #475569;
     font-size: 0.82rem;
 }
 
-.ledger-row strong { color: #f8fafc; }
+.ledger-row strong { color: #0f172a; }
 
 .ledger-governance-note {
     margin-top: 0.75rem;
     padding-top: 0.65rem;
-    border-top: 1px dashed rgba(255, 255, 255, 0.12);
+    border-top: 1px dashed #cbd5e1;
     font-size: 0.74rem;
     color: #64748b;
     line-height: 1.45;
@@ -4059,7 +4088,7 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     gap: 0.85rem;
     margin-top: 1.5rem;
     padding-top: 1.25rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1.5px solid #f1f5f9;
 }
 
 .bank-action-footer .btn-primary {
@@ -4068,11 +4097,11 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     font-size: 0.95rem;
     font-weight: 700;
     border-radius: 10px;
-    box-shadow: 0 4px 18px rgba(2, 132, 199, 0.4);
+    box-shadow: 0 4px 18px rgba(2, 132, 199, 0.3);
 }
 
 .bank-action-footer .btn-primary:hover {
-    box-shadow: 0 6px 25px rgba(2, 132, 199, 0.6);
+    box-shadow: 0 6px 25px rgba(2, 132, 199, 0.45);
     transform: translateY(-1px);
 }
 
@@ -4080,7 +4109,7 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
    LIGHT MODE COMPONENT POLISH & BANK AUTH STYLES
    ============================================================================ */
 
-/* ── Light Mode Bank Recovery OS ── */
+/* ── Light Mode Bank Recovery OS (Executive Financial Suite) ── */
 [data-theme="light"] .bank-screen {
     background: radial-gradient(ellipse at 50% 0%, #f0f9ff 0%, #f8fafc 45%, #ffffff 100%);
     color: #0f172a;
@@ -4088,7 +4117,7 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 
 [data-theme="light"] .bank-portal-header {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(240, 249, 255, 0.95));
-    border: 1px solid rgba(14, 165, 233, 0.25);
+    border: 1.5px solid rgba(14, 165, 233, 0.25);
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 0 15px rgba(14, 165, 233, 0.08);
 }
 
@@ -4102,21 +4131,21 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 }
 
 [data-theme="light"] .bank-header-right .btn-outline {
-    background: rgba(14, 165, 233, 0.08);
-    border: 1px solid rgba(14, 165, 233, 0.3);
-    color: #0284c7 !important;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    color: #0369a1 !important;
 }
 
-[data-theme="light"] .bank-synthetic-notice {
-    background: rgba(14, 165, 233, 0.06) !important;
-    border: 1px solid rgba(14, 165, 233, 0.2) !important;
-    color: #334155 !important;
+[data-theme="light"] .bank-header-right .btn-outline:hover {
+    background: #f0f9ff;
+    border-color: #0284c7;
+    color: #0284c7 !important;
 }
 
 [data-theme="light"] .bank-control-strip {
     background: #ffffff;
-    border: 1px solid rgba(15, 23, 42, 0.09);
-    box-shadow: var(--shadow-sm);
+    border: 1.5px solid #e2e8f0;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
 }
 
 [data-theme="light"] .bank-unit-selector label {
@@ -4125,21 +4154,26 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 
 [data-theme="light"] .bank-panel {
     background: #ffffff;
-    border: 1px solid rgba(15, 23, 42, 0.09);
-    box-shadow: var(--shadow-md);
+    border: 1.5px solid #e2e8f0;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
 }
 
 [data-theme="light"] .bank-panel-header {
-    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    border-bottom: 1.5px solid #f1f5f9;
 }
 
 [data-theme="light"] .bank-panel-header h4 {
     color: #0f172a;
 }
 
+[data-theme="light"] .bank-form-group label {
+    color: #334155;
+    font-weight: 700;
+}
+
 [data-theme="light"] .bank-sub-card {
     background: #f8fafc;
-    border: 1px solid rgba(15, 23, 42, 0.08);
+    border: 1px solid #e2e8f0;
 }
 
 [data-theme="light"] .bank-sub-card h5 {
@@ -4149,20 +4183,22 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 [data-theme="light"] .bank-input-text,
 [data-theme="light"] .bank-input-select {
     background: #ffffff;
-    border: 1px solid #cbd5e1;
+    border: 1.5px solid #cbd5e1;
     color: #0f172a;
 }
 
 [data-theme="light"] .bank-input-text:focus,
 [data-theme="light"] .bank-input-select:focus {
     border-color: #0284c7;
-    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18);
 }
 
 [data-theme="light"] .bank-checkbox-label {
     background: #ffffff;
     border: 1px solid #e2e8f0;
     color: #1e293b;
+    border-radius: 6px;
+    padding: 0.35rem 0.5rem;
 }
 
 [data-theme="light"] .bank-checkbox-label:hover {
@@ -4172,52 +4208,123 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
 
 [data-theme="light"] .bank-score-card {
     background: linear-gradient(135deg, #f0f9ff, #ffffff);
-    border: 1px solid rgba(14, 165, 233, 0.25);
-    box-shadow: var(--shadow-sm);
+    border: 1.5px solid rgba(14, 165, 233, 0.3);
+    box-shadow: 0 4px 15px rgba(2, 132, 199, 0.08);
+}
+
+[data-theme="light"] .score-number {
+    color: #0f172a;
+}
+
+[data-theme="light"] .score-label {
+    color: #64748b;
+}
+
+[data-theme="light"] .bank-output-section {
+    border-top: 1.5px solid #f1f5f9;
+}
+
+[data-theme="light"] .bank-output-section h5 {
+    color: #0f172a;
 }
 
 [data-theme="light"] .bank-milestone-card {
     background: #ffffff;
-    border: 1px solid rgba(15, 23, 42, 0.08);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 }
 
 [data-theme="light"] .bank-milestone-card:hover {
     background: #f8fafc;
+    border-color: #cbd5e1;
 }
 
-[data-theme="light"] .bank-milestone-card.passed {
+[data-theme="light"] .milestone-title {
+    color: #0f172a;
+}
+
+[data-theme="light"] .milestone-meta {
+    color: #64748b;
+}
+
+[data-theme="light"] .bank-milestone-card.milestone-passed {
     border-left: 4px solid #16a34a;
+    background: rgba(22, 163, 74, 0.04);
 }
 
-[data-theme="light"] .bank-milestone-card.fatal {
+[data-theme="light"] .bank-milestone-card.milestone-fatal {
     border-left: 4px solid #dc2626;
+    background: rgba(220, 38, 38, 0.04);
 }
 
-[data-theme="light"] .bank-milestone-card.curable {
+[data-theme="light"] .bank-milestone-card.milestone-warning {
     border-left: 4px solid #d97706;
+    background: rgba(217, 119, 6, 0.04);
 }
 
 [data-theme="light"] .bank-defect-card {
     background: #ffffff;
-    border: 1px solid rgba(15, 23, 42, 0.09);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 }
 
-[data-theme="light"] .bank-defect-card.fatal {
+[data-theme="light"] .bank-defect-card.defect-fatal {
     border-left: 4px solid #dc2626;
+    background: #fef2f2;
 }
 
-[data-theme="light"] .bank-defect-card.curable {
+[data-theme="light"] .bank-defect-card.defect-limitation {
     border-left: 4px solid #d97706;
+    background: #fffbeb;
 }
 
-[data-theme="light"] .dossier-card {
+[data-theme="light"] .bank-defect-card.defect-curable {
+    border-left: 4px solid #0284c7;
+    background: #f0f9ff;
+}
+
+[data-theme="light"] .defect-title {
+    color: #0f172a;
+}
+
+[data-theme="light"] .defect-finding {
+    color: #334155;
+}
+
+[data-theme="light"] .defect-precedent {
+    color: #64748b;
+}
+
+[data-theme="light"] .dossier-box {
     background: #ffffff;
-    border: 1px solid rgba(15, 23, 42, 0.09);
+    border: 1.5px solid #cbd5e1;
+    color: #1e293b;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .dossier-header-strip {
+    border-bottom: 1.5px dashed #cbd5e1;
+    color: #0f172a;
+}
+
+[data-theme="light"] .chrono-date {
+    color: #0f172a;
+}
+
+[data-theme="light"] .dossier-chronology-list {
+    color: #334155;
+}
+
+[data-theme="light"] .dossier-instructions {
+    background: #f0f9ff;
+    border-left: 3.5px solid #0284c7;
+    color: #0c4a6e;
 }
 
 [data-theme="light"] .compliance-ledger-card {
     background: #f8fafc;
-    border: 1px solid rgba(15, 23, 42, 0.09);
+    border: 1.5px solid #cbd5e1;
+    box-shadow: none;
 }
 
 [data-theme="light"] .ledger-row {
@@ -4232,6 +4339,11 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     background: #ffffff;
     border: 1px solid #cbd5e1;
     color: #0369a1;
+}
+
+[data-theme="light"] .ledger-governance-note {
+    color: #64748b;
+    border-top: 1px dashed #cbd5e1;
 }
 
 /* ── Light Mode Admin Control Center ── */
@@ -4377,11 +4489,146 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     font-size: 1rem;
 }
 
-.theme-toggle-btn:hover {
-    color: var(--primary-500);
-    border-color: var(--primary-400);
-    transform: rotate(15deg);
+/* ============================================================================
+   ENTERPRISE BANK RECOVERY OS: 5-TAB SUITE STYLES (EXECUTIVE LIGHT THEME)
+   ============================================================================ */
+
+/* ── 5-Tab Executive Navigation Strip ── */
+.bank-function-tabs-strip {
+    display: flex;
+    gap: 0.5rem;
+    background: #ffffff;
+    padding: 0.5rem;
+    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);
+    overflow-x: auto;
 }
+
+.bank-fn-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.15rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #475569;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.bank-fn-tab i {
+    font-size: 0.95rem;
+    color: #0284c7;
+}
+
+.bank-fn-tab:hover {
+    background: #f0f9ff;
+    color: #0369a1;
+}
+
+.bank-fn-tab.active {
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+}
+
+.bank-fn-tab.active i {
+    color: #ffffff;
+}
+
+/* ── View Container Visibility ── */
+.bank-function-view {
+    display: none;
+    animation: fadeInBankView 0.25s ease-out;
+}
+
+.bank-function-view.active {
+    display: block;
+}
+
+@keyframes fadeInBankView {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── Multi-Track Orchestrator View ── */
+.bank-multi-track-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    background: #ffffff;
+    padding: 1.25rem 1.5rem;
+    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);
+}
+
+.bank-multi-track-header h3 {
+    margin: 0 0 0.3rem 0;
+    color: #0f172a;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.bank-multi-track-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.bank-multitrack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+}
+
+/* ── Drafter & OTS 2-Column Grids ── */
+.bank-drafter-grid,
+.bank-ots-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.35fr;
+    gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+    .bank-drafter-grid,
+    .bank-ots-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.bank-legal-draft-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* ── Advocate Directory Cards Grid ── */
+.bank-advocates-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.25rem;
+}
+
 
 
 
