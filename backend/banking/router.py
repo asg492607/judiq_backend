@@ -555,13 +555,27 @@ def dispatch_advocate_brief(req: DispatchBriefRequest = Body(...)):
 # ENTERPRISE BANKING MODULES: MULTI-TRACK, STATUTORY DRAFTS & OTS CALCULATOR
 # ============================================================================
 
-from .multi_track_orchestrator import MultiTrackEvaluationRequest, MultiTrackStrategyReport, evaluate_multi_track_recovery
+from .compliance_auditor import ComplianceAuditor, CaseFactsSchema, ComplianceReport
+from .multi_track_orchestrator import MultiTrackEvaluationRequest, MultiTrackStrategyReport, evaluate_multi_track_recovery, MultiTrackOrchestrator
 from .statutory_drafter import StatutoryDraftRequest, StatutoryDraftResponse, generate_statutory_document
 from .ots_optimizer import OTSCalculationRequest, OTSCalculationResponse, calculate_ots_vs_litigation
 from .advocate_manager import get_empaneled_advocates_list, get_advocate_by_id, EMPANELLED_ADVOCATES_REGISTRY
 
 
+@router.post("/compliance-audit", response_model=ComplianceReport, tags=["Banking & Recovery OS"])
+@router.post("/compliance-audit/s138", response_model=ComplianceReport, tags=["Banking & Recovery OS"])
+def audit_statutory_compliance_endpoint(req: CaseFactsSchema = Body(...)):
+    """
+    Performs a 12-pillar statutory compliance audit for Section 138 NI Act and recovery cases.
+    Returns categorized gaps (Fatal, Curable, Warning, Strategic), authoritative precedents,
+    impact assessments, and actionable remedies.
+    """
+    auditor = ComplianceAuditor()
+    return auditor.audit_section_138_case(req.model_dump())
+
+
 @router.post("/multi-track-strategy", response_model=MultiTrackStrategyReport, tags=["Banking & Recovery OS"])
+@router.post("/multi-track-orchestrate", response_model=MultiTrackStrategyReport, tags=["Banking & Recovery OS"])
 def evaluate_multi_track_strategy_endpoint(req: MultiTrackEvaluationRequest = Body(...)):
     """
     Evaluates concurrent legal enforcement viability across 5 Indian statutory recovery tracks:
@@ -572,7 +586,8 @@ def evaluate_multi_track_strategy_endpoint(req: MultiTrackEvaluationRequest = Bo
     Track 5: Regulatory Enforcement (RBI Wilful Defaulter & MHA Look-Out Circulars)
     """
     try:
-        return evaluate_multi_track_recovery(req)
+        orchestrator = MultiTrackOrchestrator()
+        return orchestrator.orchestrate_recovery_strategy(req.model_dump())
     except Exception as e:
         logger.error(f"[MULTI-TRACK ERROR] {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Multi-track strategy evaluation error: {str(e)}")

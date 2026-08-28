@@ -255,3 +255,29 @@ async def simulate_strategy(req: SimulationRequest):
         "precedent_ratio": ratio,
         "statutory_provisions": ["Sec. 138 NI Act", "Sec. 142 NI Act", "Sec. 45 Evidence Act", "Sec. 65B Evidence Act"]
     }
+
+
+from banking.compliance_auditor import ComplianceAuditor, CaseFactsSchema, ComplianceReport
+from banking.multi_track_orchestrator import MultiTrackOrchestrator, MultiTrackEvaluationRequest, MultiTrackStrategyReport
+
+
+@router.post("/section138", response_model=ComplianceReport, tags=["Compliance Audit"])
+def audit_section_138_endpoint(case_facts: CaseFactsSchema = None, req: Request = None):
+    """
+    Systematically audits Section 138 NI Act case compliance against 10+ statutory dimensions.
+    Returns a structured gap report with citations, remedies, and action priorities.
+    """
+    auditor = ComplianceAuditor()
+    data = case_facts.model_dump() if case_facts else {}
+    return auditor.audit_section_138_case(data)
+
+
+@router.post("/multi-track", response_model=MultiTrackStrategyReport, tags=["Multi-Track Orchestration"])
+def orchestrate_multi_track_endpoint(debtor_facts: MultiTrackEvaluationRequest = None, req: Request = None):
+    """
+    Evaluates recovery viability across 5 statutory tracks, flags conflicts,
+    and returns prioritized recovery sequences.
+    """
+    orchestrator = MultiTrackOrchestrator()
+    data = debtor_facts.model_dump() if debtor_facts else {}
+    return orchestrator.orchestrate_recovery_strategy(data)
