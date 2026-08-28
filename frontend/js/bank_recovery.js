@@ -1157,6 +1157,9 @@ window.generateStatutoryLegalDraft = async function() {
     const propertyDesc = document.getElementById("bankDraftPropertyDesc") ? document.getElementById("bankDraftPropertyDesc").value : "Commercial Unit No. 402, Apex Business Center";
     const delayReason = document.getElementById("bankDraftDelayReason") ? document.getElementById("bankDraftDelayReason").value : "Administrative reconciliation";
 
+    const isAgricultural = document.getElementById("bankAssetType") ? document.getElementById("bankAssetType").value === 'AGRICULTURAL' : false;
+    const cersaiRegistered = document.getElementById("bankCersaiCheck") ? document.getElementById("bankCersaiCheck").checked : true;
+
     previewBox.innerHTML = `<div style="text-align: center; padding: 2rem;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #0284c7;"></i><p>Drafting statutory document...</p></div>`;
 
     try {
@@ -1180,11 +1183,16 @@ window.generateStatutoryLegalDraft = async function() {
                 notice_date: "2024-01-30",
                 delay_days: delayDays,
                 delay_reason: delayReason,
-                property_description: propertyDesc
+                property_description: propertyDesc,
+                is_agricultural_land: isAgricultural,
+                cersai_registered: cersaiRegistered
             })
         });
 
-        if (!res.ok) throw new Error("Drafting endpoint returned error");
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.detail || errData.message || `Drafting error HTTP ${res.status}`);
+        }
         const doc = await res.json();
         currentGeneratedDraft = doc.markdown_content;
         currentGeneratedDraftTitle = doc.title.replace(/[^a-zA-Z0-9_]/g, "_").slice(0, 40);
@@ -1204,7 +1212,18 @@ window.generateStatutoryLegalDraft = async function() {
         if (window.toast) window.toast.show("Court-admissible draft successfully created", "success");
     } catch (err) {
         console.error("Drafting error:", err);
-        previewBox.innerHTML = `<div style="color: #ef4444; padding: 1.5rem; text-align: center;">Drafting failed: ${err.message}</div>`;
+        previewBox.innerHTML = `
+            <div style="color: #b91c1c; background: #fef2f2; border: 1.5px solid #fecaca; padding: 1.5rem; border-radius: 8px; font-size: 0.88rem; line-height: 1.5;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #991b1b; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-triangle-exclamation"></i> Statutory Bar Flagged
+                </h4>
+                <p style="margin: 0;">${err.message}</p>
+                <div style="margin-top: 0.75rem; font-size: 0.82rem; color: #7f1d1d;">
+                    <strong>Mandatory Action:</strong> Resolve the statutory impediment before proceeding with enforcement drafting.
+                </div>
+            </div>
+        `;
+        if (window.toast) window.toast.show(err.message, "error");
     }
 };
 

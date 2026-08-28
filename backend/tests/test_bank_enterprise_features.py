@@ -151,3 +151,53 @@ def test_advocate_dispatch_endpoint():
     assert data["success"] is True
     assert data["status"] == "DISPATCHED_TO_PANEL"
     assert "ADV_MUM_01" in data["advocate_id"]
+
+
+def test_sarfaesi_agricultural_land_hard_stop():
+    payload = {
+        "document_type": "SARFAESI_13_2_NOTICE",
+        "bank_name": "State Bank of India",
+        "branch_name": "SARB Mumbai",
+        "officer_name": "Rajesh Kumar",
+        "borrower_name": "Kisan Agro Products Pvt Ltd",
+        "loan_account_no": "SBI/AGRI/2026/0192",
+        "default_amount": 5000000.0,
+        "is_agricultural_land": True,
+        "cersai_registered": True
+    }
+    res = client.post("/api/v1/bank/generate-statutory-notice", json=payload)
+    assert res.status_code == 400
+    assert "Section 31(i)" in res.json()["detail"]
+
+
+def test_sarfaesi_cersai_missing_hard_stop():
+    payload = {
+        "document_type": "SARFAESI_13_2_NOTICE",
+        "bank_name": "Bank of Baroda",
+        "branch_name": "CFS Delhi",
+        "officer_name": "Amit Sharma",
+        "borrower_name": "Delhi Retailers Ltd",
+        "loan_account_no": "BOB/2026/991",
+        "default_amount": 2000000.0,
+        "is_agricultural_land": False,
+        "cersai_registered": False
+    }
+    res = client.post("/api/v1/bank/generate-statutory-notice", json=payload)
+    assert res.status_code == 400
+    assert "Section 26D" in res.json()["detail"]
+
+
+def test_advocate_review_watermark_present():
+    payload = {
+        "document_type": "S138_DEMAND_NOTICE",
+        "bank_name": "State Bank of India",
+        "branch_name": "SARB Mumbai",
+        "officer_name": "Rajesh Kumar",
+        "borrower_name": "Apex Infra",
+        "loan_account_no": "SBI/2026/11",
+        "default_amount": 1000000.0
+    }
+    res = client.post("/api/v1/bank/generate-statutory-notice", json=payload)
+    assert res.status_code == 200
+    assert "MANDATORY LEGAL NOTICE: FOR ADVOCATE REVIEW ONLY" in res.json()["markdown_content"]
+

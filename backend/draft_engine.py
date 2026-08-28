@@ -84,7 +84,11 @@ def decide_draft_type(score: int, concepts: List[Dict], case_data: Dict) -> str:
     return "COMPLAINT"                                                      
 def _header(title: str) -> str:
     line = "=" * 70
-    return f"{line}\n{title}\n{line}"
+    advocate_notice = (
+        "[FOR ADVOCATE REVIEW ONLY — SUBJECT TO INDEPENDENT VERIFICATION UNDER APPLICABLE COURT PRACTICE RULES]\n"
+        "[THIS DRAFT IS A PROCEDURAL WORKFLOW TEMPLATE AND DOES NOT CONSTITUTE FORMAL LEGAL ADVICE]\n"
+    )
+    return f"{advocate_notice}{line}\n{title}\n{line}"
 
 def _safe_float(val) -> float:
     if val in (None, "", "________ (Amount)"):

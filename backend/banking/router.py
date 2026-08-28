@@ -590,6 +590,8 @@ def generate_statutory_document_endpoint(req: StatutoryDraftRequest = Body(...))
     """
     try:
         return generate_statutory_document(req)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"[DRAFT GENERATOR ERROR] {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Statutory document drafting error: {str(e)}")

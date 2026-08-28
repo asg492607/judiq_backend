@@ -5,7 +5,8 @@ evidence certificates, and interim compensation petitions for Indian banking rec
 """
 
 from typing import Dict, Any, Optional
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timezone
+from fastapi import HTTPException
 from pydantic import BaseModel, Field
 
 
@@ -27,6 +28,8 @@ class StatutoryDraftRequest(BaseModel):
     delay_days: Optional[int] = 0
     delay_reason: Optional[str] = "Administrative processing delays during branch reconciliation"
     property_description: Optional[str] = "Commercial Unit No. 402, 4th Floor, Apex Business Center, Plot 14, MIDC Area"
+    is_agricultural_land: Optional[bool] = False
+    cersai_registered: Optional[bool] = True
 
 
 class StatutoryDraftResponse(BaseModel):
@@ -44,12 +47,18 @@ def generate_statutory_document(req: StatutoryDraftRequest) -> StatutoryDraftRes
     doc_type = req.document_type.upper()
     now_str = datetime.now().strftime("%d %B %Y")
     amt_formatted = f"₹{req.default_amount:,.2f}"
+    
+    advocate_notice = (
+        "> **[MANDATORY LEGAL NOTICE: FOR ADVOCATE REVIEW ONLY — "
+        "SUBJECT TO INDEPENDENT VERIFICATION UNDER APPLICABLE HIGH COURT / DRT PRACTICE RULES — "
+        "THIS PLATFORM PROVIDES DECISION SUPPORT AND DOES NOT CONSTITUTE FORMAL LEGAL ADVICE]**\n\n"
+    )
 
     if doc_type == "S138_DEMAND_NOTICE":
         title = "FORMAL STATUTORY DEMAND NOTICE UNDER SECTION 138(b) OF THE NEGOTIABLE INSTRUMENTS ACT, 1881"
-        citation = "Section 138(b) & Section 141 of Negotiable Instruments Act, 1881 (Read with Section 27 General Clauses Act)"
+        citation = "Section 138(b) & Section 141 of Negotiable Instruments Act, 1881 (Read with Section 27 General Clauses Act & Section 10 GCA)"
         
-        md = f"""# {title}
+        md = f"""{advocate_notice}# {title}
 **REGISTERED POST WITH ACKNOWLEDGEMENT DUE / SPEED POST**
 
 **Date:** {req.notice_date or now_str}
@@ -85,7 +94,7 @@ Under instructions from and on behalf of our client, **{req.bank_name}**, we her
 
 2. **PRESENTATION & DISHONOUR:** Our client bank presented the said cheque for clearance within its statutory validity period. However, the said cheque was returned unpaid and dishonoured by the bank vide Return Memo dated **{req.dishonour_date}** with the endorsement: **"{req.dishonour_reason}"**.
 
-3. **STATUTORY MANDATE UNDER SECTION 138:** In terms of the provisions of Section 138 of the Negotiable Instruments Act, 1881 (as amended), you are hereby called upon to pay the full cheque amount of **{amt_formatted}** within **FIFTEEN (15) DAYS** from the date of receipt of this notice.
+3. **STATUTORY MANDATE UNDER SECTION 138:** In terms of the provisions of Section 138 of the Negotiable Instruments Act, 1881 (as amended), you are hereby called upon to pay the full cheque amount of **{amt_formatted}** within **FIFTEEN (15) DAYS** from the date of receipt of this notice. *(Note: If Day 15 falls on a court/public holiday, Section 10 General Clauses Act applies)*.
 
 4. **CONSEQUENCES OF DEFAULT (CRIMINAL PROSECUTION & S.143A COMPENSATION):** Take notice that in the event of your failure to make payment of the said amount within the stipulated mandatory period of **15 days**, our client bank shall institute Criminal Proceedings against you under **Section 138 read with Section 141 of the Negotiable Instruments Act, 1881**, wherein you shall be liable for imprisonment for a term up to **TWO (2) YEARS**, or with fine which may extend to **TWICE THE AMOUNT OF THE CHEQUE**, or with both.
 
@@ -113,10 +122,21 @@ _____________________________
         ]
 
     elif doc_type == "SARFAESI_13_2_NOTICE":
+        if req.is_agricultural_land:
+            raise HTTPException(
+                status_code=400,
+                detail="SARFAESI Enforcement Barred: Section 31(i) strictly prohibits Chapter III security enforcement against agricultural land (Supreme Court precedent in K. Sreedhar v. Raus Construction). Bank must proceed via Commercial Civil Suit (Order 37 CPC) or DRT Section 19 Original Application."
+            )
+        if req.cersai_registered is False:
+            raise HTTPException(
+                status_code=400,
+                detail="SARFAESI Enforcement Barred: Section 26D mandates prior registration of security interest with CERSAI before initiating Section 13(2) enforcement. Register security interest on CERSAI portal before issuing statutory demand."
+            )
+
         title = "DEMAND NOTICE UNDER SECTION 13(2) OF THE SARFAESI ACT, 2002"
         citation = "Section 13(2) & 13(3) of Securitisation and Reconstruction of Financial Assets and Enforcement of Security Interest Act, 2002"
 
-        md = f"""# {title}
+        md = f"""{advocate_notice}# {title}
 **BY REGISTERED POST WITH A.D. / SPEED POST / HAND DELIVERY**
 
 **Date:** {req.notice_date or now_str}
@@ -156,6 +176,7 @@ The undersigned is the **Authorized Officer** of **{req.bank_name}** under the S
 - **Description:** {req.property_description}
 - **CERSAI Registration ID:** Mandatory Registered Security Interest
 - **Title Deeds Deposited:** Original Registered Sale Deed / Memorandum of Deposit of Title Deeds (MODTD)
+- **Statutory Exclusion Verified:** Non-Agricultural Immovable Asset (Section 31(i) Compliant)
 
 For **{req.bank_name}** (Secured Creditor)
 
@@ -168,7 +189,7 @@ _____________________________
             "Strict 60-day cure period recited under Section 13(2)",
             "Section 13(13) statutory bar on alienation of secured assets",
             "CERSAI security registration reference under Section 26D",
-            "Itemized Schedule of Secured Immovable Assets"
+            "Itemized Schedule of Secured Immovable Assets (Section 31(i) non-agri verified)"
         ]
         checklist = [
             "Affix notice on outer door if borrower avoids service and publish in two newspapers (Rule 3)",
@@ -176,36 +197,43 @@ _____________________________
         ]
 
     elif doc_type == "SECTION_65B_CERTIFICATE":
-        title = "CERTIFICATE UNDER SECTION 65B OF THE INDIAN EVIDENCE ACT, 1872 / SECTION 63 OF BHARATIYA SAKSHYA ADHINIYAM, 2023"
+        title = "DRAFT STATUTORY AFFIDAVIT UNDER SECTION 65B INDIAN EVIDENCE ACT, 1872 / SECTION 63 BHARATIYA SAKSHYA ADHINIYAM, 2023"
         citation = "Section 65B Indian Evidence Act, 1872 & Section 63 Bharatiya Sakshya Adhiniyam, 2023 read with Banker's Books Evidence Act, 1891"
 
-        md = f"""# {title}
+        md = f"""{advocate_notice}# {title}
+**[DRAFT AFFIDAVIT FOR VERIFICATION & PHYSICAL EXECUTION BY AUTHORIZED SYSTEM CUSTODIAN BEFORE NOTARY / OATH COMMISSIONER]**
 **(FOR ADMISSIBILITY OF ELECTRONIC RECORDS & COMPUTERIZED STATEMENT OF ACCOUNTS)**
 
 **Date:** {now_str}
 
 I, **{req.officer_name}**, {req.officer_designation}, **{req.bank_name}**, {req.branch_name}, do hereby solemnly affirm and state on oath as follows:
 
-1. I am working as {req.officer_designation} at {req.bank_name}, {req.branch_name} and am fully conversant with the facts of the case and the computer systems of the Bank.
+1. I am working as {req.officer_designation} at {req.bank_name}, {req.branch_name} and am the lawful custodian / authorized officer having management and operational knowledge of the computer systems of the Bank.
 
 2. In the regular course of banking business, **{req.bank_name}** maintains its books of account and records electronically on its centralized Core Banking Solution (CBS) server.
 
-3. The computerized Statement of Account relating to Loan Account No. **{req.loan_account_no}** in the name of **{req.borrower_name}** showing an outstanding debit balance of **{amt_formatted}** has been produced directly from the said computer system.
+3. The computerized Statement of Account relating to Loan Account No. **{req.loan_account_no}** in the name of **{req.borrower_name}** showing an outstanding debit balance of **{amt_formatted}** has been produced directly from the said computer system under my direct supervision.
 
-4. **CERTIFICATION PURSUANT TO SECTION 65B(2) / SECTION 63(2):**
+4. **MANDATORY STATUTORY CERTIFICATION PURSUANT TO SECTION 65B(2) / SECTION 63(2):**
    - The electronic computer output was produced by the computer system during the period over which the computer was used regularly to store or process information in the ordinary course of banking activities.
    - Throughout the material period, the computer system was operating properly and there were no operational breakdowns affecting the accuracy of the electronic records.
    - The information contained in the electronic record reproduces accurately the data fed into the system in the ordinary course of business.
 
-5. I certify that the attached printout of the Statement of Account is a true, authentic, and accurate reproduction of the electronic record stored on the bank's secure server, meeting all criteria laid down by the Supreme Court in *Arjun Panditrao Khotkar v. Kailash Kushanrao Gorantyal (2020) 7 SCC 1*.
+5. I certify that the attached printout of the Statement of Account is a true, authentic, and accurate reproduction of the electronic record stored on the bank's secure server, conforming to the statutory standards laid down by the Supreme Court in *Arjun Panditrao Khotkar v. Kailash Kushanrao Gorantyal (2020) 7 SCC 1*.
 
-**DEPONENT / CERTIFYING OFFICER**
+**DEPONENT / CERTIFYING CUSTODIAN**
 
 _____________________________  
 **{req.officer_name}**  
 *{req.officer_designation}*  
 {req.bank_name}, {req.branch_name}  
 Employee Code: Verified Official
+
+**VERIFICATION**
+Verified at on this {now_str} that the contents of the above affidavit are true and correct to the best of my personal knowledge and belief derived from official banking records.
+
+_____________________________  
+**DEPONENT**
 """
         clauses = [
             "Conforms strictly with Supreme Court 3-Judge Bench ruling in Arjun Panditrao Khotkar (2020)",
@@ -221,7 +249,7 @@ Employee Code: Verified Official
         title = "APPLICATION FOR CONDONATION OF DELAY UNDER SECTION 142(1)(b) PROVISO OF NEGOTIABLE INSTRUMENTS ACT, 1881"
         citation = "Section 142(1)(b) Proviso NI Act, 1881 read with Section 5 of Limitation Act, 1963"
 
-        md = f"""# IN THE COURT OF THE JUDICIAL MAGISTRATE FIRST CLASS / METROPOLITAN MAGISTRATE
+        md = f"""{advocate_notice}# IN THE COURT OF THE JUDICIAL MAGISTRATE FIRST CLASS / METROPOLITAN MAGISTRATE
 
 **CRIMINAL COMPLAINT NO. ________ OF 2026**
 
@@ -272,7 +300,7 @@ Through Counsel / Authorized Officer
         title = "APPLICATION UNDER SECTION 143A OF THE NEGOTIABLE INSTRUMENTS ACT FOR INTERIM COMPENSATION"
         citation = "Section 143A of Negotiable Instruments Act, 1881 (2018 Amendment)"
 
-        md = f"""# IN THE COURT OF THE JUDICIAL MAGISTRATE FIRST CLASS / METROPOLITAN MAGISTRATE
+        md = f"""{advocate_notice}# IN THE COURT OF THE JUDICIAL MAGISTRATE FIRST CLASS / METROPOLITAN MAGISTRATE
 
 **CRIMINAL COMPLAINT NO. ________ OF 2026**
 
