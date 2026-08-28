@@ -3803,5 +3803,133 @@ window.toggleUserStatus = async (userId, currentStatus) => {
     }
 };
 
+// ============================================================================
+// MODULAR SUBSCRIPTION PRICING CONFIGURATOR (₹500 / Module / 10 Cases)
+// ============================================================================
+
+window.updateModularPricing = function() {
+    const checkboxes = document.querySelectorAll('input[name="legal_module"]');
+    const checkedModules = [];
+    
+    checkboxes.forEach(cb => {
+        const card = cb.closest('.module-choice-card');
+        if (cb.checked) {
+            checkedModules.push(cb.value);
+            if (card) card.classList.add('active');
+        } else {
+            if (card) card.classList.remove('active');
+        }
+    });
+
+    // Guard: Keep at least 1 module selected
+    if (checkedModules.length === 0) {
+        const firstCb = document.querySelector('input[name="legal_module"][value="s138"]');
+        if (firstCb) {
+            firstCb.checked = true;
+            const card = firstCb.closest('.module-choice-card');
+            if (card) card.classList.add('active');
+            checkedModules.push('s138');
+        }
+    }
+
+    const count = checkedModules.length;
+    let price = count * 500;
+    if (count === 6) {
+        price = 2500; // Special bundle price for all 6
+    }
+    const cases = count * 10;
+
+    const titles = {
+        1: 'Solo Practice Plan (1 Module)',
+        2: 'Dual Practice Plan (2 Modules)',
+        3: 'Commercial Law Practice (3 Modules)',
+        4: 'Litigation Firm Plan (4 Modules)',
+        5: 'Advanced Chambers Suite (5 Modules)',
+        6: 'Enterprise Full-Access Suite (All 6 Engines)'
+    };
+
+    const descs = {
+        1: 'Tailored for specialized advocates handling 10 cases / month in a single statutory area.',
+        2: 'Perfect for litigators handling concurrent civil and Section 138 cheque bounce matters (20 cases/mo).',
+        3: 'Comprehensive coverage for active commercial litigators (30 cases / 30-day billing cycle).',
+        4: 'Designed for boutique litigation firms managing multi-court caseloads (40 cases/mo).',
+        5: 'Extensive multi-track recovery and defense strategy coverage (50 cases/mo).',
+        6: 'All-inclusive institutional intelligence suite across all 6 statutory engines (60 cases/mo).'
+    };
+
+    const priceEl = document.getElementById('planTotalPrice');
+    const casesEl = document.getElementById('planTotalCases');
+    const modulesEl = document.getElementById('planTotalModules');
+    const titleEl = document.getElementById('planTierTitle');
+    const descEl = document.getElementById('planTierDesc');
+    const btnLabelEl = document.getElementById('subscribeBtnLabel');
+
+    if (priceEl) priceEl.textContent = price.toLocaleString('en-IN');
+    if (casesEl) casesEl.textContent = `${cases} Cases`;
+    if (modulesEl) modulesEl.textContent = `${count} ${count > 1 ? 'Engines' : 'Engine'}`;
+    if (titleEl) titleEl.textContent = titles[count] || `${count} Modules Plan`;
+    if (descEl) descEl.textContent = descs[count] || `Custom plan with ${count} active legal engines.`;
+    if (btnLabelEl) btnLabelEl.textContent = `Get Started with ${count} ${count > 1 ? 'Modules' : 'Module'} (₹${price.toLocaleString('en-IN')} / mo)`;
+
+    // Update preset pills active state
+    document.querySelectorAll('.preset-pill').forEach(pill => {
+        pill.classList.remove('active');
+    });
+    const matchingPill = document.querySelector(`.preset-pill[onclick*="${count}"]`);
+    if (matchingPill) matchingPill.classList.add('active');
+};
+
+window.applyModularPreset = function(count) {
+    const modulesOrder = ['s138', 'sarfaesi', 'criminal', 'civil', 'bank_recovery', 'counsel_intel'];
+    const targetModules = modulesOrder.slice(0, count);
+
+    document.querySelectorAll('input[name="legal_module"]').forEach(cb => {
+        cb.checked = targetModules.includes(cb.value);
+    });
+
+    window.updateModularPricing();
+};
+
+window.subscribeToSelectedModularPlan = function() {
+    const checkboxes = document.querySelectorAll('input[name="legal_module"]:checked');
+    const selected = Array.from(checkboxes).map(cb => cb.value);
+    const count = Math.max(1, selected.length);
+    let price = count * 500;
+    if (count === 6) price = 2500;
+    const cases = count * 10;
+
+    const planConfig = {
+        modules: selected,
+        module_count: count,
+        monthly_quota: cases,
+        monthly_price_inr: price,
+        billing_cycle_days: 30,
+        subscribed_at: new Date().toISOString()
+    };
+
+    localStorage.setItem('judiq_selected_plan', JSON.stringify(planConfig));
+
+    if (window.showToast) {
+        window.showToast(`Selected ${count} module plan (₹${price.toLocaleString('en-IN')}/mo • ${cases} cases)`, 'success');
+    } else if (window.ui && window.ui.toast) {
+        window.ui.toast(`Selected ${count} module plan (₹${price.toLocaleString('en-IN')}/mo • ${cases} cases)`, 'success');
+    }
+
+    // Direct user to Get Started / Registration with pre-selected plan
+    const regBtn = document.getElementById('navRegisterBtn');
+    if (regBtn) {
+        regBtn.click();
+    } else if (window.switchScreen) {
+        window.switchScreen('caseWizardScreen');
+    }
+};
+
+// Auto-initialize pricing calculator on DOM load
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof window.updateModularPricing === 'function') {
+        window.updateModularPricing();
+    }
+});
+
 
 

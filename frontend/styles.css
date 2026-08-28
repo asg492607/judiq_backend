@@ -4705,6 +4705,346 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     color: #f8fafc !important;
 }
 
+/* ============================================================================
+   MODULAR SUBSCRIPTION PRICING CONFIGURATOR (₹500 / Module / 10 Cases)
+   ============================================================================ */
+.pricing-section {
+    padding: 5rem 1.5rem;
+    position: relative;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.pricing-configurator-grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 2.5rem;
+    align-items: start;
+    margin-top: 2.5rem;
+}
+
+.pricing-modules-selection {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1.5px solid rgba(56, 189, 248, 0.2);
+    border-radius: 16px;
+    padding: 1.75rem;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.modules-selection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.selection-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.selection-rate-tag {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #38bdf8;
+    background: rgba(14, 165, 233, 0.15);
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.modules-checkbox-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.module-choice-card {
+    display: block;
+    cursor: pointer;
+    position: relative;
+    background: rgba(30, 41, 59, 0.5);
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 1.1rem 1.25rem;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.module-choice-card:hover {
+    border-color: rgba(56, 189, 248, 0.4);
+    background: rgba(30, 41, 59, 0.8);
+    transform: translateY(-2px);
+}
+
+.module-choice-card.active {
+    background: rgba(14, 165, 233, 0.12);
+    border-color: #38bdf8;
+    box-shadow: 0 4px 18px rgba(14, 165, 233, 0.2);
+}
+
+.module-choice-card input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.module-card-body {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1.1rem;
+}
+
+.module-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: rgba(14, 165, 233, 0.15);
+    color: #38bdf8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    transition: all 0.2s ease;
+}
+
+.module-choice-card.active .module-card-icon {
+    background: #0284c7;
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(14, 165, 233, 0.5);
+}
+
+.module-card-info h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.module-card-info p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #94a3b8;
+    line-height: 1.35;
+}
+
+.module-quota-pill {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #38bdf8;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    padding: 0.35rem 0.65rem;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+/* Pricing Summary Card */
+.pricing-summary-card {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
+    border: 2px solid #38bdf8;
+    border-radius: 18px;
+    padding: 2.25rem;
+    box-shadow: 0 15px 40px rgba(14, 165, 233, 0.25);
+    position: sticky;
+    top: 6rem;
+}
+
+.plan-summary-header {
+    margin-bottom: 1.5rem;
+}
+
+.plan-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.15);
+    padding: 0.3rem 0.7rem;
+    border-radius: 20px;
+    margin-bottom: 0.6rem;
+}
+
+.plan-summary-header h3 {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 0.35rem 0;
+}
+
+.plan-summary-header p {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.plan-calculation-box {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.plan-price-display {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    margin-bottom: 0.25rem;
+}
+
+.plan-price-display .currency-symbol {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #38bdf8;
+}
+
+.plan-price-display .price-number {
+    font-size: 2.75rem;
+    font-weight: 900;
+    color: #ffffff;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: -0.02em;
+}
+
+.plan-price-display .price-cycle {
+    font-size: 0.95rem;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.plan-rate-detail {
+    font-size: 0.78rem;
+    color: #38bdf8;
+    font-weight: 600;
+    margin-bottom: 1.1rem;
+}
+
+.plan-metrics-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.plan-metric-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.plan-metric-col .metric-label {
+    font-size: 0.7rem;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.plan-metric-col .metric-value {
+    font-size: 0.95rem;
+    color: #f8fafc;
+    font-weight: 800;
+    margin-top: 0.2rem;
+}
+
+.plan-features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.plan-feature-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.83rem;
+    color: #cbd5e1;
+}
+
+.plan-feature-item i {
+    color: #10b981;
+    font-size: 0.9rem;
+}
+
+.plan-preset-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.preset-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #cbd5e1;
+    padding: 0.5rem 0.65rem;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.preset-pill:hover {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: #38bdf8;
+    color: #ffffff;
+}
+
+.preset-pill.active {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+}
+
+.subscribe-plan-btn {
+    padding: 0.95rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 800;
+    border-radius: 10px;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+}
+
+.plan-guarantee-note {
+    font-size: 0.73rem;
+    color: #94a3b8;
+    text-align: center;
+    margin-top: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+}
+
+@media (max-width: 900px) {
+    .pricing-configurator-grid {
+        grid-template-columns: 1fr;
+    }
+    .pricing-summary-card {
+        position: static;
+    }
+}
+
 
 
 

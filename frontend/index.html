@@ -66,6 +66,7 @@
                     <a href="#featuresSection" data-i18n="nav_features">Features</a>
                     <a href="#strategySimulatorSection" data-i18n="nav_simulator">Simulator</a>
                     <a href="#readinessSection" data-i18n="nav_readiness">Readiness</a>
+                    <a href="#pricingSection" data-i18n="nav_pricing">Pricing</a>
                     <a href="#aboutUsSection" data-i18n="nav_about">About</a>
                     <a href="#testimonialsSection" data-i18n="nav_testimonials">Testimonials</a>
                     <a href="#faqSection" data-i18n="nav_faq">FAQ</a>
@@ -105,6 +106,7 @@
                     <a href="#featuresSection" onclick="toggleMobileNav(false)" data-i18n="nav_features"><i class="fas fa-microchip"></i> Features</a>
                     <a href="#strategySimulatorSection" onclick="toggleMobileNav(false)" data-i18n="nav_simulator"><i class="fas fa-sliders"></i> Simulator</a>
                     <a href="#readinessSection" onclick="toggleMobileNav(false)" data-i18n="nav_readiness"><i class="fas fa-list-check"></i> Readiness</a>
+                    <a href="#pricingSection" onclick="toggleMobileNav(false)" data-i18n="nav_pricing"><i class="fas fa-tags"></i> Pricing</a>
                     <a href="#aboutUsSection" onclick="toggleMobileNav(false)" data-i18n="nav_about"><i class="fas fa-info-circle"></i> About</a>
                     <a href="#testimonialsSection" onclick="toggleMobileNav(false)" data-i18n="nav_testimonials"><i class="fas fa-comments"></i> Testimonials</a>
                     <a href="#faqSection" onclick="toggleMobileNav(false)" data-i18n="nav_faq"><i class="fas fa-circle-question"></i> FAQ</a>
@@ -489,6 +491,180 @@
                                 <h4>Marcus Thorne, Esq.</h4>
                                 <p>Managing Partner, Thorne &amp; Associates</p>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <!-- MODULAR PRICING & PLAN CONFIGURATOR SECTION -->
+            <!-- ═══════════════════════════════════════════════════════════════ -->
+            <section id="pricingSection" class="pricing-section reveal-on-scroll">
+                <div class="section-heading">
+                    <div class="legal-seal-badge" style="margin-bottom: 0.75rem;">
+                        <i class="fas fa-tags"></i> Transparent Modular Subscriptions
+                    </div>
+                    <h2>Pay Only For What You Practice</h2>
+                    <p>Build your custom litigation intelligence subscription. <strong>₹500 / month per legal module</strong> with <strong>10 full case analyses per month</strong> (30-day billing cycle).</p>
+                </div>
+
+                <div class="pricing-configurator-grid">
+                    <!-- Left: Modular Selection Cards -->
+                    <div class="pricing-modules-selection">
+                        <div class="modules-selection-header">
+                            <span class="selection-title"><i class="fas fa-cubes"></i> Select Legal Engines / Modules</span>
+                            <span class="selection-rate-tag">₹500 / module (10 cases / 30 days)</span>
+                        </div>
+
+                        <div class="modules-checkbox-grid">
+                            <!-- Module 1: S.138 -->
+                            <label class="module-choice-card active" data-module="s138">
+                                <input type="checkbox" name="legal_module" value="s138" checked onchange="updateModularPricing()">
+                                <div class="module-card-body">
+                                    <div class="module-card-icon"><i class="fas fa-money-check"></i></div>
+                                    <div class="module-card-info">
+                                        <h4>Section 138 NI Act (Cheque Bounce)</h4>
+                                        <p>30-day notice audit, 15-day cure window clock, S.141 director liability, S.143A 20% interim deposit &amp; notice drafting.</p>
+                                    </div>
+                                    <div class="module-quota-pill">10 Cases / mo</div>
+                                </div>
+                            </label>
+
+                            <!-- Module 2: SARFAESI -->
+                            <label class="module-choice-card" data-module="sarfaesi">
+                                <input type="checkbox" name="legal_module" value="sarfaesi" onchange="updateModularPricing()">
+                                <div class="module-card-body">
+                                    <div class="module-card-icon"><i class="fas fa-building-columns"></i></div>
+                                    <div class="module-card-info">
+                                        <h4>SARFAESI Act &amp; DRT Recovery</h4>
+                                        <p>S.13(2) demand notices, 15-day S.13(3A) disposal SLA, S.14 CMM possession, CERSAI S.26D &amp; Agri land bars.</p>
+                                    </div>
+                                    <div class="module-quota-pill">10 Cases / mo</div>
+                                </div>
+                            </label>
+
+                            <!-- Module 3: Criminal BNSS -->
+                            <label class="module-choice-card" data-module="criminal">
+                                <input type="checkbox" name="legal_module" value="criminal" onchange="updateModularPricing()">
+                                <div class="module-card-body">
+                                    <div class="module-card-icon"><i class="fas fa-handcuffs"></i></div>
+                                    <div class="module-card-info">
+                                        <h4>Criminal Law (CrPC / BNSS 2023 &amp; BNS)</h4>
+                                        <p>Triple Test regular &amp; anticipatory bail calculator, S.167(2) default bail, and S.482/S.528 quashing audit (Bhajan Lal).</p>
+                                    </div>
+                                    <div class="module-quota-pill">10 Cases / mo</div>
+                                </div>
+                            </label>
+
+                            <!-- Module 4: Civil CPC -->
+                            <label class="module-choice-card" data-module="civil">
+                                <input type="checkbox" name="legal_module" value="civil" onchange="updateModularPricing()">
+                                <div class="module-card-body">
+                                    <div class="module-card-icon"><i class="fas fa-scale-balanced"></i></div>
+                                    <div class="module-card-info">
+                                        <h4>Civil Suits &amp; Commercial Courts Act</h4>
+                                        <p>Order XXXVII summary debt recovery (Hubtown test), Order VII Rule 11 rejection of plaint, and S.12A Mediation audit.</p>
+                                    </div>
+                                    <div class="module-quota-pill">10 Cases / mo</div>
+                                </div>
+                            </label>
+
+                            <!-- Module 5: Banking Recovery OS -->
+                            <label class="module-choice-card" data-module="bank_recovery">
+                                <input type="checkbox" name="legal_module" value="bank_recovery" onchange="updateModularPricing()">
+                                <div class="module-card-body">
+                                    <div class="module-card-icon"><i class="fas fa-shield-halved"></i></div>
+                                    <div class="module-card-info">
+                                        <h4>Institutional Banking &amp; 5-Track OS</h4>
+                                        <p>Concurrent 5-track strategy, OTS vs Litigation NPV engine with RBI provisioning write-back, and counsel dispatch SLA.</p>
+                                    </div>
+                                    <div class="module-quota-pill">10 Cases / mo</div>
+                                </div>
+                            </label>
+
+                            <!-- Module 6: Opposing Counsel Intel -->
+                            <label class="module-choice-card" data-module="counsel_intel">
+                                <input type="checkbox" name="legal_module" value="counsel_intel" onchange="updateModularPricing()">
+                                <div class="module-card-body">
+                                    <div class="module-card-icon"><i class="fas fa-user-secret"></i></div>
+                                    <div class="module-card-info">
+                                        <h4>Opposing Counsel Intelligence</h4>
+                                        <p>Defense strategy patterns, judge-specific win rates, cross-examination counters, and tactical peer submissions.</p>
+                                    </div>
+                                    <div class="module-quota-pill">10 Cases / mo</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Right: Live Plan Summary & Checkout Card -->
+                    <div class="pricing-summary-card">
+                        <div class="plan-summary-header">
+                            <div class="plan-type-badge"><i class="fas fa-bolt"></i> Customized Plan Summary</div>
+                            <h3 id="planTierTitle">Solo Practice Plan (1 Module)</h3>
+                            <p id="planTierDesc">Perfect for specialized practitioners analyzing Section 138 matters.</p>
+                        </div>
+
+                        <div class="plan-calculation-box">
+                            <div class="plan-price-display">
+                                <span class="currency-symbol">₹</span>
+                                <span id="planTotalPrice" class="price-number">500</span>
+                                <span class="price-cycle">/ month</span>
+                            </div>
+                            <div class="plan-rate-detail">30-Day Billing Cycle • Renews Monthly</div>
+
+                            <div class="plan-metrics-row">
+                                <div class="plan-metric-col">
+                                    <span class="metric-label">Monthly Quota</span>
+                                    <span id="planTotalCases" class="metric-value">10 Cases</span>
+                                </div>
+                                <div class="plan-metric-col">
+                                    <span class="metric-label">Active Modules</span>
+                                    <span id="planTotalModules" class="metric-value">1 Engine</span>
+                                </div>
+                                <div class="plan-metric-col">
+                                    <span class="metric-label">Cost / Analysis</span>
+                                    <span class="metric-value">₹50</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="plan-features-list">
+                            <div class="plan-feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Deterministic Statutory Defect Classifier</span>
+                            </div>
+                            <div class="plan-feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Adversarial Opponent Strategy &amp; Cross-Exam Simulation</span>
+                            </div>
+                            <div class="plan-feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>BSA 2023 / S.65B Evidence Certificate &amp; Pleadings Drafter</span>
+                            </div>
+                            <div class="plan-feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Multi-Lingual Output (English, Hindi, Marathi, Gujarati)</span>
+                            </div>
+                            <div class="plan-feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>AES-256 Confidentiality &amp; DPDP Act 2023 Compliance</span>
+                            </div>
+                        </div>
+
+                        <!-- Presets shortcut bar -->
+                        <div class="plan-preset-buttons">
+                            <button type="button" class="preset-pill active" onclick="applyModularPreset(1)">1 Module (₹500)</button>
+                            <button type="button" class="preset-pill" onclick="applyModularPreset(2)">2 Modules (₹1,000)</button>
+                            <button type="button" class="preset-pill" onclick="applyModularPreset(4)">4 Modules (₹2,000)</button>
+                            <button type="button" class="preset-pill" onclick="applyModularPreset(6)">All 6 (₹2,500)</button>
+                        </div>
+
+                        <button id="subscribeModularPlanBtn" class="btn btn-primary btn-full subscribe-plan-btn" onclick="subscribeToSelectedModularPlan()">
+                            <i class="fas fa-lock"></i> <span id="subscribeBtnLabel">Get Started with 1 Module (₹500 / mo)</span>
+                        </button>
+                        <div class="plan-guarantee-note">
+                            <i class="fas fa-shield-check"></i> Instant activation • Upgrade or add modules anytime • No lock-in
                         </div>
                     </div>
                 </div>
