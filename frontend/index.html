@@ -2445,6 +2445,10 @@
                     <button class="admin-tab-btn active" id="adminTabBtnLitigators" onclick="switchAdminTab('litigators')">
                         <i class="fas fa-users-gear"></i> Litigator Accounts &amp; Quotas
                     </button>
+                    <button class="admin-tab-btn" id="adminTabBtnPlans" onclick="switchAdminTab('plans')">
+                        <i class="fas fa-file-invoice-dollar"></i> Pending Plan Approvals
+                        <span id="pendingPlansCountBadge" class="badge" style="background: #ef4444; color: #ffffff; border-radius: 10px; padding: 2px 7px; font-size: 0.72rem; margin-left: 6px; font-weight: 800;">0</span>
+                    </button>
                     <button class="admin-tab-btn" id="adminTabBtnBank" onclick="switchAdminTab('bank')">
                         <i class="fas fa-building-columns"></i> Bank &amp; Recovery Operations
                     </button>
@@ -2707,6 +2711,54 @@
                                 <div style="font-size: 0.85rem; color: var(--gray-600);">SlowAPI in-memory limiter guarding against DDoS and abusive automated analysis loops.</div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <!-- TAB 4: PENDING MODULAR PLAN APPROVALS -->
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <div id="adminPlansTabContent" class="admin-tab-content" style="display: none;">
+                    <div class="admin-users-panel" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.75rem; box-shadow: var(--shadow-sm);">
+                        
+                        <!-- Table Toolbar -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div>
+                                <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--gray-900); margin: 0 0 0.25rem 0;">
+                                    <i class="fas fa-file-invoice-dollar" style="color: #f59e0b; margin-right: 0.4rem;"></i>
+                                    Pending Modular Subscription Approvals
+                                </h2>
+                                <p style="font-size: 0.85rem; color: var(--gray-500); margin: 0;">
+                                    Review submitted modular plans. <strong>No case analysis or draft generation is permitted</strong> for these accounts until approved by an administrator.
+                                </p>
+                            </div>
+                            <button class="btn btn-outline btn-sm" onclick="loadAdminPendingPlans()" style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                                <i class="fas fa-rotate"></i> Refresh Queue
+                            </button>
+                        </div>
+
+                        <!-- Table -->
+                        <div style="overflow-x: auto;">
+                            <table class="admin-data-table" style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.88rem;">
+                                <thead>
+                                    <tr style="background: var(--gray-50); color: var(--gray-600); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; text-align: left;">
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); border-top-left-radius: 8px;">Target User / Email</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Selected Modules</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 150px;">Requested Quota</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 140px;">Monthly Rate</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Approval Status</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); text-align: right; border-top-right-radius: 8px;">Admin Decision</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminPendingPlansTableBody">
+                                    <tr>
+                                        <td colspan="6" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
+                                            <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i> Loading pending plan requests...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
                     </div>
                 </div>
 

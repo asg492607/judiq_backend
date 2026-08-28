@@ -215,6 +215,19 @@ class DatabaseManager:
                 except Exception:
                     pass
 
+            for col, col_type in [
+                ("plan_status", "TEXT DEFAULT 'APPROVED'"),
+                ("selected_modules", "TEXT DEFAULT '[\"s138\"]'"),
+                ("monthly_price_inr", "REAL DEFAULT 500"),
+                ("requested_quota", "INTEGER DEFAULT 10"),
+                ("approved_by", "TEXT"),
+                ("approved_at", "TEXT")
+            ]:
+                try:
+                    cursor.execute(f"ALTER TABLE user_quotas ADD COLUMN {col} {col_type}")
+                except Exception:
+                    pass
+
             cursor.execute(f"""
                 CREATE TABLE IF NOT EXISTS bank_recovery_audits (
                     id {serial_primary},
@@ -587,7 +600,8 @@ class DatabaseManager:
             now_iso = datetime.now().isoformat()
 
             cursor.execute(f"""
-                SELECT user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at
+                SELECT user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at,
+                       plan_status, selected_modules, monthly_price_inr, requested_quota, approved_by, approved_at
                 FROM user_quotas
                 WHERE user_id = {p}
             """, (user_id,))
@@ -596,9 +610,9 @@ class DatabaseManager:
             if not row:
                 cursor.execute(f"""
                     INSERT INTO user_quotas
-                    (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at)
-                    VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
-                """, (user_id, email, role, default_limit, 0, current_month, 1, now_iso, now_iso))
+                    (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota)
+                    VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+                """, (user_id, email, role, default_limit, 0, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138"]), 500.0, default_limit))
                 conn.commit()
                 return {
                     "user_id": user_id,
@@ -610,11 +624,28 @@ class DatabaseManager:
                     "current_month_period": current_month,
                     "is_active": True,
                     "created_at": now_iso,
-                    "updated_at": now_iso
+                    "updated_at": now_iso,
+                    "plan_status": "APPROVED",
+                    "selected_modules": ["s138"],
+                    "monthly_price_inr": 500.0,
+                    "requested_quota": default_limit,
+                    "approved_by": "system",
+                    "approved_at": now_iso
                 }
 
             # If existing user, check if month period rolled over
-            db_user_id, db_email, db_role, db_limit, db_used, db_period, db_active, db_created, db_updated = row
+            db_user_id, db_email, db_role, db_limit, db_used, db_period, db_active, db_created, db_updated = row[0:9]
+            plan_status = row[9] if len(row) > 9 and row[9] else "APPROVED"
+            raw_modules = row[10] if len(row) > 10 and row[10] else "[]"
+            try:
+                selected_modules = json.loads(raw_modules) if isinstance(raw_modules, str) else raw_modules
+            except Exception:
+                selected_modules = ["s138"]
+            monthly_price = float(row[11]) if len(row) > 11 and row[11] is not None else 500.0
+            req_quota = int(row[12]) if len(row) > 12 and row[12] is not None else int(db_limit)
+            approved_by = row[13] if len(row) > 13 else ""
+            approved_at = row[14] if len(row) > 14 else ""
+
             if db_period != current_month:
                 db_used = 0
                 cursor.execute(f"""
@@ -644,7 +675,13 @@ class DatabaseManager:
                 "current_month_period": current_month,
                 "is_active": bool(db_active),
                 "created_at": db_created,
-                "updated_at": db_updated
+                "updated_at": db_updated,
+                "plan_status": plan_status,
+                "selected_modules": selected_modules,
+                "monthly_price_inr": monthly_price,
+                "requested_quota": req_quota,
+                "approved_by": approved_by,
+                "approved_at": approved_at
             }
         except Exception as e:
             logger.error(f"Error in get_or_create_user_quota: {e}")
@@ -656,7 +693,11 @@ class DatabaseManager:
                 "reports_used_this_month": 0,
                 "remaining_reports": default_limit,
                 "current_month_period": datetime.now().strftime("%Y-%m"),
-                "is_active": True
+                "is_active": True,
+                "plan_status": "APPROVED",
+                "selected_modules": ["s138"],
+                "monthly_price_inr": 500.0,
+                "requested_quota": default_limit
             }
         finally:
             if conn:
@@ -665,15 +706,29 @@ class DatabaseManager:
     @staticmethod
     def check_and_consume_report_quota(user_id: str, email: str = "", cost: int = 1) -> dict:
         """
-        Atomically checks if the user has available monthly report quota and consumes `cost` units.
-        Returns dict with `allowed`, `current_usage`, `monthly_limit`, `remaining`.
+        Atomically checks if the user has an approved active plan and available monthly report quota.
+        If pending admin approval or suspended, strictly blocks execution with detailed reason.
         """
+        # Admin bypass
+        if user_id.startswith("admin") or email.lower().startswith("admin@"):
+            return {"allowed": True, "reason": "ADMIN_BYPASS", "quota": {"is_active": True, "plan_status": "APPROVED", "remaining_reports": 99999}}
+
         quota = DatabaseManager.get_or_create_user_quota(user_id, email)
-        if not quota["is_active"]:
+        
+        # Strict Admin Approval Gate Check
+        if quota.get("plan_status") == "PENDING_APPROVAL":
+            return {
+                "allowed": False,
+                "reason": "PENDING_ADMIN_APPROVAL",
+                "message": "Account pending administrative approval. Your subscription plan request has been submitted to the Admin Control Center. No case analyses or legal drafts can be generated until an administrator approves your plan.",
+                "quota": quota
+            }
+
+        if not quota.get("is_active"):
             return {
                 "allowed": False,
                 "reason": "USER_SUSPENDED",
-                "message": "Your account has been suspended by the administrator.",
+                "message": "Your account access has been suspended by the administrator.",
                 "quota": quota
             }
 
@@ -685,7 +740,7 @@ class DatabaseManager:
             return {
                 "allowed": False,
                 "reason": "QUOTA_EXCEEDED",
-                "message": f"Monthly report limit reached ({used}/{limit} reports used). Please contact your administrator for an allocation increase.",
+                "message": f"Monthly case analysis quota limit reached ({used}/{limit} reports used). Please request a plan increase in the Admin Control Center.",
                 "quota": quota
             }
 
@@ -723,13 +778,157 @@ class DatabaseManager:
                 conn.close()
 
     @staticmethod
+    def submit_subscription_plan(user_id: str, email: str, selected_modules: list, monthly_price_inr: float, requested_quota: int, role: str = "law_firm") -> dict:
+        """
+        Registers or updates a user subscription plan in PENDING_APPROVAL status, queuing it for admin review.
+        """
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            current_month = datetime.now().strftime("%Y-%m")
+            now_iso = datetime.now().isoformat()
+            modules_json = json.dumps(selected_modules)
+
+            cursor.execute(f"SELECT user_id FROM user_quotas WHERE user_id = {p}", (user_id,))
+            exists = cursor.fetchone()
+
+            if exists:
+                cursor.execute(f"""
+                    UPDATE user_quotas
+                    SET email = {p}, role = {p}, plan_status = 'PENDING_APPROVAL', is_active = 0,
+                        monthly_report_limit = 0, requested_quota = {p}, monthly_price_inr = {p},
+                        selected_modules = {p}, updated_at = {p}
+                    WHERE user_id = {p}
+                """, (email, role, requested_quota, monthly_price_inr, modules_json, now_iso, user_id))
+            else:
+                cursor.execute(f"""
+                    INSERT INTO user_quotas
+                    (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota)
+                    VALUES ({p}, {p}, {p}, 0, 0, {p}, 0, {p}, {p}, 'PENDING_APPROVAL', {p}, {p}, {p})
+                """, (user_id, email, role, current_month, now_iso, now_iso, modules_json, monthly_price_inr, requested_quota))
+            
+            conn.commit()
+            return DatabaseManager.get_or_create_user_quota(user_id, email)
+        except Exception as e:
+            logger.error(f"Error submitting subscription plan: {e}")
+            raise e
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def approve_user_plan(user_id: str, admin_email: str = "admin@judiq.ai") -> dict:
+        """
+        Admin approves a pending subscription plan, allocating the requested case quota and activating the account.
+        """
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now_iso = datetime.now().isoformat()
+
+            cursor.execute(f"SELECT requested_quota FROM user_quotas WHERE user_id = {p}", (user_id,))
+            row = cursor.fetchone()
+            req_quota = int(row[0]) if row and row[0] is not None else 25
+
+            cursor.execute(f"""
+                UPDATE user_quotas
+                SET plan_status = 'APPROVED', is_active = 1, monthly_report_limit = {p},
+                    approved_by = {p}, approved_at = {p}, updated_at = {p}
+                WHERE user_id = {p}
+            """, (req_quota, admin_email, now_iso, now_iso, user_id))
+            conn.commit()
+
+            return DatabaseManager.get_or_create_user_quota(user_id)
+        except Exception as e:
+            logger.error(f"Error approving user plan: {e}")
+            raise e
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def reject_user_plan(user_id: str, admin_email: str = "admin@judiq.ai", reason: str = "") -> dict:
+        """
+        Admin rejects a subscription plan request, keeping account locked.
+        """
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now_iso = datetime.now().isoformat()
+
+            cursor.execute(f"""
+                UPDATE user_quotas
+                SET plan_status = 'REJECTED', is_active = 0, monthly_report_limit = 0,
+                    approved_by = {p}, updated_at = {p}
+                WHERE user_id = {p}
+            """, (f"{admin_email} (REJECTED: {reason})", now_iso, user_id))
+            conn.commit()
+
+            return DatabaseManager.get_or_create_user_quota(user_id)
+        except Exception as e:
+            logger.error(f"Error rejecting user plan: {e}")
+            raise e
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def get_pending_plan_requests() -> list:
+        """
+        Returns all user accounts with PENDING_APPROVAL status.
+        """
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT user_id, email, role, requested_quota, monthly_price_inr, selected_modules, plan_status, created_at, updated_at
+                FROM user_quotas
+                WHERE plan_status = 'PENDING_APPROVAL' OR is_active = 0
+                ORDER BY updated_at DESC
+            """)
+            rows = cursor.fetchall()
+            pending = []
+            for r in rows:
+                raw_mod = r[5] or "[]"
+                try:
+                    mods = json.loads(raw_mod) if isinstance(raw_mod, str) else raw_mod
+                except Exception:
+                    mods = []
+                pending.append({
+                    "user_id": r[0],
+                    "email": r[1] or "N/A",
+                    "role": r[2] or "law_firm",
+                    "requested_quota": int(r[3]) if r[3] is not None else 10,
+                    "monthly_price_inr": float(r[4]) if r[4] is not None else 500.0,
+                    "selected_modules": mods,
+                    "plan_status": r[6] or "PENDING_APPROVAL",
+                    "created_at": r[7],
+                    "updated_at": r[8]
+                })
+            return pending
+        except Exception as e:
+            logger.error(f"Error fetching pending plan requests: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
     def get_all_users_quotas() -> list:
         conn = None
         try:
             conn = DatabaseManager.get_connection()
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at
+                SELECT user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at,
+                       plan_status, selected_modules, monthly_price_inr, requested_quota, approved_by, approved_at
                 FROM user_quotas
                 ORDER BY updated_at DESC
             """)
@@ -740,6 +939,11 @@ class DatabaseManager:
                 limit = int(r[3])
                 used = int(r[4]) if r[5] == current_month else 0
                 remaining = (limit - used) if limit != -1 else 999999
+                raw_mod = r[10] if len(r) > 10 and r[10] else "[]"
+                try:
+                    mods = json.loads(raw_mod) if isinstance(raw_mod, str) else raw_mod
+                except Exception:
+                    mods = []
                 users.append({
                     "user_id": r[0],
                     "email": r[1] or "N/A",
@@ -750,7 +954,13 @@ class DatabaseManager:
                     "current_month_period": current_month,
                     "is_active": bool(r[6]),
                     "created_at": r[7],
-                    "updated_at": r[8]
+                    "updated_at": r[8],
+                    "plan_status": r[9] if len(r) > 9 and r[9] else "APPROVED",
+                    "selected_modules": mods,
+                    "monthly_price_inr": float(r[11]) if len(r) > 11 and r[11] is not None else 500.0,
+                    "requested_quota": int(r[12]) if len(r) > 12 and r[12] is not None else limit,
+                    "approved_by": r[13] if len(r) > 13 else "",
+                    "approved_at": r[14] if len(r) > 14 else ""
                 })
             return users
         except Exception as e:

@@ -122,6 +122,95 @@ def toggle_user_status(req: UserStatusToggleRequest = Body(...), admin: dict = D
 
 
 # ============================================================================
+# MODULAR SUBSCRIPTION PLAN QUEUE & ADMIN APPROVAL ENDPOINTS
+# ============================================================================
+
+class PlanSubmitRequest(BaseModel):
+    user_id: str = Field(..., description="Target User ID or Unique Handle")
+    email: str = Field(..., description="Litigator / Law Firm Work Email")
+    selected_modules: list = Field(..., description="List of chosen modular engines")
+    monthly_price_inr: float = Field(..., description="Calculated monthly fee in INR")
+    requested_quota: int = Field(..., description="Requested monthly cases (10 per module)")
+    role: Optional[str] = Field("law_firm", description="Designation (e.g. advocate, law_firm, bank_panel)")
+
+class PlanActionRequest(BaseModel):
+    user_id: str = Field(..., description="Target User ID")
+    reason: Optional[str] = Field("", description="Optional rejection or approval notes")
+
+
+@router.post("/subscription/submit-plan", tags=["Subscription Simulation"])
+def submit_modular_plan_request(req: PlanSubmitRequest = Body(...)):
+    """
+    Submits a modular subscription request into the admin approval queue (PENDING_APPROVAL).
+    Access to analysis and drafting remains locked until approved by platform admin.
+    """
+    try:
+        quota = DatabaseManager.submit_subscription_plan(
+            user_id=req.user_id,
+            email=req.email,
+            selected_modules=req.selected_modules,
+            monthly_price_inr=req.monthly_price_inr,
+            requested_quota=req.requested_quota,
+            role=req.role or "law_firm"
+        )
+        logger.info(f"[SUBSCRIPTION] Plan request submitted for {req.user_id} ({len(req.selected_modules)} modules, ₹{req.monthly_price_inr}) - PENDING_APPROVAL")
+        return {
+            "success": True,
+            "status": "PENDING_APPROVAL",
+            "message": "Your subscription plan request has been submitted to the Admin Control Center. Analysis and draft generation access will remain locked until administrative approval.",
+            "quota": quota
+        }
+    except Exception as e:
+        logger.error(f"Error submitting plan: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to submit plan request: {str(e)}")
+
+
+@router.get("/pending-plans", tags=["Admin Control"])
+def get_pending_plans(admin: dict = Depends(require_admin)):
+    """
+    Returns all subscription plan requests awaiting admin approval.
+    """
+    pending = DatabaseManager.get_pending_plan_requests()
+    return {"success": True, "pending_plans": pending, "total": len(pending)}
+
+
+@router.post("/approve-plan", tags=["Admin Control"])
+def approve_plan_request(req: PlanActionRequest = Body(...), admin: dict = Depends(require_admin)):
+    """
+    Admin approves a pending modular subscription plan, activating the account and unlocking full analysis and drafting quota.
+    """
+    try:
+        updated = DatabaseManager.approve_user_plan(req.user_id, admin.get("email", "admin@judiq.ai"))
+        logger.info(f"[ADMIN] Admin {admin.get('email')} APPROVED plan for {req.user_id}")
+        return {
+            "success": True,
+            "message": f"Successfully approved plan for {req.user_id}. Account activated with {updated.get('monthly_report_limit')} monthly cases.",
+            "quota": updated
+        }
+    except Exception as e:
+        logger.error(f"Error approving plan: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to approve plan: {str(e)}")
+
+
+@router.post("/reject-plan", tags=["Admin Control"])
+def reject_plan_request(req: PlanActionRequest = Body(...), admin: dict = Depends(require_admin)):
+    """
+    Admin rejects a subscription plan request, keeping account access locked.
+    """
+    try:
+        updated = DatabaseManager.reject_user_plan(req.user_id, admin.get("email", "admin@judiq.ai"), req.reason or "Administrative rejection")
+        logger.info(f"[ADMIN] Admin {admin.get('email')} REJECTED plan for {req.user_id}")
+        return {
+            "success": True,
+            "message": f"Plan request for {req.user_id} rejected.",
+            "quota": updated
+        }
+    except Exception as e:
+        logger.error(f"Error rejecting plan: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to reject plan: {str(e)}")
+
+
+# ============================================================================
 # BANK INSTITUTIONAL OPERATIONS & GOVERNANCE ENDPOINTS
 # ============================================================================
 

@@ -56,7 +56,19 @@ def get_draft_history_query(case_id: str = Query(...), draft_type: str = Query(.
 @router.post("/draft-word")
 def generate_draft_word_endpoint(data: dict = Body(...)):
     from word_generator import WordGenerator
+    from session import DatabaseManager
     try:
+        user_id = data.get("user_id") or ""
+        email = data.get("email") or ""
+        if user_id and user_id not in {"ANONYMOUS", "demo_user_123"}:
+            quota_res = DatabaseManager.check_and_consume_report_quota(user_id, email, cost=1)
+            if not quota_res["allowed"]:
+                return JSONResponse(status_code=403, content={
+                    "error": quota_res["message"],
+                    "reason": quota_res["reason"],
+                    "quota": quota_res.get("quota")
+                })
+
         title = data.get("title", "Legal_Draft")
         content = data.get("content", "")
         metadata = data.get("metadata", {})
@@ -69,9 +81,22 @@ def generate_draft_word_endpoint(data: dict = Body(...)):
     except Exception as e:
         logger.error(f"Draft Word generation failed: {e}")
         return JSONResponse(status_code=500, content={"error": "Failed to generate draft Word document."})
+
 @router.post("/draft-pdf")
 def generate_draft_pdf(data: dict = Body(...)):
+    from session import DatabaseManager
     try:
+        user_id = data.get("user_id") or ""
+        email = data.get("email") or ""
+        if user_id and user_id not in {"ANONYMOUS", "demo_user_123"}:
+            quota_res = DatabaseManager.check_and_consume_report_quota(user_id, email, cost=1)
+            if not quota_res["allowed"]:
+                return JSONResponse(status_code=403, content={
+                    "error": quota_res["message"],
+                    "reason": quota_res["reason"],
+                    "quota": quota_res.get("quota")
+                })
+
         title = data.get("title", "Legal_Draft")
         content = data.get("content", "")
         metadata = data.get("metadata", {})

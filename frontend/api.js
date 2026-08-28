@@ -223,6 +223,46 @@ export const api = {
         try { return await response.json(); } catch (e) { throw new Error("Failed to toggle user status."); }
     },
 
+    async submitSubscriptionPlan(planData) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/subscription/submit-plan`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(planData)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to submit plan request."); }
+    },
+
+    async getPendingPlans(token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/pending-plans`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load pending plans."); }
+    },
+
+    async approvePlanRequest(userId, token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/approve-plan`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ user_id: userId })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to approve plan request."); }
+    },
+
+    async rejectPlanRequest(userId, reason = '', token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/reject-plan`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ user_id: userId, reason })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to reject plan request."); }
+    },
+
     // ── Bank Auth & Recovery OS Methods ──
     async bankLogin(payload) {
         const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/bank/auth/login`, {

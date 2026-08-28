@@ -3306,12 +3306,13 @@ window.loadCivilDemoCase = () => {
 // ============================================================================
 
 let adminCachedUsers = [];
+let adminCachedPendingPlans = [];
 let adminCachedBankOfficers = [];
 let adminCachedBankAudits = [];
 let adminAuthToken = null;
 
 window.switchAdminTab = (tabName) => {
-    const tabs = ['litigators', 'bank', 'security'];
+    const tabs = ['litigators', 'plans', 'bank', 'security'];
     tabs.forEach(t => {
         const btn = document.getElementById(`adminTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
         const content = document.getElementById(`admin${t.charAt(0).toUpperCase() + t.slice(1)}TabContent`);
@@ -3320,8 +3321,8 @@ window.switchAdminTab = (tabName) => {
             else btn.classList.remove('active');
         }
         if (content) {
-            if (t === tabName) content.classList.remove('hidden');
-            else content.classList.add('hidden');
+            if (t === tabName) content.style.display = 'block';
+            else content.style.display = 'none';
         }
     });
 };
@@ -3369,6 +3370,22 @@ window.loadAdminPortalData = async () => {
         if (usersRes && usersRes.success && Array.isArray(usersRes.users)) {
             adminCachedUsers = usersRes.users;
             window.renderAdminUsersTable(adminCachedUsers);
+        }
+
+        // 2b. Fetch Pending Plan Requests
+        try {
+            const plansRes = await api.getPendingPlans(adminAuthToken);
+            if (plansRes && plansRes.success && Array.isArray(plansRes.pending_plans)) {
+                adminCachedPendingPlans = plansRes.pending_plans;
+                window.renderAdminPendingPlansTable(adminCachedPendingPlans);
+                const badge = document.getElementById('pendingPlansCountBadge');
+                if (badge) {
+                    badge.textContent = adminCachedPendingPlans.length;
+                    badge.style.display = adminCachedPendingPlans.length > 0 ? 'inline-block' : 'none';
+                }
+            }
+        } catch (e) {
+            console.warn('Pending plans load skipped:', e);
         }
 
         // 3. Fetch Bank Stats
@@ -3804,6 +3821,131 @@ window.toggleUserStatus = async (userId, currentStatus) => {
 };
 
 // ============================================================================
+// ADMIN MODULAR PLAN APPROVAL CONTROLLERS
+// ============================================================================
+
+window.renderAdminPendingPlansTable = (pendingPlans) => {
+    const tbody = document.getElementById('adminPendingPlansTableBody');
+    if (!tbody) return;
+
+    if (!pendingPlans || pendingPlans.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
+                    <i class="fas fa-circle-check" style="font-size: 1.5rem; color: #10b981; margin-bottom: 0.5rem; display: block;"></i>
+                    No pending modular subscription requests. All profiles are verified.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    const moduleLabels = {
+        's138': 'S.138 NI Act',
+        'sarfaesi': 'SARFAESI & DRT',
+        'criminal': 'Criminal (BNSS)',
+        'civil': 'Civil (CPC)',
+        'bank_recovery': 'Banking OS',
+        'counsel_intel': 'Counsel Intel'
+    };
+
+    tbody.innerHTML = pendingPlans.map(p => {
+        const modules = Array.isArray(p.selected_modules) ? p.selected_modules : [];
+        const moduleBadges = modules.map(m => `
+            <span style="display: inline-block; font-size: 0.72rem; font-weight: 700; background: rgba(56, 189, 248, 0.15); color: #0284c7; padding: 2px 6px; border-radius: 4px; margin: 2px 2px 2px 0;">
+                ${moduleLabels[m] || m}
+            </span>
+        `).join('') || '<span style="color: var(--gray-400); font-size: 0.75rem;">Standard</span>';
+
+        return `
+            <tr id="adminPlanRow_${p.user_id}">
+                <td>
+                    <div style="font-weight: 700; color: var(--gray-900); font-size: 0.85rem;">${p.email || p.user_id}</div>
+                    <div style="font-size: 0.72rem; color: var(--gray-400); font-family: monospace;">${p.user_id}</div>
+                </td>
+                <td>
+                    <div>${moduleBadges}</div>
+                    <div style="font-size: 0.72rem; color: var(--gray-500); margin-top: 2px;">${modules.length} Active Engine(s)</div>
+                </td>
+                <td>
+                    <div style="font-weight: 800; color: var(--gray-900); font-size: 0.88rem;">${p.requested_quota || 10} Cases</div>
+                    <div style="font-size: 0.72rem; color: var(--gray-500);">per 30 days</div>
+                </td>
+                <td>
+                    <div style="font-weight: 800; color: #0284c7; font-size: 0.95rem;">₹${Number(p.monthly_price_inr || 500).toLocaleString('en-IN')}</div>
+                    <div style="font-size: 0.72rem; color: var(--gray-500);">/ month</div>
+                </td>
+                <td>
+                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 800; background: rgba(245, 158, 11, 0.15); color: #d97706;">
+                        <i class="fas fa-hourglass-half"></i> PENDING APPROVAL
+                    </span>
+                </td>
+                <td style="text-align: right;">
+                    <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                        <button class="btn btn-sm btn-primary" onclick="window.approvePlanRequest('${p.user_id}')" style="background: #10b981; border-color: #10b981; padding: 0.35rem 0.75rem; font-weight: 700; font-size: 0.78rem;">
+                            <i class="fas fa-check"></i> Approve Plan
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="window.rejectPlanRequest('${p.user_id}')" style="padding: 0.35rem 0.65rem; font-weight: 700; font-size: 0.78rem;">
+                            <i class="fas fa-xmark"></i> Reject
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+};
+
+window.approvePlanRequest = async (userId) => {
+    if (!adminAuthToken) return;
+    try {
+        const res = await api.approvePlanRequest(userId, adminAuthToken);
+        if (res && res.success) {
+            if (window.ui) window.ui.toast(res.message || `Plan approved for ${userId}! Account activated.`, 'success');
+            await window.loadAdminPortalData();
+        } else {
+            if (window.ui) window.ui.toast(res.detail || 'Failed to approve plan', 'error');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Approval error: ' + err.message, 'error');
+    }
+};
+
+window.rejectPlanRequest = async (userId) => {
+    if (!adminAuthToken) return;
+    const reason = prompt('Enter reason for rejection (optional):', 'Administrative decision') || 'Administrative rejection';
+    try {
+        const res = await api.rejectPlanRequest(userId, reason, adminAuthToken);
+        if (res && res.success) {
+            if (window.ui) window.ui.toast(`Plan request rejected for ${userId}. Account remains locked.`, 'warning');
+            await window.loadAdminPortalData();
+        } else {
+            if (window.ui) window.ui.toast(res.detail || 'Failed to reject plan', 'error');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Rejection error: ' + err.message, 'error');
+    }
+};
+
+window.loadAdminPendingPlans = async () => {
+    if (!adminAuthToken) return;
+    try {
+        const res = await api.getPendingPlans(adminAuthToken);
+        if (res && res.success) {
+            adminCachedPendingPlans = res.pending_plans || [];
+            window.renderAdminPendingPlansTable(adminCachedPendingPlans);
+            const badge = document.getElementById('pendingPlansCountBadge');
+            if (badge) {
+                badge.textContent = adminCachedPendingPlans.length;
+                badge.style.display = adminCachedPendingPlans.length > 0 ? 'inline-block' : 'none';
+            }
+            if (window.ui) window.ui.toast('Pending plans queue refreshed.', 'info');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Failed to load pending plans: ' + err.message, 'error');
+    }
+};
+
+// ============================================================================
 // MODULAR SUBSCRIPTION PRICING CONFIGURATOR (₹500 / Module / 10 Cases)
 // ============================================================================
 
@@ -3890,7 +4032,7 @@ window.applyModularPreset = function(count) {
     window.updateModularPricing();
 };
 
-window.subscribeToSelectedModularPlan = function() {
+window.subscribeToSelectedModularPlan = async function() {
     const checkboxes = document.querySelectorAll('input[name="legal_module"]:checked');
     const selected = Array.from(checkboxes).map(cb => cb.value);
     const count = Math.max(1, selected.length);
@@ -3898,29 +4040,54 @@ window.subscribeToSelectedModularPlan = function() {
     if (count === 6) price = 2500;
     const cases = count * 10;
 
-    const planConfig = {
-        modules: selected,
-        module_count: count,
-        monthly_quota: cases,
+    const user = window.state ? window.state.currentUser : null;
+    let userEmail = user && user.email ? user.email : '';
+    if (!userEmail) {
+        userEmail = prompt('Enter your advocate / firm work email to register plan subscription:', 'advocate@lawfirm.in');
+        if (!userEmail) return;
+    }
+    const cleanEmail = userEmail.trim().toLowerCase();
+    const userId = user && user.uid ? user.uid : 'USR_' + cleanEmail.split('@')[0].toUpperCase();
+
+    const planPayload = {
+        user_id: userId,
+        email: cleanEmail,
+        selected_modules: selected,
         monthly_price_inr: price,
-        billing_cycle_days: 30,
-        subscribed_at: new Date().toISOString()
+        requested_quota: cases,
+        role: "law_firm"
     };
 
-    localStorage.setItem('judiq_selected_plan', JSON.stringify(planConfig));
+    try {
+        const res = await api.submitSubscriptionPlan(planPayload);
+        if (res && res.success) {
+            localStorage.setItem('judiq_selected_plan', JSON.stringify({
+                ...planPayload,
+                status: 'PENDING_APPROVAL',
+                submitted_at: new Date().toISOString()
+            }));
 
-    if (window.showToast) {
-        window.showToast(`Selected ${count} module plan (₹${price.toLocaleString('en-IN')}/mo • ${cases} cases)`, 'success');
-    } else if (window.ui && window.ui.toast) {
-        window.ui.toast(`Selected ${count} module plan (₹${price.toLocaleString('en-IN')}/mo • ${cases} cases)`, 'success');
-    }
+            // Alert user that plan is queued for admin approval
+            alert(
+                `📋 SUBSCRIPTION PLAN SUBMITTED (SIMULATION MODE)\n\n` +
+                `Account: ${cleanEmail}\n` +
+                `Selected Modules: ${count} (${selected.join(', ')})\n` +
+                `Monthly Fee: ₹${price.toLocaleString('en-IN')} / month\n` +
+                `Monthly Case Allowance: ${cases} Cases / 30 Days\n\n` +
+                `⏳ STATUS: PENDING ADMIN APPROVAL\n` +
+                `An entry has been logged in the Master Admin Control Center.\n` +
+                `Until approved by an administrator, case analysis and draft generation will remain locked for this profile.`
+            );
 
-    // Direct user to Get Started / Registration with pre-selected plan
-    const regBtn = document.getElementById('navRegisterBtn');
-    if (regBtn) {
-        regBtn.click();
-    } else if (window.switchScreen) {
-        window.switchScreen('caseWizardScreen');
+            if (window.ui && window.ui.toast) {
+                window.ui.toast(`Plan request submitted! Logged in Admin Center as PENDING APPROVAL.`, 'warning');
+            }
+        } else {
+            if (window.ui && window.ui.toast) window.ui.toast(res.detail || 'Plan submission failed', 'error');
+        }
+    } catch (e) {
+        console.error('Plan submit failed:', e);
+        if (window.ui && window.ui.toast) window.ui.toast('Plan submission error: ' + e.message, 'error');
     }
 };
 
