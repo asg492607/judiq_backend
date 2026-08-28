@@ -29,7 +29,7 @@ def test_client_portal_get_case_dossier():
     assert res.status_code == 200
     data = res.json()
     assert data["case_id"] == "CC-BLR-2026-8912"
-    assert "Sunrise Logistics" in data["case_title"]
+    assert "Complainant" in data["case_title"]
     assert len(data["milestones"]) >= 5
     assert len(data["document_checklist"]) >= 4
     assert data["claim_amount"] == 2450000.0

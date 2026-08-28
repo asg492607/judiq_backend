@@ -57,23 +57,23 @@ class ClientCaseDossier(BaseModel):
     last_updated: str
 
 
-# In-memory store for client dossiers (seeded with realistic client view)
+# In-memory store for client dossiers (seeded with institutional template)
 CLIENT_DOSSIERS_STORE: Dict[str, ClientCaseDossier] = {
     "CLIENT_TKN_2026_01": ClientCaseDossier(
         case_access_token="CLIENT_TKN_2026_01",
         case_id="CC-BLR-2026-8912",
-        case_title="Sunrise Logistics Pvt Ltd v. Nexus Infrastructure Ltd",
-        client_name="Sunrise Logistics Pvt Ltd (Attn: Mr. Arvind Rao)",
-        client_email="arvind.rao@sunriselogistics.in",
-        lead_advocate_name="Adv. Meenakshi Sundaram & Associates",
-        advocate_contact="+91 98450 11234 • meenakshi@sundaramlaw.in",
-        court_forum="Special Court for Economic Offences, Bangalore CMM",
-        presiding_judge="Special Metropolitan Magistrate (NI Act Bench 03)",
+        case_title="Complainant Enterprise v. Accused Debtor Entity",
+        client_name="Complainant Enterprise (Attn: Authorized Officer)",
+        client_email="legal.desk@enterprise-client.in",
+        lead_advocate_name="Designated Panel Counsel",
+        advocate_contact="counsel.desk@legalpanel.in",
+        court_forum="Special Court for Economic Offences, CMM Court",
+        presiding_judge="Presiding Metropolitan Magistrate",
         claim_amount=2450000.0,
         current_status_summary="Summons issued to Accused Directors; Section 143A application filed for 20% interim deposit.",
         next_hearing_date="2026-09-15",
         next_hearing_purpose="Framing of Notice of Accusation & Hearing on Section 143A 20% Deposit Application",
-        action_required_from_client="Provide physical signed copy of Banker's Books Evidence Affidavit by 2026-09-05.",
+        action_required_from_client="Provide physical signed copy of Banker's Books Evidence Affidavit.",
         milestones=[
             ClientMilestone(
                 milestone_id="M1",
