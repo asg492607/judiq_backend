@@ -621,14 +621,7 @@ function setCheckbox(id, checked) {
 // BANK OFFICER AUTHENTICATION & REGISTRATION MANAGEMENT
 // ============================================================================
 
-let currentBankUser = JSON.parse(localStorage.getItem('judiq_bank_user') || 'null') || {
-    officer_id: "OFFICER_SARB_842",
-    name: "Rajesh Nambiar",
-    bank_name: "State Bank of India",
-    branch_name: "State Bank of India — Stressed Asset Recovery Branch (SARB Mumbai)",
-    role: "sarb_manager",
-    email: "rajesh.nambiar@sbi.co.in"
-};
+let currentBankUser = JSON.parse(localStorage.getItem('judiq_bank_user') || 'null');
 
 window.openBankAuthModal = () => {
     const modal = document.getElementById("bankAuthModal");
@@ -842,6 +835,9 @@ window.submitBankRegister = async (e) => {
 
         window.updateBankOfficerUI();
         window.closeBankAuthModal();
+        if (typeof window.switchScreen === 'function') {
+            window.switchScreen('bankRecoveryScreen');
+        }
         if (window.toast) window.toast.show(data.message || `Bank account registered for ${currentBankUser.name}`, "success");
     } catch (err) {
         console.error("Bank registration error:", err);
@@ -903,6 +899,9 @@ window.submitBankLogin = async (e) => {
 
         window.updateBankOfficerUI();
         window.closeBankAuthModal();
+        if (typeof window.switchScreen === 'function') {
+            window.switchScreen('bankRecoveryScreen');
+        }
         if (window.toast) window.toast.show(data.message || `Authenticated as ${currentBankUser.name}`, "success");
     } catch (err) {
         console.error("Bank auth error:", err);
@@ -913,17 +912,33 @@ window.submitBankLogin = async (e) => {
 window.updateBankOfficerUI = () => {
     const badgeText = document.getElementById("bankOfficerBadgeText");
     const adminBadge = document.getElementById("bankMasterAdminBadge");
+    const signOutBtn = document.getElementById("bankSignOutBtn");
+    const switchOfficerBtn = document.getElementById("bankSwitchOfficerBtn");
 
     const currentUser = window.state && window.state.currentUser;
-    const userEmail = (currentUser && currentUser.email ? currentUser.email : '').toLowerCase().trim();
+    const userEmail = (currentUser && currentUser.email ? currentUser.email : (currentBankUser ? currentBankUser.email || '' : '')).toLowerCase().trim();
     const isUniversalAdmin = ['admin@judiq.ai', 'gandhiatharv565@gmail.com'].includes(userEmail) || userEmail.startsWith('admin');
 
     if (adminBadge) {
         adminBadge.style.display = isUniversalAdmin ? 'inline-flex' : 'none';
     }
 
-    if (currentBankUser && badgeText) {
-        badgeText.textContent = `${currentBankUser.bank_name || 'Bank'} — ${currentBankUser.name || currentBankUser.officer_id} (${currentBankUser.officer_id})`;
+    if (currentBankUser) {
+        if (badgeText) {
+            badgeText.textContent = `${currentBankUser.bank_name || 'Bank'} — ${currentBankUser.name || currentBankUser.officer_id} (${currentBankUser.officer_id})`;
+        }
+        if (signOutBtn) signOutBtn.style.display = 'inline-flex';
+        if (switchOfficerBtn) {
+            switchOfficerBtn.innerHTML = `<i class="fas fa-user-gear"></i> <span>Switch Officer</span>`;
+        }
+    } else {
+        if (badgeText) {
+            badgeText.textContent = "Sign In Required (Institutional Access)";
+        }
+        if (signOutBtn) signOutBtn.style.display = 'none';
+        if (switchOfficerBtn) {
+            switchOfficerBtn.innerHTML = `<i class="fas fa-user-plus"></i> <span>Officer Sign In / Register</span>`;
+        }
     }
 
     const branchSelector = document.getElementById("bankBranchName");
@@ -943,6 +958,17 @@ window.updateBankOfficerUI = () => {
             branchSelector.add(opt);
             branchSelector.value = currentBankUser.branch_name;
         }
+    }
+};
+
+window.bankOfficerSignOut = () => {
+    localStorage.removeItem('judiq_bank_user');
+    localStorage.removeItem('judiq_bank_jwt');
+    currentBankUser = null;
+    window.updateBankOfficerUI();
+    if (window.toast) window.toast.show("Bank officer signed out successfully.", "info");
+    if (typeof window.switchScreen === 'function') {
+        window.switchScreen('landingScreen');
     }
 };
 
@@ -998,7 +1024,7 @@ window.runMultiTrackEvaluation = async function() {
     `;
 
     try {
-        const res = await fetch(`${API_BASE}/multi-track-strategy`, {
+        const res = await fetch(`${API_BASE}/api/v1/bank/multi-track-strategy`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1134,7 +1160,7 @@ window.generateStatutoryLegalDraft = async function() {
     previewBox.innerHTML = `<div style="text-align: center; padding: 2rem;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #0284c7;"></i><p>Drafting statutory document...</p></div>`;
 
     try {
-        const res = await fetch(`${API_BASE}/generate-statutory-notice`, {
+        const res = await fetch(`${API_BASE}/api/v1/bank/generate-statutory-notice`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1226,7 +1252,7 @@ window.runOtsNpvOptimization = async function() {
     resultsBox.innerHTML = `<div style="text-align: center; padding: 2rem;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #0284c7;"></i><p>Calculating Net Present Value (NPV)...</p></div>`;
 
     try {
-        const res = await fetch(`${API_BASE}/ots-npv-calculator`, {
+        const res = await fetch(`${API_BASE}/api/v1/bank/ots-npv-calculator`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1333,7 +1359,7 @@ window.loadEmpaneledAdvocatesUI = async function() {
     container.innerHTML = `<div style="text-align: center; padding: 2rem; grid-column: 1 / -1;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #0284c7;"></i><p>Loading empaneled counsel registry...</p></div>`;
 
     try {
-        const res = await fetch(`${API_BASE}/advocates`);
+        const res = await fetch(`${API_BASE}/api/v1/bank/advocates`);
         if (!res.ok) throw new Error("Advocates API returned an error");
         const data = await res.json();
         const advocates = data.advocates || [];
@@ -1394,7 +1420,7 @@ window.loadEmpaneledAdvocatesUI = async function() {
 window.dispatchBriefToAdvocate = async function(advId, advName) {
     const loanRef = (document.getElementById("bankLoanRefNo") && document.getElementById("bankLoanRefNo").value.trim()) || "SBI/SARB/MUM/2026/04918";
     try {
-        const res = await fetch(`${API_BASE}/advocates/dispatch`, {
+        const res = await fetch(`${API_BASE}/api/v1/bank/advocates/dispatch`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
