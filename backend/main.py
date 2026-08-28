@@ -123,9 +123,10 @@ async def favicon():
         return FileResponse(str(fav_icon))
     return JSONResponse(status_code=204, content={})
 
-# All routes are served exclusively under /api/v1 prefix.
-# Legacy duplicate route registrations removed to eliminate route conflicts.
+# All routes are served under /api/v1 prefix and banking direct aliases
 app.include_router(api_router, prefix="/api/v1")
+from banking.router import router as banking_direct_router
+app.include_router(banking_direct_router, tags=["Banking & Recovery OS Direct"])
 
 # Mount frontend directory for seamless local development & single-port hosting
 frontend_dir = Path(__file__).resolve().parent.parent / "frontend"

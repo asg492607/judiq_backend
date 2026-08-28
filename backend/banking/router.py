@@ -1,6 +1,6 @@
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List, Tuple
 from fastapi import APIRouter, Body, Query, HTTPException, Depends
 from pydantic import BaseModel, Field
@@ -539,7 +539,7 @@ def dispatch_advocate_brief(req: DispatchBriefRequest = Body(...)):
     """
     Dispatches case dossier to empaneled advocate and records the handoff in the compliance audit ledger.
     """
-    handoff_ts = datetime.utcnow().isoformat() + "Z"
+    handoff_ts = datetime.now(timezone.utc).isoformat()
     return {
         "success": True,
         "message": f"Case dossier '{req.case_reference}' successfully dispatched to empaneled counsel {req.advocate_name}.",
