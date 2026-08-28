@@ -92,6 +92,24 @@ window.ui = ui;
  * Screen switching logic
  */
 export function switchScreen(targetScreenId) {
+    // Auth gate for bankRecoveryScreen: require officer or account login
+    if (targetScreenId === 'bankRecoveryScreen') {
+        const bankUserStr = localStorage.getItem('judiq_bank_user');
+        const hasBankJwt = !!localStorage.getItem('judiq_bank_jwt');
+        const currentUser = (window.state && window.state.currentUser) || (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser);
+        const hasGeneralAuth = !!currentUser || !!localStorage.getItem('judiq_token');
+
+        if (!bankUserStr && !hasBankJwt && !hasGeneralAuth) {
+            if (window.toast) {
+                window.toast.show("Please sign in or register with your institutional credentials to access the Recovery OS.", "warning");
+            }
+            if (typeof window.openBankAuthModal === 'function') {
+                window.openBankAuthModal();
+            }
+            return;
+        }
+    }
+
     const screens = [
         'landingScreen', 'loginScreen', 'registerScreen', 
         'roleScreen', 'dashboardScreen', 'caseWizardScreen', 
