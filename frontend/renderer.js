@@ -12,21 +12,23 @@ function isTruthy(val) {
     return !!val;
 }
 
-// Map verdict keys
+// Map case merit / viability keys
 export function mapVerdict(v) {
     const map = {
-        WEAK: "Weak Case",
-        MODERATE: "Moderate Case",
-        STRONG: "Strong Case"
+        WEAK: "Weak Legal Merit / Elevated Risk",
+        MODERATE: "Moderate Legal Merit",
+        STRONG: "Strong Legal Merit",
+        "DO NOT FILE": "Procedural Bar / Cure Required",
+        "HIGH_RISK": "High Legal & Procedural Risk"
     };
-    return map[v] || v || "Unknown";
+    return map[v] || v || "Case Evaluated";
 }
 
-// Get verdict description based on score
+// Get analytical merit description based on score
 export function getVerdictDescription(score) {
-    if (score >= 70) return 'Your case has strong legal merit and good chances of success';
-    if (score >= 40) return 'Your case has moderate strength with some concerns to address';
-    return 'Your case has significant weaknesses that need attention';
+    if (score >= 70) return 'Analytical evaluation indicates strong documentary trail and statutory merit';
+    if (score >= 40) return 'Analytical evaluation indicates moderate merit with specific vulnerabilities to address';
+    return 'Analytical evaluation identifies critical evidentiary gaps or procedural risks';
 }
 
 // Animate score display

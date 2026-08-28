@@ -8,7 +8,11 @@
 ---
 
 # Table of Contents
-1. [Executive Summary & Product Vision](#1-executive-summary--product-vision)
+1. [Executive Summary & Core Philosophy](#1-executive-summary--core-philosophy)
+   - [1.1 The Judicial Landscape & Problem Statement](#11-the-judicial-landscape--problem-statement)
+   - [1.2 The JudiQ Solution](#12-the-judiq-solution)
+   - [1.3 Key Architectural Principles](#13-key-architectural-principles)
+   - [1.4 Analytical Decision-Support vs Adjudicative Systems](#14-analytical-decision-support-vs-adjudicative-systems)
 2. [End-to-End System Architecture](#2-end-to-end-system-architecture)
 3. [Comprehensive Data Flow & Lifecycle](#3-comprehensive-data-flow--lifecycle)
 4. [Statutory Engine Deep-Dives](#4-statutory-engine-deep-dives)
@@ -16,49 +20,61 @@
    - [4.2 SARFAESI Act 2002 (Secured Debt Recovery Engine)](#42-sarfaesi-act-2002-secured-debt-recovery-engine)
    - [4.3 Criminal Litigation Engine (CrPC / BNSS 2023 & IPC / BNS 2023)](#43-criminal-litigation-engine-crpc--bnss-2023--ipc--bns-2023)
    - [4.4 Civil Litigation Engine (CPC 1908 & Commercial Courts Act 2015)](#44-civil-litigation-engine-cpc-1908--commercial-courts-act-2015)
-   - [4.5 Institutional Banking & Stressed Asset Recovery OS](#45-institutional-banking--stressed-asset-recovery-os)
+   - [4.5 Institutional Banking & Stressed Asset Recovery OS (5-Track Architecture)](#45-institutional-banking--stressed-asset-recovery-os-5-track-architecture)
+   - [4.6 Opposing Counsel Intelligence & Tactical Matchup Profiler](#46-opposing-counsel-intelligence--tactical-matchup-profiler)
 5. [Adversarial Simulation & Scoring Mechanics](#5-adversarial-simulation--scoring-mechanics)
+   - [5.1 The 10-Pillar Structural Viability Scoring Algorithm](#51-the-10-pillar-structural-viability-scoring-algorithm)
+   - [5.2 Courtroom Survivability Curve & Stage-by-Stage Decay](#52-courtroom-survivability-curve--stage-by-stage-decay)
+   - [5.3 Explainable AI (XAI) Reasoning & Causality Map](#53-explainable-ai-xai-reasoning--causality-map)
 6. [Caseroom, Forensic OCR & Evidence Certification (S.65B / BSA S.63)](#6-caseroom-forensic-ocr--evidence-certification-s65b--bsa-s63)
 7. [Automated Legal Pleadings & Drafting Engine](#7-automated-legal-pleadings--drafting-engine)
-8. [Frontend Architecture & UI/UX Design System](#8-frontend-architecture--uiux-design-system)
-9. [Master Admin, Governance & Telemetry Control Center](#9-master-admin-governance--telemetry-control-center)
-10. [Security, Encryption & DPDP Act Compliance](#10-security-encryption--dpdp-act-compliance)
-11. [Complete REST API Reference & Schema Catalog](#11-complete-rest-api-reference--schema-catalog)
-12. [Deployment, Localhost Operations & Troubleshooting Runbook](#12-deployment-localhost-operations--troubleshooting-runbook)
+8. [Multi-Lingual Localization & Translation Architecture](#8-multi-lingual-localization--translation-architecture)
+9. [Frontend Architecture & UI/UX Design System](#9-frontend-architecture--uiux-design-system)
+10. [Master Admin, Governance & Telemetry Control Center](#10-master-admin-governance--telemetry-control-center)
+11. [Security, Encryption & DPDP Act Compliance](#11-security-encryption--dpdp-act-compliance)
+12. [Complete REST API Reference & Schema Catalog](#12-complete-rest-api-reference--schema-catalog)
+13. [Deployment, Localhost Operations & Troubleshooting Runbook](#13-deployment-localhost-operations--troubleshooting-runbook)
 
 ---
 
-# 1. Executive Summary & Product Vision
+# 1. Executive Summary & Core Philosophy
 
-### 1.1 The Legal Reality
+### 1.1 The Judicial Landscape & Problem Statement
 In the Indian judicial landscape, over **40 lakh Section 138 NI Act (Cheque Bounce) cases** and hundreds of thousands of **SARFAESI, DRT, and commercial civil matters** clog the court system. A staggering **68% of commercial claims suffer delay or dismissal** not because of the underlying financial debt, but due to **fatal procedural, statutory, or evidentiary defects** committed before the initial plaint is ever filed:
 - Sending a statutory notice on Day 31 instead of within the mandatory 30-day window (*Section 138(b)*).
 - Filing a complaint on Day 12 before the mandatory 15-day borrower cure window expires (*Yogendra Pratap Singh v. Savitri Pandey trap*).
 - Failing to aver specific day-to-day managerial control against company directors (*S.M.S. Pharmaceuticals Ltd. v. Neeta Bhalla standard*).
 - Suing directors without arraigning the corporate entity as Accused No. 1 (*Aneeta Hada v. Godfather Travels fatal bar*).
 - Attempting SARFAESI Section 13(2) enforcement without prior CERSAI registration (*Section 26D bar*) or over agricultural land (*Section 31(i) bar*).
-- Submitting digital bank account statements without the mandatory Section 65B Indian Evidence Act / Section 63 Bharatiya Sakshya Adhiniyam (BSA) certification (*Arjun Panditrao Khotkar standard*).
+- Submitting digital bank account statements or WhatsApp communications without mandatory Section 65B Indian Evidence Act / Section 63 Bharatiya Sakshya Adhiniyam (BSA 2023) certification (*Arjun Panditrao Khotkar standard*).
 
 ### 1.2 The JudiQ Solution
-**JudiQ AI** is an institutional-grade **Litigation Operating System (OS)** and **Stressed Asset Recovery Intelligence Platform**. It bridges the gap between raw document ingestion, strict statutory procedural adherence, adversarial courtroom simulation, and court-admissible legal drafting.
+**JudiQ AI** is an institutional-grade **Litigation Intelligence Operating System (OS)** and **Stressed Asset Recovery Analytics Platform**. It bridges the gap between raw document ingestion, strict statutory procedural adherence, adversarial courtroom simulation, and court-admissible legal drafting.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                             JUDIQ AI PLATFORM                               │
 ├──────────────────────┬──────────────────────┬───────────────────────────────┤
-│  LITIGATION STRATEGY │  BANKING RECOVERY OS │     EVIDENTIARY AUDIT VAULT   │
+│  LITIGATION INTELL   │  BANKING RECOVERY OS │     EVIDENTIARY AUDIT VAULT   │
 │  - Adversarial Sim   │  - 5-Track Strategy  │  - Forensic Tamper OCR        │
 │  - Defect Classifier │  - OTS vs Lit NPV    │  - S.65B / BSA S.63 Evidence  │
-│  - Survivability Map │  - Advocate SLA Hub  │  - Contradiction Detector     │
+│  - Merit Rating Score│  - Advocate SLA Hub  │  - Contradiction Detector     │
 │  - Strategy Roadmap  │  - Statutory Drafter │  - Cryptographic Hash Ledger  │
 └──────────────────────┴──────────────────────┴───────────────────────────────┘
 ```
 
 ### 1.3 Key Architectural Principles
-1. **Deterministic Rule Engines Over Probabilistic Models:** Statutory deadlines (limitation periods, notice windows, statutory bars) are computed using 100% deterministic mathematical rule engines. AI is never permitted to "hallucinate" limitation dates.
+1. **Deterministic Rule Engines Over Probabilistic Hallucinations:** Statutory deadlines (limitation periods, notice windows, statutory bars) are computed using 100% deterministic mathematical rule engines. AI is never permitted to "hallucinate" limitation dates or statutory provisions.
 2. **Adversarial Opponent Modeling:** The system evaluates every case through the hostile lens of opposing counsel, pre-emptively exposing legal weaknesses, contradictory averments, and cross-examination traps.
 3. **Single-Port Unified Architecture:** Seamlessly bundles high-performance FastAPI backends and modern ES6 Glassmorphism frontends on a single localhost/production port with zero-configuration reverse proxies.
-4. **Zero-Training Confidentiality:** Strict DPDP Act 2023 compliance ensures client legal files are encrypted with AES-256 and never used to train public models.
+4. **Zero-Training Confidentiality:** Strict DPDP Act 2023 compliance ensures client legal files are encrypted with AES-256 and never used to train public foundation models.
+
+### 1.4 Analytical Decision-Support vs Adjudicative Systems
+> [!IMPORTANT]
+> **Strict Operational Boundary**: JudiQ AI is an **analytical legal intelligence and decision-support platform** designed exclusively for licensed advocates, judges, in-house legal departments, and bank recovery officers. It is **not** an adjudicative system:
+> - JudiQ **does not deliver judicial verdicts**, pronounce criminal guilt/acquittal, or issue binding court decrees.
+> - All platform metrics (e.g. *Case Readiness Score*, *Statutory Viability*, *Recovery NPV*) represent structured **evidentiary and procedural merit assessments** based on historical statutory jurisprudence and mathematical time-discounting models.
+> - The final evaluation, legal strategy, and procedural decision-making remain exclusively in the hands of the presiding advocate and judicial authority.
 
 ---
 
@@ -70,7 +86,8 @@ In the Indian judicial landscape, over **40 lakh Section 138 NI Act (Cheque Boun
   │  HTML5 + Vanilla ES6 Modules + Glassmorphism 2.0 Design System + Chart.js        │
   │  - Case Intake Wizard (8-Step Dynamic Form with Rule-Based Field Validation)     │
   │  - Caseroom Real-Time Evidence Audit Dock                                        │
-  │  - Adversarial Simulation & Survivability Graph Workspace                        │
+  │  - Adversarial Simulation & Merit Rating Workspace                               │
+  │  - Multi-Lingual Interface (English, Hindi, Marathi, Gujarati)                   │
   │  - Institutional Banking Recovery Suite (5-Tab Executive OS)                     │
   │  - Master Admin Control Center (3-Tab Governance, User Quotas, Bank Audits)      │
   └────────────────────────────────────────┬─────────────────────────────────────────┘
@@ -90,7 +107,7 @@ In the Indian judicial landscape, over **40 lakh Section 138 NI Act (Cheque Boun
 ┌───────────────────────────────────────────────┐           ┌────────────────────────────┐
 │ 1. NI Act Timeline & S.141/142/143A Rules     │           │ 1. LLM Strategy Synthesizer│
 │ 2. SARFAESI Chapter III & CERSAI/Agri Rules   │           │ 2. Opponent Cross-Exam Sim │
-│ 3. Criminal CrPC/BNSS & Bail/Quash Rules      │           │ 3. Judge Behavior Profiler │
+│ 3. Criminal CrPC/BNSS & Bail/Quash Rules      │           │ 3. Counsel Matchup Profiler│
 │ 4. Civil CPC O.37 & Commercial Mediation Rules│           │ 4. Dynamic Pleadings Gen   │
 │ 5. OTS NPV Financial Decay & RBI Capital Model│           │ 5. Precedent Semantic RAG  │
 └──────────────────────┬────────────────────────┘           └──────────────┬─────────────┘
@@ -114,7 +131,7 @@ In the Indian judicial landscape, over **40 lakh Section 138 NI Act (Cheque Boun
 [1. User / Officer Ingestion]
         │
         ├─► Option A: Case Intake Wizard (Parties, Dates, Cheque/Loan Data, Collateral)
-        ├─► Option B: Caseroom Evidence Upload (Cheque, Memo, Notice, Postal Slip, 65B)
+        ├─► Option B: Caseroom Evidence Upload (Cheque, Memo, Notice, Postal Slip, 65B/63)
         └─► Option C: Institutional Bank Portfolio (Tier 1 to 5 Pre-configured Portfolios)
         │
 [2. Normalization & Sanitization]
@@ -126,9 +143,9 @@ In the Indian judicial landscape, over **40 lakh Section 138 NI Act (Cheque Boun
 [3. Deterministic Statutory Audit]
         │
         ├─► Timeline Engine: Evaluates Presentation (3m), Notice (30d), Cure (15d), Filing (30d)
-        ├─► Defect Classifier: Categorizes issues into FATAL, CURABLE, or STRATEGIC
+        ├─► Defect Classifier: Categorizes issues into FATAL, CURABLE, WARNING, or STRATEGIC
         ├─► Rule Registry Cross-Check: Matches facts against 100+ statutory precedents
-        └─► Readiness Scoring Engine: Computes 0-100 Viability Score using penalty deductions
+        └─► Readiness Scoring Engine: Computes 0-100 Merit Score using calibrated penalty deductions
         │
 [4. Adversarial Simulation & Vulnerability Scan]
         │
@@ -161,7 +178,7 @@ In the Indian judicial landscape, over **40 lakh Section 138 NI Act (Cheque Boun
 
 ## 4.1 Section 138 Negotiable Instruments Act (Cheque Bounce Engine)
 
-The Section 138 Engine is the bedrock of JudiQ's commercial dispute analysis. It models every statutory milestone defined under the **Negotiable Instruments Act, 1881** (amended up to 2018).
+The Section 138 Engine models every statutory milestone defined under the **Negotiable Instruments Act, 1881** (amended up to 2018).
 
 ### Statutory Rules & Limitation Windows
 ```
@@ -174,12 +191,12 @@ Bank Return Memo (Dishonour Date)
 Demand Notice Dispatch Date
        │
        ▼ (Proof of Service / Deemed Service u/s 27 General Clauses Act)
-Notice Receipt / Delivery Date
+Notice Receipt / Delivery Date (T0)
        │
-       ▼ (Mandatory: 15 Calendar Days Borrower Cure Window u/s 138(c))
+       ▼ (Mandatory: 15 Calendar Days Borrower Cure Window u/s 138(c) — Days 1 to 15)
 Cause of Action Accrual Date (Day 16)
        │
-       ▼ (Mandatory: Within 30 Calendar Days u/s 142(1)(b))
+       ▼ (Mandatory: Within 30 Calendar Days u/s 142(1)(b) — Days 16 to 45)
 Complaint Filing Deadline in Court of Metropolitan / Judicial Magistrate
 ```
 
@@ -192,6 +209,7 @@ Complaint Filing Deadline in Court of Metropolitan / Judicial Magistrate
 | **Time-Barred Complaint (> 30 Days)** | `CURABLE` | Section 142(1)(b) NI Act | *Birendra Prasad Sah v. State of Bihar* (2019) | File formal S.142(1)(b) Condonation Application with Sufficient Cause Affidavit. |
 | **Missing Company Arraignment** | `FATAL` | Section 141 NI Act | *Aneeta Hada v. Godfather Travels & Tours* (2012) 5 SCC 661 | Fatal defect if company not named as Accused No. 1. Directors cannot be sued alone. |
 | **Omnibus Director Averments** | `HIGH RISK` | Section 141 NI Act | *S.M.S. Pharmaceuticals Ltd. v. Neeta Bhalla* (2005) 8 SCC 89 | High quashing risk u/s 482 unless specific day-to-day control averred in complaint. |
+| **Missing S.63(4) BSA Certificate** | `FATAL` | Section 63(4) BSA 2023 | *Arjun Panditrao Khotkar v. Kailash Kushanrao* (2020) | Digital chats/emails inadmissible without statutory certificate. |
 | **Interim Relief Opportunity** | `OPPORTUNITY` | Section 143A NI Act | *Noor Mohammed v. Khurram Pasha* (2022) | Court empowered to order 20% interim compensation deposit upon plea recording. |
 | **Appellate Pre-Deposit** | `MANDATORY` | Section 148 NI Act | *Surinder Singh Deswal v. Virender Gandhi* (2019) 11 SCC 341 | Appellate Court must direct minimum 20% fine deposit during appeal admission. |
 
@@ -274,9 +292,9 @@ The Civil Engine provides procedural roadmap optimization under the **Code of Ci
 
 ---
 
-## 4.5 Institutional Banking & Stressed Asset Recovery OS
+## 4.5 Institutional Banking & Stressed Asset Recovery OS (5-Track Architecture)
 
-The Institutional Banking Suite is engineered specifically for Stressed Asset Recovery Branches (SARB), Large Corporate Recovery (LCR) teams, and General Counsel of Indian Scheduled Commercial Banks (SBI, PNB, HDFC, ICICI, Bank of Baroda, Axis, Canara).
+The Institutional Banking Suite is engineered specifically for Stressed Asset Recovery Branches (SARB), Large Corporate Recovery (LCR) teams, and General Counsel of Indian Scheduled Commercial Banks.
 
 ```
                        5-TAB INSTITUTIONAL BANKING OS
@@ -293,7 +311,7 @@ The Institutional Banking Suite is engineered specifically for Stressed Asset Re
 │    - Auto-generates S.138 Demand, SARFAESI S.13(2), S.65B/63, S.142 Petitions│
 │    - Court-admissible markdown preview with copy/download controls          │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ 4. OTS VS LITIGATION NPV DECISION ENGINE                                    │
+│ 4. OTS VS LITIGATION NPV STRATEGY ENGINE                                    │
 │    - Financial model: Time decay discount, legal cost deduction, NPV yield  │
 │    - RBI Tier-1 Capital provisioning release write-back modeling            │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -303,12 +321,20 @@ The Institutional Banking Suite is engineered specifically for Stressed Asset Re
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Institutional Reference Portfolios
-1. **Tier 1 — Clean Standard S.138 (₹8.5L):** 100% compliant timeline, complete 6-point evidentiary pack, ready for immediate filing with 20% S.143A interim compensation motion.
-2. **Tier 2 — Curable Procedural Gaps (₹14.0L):** Notice sent in time, but missing India Post tracking report and Banker's Book Section 65B certificate. Identifies step-by-step cure actions.
-3. **Tier 3 — Critical Statutory Trap (₹25.0L):** Complaint filed on Day 8 of 15-day cure window. Flags fatal bar u/s 138(c) under *Yogendra Pratap Singh* and instructs refiling.
-4. **Tier 4 — Concurrent SARFAESI Enforcement Bar (₹1.80 Cr):** Enforcement attempted without mandatory CERSAI registration (*S.26D*) and on agricultural collateral (*S.31(i)*). Flags dual fatal statutory bars.
-5. **Tier 5 — Limitation Delay with Condonation (₹65.0L):** Complaint filed 20 days late. Compliant only with formal S.142(1)(b) Condonation Application & Sufficient Cause Affidavit.
+### The 5 Statutory Recovery Tracks
+1. **Track 1: Section 138 NI Act (Director Liability & S.143A Interim Relief):** Criminal leverage against signatory directors with up to 20% interim deposit order.
+2. **Track 2: SARFAESI Act 2002 (Secured Collateral Extra-Judicial Enforcement):** Fast-track physical attachment of commercial/residential properties via Section 14 CMM orders.
+3. **Track 3: DRT Recovery of Debts and Bankruptcy (RDB) Act 1993:** Section 19 Original Applications for unsecured debts or residual deficits > ₹20 Lakhs.
+4. **Track 4: Insolvency and Bankruptcy Code (IBC) 2016:** Section 7 CIRP against Corporate Debtors (> ₹1 Crore threshold) and Section 95 insolvency against Personal Guarantors.
+5. **Track 5: Regulatory Enforcement:** RBI Master Circular Wilful Defaulter tagging and Ministry of Home Affairs Look-Out Circulars (LOC) to prevent promoter flight risk.
+
+---
+
+## 4.6 Opposing Counsel Intelligence & Tactical Matchup Profiler
+
+JudiQ incorporates an Opposing Counsel Intelligence Engine that analyzes defense strategies, judge-specific win rates, and tactical counter-pleadings:
+- **Matchup Analysis (`POST /api/v1/intel/counsel/analyze-matchup`):** Evaluates case facts against defense counsel's historical patterns (e.g. signature defense attacks like security cheque claims, notice delivery ghosting, or board resolution authorization challenges).
+- **Prosecution Counter-Pleadings:** Auto-generates protective averments and rebuttal citations (*Sampelly Satyanarayana Rao*, *Sunil Todi*, *Laxmi Dyechem*).
 
 ---
 
@@ -330,13 +356,13 @@ $$\text{Viability Score} = \max\left(0, \min\left(100, 100 - \sum \text{Penaltie
 │ 5. Corporate Vicarious Liability & Director Averments  │ -35 (FATAL) │
 │ 6. Original Evidentiary Pack (Cheque, Memo, Sanction)  │ -20 (CURABLE│
 │ 7. Proof of Service (Post Receipts & Tracking Records) │ -15 (CURABLE│
-│ 8. Electronic Evidence Certification (S.65B / BSA S.63)│ -15 (CURABLE│
+│ 8. Electronic Evidence Certification (BSA S.63 / 65B)  │ -30 (FATAL) │
 │ 9. Financial Capacity & Legally Enforceable Debt Proof │ -15 (CURABLE│
 │ 10. Collateral Validity & Registration (CERSAI / Agri) │ -45 (FATAL) │
 └────────────────────────────────────────────────────────┴─────────────┘
 ```
 
-### 5.2 Courtroom Survivability Curve
+### 5.2 Courtroom Survivability Curve & Stage-by-Stage Decay
 JudiQ calculates stage-by-stage progression survival probabilities across 4 court tiers:
 
 $$\text{JMFC (Magistrate Trial)} \longrightarrow \text{Sessions Court Appeal} \longrightarrow \text{High Court Revision} \longrightarrow \text{Supreme Court SLP}$$
@@ -345,6 +371,11 @@ $$\text{JMFC (Magistrate Trial)} \longrightarrow \text{Sessions Court Appeal} \l
 - **Sessions Survivability:** Governed by Section 148 mandatory 20% deposit compliance and debt enforceability.
 - **High Court Survivability:** Governed by Section 141 averment precision and Section 482 quashing standards.
 - **Supreme Court Survivability:** Governed by settled constitutional bench precedents.
+
+### 5.3 Explainable AI (XAI) Reasoning & Causality Map
+Every analysis output includes a fully transparent, step-by-step logic trail:
+- **Causality Map:** Explicitly enumerates every positive credit and negative penalty applied to the baseline score with legal rationale.
+- **Critical Vulnerability Scanner:** Pins the exact statutory clause or evidence gap where the case would break in adversarial proceedings.
 
 ---
 
@@ -356,11 +387,11 @@ The Caseroom functions as a secure digital evidence repository. Each piece of up
 2. **Forensic Optical Character Recognition (OCR):** Extracts text, monetary figures, IFSC codes, account numbers, and dispatch timestamps.
 3. **Contradiction Detection:** Cross-references the cheque amount written in words vs figures, the date on the return memo vs the notice date, and the names of authorized signatories against MCA corporate records.
 
-### 6.2 Section 65B Indian Evidence Act / Section 63 BSA 2023 Electronic Evidence Certificate
-To render computerized account ledgers, CBS printouts, and digital notices admissible in Indian courts without oral evidence, JudiQ generates a court-admissible certificate complying with the Supreme Court mandate in *Arjun Panditrao Khotkar v. Kailash Kushanrao Gorantyal (2020)*:
+### 6.2 BSA Section 63 / Section 65B Electronic Evidence Certificate
+To render computerized account ledgers, CBS printouts, WhatsApp correspondence, and digital notices admissible in Indian courts without oral evidence, JudiQ generates a court-admissible certificate complying with **Section 63(4) of the Bharatiya Sakshya Adhiniyam, 2023** and the Supreme Court mandate in *Arjun Panditrao Khotkar v. Kailash Kushanrao Gorantyal (2020)*:
 - Identifies the electronic device, system hardware, and software environment.
 - Avers regular lawful operation and production during ordinary course of business.
-- Certifies integrity and absence of electronic tampering.
+- Certifies integrity, electronic chain of custody, and absence of electronic tampering.
 - Embeds SHA-256 document checksums.
 
 ---
@@ -373,22 +404,32 @@ JudiQ’s Draft Engine transforms structured case data into court-ready pleading
 1. **Formal Statutory Demand Notice u/s 138(b) NI Act:** Incorporates Section 141 corporate director liability clauses, details cheque dishonour reasons, and sets a 15-day cure deadline.
 2. **Criminal Complaint u/s 138 NI Act:** Ready for presentation before the Chief Judicial Magistrate / Metropolitan Magistrate, complete with verification clause, list of witnesses, and list of relied-upon documents.
 3. **SARFAESI Section 13(2) Demand Notice:** Includes formal schedule of mortgaged immovable/movable assets, loan sanction details, NPA date, and 60-day enforcement notice.
-4. **Section 142(1)(b) Delay Condonation Application & Sufficient Cause Affidavit:** Formatted with formal verification clauses citing *Birendra Prasad Sah* and medical/administrative delay grounds.
-5. **Section 143A Petition for 20% Interim Compensation Deposit:** Pre-structured application citing *Noor Mohammed v. Khurram Pasha*.
-6. **Section 65B IEA / Section 63 BSA 2023 Electronic Evidence Certificate:** Certified by authorized bank officer or custodian of computer systems.
-7. **Criminal Quashing Petition u/s 482 CrPC / BNSS S.528:** Structures grounds for quashing based on *Bhajan Lal* standards (civil dispute dressed as criminal, absence of Section 141 specific averments).
+4. **SARFAESI Section 13(3A) Reasoned Reply:** Formatted bank communication disposing of borrower objections within mandatory 15-day SLA (*Mardia Chemicals standard*).
+5. **Section 142(1)(b) Delay Condonation Application & Sufficient Cause Affidavit:** Formatted with formal verification clauses citing *Birendra Prasad Sah* and medical/administrative delay grounds.
+6. **Section 143A Petition for 20% Interim Compensation Deposit:** Pre-structured application citing *Noor Mohammed v. Khurram Pasha*.
+7. **Section 63 BSA 2023 / Section 65B IEA Electronic Evidence Certificate:** Certified by authorized bank officer or custodian of computer systems.
+8. **Criminal Quashing Petition u/s 482 CrPC / BNSS S.528:** Structures grounds for quashing based on *Bhajan Lal* standards (civil dispute dressed as criminal, absence of Section 141 specific averments).
 
 ---
 
-# 8. Frontend Architecture & UI/UX Design System
+# 8. Multi-Lingual Localization & Translation Architecture
 
-### 8.1 Technology Stack & Rendering Performance
+To empower legal practitioners across state high courts and district bars, JudiQ implements an automated multi-lingual localization pipeline:
+- **Languages Supported:** English, Hindi (हिंदी), Marathi (मराठी), and Gujarati (ગુજરાતી).
+- **Localized Fields:** Case Merit Ratings, Senior Advocate Briefs, Core Legal Findings (`tldr`), Next Best Procedural Actions, and Statutory Presumption Overviews.
+- **Analytical Terminology Fidelity:** Preserves strict legal nuances in Indian state languages (e.g., *"भक्कम कायदेशीर गुणवत्ता (सकारात्मक विश्लेषणात्मक स्थिती)"*, *"मजबूत कानूनी मेरिट (सकारात्मक विश्लेषणात्मक स्थिति)"*).
+
+---
+
+# 9. Frontend Architecture & UI/UX Design System
+
+### 9.1 Technology Stack & Rendering Performance
 - **Zero Framework Bloat:** Built with Vanilla ES6 JavaScript modules and Native Web Components to guarantee lightning-fast sub-50ms screen transitions on any hardware.
 - **Glassmorphism 2.0 Aesthetic:** Blue-and-white theme featuring subtle backdrop blur filters (`backdrop-filter: blur(12px)`), refined border strokes, and curated typography (`Cinzel`, `Outfit`, `Inter`).
 - **Dynamic Dark / Light Mode:** Native CSS custom properties seamlessly toggle between dark glassmorphism and executive institutional light mode.
 - **Memory-Safe Chart Registry:** Custom `ChartRegistry` manages Chart.js instances, automatically destroying previous canvas contexts to eliminate memory leaks during rapid adversarial state recalculations.
 
-### 8.2 Screen Navigation & Security Gate Architecture
+### 9.2 Screen Navigation & Security Gate Architecture
 The frontend is controlled by a centralized `switchScreen(targetScreenId)` router in [`frontend/ui.js`](file:///c:/Users/Atharva/OneDrive/Desktop/judiq-ai/frontend/ui.js):
 ```javascript
 // Screen State Routing
@@ -400,34 +441,17 @@ The frontend is controlled by a centralized `switchScreen(targetScreenId)` route
 'draftStudioScreen'      ──► Court Pleadings Drafting & Export Studio
 ```
 
-### 8.3 Authentication Security Gate
-Access to `bankRecoveryScreen` is protected by a client-and-server security gate:
-```javascript
-if (targetScreenId === 'bankRecoveryScreen') {
-    const hasBankUser = !!localStorage.getItem('judiq_bank_user');
-    const hasBankJwt = !!localStorage.getItem('judiq_bank_jwt');
-    const hasGeneralAuth = !!localStorage.getItem('judiq_token') || (window.state && window.state.currentUser);
-    
-    if (!hasBankUser && !hasBankJwt && !hasGeneralAuth) {
-        window.toast.show("Please sign in or register with your institutional bank credentials.", "warning");
-        window.openBankAuthModal();
-        return;
-    }
-}
-```
-
 ---
 
-# 9. Master Admin, Governance & Telemetry Control Center
+# 10. Master Admin, Governance & Telemetry Control Center
 
-The Master Admin Portal provides bank heads, law firm managing partners, and platform administrators with complete oversight.
-
+The Master Admin Portal provides bank heads, law firm managing partners, and platform administrators with complete oversight:
 ```
                          ADMIN CONTROL CENTER (3 TABS)
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ 1. SYSTEM METRICS & PERFORMANCE OBSERVABILITY                               │
 │    - Total System Requests, Mean Response Latency, Active Caseroom Sessions │
-│    - Engine Registry Status (All 18 Engines Online)                         │
+│    - Engine Registry Status (All 18 Engines Online & Healthy)               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ 2. USER QUOTA & CREDITS GOVERNANCE                                          │
 │    - User Account Registry, Monthly Token Allocations, Tier Switching       │
@@ -435,35 +459,32 @@ The Master Admin Portal provides bank heads, law firm managing partners, and pla
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ 3. INSTITUTIONAL BANK GOVERNANCE & AUDIT LOGS                               │
 │    - Bank Recovery Officer Directory across Nationalized & Private Banks    │
-│    - Real-Time Statutory Audit Ledger: Case Reference, Viability, Verdicts  │
+│    - Real-Time Statutory Audit Ledger: Case Reference, Viability, Status    │
 │    - Monthly Audit Allowance Allocation & Officer Status Toggles            │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Universal Admin Elevation
-Accounts associated with designated master administrator emails (`admin@judiq.ai`, `gandhiatharv565@gmail.com`) automatically receive universal administrator elevation (`is_admin: true`), bypassing token rate limits and gaining instant multi-branch switching privileges.
-
 ---
 
-# 10. Security, Encryption & DPDP Act Compliance
+# 11. Security, Encryption & DPDP Act Compliance
 
-### 10.1 Encryption Architecture
+### 11.1 Encryption Architecture
 - **In-Transit:** Mandatory TLS 1.3 encryption across all client-server communications.
 - **At-Rest:** Confidential case dossiers and evidence payloads are encrypted using **AES-256 Fernet** encryption (`cryptography.fernet`) before being written to disk.
 - **Key Derivation:** Cryptographic keys are managed via environment variables (`ENCRYPTION_KEY`, `SECRET_KEY`) with fallback validation against weak development keys.
 
-### 10.2 Digital Personal Data Protection (DPDP) Act 2023 Compliance
+### 11.2 Digital Personal Data Protection (DPDP) Act 2023 Compliance
 - **Data Fiduciary Standard:** Case facts are processed strictly for the user-authorized purpose of legal strategy formulation.
 - **Strict Model Isolation:** Customer confidential evidence, pleadings, and debtor particulars are **strictly isolated** and **never used** to train or fine-tune public foundation models.
 - **Right to Erasure:** Users can irreversibly purge caserooms and associated cryptographic hashes with 1-click deletion.
 
 ---
 
-# 11. Complete REST API Reference & Schema Catalog
+# 12. Complete REST API Reference & Schema Catalog
 
 All platform routes are versioned and served under the `/api/v1` prefix (with direct backward-compatible aliases on root paths).
 
-### 11.1 Authentication & Session
+### 12.1 Authentication & Session
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
 | `POST` | `/api/v1/auth/anonymous` | Creates an anonymous trial session token | No |
@@ -472,21 +493,25 @@ All platform routes are versioned and served under the `/api/v1` prefix (with di
 | `GET` | `/api/v1/bank/auth/profile` | Retrieves bank officer profile and remaining monthly quota | Yes (JWT) |
 | `GET` | `/api/v1/bank/auth/validate-domain` | Validates if an email domain meets institutional banking rules | No |
 
-### 11.2 Core Litigation Analysis
+### 12.2 Core Litigation Analysis & Intelligence
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
 | `POST` | `/api/v1/analyze` | Executes full deterministic audit, scoring, and adversarial simulation | Yes |
+| `POST` | `/api/v1/sarfaesi/analyze` | Evaluates SARFAESI Section 13/14/17 enforcement compliance | Yes |
+| `POST` | `/api/v1/intel/counsel/analyze-matchup` | Evaluates defense counsel strategy patterns and counter-pleadings | Yes |
+| `GET` | `/api/v1/intel/counsel` | Lists directory of tracked opposing defense counsel | Yes |
 | `POST` | `/api/v1/caseroom/forensic-audit` | Performs multi-document forensic OCR and contradiction scan | Yes |
 | `GET` | `/api/v1/cases` | Lists saved case files for the authenticated user | Yes |
 | `GET` | `/api/v1/cases/detail` | Retrieves complete analysis results for a specific case ID | Yes |
 | `DELETE`| `/api/v1/cases/delete` | Irreversibly deletes a case file and its evidence payload | Yes |
 
-### 11.3 Enterprise Banking & Stressed Asset Recovery
+### 12.3 Enterprise Banking & Stressed Asset Recovery
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
 | `POST` | `/api/v1/bank/recovery-audit` | Executes statutory recovery audit and logs entry to DB ledger | Yes |
+| `POST` | `/api/v1/bank/compliance-audit` | Performs 12-pillar statutory compliance audit u/s 138 / SARFAESI | Yes |
 | `POST` | `/api/v1/bank/multi-track-strategy`| Evaluates concurrent viability across 5 statutory recovery tracks | Yes |
-| `POST` | `/api/v1/bank/generate-statutory-notice`| Generates court-admissible legal notices, delay petitions, 65B | Yes |
+| `POST` | `/api/v1/bank/generate-statutory-notice`| Generates court-admissible legal notices, delay petitions, 65B/63 | Yes |
 | `POST` | `/api/v1/bank/ots-npv-calculator` | Calculates OTS vs litigation NPV, time decay, RBI write-backs | Yes |
 | `GET` | `/api/v1/bank/advocates` | Retrieves directory of empaneled advocates with win rates & SLAs | Yes |
 | `POST` | `/api/v1/bank/advocates/dispatch`| Dispatches brief to counsel and records 48h court filing SLA | Yes |
@@ -494,15 +519,15 @@ All platform routes are versioned and served under the `/api/v1` prefix (with di
 | `GET` | `/api/v1/bank/portfolio-templates`| Returns 5 production reference recovery case portfolios | No |
 | `GET` | `/api/v1/bank/rules` | Returns the complete Statutory Legal-Rule Registry with citations | No |
 
-### 11.4 Legal Pleadings & Document Generation
+### 12.4 Legal Pleadings & Document Generation
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
 | `POST` | `/api/v1/documents/generate-pdf` | Generates a high-resolution PDF case intelligence report | Yes |
-| `POST` | `/api/v1/documents/draft-pdf` | Generates a court-admissible legal pleading in PDF format | Yes |
+| `POST` | `/api/v1/documents/draft-word` | Generates a formatted Word (.docx/.doc) pleading document | Yes |
 | `GET` | `/api/v1/documents/draft/history` | Retrieves versioned drafting history for a case matter | Yes |
 | `POST` | `/api/v1/verify/memo` | Validates bank return memo authenticity and dishonour reasons | Yes |
 
-### 11.5 Platform Governance & Observability
+### 12.5 Platform Governance & Observability
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
 | `GET` | `/health` | Server health check with CPU, RAM, and Engine Registry size | No |
@@ -523,9 +548,9 @@ All platform routes are versioned and served under the `/api/v1` prefix (with di
 
 ---
 
-# 12. Deployment, Localhost Operations & Troubleshooting Runbook
+# 13. Deployment, Localhost Operations & Troubleshooting Runbook
 
-### 12.1 Localhost 1-Click Launch Options
+### 13.1 Localhost 1-Click Launch Options
 The platform is designed to launch with zero friction on Windows, macOS, and Linux:
 
 - **Option A: PowerShell Launcher (Recommended on Windows)**
@@ -540,14 +565,14 @@ The platform is designed to launch with zero friction on Windows, macOS, and Lin
   python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
   ```
 
-### 12.2 Localhost URLs
+### 13.2 Localhost URLs
 - **Web Application Portal:** [http://localhost:8000](http://localhost:8000)
 - **Interactive Swagger UI:** [http://localhost:8000/docs](http://localhost:8000/docs)
 - **Redoc API Documentation:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
 - **Health Check Endpoint:** [http://localhost:8000/health](http://localhost:8000/health)
 - **Prometheus Metrics:** [http://localhost:8000/metrics](http://localhost:8000/metrics)
 
-### 12.3 Docker Deployment
+### 13.3 Docker Deployment
 ```bash
 # Build and start containerized stack
 docker compose up --build -d
@@ -559,16 +584,16 @@ docker compose ps
 docker compose logs -f
 ```
 
-### 12.4 Automated Test Suite Execution
+### 13.4 Automated Test Suite Execution
 ```bash
 # Run banking enterprise suite
 python -m pytest backend/tests/test_bank_recovery_engine.py backend/tests/test_bank_enterprise_features.py -v
 
-# Run full platform automated test suite (3,404 Tests)
+# Run full platform automated test suite (3,428 Tests)
 python -m pytest backend/tests/ -v
 ```
 
-### 12.5 Troubleshooting & Common Scenarios
+### 13.5 Troubleshooting & Common Scenarios
 | Issue | Root Cause | Resolution |
 |---|---|---|
 | `[WinError 10013] Access forbidden` | Lingering Python process holding port 8000 | Run: `Get-NetTCPConnection -LocalPort 8000 \| Stop-Process -Id {$_.OwningProcess} -Force` |

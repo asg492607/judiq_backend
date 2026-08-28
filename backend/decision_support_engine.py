@@ -94,27 +94,27 @@ RISK_CATALOGUE = [
     }
 ]
 OUTCOME_MAP = [
-    (88, "High Probability of Conviction",      "Exceptional documentary trail. Presumptions are nearly impossible to rebut. Subject to trial technicalities."),
-    (75, "Likely Conviction (Trial Risk)",       "Strong pillars, but 'reasonable doubt' remains a tactical weapon for the defense. Successful cross-examination is vital."),
-    (60, "Contested Case — 50/50 Outcome",       "Case survives prima facie, but financial capacity or notice technicalities present significant acquittal risks."),
-    (45, "High Risk of Acquittal",               "Defense will likely rebut presumptions. Procedural gaps provide multiple 'escape routes' for the accused."),
-    ( 0, "Non-Maintainable / Fatal Defects",     "Complaint is procedurally or substantively DOA. Expect dismissal at pre-summoning or discharge stage."),
+    (88, "High Evidentiary & Statutory Merit",   "Comprehensive documentary trail. Statutory presumptions strongly supported. Subject to trial proceedings and judicial evaluation."),
+    (75, "Favorable Case Merit (Standard Trial Risk)", "Strong evidentiary pillars established, though defense rebuttal strategies require prepared cross-examination."),
+    (60, "Contested Merit — Balanced Evidentiary Position", "Case establishes prima facie maintainability, but financial capacity or notice technicalities warrant remediation."),
+    (45, "Elevated Legal & Evidentiary Vulnerabilities", "Defense rebuttal risks present. Procedural and evidentiary gaps require strengthening prior to filing."),
+    ( 0, "High Statutory / Limitation Risk",     "Critical statutory or limitation defects identified. Immediate advocate review and procedural cure advised."),
 ]
 TRANSLATIONS = {
     "hindi": {
-        "STRONG":   "मजबूत मामला — अभियोजन संभावित (Strong Case)",
-        "MODERATE": "मध्यम मामला — सुधार आवश्यक (Moderate Case)",
-        "WEAK":     "कमजोर मामला — वैकल्पिक विकल्प देखें (Weak Case)"
+        "STRONG":   "मजबूत मामला — उच्च विधिक मेरिट (Strong Legal Merit)",
+        "MODERATE": "मध्यम मामला — साक्ष्य सुदृढ़ीकरण आवश्यक (Moderate Merit)",
+        "WEAK":     "कमजोर मामला — प्रक्रियात्मक जोखिम (Elevated Risk)"
     },
     "marathi": {
-        "STRONG":   "भक्कम प्रकरण — खटला फायदेशीर (Strong Case)",
-        "MODERATE": "मध्यम प्रकरण — पुरावा बळकट करा (Moderate Case)",
-        "WEAK":     "कमकुवत प्रकरण — नागरी दाखल विचारात घ्या (Weak Case)"
+        "STRONG":   "भक्कम प्रकरण — उच्च कायदेशीर गुणवत्ता (Strong Legal Merit)",
+        "MODERATE": "मध्यम प्रकरण — पुरावा बळकट करा (Moderate Merit)",
+        "WEAK":     "कमकुवत प्रकरण — प्रक्रियात्मक त्रुटी (Elevated Risk)"
     },
     "gujarati": {
-        "STRONG":   "મજબૂત કેસ — ફોજદારી ફરિયાદ ફાઈલ કરો",
-        "MODERATE": "મધ્યમ કેસ — પુરાવા મજબૂત કરો",
-        "WEAK":     "નબળો કેસ — સમાધાન ધ્યાનમાં લો"
+        "STRONG":   "મજબૂત કેસ — ઉચ્ચ કાનૂની યોગ્યતા (Strong Legal Merit)",
+        "MODERATE": "મધ્યમ કેસ — પુરાવા મજબૂત કરો (Moderate Merit)",
+        "WEAK":     "નબળો કેસ — પ્રક્રિયાત્મક જોખમ (Elevated Risk)"
     }
 }
 class DecisionSupportEngine:

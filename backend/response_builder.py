@@ -551,11 +551,11 @@ def _apply_marathi_response_translation(resp: Dict[str, Any]) -> Dict[str, Any]:
     # Translate verdict & viability
     v = resp.get("verdict", "")
     if v == "STRONG":
-        resp["verdict_mr"] = "भक्कम कायदेशीर स्थिती (यशस्वी ठरण्याची उच्च शक्यता)"
+        resp["verdict_mr"] = "भक्कम कायदेशीर गुणवत्ता (सकारात्मक विश्लेषणात्मक स्थिती)"
     elif v == "WEAK":
-        resp["verdict_mr"] = "कमकुवत कायदेशीर स्थिती (गंभीर त्रुटी)"
+        resp["verdict_mr"] = "कमकुवत कायदेशीर स्थिती (सावधगिरी व सुधारणा आवश्यक)"
     elif v == "DO NOT FILE":
-        resp["verdict_mr"] = "तक्रार दाखल करू नका (गंभीर तांत्रिक दोष)"
+        resp["verdict_mr"] = "प्रक्रियात्मक त्रुटी आढळल्या (पुनरावलोकन आवश्यक)"
     else:
         resp["verdict_mr"] = "मध्यम कायदेशीर स्थिती (सखोल पुराव्यांची गरज)"
 
@@ -592,11 +592,11 @@ def _apply_hindi_response_translation(resp: Dict[str, Any]) -> Dict[str, Any]:
     # Translate verdict & viability to Hindi
     v = resp.get("verdict", "")
     if v == "STRONG":
-        resp["verdict_hi"] = "मजबूत कानूनी स्थिति (सफलता की उच्च संभावना)"
+        resp["verdict_hi"] = "मजबूत कानूनी मेरिट (सकारात्मक विश्लेषणात्मक स्थिति)"
     elif v == "WEAK":
-        resp["verdict_hi"] = "कमजोर कानूनी स्थिति (गंभीर कमियां)"
+        resp["verdict_hi"] = "कमजोर साक्ष्य स्थिति (सावधानी एवं सुधार आवश्यक)"
     elif v == "DO NOT FILE":
-        resp["verdict_hi"] = "केस दाखिल न करें (गंभीर प्रक्रियात्मक दोष)"
+        resp["verdict_hi"] = "प्रक्रियात्मक दोष पहचाने गए (दाखिल करने से पूर्व सुधार आवश्यक)"
     else:
         resp["verdict_hi"] = "मध्यम कानूनी स्थिति (साक्ष्य सुदृढ़ीकरण की आवश्यकता)"
 

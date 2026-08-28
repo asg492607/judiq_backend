@@ -940,7 +940,7 @@ window.loadRecentCases = async () => {
             
             const p = document.createElement('p');
             p.style.cssText = 'font-size: 0.75rem; color: var(--gray-400); margin-top: 0.25rem;';
-            p.innerHTML = `ID: <strong>${escapeHtml(c.id)}</strong> | Updated: <strong>${formatDate(c.date)}</strong> | Verdict: <span style="color: var(--primary-400); font-weight: 600;">${escapeHtml(c.verdict)}</span>`;
+            p.innerHTML = `ID: <strong>${escapeHtml(c.id)}</strong> | Updated: <strong>${formatDate(c.date)}</strong> | Assessment: <span style="color: var(--primary-400); font-weight: 600;">${escapeHtml(c.verdict)}</span>`;
             
             infoDiv.appendChild(h4);
             infoDiv.appendChild(p);
@@ -1766,7 +1766,7 @@ window.downloadPDF = async () => {
         ui.toast(`PDF Error: ${err.message}. Fetching text fallback.`, 'error');
         // Text fallback
         const result = window.state.analysisResult;
-        const content = `JUDIQ AI CASE REPORT\nScore: ${result.score}/100\nVerdict: ${result.verdict}\n\nLegal Analysis:\n${result.legal_analysis || ''}`;
+        const content = `JUDIQ AI CASE REPORT\nScore: ${result.score}/100\nCase Merit Assessment: ${result.verdict}\n\nLegal Analysis:\n${result.legal_analysis || ''}`;
         const b = new Blob([content], { type: "text/plain" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(b);
@@ -2995,7 +2995,7 @@ window.copyStrategyMemoToClipboard = function() {
     memo += `Generated on: ${new Date().toLocaleDateString()} | Domain: ${res.domain || 'Section 138 NI Act'}\n\n`;
     memo += `## 1. Viability & Score Summary\n`;
     memo += `- **Overall Score**: ${res.score !== undefined ? res.score : 'N/A'}/100\n`;
-    memo += `- **Verdict**: ${res.verdict || 'ANALYZED'}\n`;
+    memo += `- **Merit Assessment**: ${res.verdict || 'ANALYZED'}\n`;
     if (res.summary) memo += `- **Summary**: ${res.summary}\n`;
     
     if (res.statutory_timeline || res.limitation) {
@@ -3099,8 +3099,8 @@ window.printStrategyMemo = function() {
         <div><strong>DOMAIN:</strong> ${domain}</div>
         <div><strong>VIABILITY SCORE:</strong> <span class="score-badge">${score}/100</span></div>
     </div>
-    <div class="section-title">1. EXECUTIVE SUMMARY & VERDICT</div>
-    <p><strong>Verdict:</strong> ${res.verdict || 'ANALYZED'}</p>
+    <div class="section-title">1. EXECUTIVE SUMMARY & MERIT EVALUATION</div>
+    <p><strong>Merit Assessment:</strong> ${res.verdict || 'ANALYZED'}</p>
     ${res.summary ? `<p>${res.summary}</p>` : ''}
     
     ${res.vulnerabilities && res.vulnerabilities.length ? `

@@ -1,5 +1,5 @@
 /**
- * JudiQ AI — Internationalization (i18n) Engine for English, Marathi (मराठी) & Hindi (हिंदी)
+ * JudiQ AI — Internationalization (i18n) Engine for English, Marathi (मराठी), Hindi (हिंदी) & Gujarati (ગુજરાતી)
  * Enables seamless instant switching across landing page, input forms, dashboard, results, and draft generation.
  */
 
@@ -148,7 +148,64 @@ window.i18n = {
             next_best_actions: "अनुशंसित आगामी कार्रवाई",
             adversarial_vectors: "विपक्षी पक्ष के संभावित तर्क और कमियां",
             export_pdf: "विश्लेषण पीडीएफ डाउनलोड करें",
-            lang_label: "हिंदी"
+            lang_label: "हिंदी",
+            sim_heading: "जिरह जोखिम सिम्युलेटर",
+            sim_sub: "अदालती रणनीतियों का सीधा परीक्षण करें और सफलता की संभावना का आकलन करें।",
+            counsel_dock_title: "न्यायिक एआई सह-सलाहकार",
+            counsel_dock_prompt1: "बैंक प्रबंधक जिरह",
+            counsel_dock_prompt2: "धारा 138 समय-सीमा नियम",
+            counsel_dock_prompt3: "सिक्योरिटी चेक कानून",
+            counsel_dock_prompt4: "धारा 313 बचाव जवाब"
+        },
+        gu: {
+            brand_name: "જ્યુડિક એઆઈ (JudiQ AI)",
+            brand_subtitle: "ન્યાયાલયીન એઆઈ વ્યૂહરચનાકાર",
+            nav_features: "વિશેષતાઓ",
+            nav_simulator: "સિમ્યુલેટર",
+            nav_readiness: "સજ્જતા",
+            nav_about: "પરિચય",
+            nav_testimonials: "અભિપ્રાય",
+            nav_faq: "પ્રશ્નો",
+            nav_contact: "સંપર્ક",
+            nav_docs: "દસ્તાવેજ",
+            nav_settings: "સેટિંગ્સ",
+            nav_logout: "લોગઆઉટ",
+            load_demo_case: "ડેમો કેસ લોડ કરો",
+            hero_title: "અદાલતમાં જતા પહેલા ગંભીર કાનૂની ખામીઓ અને ક્ષતિઓ શોધો",
+            hero_sub: "કલમ ૧૩૮ ચેક બાઉન્સ વિશ્લેષણ, સરફેસી બેંક કાર્યવાહી, વિરોધી દલીલ ચકાસણી અને સ્વચાલિત કાનૂની મુસદ્દો.",
+            start_analysis: "કેસ વિશ્લેષણ શરૂ કરો",
+            select_domain: "કાનૂની ક્ષેત્ર પસંદ કરો",
+            domain_ni: "ચેક બાઉન્સ (કલમ ૧૩૮ એન.આઈ. એક્ટ)",
+            domain_sarfaesi: "સરફેસી અને ડી.આર.ટી. કાયદો",
+            domain_criminal: "ફોજદારી કાયદો (આઈપીસી / બીએનએસ)",
+            domain_civil: "દીવાની દાવો (સીપીસી)",
+            account_overview: "ખાતાની ઝાંખી",
+            quick_actions: "ઝડપી ક્રિયાઓ",
+            cases_analysed: "વિશ્લેષિત કેસો",
+            fatal_defects: "ગંભીર કાનૂની ક્ષતિઓ",
+            strong_cases: "મજબૂત કેસો",
+            analyse_s138: "કલમ ૧૩૮ કેસ વિશ્લેષણ",
+            s138_sub: "કાનૂની નોટિસ, મુદત, રકમ અને નોટિસ ક્ષતિઓની ચકાસણી કરો",
+            generate_draft: "કાનૂની ડ્રાફ્ટ તૈયાર કરો",
+            generate_draft_sub: "ડિમાન્ડ નોટિસ, ફરિયાદ અથવા બચાવ જવાબ આપમેળે બનાવો",
+            cheque_amount: "ચેકની રકમ (₹)",
+            dishonour_date: "ચેક અસ્વીકાર (બાઉન્સ) તારીખ",
+            notice_date: "કાનૂની નોટિસ મોકલ્યાની તારીખ",
+            complainant_type: "ફરિયાદીનો પ્રકાર",
+            analyze_now: "હવે વિશ્લેષણ કરો",
+            viability_score: "કેસની સફળતાની સંભાવના (%)",
+            procedural_timeline: "પ્રક્રિયાત્મક સમયરેખા આલેખ",
+            next_best_actions: "ભલામણ કરેલ આગામી પગલાં",
+            adversarial_vectors: "સામા પક્ષની સંભવિત દલીલો અને ખામીઓ",
+            export_pdf: "વિશ્લેષણ પીડીએફ ડાઉનલોડ કરો",
+            lang_label: "ગુજરાતી",
+            sim_heading: "ઉલટતપાસ જોખમ સિમ્યુલેટર",
+            sim_sub: "અદાલતી વ્યૂહરચનાઓનું સીધું પરીક્ષણ કરો અને સંભવિત સફળતાની ગણતરી કરો.",
+            counsel_dock_title: "જ્યુડિક એઆઈ સહ-સલાહકાર",
+            counsel_dock_prompt1: "બેંક મેનેજર ઉલટતપાસ",
+            counsel_dock_prompt2: "કલમ ૧૩૮ મુદતના નિયમો",
+            counsel_dock_prompt3: "સિક્યોરિટી ચેક ચુકાદાઓ",
+            counsel_dock_prompt4: "કલમ ૩૧૩ બચાવ જવાબ"
         }
     },
 
@@ -176,7 +233,7 @@ window.i18n = {
         });
 
         // Update language toggle buttons
-        const labelMap = { en: 'English', mr: 'मराठी', hi: 'हिंदी' };
+        const labelMap = { en: 'English', mr: 'मराठी', hi: 'हिंदी', gu: 'ગુજરાતી' };
         document.querySelectorAll('.lang-toggle-btn').forEach(btn => {
             btn.innerHTML = `<i class="fas fa-globe"></i> <span>${labelMap[lang] || 'English'}</span>`;
         });
@@ -184,7 +241,7 @@ window.i18n = {
 };
 
 window.toggleLanguage = function() {
-    const cycle = { en: 'mr', mr: 'hi', hi: 'en' };
+    const cycle = { en: 'mr', mr: 'hi', hi: 'gu', gu: 'en' };
     window.i18n.currentLang = cycle[window.i18n.currentLang] || 'en';
     localStorage.setItem('judiq_lang', window.i18n.currentLang);
     window.i18n.updatePageText();
@@ -197,11 +254,14 @@ window.toggleLanguage = function() {
     const toastMsgMap = {
         mr: 'भाषा मराठीत बदलली आहे.',
         hi: 'भाषा बदलकर हिंदी कर दी गई है।',
+        gu: 'ભાષા બદલીને ગુજરાતી કરવામાં આવી છે.',
         en: 'Language switched to English.'
     };
 
     if (window.showToast) {
         window.showToast(toastMsgMap[window.i18n.currentLang] || 'Language updated.', 'info');
+    } else if (window.toast && window.toast.show) {
+        window.toast.show(toastMsgMap[window.i18n.currentLang] || 'Language updated.', 'info');
     }
 };
 
