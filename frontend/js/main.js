@@ -14,6 +14,7 @@ import { JudiQCoCounselDock } from './modules/counsel_dock.js?v=14';
 import { JudiQStrategySimulator } from './modules/simulator.js?v=14';
 import { initBankRecoveryModule } from './bank_recovery.js?v=14';
 import './compliance_auditor.js?v=15';
+import './counsel_intel.js?v=15';
 
 
 import { store } from './modules/store.js?v=14';
