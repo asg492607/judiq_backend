@@ -11,10 +11,16 @@ def create_anonymous_session():
 from admin_router import router as admin_control_router, user_quota_router
 from banking.router import router as banking_router
 from counsel_router import router as counsel_router
+from analytics_router import router as analytics_router
+from client_portal_router import router as client_portal_router
+from deadline_router import router as deadline_router
 
 api_router.include_router(analysis.router, prefix="/analyze", tags=["Analysis"])
 api_router.include_router(banking_router, prefix="/bank", tags=["Banking & Recovery OS"])
 api_router.include_router(counsel_router, prefix="/intel/counsel", tags=["Opposing Counsel Intel"])
+api_router.include_router(analytics_router, prefix="/analytics", tags=["Analytics Dashboard"])
+api_router.include_router(client_portal_router, prefix="/portal", tags=["Client Portal"])
+api_router.include_router(deadline_router, prefix="/deadlines", tags=["Deadline Tracker"])
 api_router.include_router(criminal.router, prefix="/criminal", tags=["Criminal Engine"])
 api_router.include_router(caseroom.router, prefix="/caseroom", tags=["Caseroom"])
 api_router.include_router(verification.router, prefix="/verify", tags=["Verification"])

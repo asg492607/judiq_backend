@@ -255,6 +255,227 @@ CURATED_COUNSEL_DATABASE: Dict[str, OpposingCounselProfile] = {
         crowdsourced_observations=[
             "Will seek referral to Bangalore Mediation Centre at the first appearance date."
         ]
+    ),
+
+    "ADV_CHE_DEF_04": OpposingCounselProfile(
+        counsel_id="ADV_CHE_DEF_04",
+        name="Adv. J. Radhakrishnan",
+        bar_council_id="MS/882/2003",
+        primary_jurisdiction="Madras High Court & George Town / Egmore Magistrate Courts",
+        secondary_courts=["Saidapet Court", "City Civil Court Chennai", "DRT Chennai"],
+        practice_areas=["Commercial Criminal Law", "SARFAESI Litigation", "Section 138 Defense"],
+        total_cases_tracked=165,
+        defense_win_rate=62.5,
+        settlement_rate=26.0,
+        quashing_success_rate=38.5,
+        signature_defense_strategies=[
+            DefenseStrategy(
+                strategy_name="Blank Cheque Signatory Misuse & Stale Relationship",
+                frequency_percentage=76,
+                precedent_relied="K. Subramani v. K. Damodara Naidu (2015) 1 SCC 99",
+                typical_trigger="Old transactions where parties had long-standing account dealings.",
+                effectiveness_rating="HIGH",
+                prosecution_counter_tactic="File complete statement of accounts and ledger confirmation balance certificates."
+            ),
+            DefenseStrategy(
+                strategy_name="SARFAESI Rule 8(6) / 9(1) 30-Day Sale Notice Defect",
+                frequency_percentage=88,
+                precedent_relied="Mathew Varghese v. M. Amritha Kumar (2014) 5 SCC 610",
+                typical_trigger="Bank auction sales where 30-day individual notice was defective.",
+                effectiveness_rating="HIGH",
+                prosecution_counter_tactic="Ensure personal service proof of 30-day individual sale notice prior to public auction."
+            )
+        ],
+        judge_track_record=[
+            JudgeTrackRecord(
+                judge_name_or_archetype="Madras HC Criminal Bench",
+                forum="Madras High Court",
+                win_rate=64.0,
+                favorable_arguments=["Non-compliance with statutory notice delivery", "Lack of clear consideration"],
+                hostile_arguments=["General denial of signature when loan documents admitted"],
+                notes="Strictly insists on clean Banker's Books Evidence Act compliance."
+            )
+        ],
+        cross_examination_style="Aggressive on documentary provenance and whether original cheque leaves were obtained under coercion.",
+        recommended_prosecution_counters=[
+            "1. File original loan agreement along with demand promissory note.",
+            "2. Ensure Section 63 BSA / 65B IEA custodian certification is complete."
+        ],
+        crowdsourced_observations=[
+            "Almost always challenges the validity of power of attorney holder's knowledge under A.C. Narayanan standard."
+        ]
+    ),
+
+    "ADV_KOL_DEF_05": OpposingCounselProfile(
+        counsel_id="ADV_KOL_DEF_05",
+        name="Adv. Soumendra Nath Banerjee",
+        bar_council_id="WB/512/1999",
+        primary_jurisdiction="Calcutta High Court & Bankshall City Commercial Courts",
+        secondary_courts=["Alipore Court", "Sealdah Court", "DRT Kolkata", "NCLT Kolkata"],
+        practice_areas=["Corporate Debt Defense", "Section 138 NI Act Defense", "Insolvency Law"],
+        total_cases_tracked=210,
+        defense_win_rate=66.0,
+        settlement_rate=21.0,
+        quashing_success_rate=44.0,
+        signature_defense_strategies=[
+            DefenseStrategy(
+                strategy_name="Section 141 Vicarious Liability for Non-Executive Directors",
+                frequency_percentage=85,
+                precedent_relied="National Small Industries Corp Ltd v. Harmeet Singh Paintal (2010) 3 SCC 330",
+                typical_trigger="Corporate cheque bounce where whole board of directors was arraigned.",
+                effectiveness_rating="HIGH",
+                prosecution_counter_tactic="Isolate executive signatories and furnish certified ROC Form DIR-12."
+            ),
+            DefenseStrategy(
+                strategy_name="Deemed Service Rebuttal via Postal Endorsement 'Not Claimed'",
+                frequency_percentage=72,
+                precedent_relied="D. Vinod Shivappa v. Nanda Belliappa (2006) 6 SCC 456",
+                typical_trigger="Postal returns with unclear or disputed endorsements.",
+                effectiveness_rating="MEDIUM",
+                prosecution_counter_tactic="Examine postman as prosecution witness to prove deliberate evasion of service."
+            )
+        ],
+        judge_track_record=[
+            JudgeTrackRecord(
+                judge_name_or_archetype="Calcutta High Court Criminal Division",
+                forum="Calcutta High Court",
+                win_rate=67.5,
+                favorable_arguments=["Jurisdictional flaws", "Section 141 non-specific director averments"],
+                hostile_arguments=["Refusal to deposit 20% appellate deposit u/s 148"],
+                notes="Frequently achieves pre-charge discharge for non-signatory directors."
+            )
+        ],
+        cross_examination_style="Academic and statutory; focuses on precise wording of demand notice and complaint cause title.",
+        recommended_prosecution_counters=[
+            "1. Only prosecute active managing director and cheque signatories to prevent S.141 quashing.",
+            "2. File summons application for postal delivery personnel if service is challenged."
+        ],
+        crowdsourced_observations=[
+            "Will file preliminary objections on territorial jurisdiction under Dashrath Rupsingh / Section 142(2)."
+        ]
+    ),
+
+    "ADV_AHM_DEF_06": OpposingCounselProfile(
+        counsel_id="ADV_AHM_DEF_06",
+        name="Adv. Hitesh P. Dave",
+        bar_council_id="G/1104/2007",
+        primary_jurisdiction="Gujarat High Court & Ahmedabad Mirzapur Commercial Courts",
+        secondary_courts=["Gheekanta Metropolitan Court", "DRT Ahmedabad", "NCLT Ahmedabad"],
+        practice_areas=["Commercial Defense", "Section 138 NI Act Defense", "Tax & White Collar"],
+        total_cases_tracked=135,
+        defense_win_rate=58.5,
+        settlement_rate=34.0,
+        quashing_success_rate=30.0,
+        signature_defense_strategies=[
+            DefenseStrategy(
+                strategy_name="Undisclosed Cash Transaction & Section 269SS/269T Income Tax Defense",
+                frequency_percentage=80,
+                precedent_relied="G. Pankajakshi Amma v. Santhakumari (2014) & Krishna P. Morajkar (2012)",
+                typical_trigger="Cash loan transactions exceeding ₹20,000 without banking trail.",
+                effectiveness_rating="HIGH",
+                prosecution_counter_tactic="Prove legitimate business advances supported by audited ledger entries and TDS certificates."
+            )
+        ],
+        judge_track_record=[
+            JudgeTrackRecord(
+                judge_name_or_archetype="Ahmedabad Commercial Magistrate",
+                forum="Mirzapur District Court",
+                win_rate=60.0,
+                favorable_arguments=["Unexplained cash transactions", "Lack of statutory notice receipt"],
+                hostile_arguments=["Dishonour reason: Signature Mismatch when admitted in replies"],
+                notes="Frequently mediates commercial disputes for structured payment settlements."
+            )
+        ],
+        cross_examination_style="Fast-paced, aggressively questions accounting ledgers and cash flow disclosures.",
+        recommended_prosecution_counters=[
+            "1. Produce complete bank RTGS/NEFT transaction receipts.",
+            "2. Submit audited balance sheets showing debtor in list of sundry debtors."
+        ],
+        crowdsourced_observations=[
+            "High conversion rate to structured mediation settlements within 60 days of appearance."
+        ]
+    ),
+
+    "ADV_HYD_DEF_07": OpposingCounselProfile(
+        counsel_id="ADV_HYD_DEF_07",
+        name="Adv. K. Venkat Reddy",
+        bar_council_id="TS/920/2009",
+        primary_jurisdiction="Telangana High Court & Hyderabad City Civil / Nampally Courts",
+        secondary_courts=["Secunderabad Court", "DRT Hyderabad", "NCLT Hyderabad"],
+        practice_areas=["Banking Debt Defense", "Section 138 NI Act Defense", "Insolvency"],
+        total_cases_tracked=118,
+        defense_win_rate=60.0,
+        settlement_rate=29.0,
+        quashing_success_rate=35.0,
+        signature_defense_strategies=[
+            DefenseStrategy(
+                strategy_name="Time-Barred Debt Revival Challenge (S.25(3) Contract Act)",
+                frequency_percentage=72,
+                precedent_relied="Alliance Infrastructure Project Pvt Ltd (2010) & S. Kamaleswaran (2021)",
+                typical_trigger="When cheque was given for debt older than 3 years without written acknowledgement.",
+                effectiveness_rating="HIGH",
+                prosecution_counter_tactic="Cite Section 25(3) Indian Contract Act establishing that cheque itself constitutes a written promise to pay time-barred debt."
+            )
+        ],
+        judge_track_record=[
+            JudgeTrackRecord(
+                judge_name_or_archetype="Hyderabad Special Magistrate (NI Act)",
+                forum="Nampally Criminal Courts",
+                win_rate=61.0,
+                favorable_arguments=["Section 25(3) Contract Act non-compliance", "Notice dispatched to obsolete branch"],
+                hostile_arguments=["Account closed defense where cheque issued after closure"],
+                notes="Encourages Section 143A interim compensation upon framing of charge."
+            )
+        ],
+        cross_examination_style="Technical on limitation and whether the underlying loan contract had active revival letters.",
+        recommended_prosecution_counters=[
+            "1. Place balance confirmation letters signed by debtor within 3-year limitation on record.",
+            "2. Rely on Section 25(3) of the Indian Contract Act to validate cheque for time-barred debt."
+        ],
+        crowdsourced_observations=[
+            "Specializes in real estate builder bounce disputes; seeks 12-month installment restructuring."
+        ]
+    ),
+
+    "ADV_CHD_DEF_08": OpposingCounselProfile(
+        counsel_id="ADV_CHD_DEF_08",
+        name="Adv. Harpreet S. Dhillon",
+        bar_council_id="P&H/1944/2006",
+        primary_jurisdiction="Punjab and Haryana High Court & Chandigarh District Courts",
+        secondary_courts=["Panchkula District Court", "Mohali District Court", "DRT Chandigarh"],
+        practice_areas=["Agricultural & Commercial Debt Defense", "Section 138 Defense", "SARFAESI"],
+        total_cases_tracked=155,
+        defense_win_rate=63.0,
+        settlement_rate=24.0,
+        quashing_success_rate=39.0,
+        signature_defense_strategies=[
+            DefenseStrategy(
+                strategy_name="Agricultural Collateral SARFAESI Bar u/s 31(i)",
+                frequency_percentage=84,
+                precedent_relied="K. Sreedhar v. Raus Construction (2023) & Section 31(i) SARFAESI",
+                typical_trigger="Bank recovery over Punjab/Haryana peri-urban agricultural lands.",
+                effectiveness_rating="HIGH",
+                prosecution_counter_tactic="Submit certified revenue records and Change of Land Use (CLU) certificates."
+            )
+        ],
+        judge_track_record=[
+            JudgeTrackRecord(
+                judge_name_or_archetype="P&H High Court Single Bench",
+                forum="Punjab and Haryana High Court",
+                win_rate=65.0,
+                favorable_arguments=["Agricultural land classification", "Lack of CERSAI registration"],
+                hostile_arguments=["Denial of debt when certified bank account entries produced"],
+                notes="Strict protector of Section 31(i) agricultural debtor rights."
+            )
+        ],
+        cross_examination_style="Direct, persuasive, focuses on whether lender complied with RBI Fair Practice Code.",
+        recommended_prosecution_counters=[
+            "1. Obtain CLU / non-agricultural commercial certificate from state town planning department.",
+            "2. File CERSAI registration certificate dated prior to Section 13(2) notice."
+        ],
+        crowdsourced_observations=[
+            "Routinely obtains interim stay from P&H High Court if bank attempts SARFAESI physical possession."
+        ]
     )
 }
 
