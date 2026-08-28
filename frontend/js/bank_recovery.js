@@ -982,7 +982,7 @@ let currentGeneratedDraft = "";
 let currentGeneratedDraftTitle = "Statutory_Legal_Draft";
 
 window.switchBankFunctionTab = function(tabName) {
-    const tabs = ['audit', 'multiTrack', 'drafter', 'ots', 'advocates'];
+    const tabs = ['audit', 'multiTrack', 'drafter', 'ots', 'advocates', 'analytics', 'deadlines', 'counselIntel'];
     tabs.forEach(t => {
         const btn = document.getElementById(`bankTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
         const view = document.getElementById(`bankView${t.charAt(0).toUpperCase() + t.slice(1)}`);
@@ -1000,6 +1000,12 @@ window.switchBankFunctionTab = function(tabName) {
     } else if (tabName === 'multiTrack') {
         const borrower = document.getElementById("bankBorrowerName") ? document.getElementById("bankBorrowerName").value : "";
         if (borrower) window.runMultiTrackEvaluation();
+    } else if (tabName === 'analytics') {
+        if (typeof window.loadAnalyticsDashboardUI === 'function') window.loadAnalyticsDashboardUI();
+    } else if (tabName === 'deadlines') {
+        if (typeof window.loadDeadlinesCalendarUI === 'function') window.loadDeadlinesCalendarUI();
+    } else if (tabName === 'counselIntel') {
+        if (typeof window.loadOpposingCounselDirectory === 'function') window.loadOpposingCounselDirectory();
     }
 };
 

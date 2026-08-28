@@ -2635,6 +2635,15 @@
                 <button class="bank-fn-tab" id="bankTabBtnAdvocates" onclick="switchBankFunctionTab('advocates')">
                     <i class="fas fa-user-tie"></i> 5. Empaneled Advocate SLA &amp; Dispatch
                 </button>
+                <button class="bank-fn-tab" id="bankTabBtnAnalytics" onclick="switchBankFunctionTab('analytics')">
+                    <i class="fas fa-chart-pie"></i> 6. Executive Portfolio Analytics
+                </button>
+                <button class="bank-fn-tab" id="bankTabBtnDeadlines" onclick="switchBankFunctionTab('deadlines')">
+                    <i class="fas fa-calendar-days"></i> 7. Statutory Deadline Calendar
+                </button>
+                <button class="bank-fn-tab" id="bankTabBtnCounselIntel" onclick="switchBankFunctionTab('counselIntel')">
+                    <i class="fas fa-shield-virus"></i> 8. Opposing Counsel Matchup
+                </button>
             </div>
 
             <!-- ================================================================= -->
@@ -3017,6 +3026,82 @@
 
                 <div id="bankAdvocatesGridContainer" class="bank-advocates-cards-grid">
                     <!-- Loaded dynamically by bank_recovery.js -->
+                </div>
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- VIEW 6: EXECUTIVE PORTFOLIO ANALYTICS                             -->
+            <!-- ================================================================= -->
+            <div id="bankViewAnalytics" class="bank-function-view">
+                <div class="bank-multi-track-header">
+                    <div>
+                        <h3><i class="fas fa-chart-pie"></i> Executive Banking &amp; Portfolio Intelligence</h3>
+                        <p>Real-time analytics on 5-tier portfolio risk distributions, longitudinal compliance index trends, court benchmarks, and statutory recovery conversion rates.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="loadAnalyticsDashboardUI()">
+                        <i class="fas fa-rotate"></i> Refresh Portfolio Metrics
+                    </button>
+                </div>
+                <div id="bankAnalyticsContainer" style="padding-top: 1rem;">
+                    <!-- Loaded dynamically by enterprise_features.js -->
+                </div>
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- VIEW 7: STATUTORY LIMITATION & CALENDAR SYNC                      -->
+            <!-- ================================================================= -->
+            <div id="bankViewDeadlines" class="bank-function-view">
+                <div class="bank-multi-track-header">
+                    <div>
+                        <h3><i class="fas fa-calendar-days"></i> Statutory Limitation Tracker &amp; Smart Alerts</h3>
+                        <p>Calculate Section 138, SARFAESI, and DRT filing deadlines with court holiday logic and 1-click sync to Google Calendar, Outlook, or Apple Calendar.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="loadDeadlinesCalendarUI()">
+                        <i class="fas fa-arrows-rotate"></i> Recalculate Limitation
+                    </button>
+                </div>
+                <div id="bankDeadlinesContainer" style="padding-top: 1rem;">
+                    <!-- Loaded dynamically by enterprise_features.js -->
+                </div>
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- VIEW 8: OPPOSING DEFENSE COUNSEL MATCHUP ANALYZER                 -->
+            <!-- ================================================================= -->
+            <div id="bankViewCounselIntel" class="bank-function-view">
+                <div class="bank-multi-track-header">
+                    <div>
+                        <h3><i class="fas fa-shield-virus"></i> Opposing Defense Counsel Matchup Simulation</h3>
+                        <p>Simulate courtroom encounters against opposing defense strategies, predict primary defense arguments, and generate precedent-backed prosecution counter-tactics.</p>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="counselSearchInput" placeholder="Search strategy or court..." class="bank-input-text" style="padding: 0.4rem 0.8rem; font-size: 0.82rem; width: 220px;" oninput="loadOpposingCounselDirectory(this.value)">
+                        <button class="btn btn-primary" onclick="loadOpposingCounselDirectory()">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+                    <div>
+                        <h4 style="margin: 0 0 0.75rem 0; font-size: 0.95rem; font-weight: 800; color: #1e293b;">
+                            <i class="fas fa-address-book" style="color: #0284c7;"></i> Community Verified Defense Strategies
+                        </h4>
+                        <div id="opposingCounselList">
+                            <!-- Loaded dynamically by counsel_intel.js -->
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0 0 0.75rem 0; font-size: 0.95rem; font-weight: 800; color: #1e293b;">
+                            <i class="fas fa-crosshairs" style="color: #ef4444;"></i> Live Matchup Tactical Roadmap
+                        </h4>
+                        <div id="counselMatchupResultBox">
+                            <div class="bank-card" style="padding: 2rem; text-align: center; color: #64748b; background: #f8fafc; border: 1.5px dashed #cbd5e1;">
+                                <i class="fas fa-chess" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.75rem;"></i>
+                                <p style="margin: 0; font-size: 0.85rem;">Click "Analyze Matchup" on any defense profile to generate tactical prosecution counter-roadmaps.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
