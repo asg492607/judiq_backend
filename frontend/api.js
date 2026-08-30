@@ -346,7 +346,67 @@ export const api = {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         try { return await response.json(); } catch (e) { throw new Error("Failed to load bank audits."); }
+    },
+
+    async getSecurityLogs(token, limit = 50) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/security/logs?limit=${limit}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load security logs."); }
+    },
+
+    async bulkBonusQuotas(bonus, token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/users/bulk-bonus`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ bonus: parseInt(bonus, 10) })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to grant bulk quota bonus."); }
+    },
+
+    async createLitigatorAccount(data, token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/users/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to create litigator account."); }
+    },
+
+    async getSystemHealth(token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/system/health`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load system health."); }
+    },
+
+    async clearSystemCache(token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/system/cache/clear`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({})
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to clear system cache."); }
+    },
+
+    async ingestPrecedent(payload) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/ingest/precedents`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to ingest precedent."); }
     }
 };
+
 
 

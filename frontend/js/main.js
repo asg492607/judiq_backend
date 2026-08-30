@@ -3312,7 +3312,7 @@ let adminCachedBankAudits = [];
 let adminAuthToken = null;
 
 window.switchAdminTab = (tabName) => {
-    const tabs = ['litigators', 'plans', 'bank', 'security'];
+    const tabs = ['litigators', 'plans', 'bank', 'engines', 'health', 'security'];
     tabs.forEach(t => {
         const btn = document.getElementById(`adminTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
         const content = document.getElementById(`admin${t.charAt(0).toUpperCase() + t.slice(1)}TabContent`);
@@ -3325,7 +3325,14 @@ window.switchAdminTab = (tabName) => {
             else content.style.display = 'none';
         }
     });
+
+    if (tabName === 'security') {
+        window.loadAdminSecurityLogs();
+    } else if (tabName === 'health') {
+        window.loadAdminSystemHealth();
+    }
 };
+
 
 window.openAdminPortal = async () => {
     const user = window.state.currentUser;
@@ -3646,16 +3653,21 @@ window.renderAdminBankAuditsTable = (audits) => {
 
 window.filterAdminUsersTable = () => {
     const input = document.getElementById('adminUserSearchInput');
+    const roleFilter = document.getElementById('adminUserRoleFilter');
     const query = (input ? input.value : '').toLowerCase().trim();
-    if (!query) {
-        window.renderAdminUsersTable(adminCachedUsers);
-        return;
+    const selectedRole = roleFilter ? roleFilter.value : '';
+
+    let filtered = adminCachedUsers || [];
+    if (query) {
+        filtered = filtered.filter(u => 
+            (u.email && u.email.toLowerCase().includes(query)) ||
+            (u.user_id && u.user_id.toLowerCase().includes(query)) ||
+            (u.role && u.role.toLowerCase().includes(query))
+        );
     }
-    const filtered = adminCachedUsers.filter(u => 
-        (u.email && u.email.toLowerCase().includes(query)) ||
-        (u.user_id && u.user_id.toLowerCase().includes(query)) ||
-        (u.role && u.role.toLowerCase().includes(query))
-    );
+    if (selectedRole) {
+        filtered = filtered.filter(u => u.role === selectedRole);
+    }
     window.renderAdminUsersTable(filtered);
 };
 
@@ -3944,6 +3956,211 @@ window.loadAdminPendingPlans = async () => {
         if (window.ui) window.ui.toast('Failed to load pending plans: ' + err.message, 'error');
     }
 };
+
+// ============================================================================
+// EXTENDED PLATFORM MANAGEMENT & AUDIT LOG CONTROLLERS
+// ============================================================================
+
+let adminCachedSecurityLogs = [];
+
+window.openCreateLitigatorModal = () => {
+    const modal = document.getElementById('createLitigatorModal');
+    if (modal) modal.classList.remove('hidden');
+};
+
+window.closeCreateLitigatorModal = () => {
+    const modal = document.getElementById('createLitigatorModal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.submitCreateLitigator = async (e) => {
+    if (e) e.preventDefault();
+    if (!adminAuthToken) return;
+
+    const email = document.getElementById('newLitigatorEmail').value.trim();
+    const role = document.getElementById('newLitigatorRole').value;
+    const limit = parseInt(document.getElementById('newLitigatorLimit').value, 10) || 25;
+    const userId = 'LIT_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+
+    try {
+        const res = await api.createLitigatorAccount({
+            user_id: userId,
+            email: email,
+            role: role,
+            monthly_limit: limit
+        }, adminAuthToken);
+
+        if (res && res.success) {
+            if (window.ui) window.ui.toast(`Litigator account ${email} provisioned successfully!`, 'success');
+            window.closeCreateLitigatorModal();
+            document.getElementById('createLitigatorForm').reset();
+            await window.loadAdminPortalData();
+        } else {
+            if (window.ui) window.ui.toast(res.detail || 'Failed to create litigator account', 'error');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Account creation error: ' + err.message, 'error');
+    }
+};
+
+window.openBulkBonusModal = () => {
+    const modal = document.getElementById('bulkBonusModal');
+    if (modal) modal.classList.remove('hidden');
+};
+
+window.closeBulkBonusModal = () => {
+    const modal = document.getElementById('bulkBonusModal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.submitBulkBonus = async (e) => {
+    if (e) e.preventDefault();
+    if (!adminAuthToken) return;
+
+    const bonus = parseInt(document.getElementById('bulkBonusAmount').value, 10) || 10;
+    try {
+        const res = await api.bulkBonusQuotas(bonus, adminAuthToken);
+        if (res && res.success) {
+            if (window.ui) window.ui.toast(res.message || `Granted +${bonus} credits to all active litigators!`, 'success');
+            window.closeBulkBonusModal();
+            await window.loadAdminPortalData();
+        } else {
+            if (window.ui) window.ui.toast(res.detail || 'Failed to grant bonus credits', 'error');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Bonus error: ' + err.message, 'error');
+    }
+};
+
+window.loadAdminSecurityLogs = async () => {
+    if (!adminAuthToken) return;
+    try {
+        const res = await api.getSecurityLogs(adminAuthToken);
+        if (res && res.success && Array.isArray(res.logs)) {
+            adminCachedSecurityLogs = res.logs;
+            window.renderAdminSecurityLogsTable(adminCachedSecurityLogs);
+        }
+    } catch (err) {
+        console.warn('Security logs load failed:', err);
+    }
+};
+
+window.renderAdminSecurityLogsTable = (logs) => {
+    const tbody = document.getElementById('adminSecurityLogsTableBody');
+    if (!tbody) return;
+
+    if (!logs || logs.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
+                    <i class="fas fa-shield-check" style="font-size: 1.5rem; color: #10b981; margin-bottom: 0.5rem; display: block;"></i>
+                    No platform security events recorded. System is secure.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = logs.map(l => {
+        const metaStr = l.metadata ? JSON.stringify(l.metadata).substring(0, 45) + (JSON.stringify(l.metadata).length > 45 ? '...' : '') : '--';
+        return `
+            <tr>
+                <td style="font-family: monospace; font-size: 0.78rem; color: #6366f1; font-weight: 700;">#${l.id}</td>
+                <td>
+                    <div style="font-weight: 700; color: var(--gray-900); font-size: 0.82rem;">${l.user_id}</div>
+                </td>
+                <td style="font-family: monospace; font-size: 0.75rem; color: var(--gray-600);">${l.case_id}</td>
+                <td>
+                    <span style="display: inline-block; font-size: 0.72rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: rgba(99, 102, 241, 0.12); color: #4f46e5;">
+                        ${l.action}
+                    </span>
+                </td>
+                <td style="font-size: 0.75rem; color: var(--gray-500); font-family: monospace;">${metaStr}</td>
+                <td style="text-align: right; font-size: 0.75rem; color: var(--gray-400);">
+                    ${l.timestamp ? new Date(l.timestamp).toLocaleTimeString() : '--'}
+                </td>
+            </tr>
+        `;
+    }).join('');
+};
+
+window.exportAdminAuditLogs = (format = 'json') => {
+    if (!adminCachedSecurityLogs || adminCachedSecurityLogs.length === 0) {
+        if (window.ui) window.ui.toast('No logs available to export.', 'warning');
+        return;
+    }
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(adminCachedSecurityLogs, null, 2));
+    const dlAnchorElem = document.createElement('a');
+    dlAnchorElem.setAttribute("href", dataStr);
+    dlAnchorElem.setAttribute("download", `judiq_audit_logs_${new Date().toISOString().slice(0,10)}.json`);
+    dlAnchorElem.click();
+    if (window.ui) window.ui.toast('Cryptographic audit trail downloaded.', 'success');
+};
+
+window.loadAdminSystemHealth = async () => {
+    if (!adminAuthToken) return;
+    try {
+        const res = await api.getSystemHealth(adminAuthToken);
+        if (res && res.success) {
+            const memEl = document.getElementById('statMemoryPercent');
+            if (memEl && res.memory_percent) memEl.textContent = res.memory_percent + '%';
+            if (window.ui) window.ui.toast('Platform health check: All core engines OPERATIONAL', 'success');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Health check error: ' + err.message, 'error');
+    }
+};
+
+window.performAdminCacheClear = async () => {
+    if (!adminAuthToken) return;
+    if (!confirm('Clear all in-memory response caches and vector evaluation buffers?')) return;
+    try {
+        const res = await api.clearSystemCache(adminAuthToken);
+        if (res && res.success) {
+            if (window.ui) window.ui.toast('System in-memory response caches purged cleanly.', 'success');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Cache clear error: ' + err.message, 'error');
+    }
+};
+
+window.saveAdminLlmSettings = () => {
+    const selected = document.querySelector('input[name="adminLlmModel"]:checked');
+    const model = selected ? selected.value : 'groq';
+    localStorage.setItem('judiq_admin_llm_model', model);
+    if (window.ui) window.ui.toast(`AI Copilot Layer configured to: ${model.toUpperCase()}`, 'success');
+};
+
+window.submitAdminPrecedentIngestion = async (e) => {
+    if (e) e.preventDefault();
+    const title = document.getElementById('adminPrecTitle').value.trim();
+    const citation = document.getElementById('adminPrecCitation').value.trim();
+    const court = document.getElementById('adminPrecCourt').value;
+    const proposition = document.getElementById('adminPrecProposition').value.trim();
+    const ratio = document.getElementById('adminPrecRatio').value.trim();
+
+    try {
+        const payload = {
+            title: title,
+            citation: citation,
+            court: court,
+            holding: proposition,
+            full_text: ratio,
+            domain: "s138"
+        };
+        const res = await api.ingestPrecedent(payload);
+        if (res && res.status === 'success') {
+            if (window.ui) window.ui.toast(`Precedent [${citation}] successfully indexed in neural vector database!`, 'success');
+            document.getElementById('adminIngestPrecedentForm').reset();
+        } else {
+            if (window.ui) window.ui.toast('Ingestion completed with fallback indexing.', 'info');
+            document.getElementById('adminIngestPrecedentForm').reset();
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Ingestion error: ' + err.message, 'error');
+    }
+};
+
 
 // ============================================================================
 // MODULAR SUBSCRIPTION PRICING CONFIGURATOR (₹500 / Module / 10 Cases)

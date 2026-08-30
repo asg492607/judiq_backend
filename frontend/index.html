@@ -2399,61 +2399,75 @@
         
         <div id="adminPortalScreen" class="main-screen hidden">
             <!-- Admin Top Navigation -->
-            <nav class="top-nav" style="border-bottom: 2px solid #d97706; background: #0f172a; color: #ffffff;">
+            <nav class="top-nav admin-top-nav" style="border-bottom: 1px solid rgba(99, 102, 241, 0.25); background: #090d16; color: #ffffff;">
                 <div class="nav-brand" style="display: flex; align-items: center; gap: 0.75rem;">
-                    <span class="brand-title" style="color: #f59e0b;">JUDIQ AI</span>
-                    <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 6px;">MASTER ADMIN CONTROL</span>
+                    <span class="brand-title" style="color: #ffffff; font-weight: 800; letter-spacing: -0.02em;">JUDIQ <span style="color: #38bdf8;">AI</span></span>
+                    <span class="admin-master-badge"><i class="fas fa-crown"></i> MASTER PLATFORM GOVERNANCE</span>
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 20px;">
+                        <i class="fas fa-circle" style="font-size: 0.5rem; margin-right: 0.3rem;"></i> LIVE CORE OPERATIONAL
+                    </span>
                 </div>
                 <div class="nav-actions" style="display: flex; align-items: center; gap: 1rem;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #cbd5e1;">
-                        <i class="fas fa-user-shield" style="color: #f59e0b;"></i>
-                        <span id="adminSessionEmail">admin@judiq.ai</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #e2e8f0; background: rgba(255,255,255,0.06); padding: 0.35rem 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                        <i class="fas fa-user-shield" style="color: #38bdf8;"></i>
+                        <span id="adminSessionEmail" style="font-weight: 600;">admin@judiq.ai</span>
                     </div>
-                    <button class="theme-toggle-btn" title="Toggle Light/Dark Mode" onclick="toggleTheme()" style="color: #cbd5e1; border-color: rgba(255,255,255,0.2);">
+                    <button class="theme-toggle-btn" title="Toggle Light/Dark Mode" onclick="toggleTheme()" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); background: rgba(14, 165, 233, 0.08);">
                         <i class="fas fa-moon"></i>
                     </button>
-                    <button class="btn btn-outline btn-sm" onclick="showDashboard()" style="color: #ffffff; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05);">
-                        <i class="fas fa-arrow-left"></i> <span>Back to Dashboard</span>
+                    <button class="btn btn-outline btn-sm" onclick="showDashboard()" style="color: #ffffff; border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); font-weight: 600;">
+                        <i class="fas fa-arrow-left"></i> <span>Litigator Dashboard</span>
                     </button>
                 </div>
             </nav>
 
             <!-- Admin Main Content -->
-            <div class="admin-portal-container" style="max-width: 1350px; margin: 2rem auto; padding: 0 1.5rem;">
+            <div class="admin-portal-container">
                 
                 <!-- Admin Header Banner -->
-                <div class="admin-header-card" style="background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: var(--radius-xl); padding: 1.75rem 2rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);">
+                <div class="admin-header-card">
                     <div>
-                        <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 0.3rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em;">
-                            <i class="fas fa-sliders"></i> Master Platform Governance & Operations
+                        <div class="admin-badge-gov">
+                            <i class="fas fa-sliders"></i> Master Platform Governance &amp; Executive Controls
                         </div>
-                        <h1 style="color: #ffffff; font-size: 1.75rem; font-weight: 800; margin: 0 0 0.4rem 0;">Universal System Administration</h1>
-                        <p style="color: #94a3b8; font-size: 0.95rem; margin: 0;">Master control across Litigator Quotas, Institutional Bank Recovery Cells, and Tamper-Proof Audit Ledgers.</p>
+                        <h1 style="color: #ffffff; font-size: 1.75rem; font-weight: 800; margin: 0 0 0.4rem 0; letter-spacing: -0.02em;">Universal Platform Administration OS</h1>
+                        <p style="color: #94a3b8; font-size: 0.95rem; margin: 0; max-width: 800px;">
+                            Complete centralized control across Litigator Quota Allocations, Modular Subscription Approvals, Institutional SARB Bank Cells, AI Rules Engines, and Cryptographic Security Audits.
+                        </p>
                     </div>
-                    <div style="display: flex; gap: 0.75rem;">
-                        <button class="btn btn-outline" onclick="switchScreen('bankRecoveryScreen')" style="display: flex; align-items: center; gap: 0.5rem; color: #38bdf8; border-color: rgba(56,189,248,0.4); background: rgba(14,165,233,0.1);">
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;">
+                        <button class="btn btn-outline" onclick="switchScreen('bankRecoveryScreen')" style="display: flex; align-items: center; gap: 0.5rem; color: #38bdf8; border-color: rgba(56,189,248,0.4); background: rgba(14,165,233,0.1); font-weight: 700;">
                             <i class="fas fa-building-columns"></i> <span>Open Bank Recovery OS</span>
                         </button>
-                        <button class="btn btn-primary" onclick="loadAdminPortalData()" style="display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="fas fa-rotate"></i> <span>Refresh Data</span>
+                        <button class="btn btn-outline" onclick="openBulkBonusModal()" style="display: flex; align-items: center; gap: 0.5rem; color: #a78bfa; border-color: rgba(167,139,250,0.4); background: rgba(139,92,246,0.1); font-weight: 700;">
+                            <i class="fas fa-gift"></i> <span>Grant Bonus Credits</span>
+                        </button>
+                        <button class="btn btn-primary" onclick="loadAdminPortalData()" style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; background: linear-gradient(135deg, #4f46e5, #3b82f6); border: none;">
+                            <i class="fas fa-rotate"></i> <span>Refresh Real-Time Data</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Admin Tab Navigation Strip -->
+                <!-- Admin Tab Navigation Strip (6 Functional Tabs) -->
                 <div class="admin-tab-nav">
                     <button class="admin-tab-btn active" id="adminTabBtnLitigators" onclick="switchAdminTab('litigators')">
                         <i class="fas fa-users-gear"></i> Litigator Accounts &amp; Quotas
                     </button>
                     <button class="admin-tab-btn" id="adminTabBtnPlans" onclick="switchAdminTab('plans')">
                         <i class="fas fa-file-invoice-dollar"></i> Pending Plan Approvals
-                        <span id="pendingPlansCountBadge" class="badge" style="background: #ef4444; color: #ffffff; border-radius: 10px; padding: 2px 7px; font-size: 0.72rem; margin-left: 6px; font-weight: 800;">0</span>
+                        <span id="pendingPlansCountBadge" class="badge" style="background: #ef4444; color: #ffffff; border-radius: 10px; padding: 2px 7px; font-size: 0.72rem; margin-left: 6px; font-weight: 800; display: none;">0</span>
                     </button>
                     <button class="admin-tab-btn" id="adminTabBtnBank" onclick="switchAdminTab('bank')">
                         <i class="fas fa-building-columns"></i> Bank &amp; Recovery Operations
                     </button>
+                    <button class="admin-tab-btn" id="adminTabBtnEngines" onclick="switchAdminTab('engines')">
+                        <i class="fas fa-microchip"></i> AI Engines &amp; Knowledge Pipeline
+                    </button>
+                    <button class="admin-tab-btn" id="adminTabBtnHealth" onclick="switchAdminTab('health')">
+                        <i class="fas fa-gauge-high"></i> System Health &amp; Diagnostics
+                    </button>
                     <button class="admin-tab-btn" id="adminTabBtnSecurity" onclick="switchAdminTab('security')">
-                        <i class="fas fa-shield-halved"></i> Platform Security &amp; Compliance Logs
+                        <i class="fas fa-shield-halved"></i> Platform Security &amp; Audit Logs
                     </button>
                 </div>
 
@@ -2464,66 +2478,76 @@
                     <!-- Admin Metrics Overview Cards -->
                     <div class="admin-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
                         
-                        <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+                        <div class="admin-stat-card">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Total Litigators</span>
-                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(59, 130, 246, 0.1); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                <span style="font-size: 0.82rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Total Litigators</span>
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(59, 130, 246, 0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.05rem;">
                                     <i class="fas fa-users"></i>
                                 </div>
                             </div>
-                            <div id="statTotalUsers" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
-                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">Active Accounts: <strong id="statActiveUsers" style="color: #10b981;">--</strong></div>
+                            <div id="statTotalUsers" style="font-size: 1.95rem; font-weight: 800; color: var(--gray-900);">--</div>
+                            <div style="font-size: 0.82rem; color: var(--gray-500); margin-top: 0.35rem;">Active Litigators: <strong id="statActiveUsers" style="color: #10b981;">--</strong></div>
                         </div>
 
-                        <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+                        <div class="admin-stat-card">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Monthly Reports Used</span>
-                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                <span style="font-size: 0.82rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Monthly Reports Used</span>
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(245, 158, 11, 0.12); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 1.05rem;">
                                     <i class="fas fa-file-waveform"></i>
                                 </div>
                             </div>
-                            <div id="statReportsThisMonth" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
-                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">Current Period: <strong id="statCurrentPeriod">--</strong></div>
+                            <div id="statReportsThisMonth" style="font-size: 1.95rem; font-weight: 800; color: var(--gray-900);">--</div>
+                            <div style="font-size: 0.82rem; color: var(--gray-500); margin-top: 0.35rem;">Current Cycle: <strong id="statCurrentPeriod" style="color: var(--gray-800);">--</strong></div>
                         </div>
 
-                        <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+                        <div class="admin-stat-card">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Total Saved Cases</span>
-                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(16, 185, 129, 0.1); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                <span style="font-size: 0.82rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Total Saved Cases</span>
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.05rem;">
                                     <i class="fas fa-folder-closed"></i>
                                 </div>
                             </div>
-                            <div id="statTotalCases" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
-                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">Across all legal domains</div>
+                            <div id="statTotalCases" style="font-size: 1.95rem; font-weight: 800; color: var(--gray-900);">--</div>
+                            <div style="font-size: 0.82rem; color: var(--gray-500); margin-top: 0.35rem;">Across all 4 litigation domains</div>
                         </div>
 
-                        <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+                        <div class="admin-stat-card">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Security Audit Events</span>
-                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(139, 92, 246, 0.1); color: #8b5cf6; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                <span style="font-size: 0.82rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Security Audit Events</span>
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(139, 92, 246, 0.12); color: #8b5cf6; display: flex; align-items: center; justify-content: center; font-size: 1.05rem;">
                                     <i class="fas fa-shield-halved"></i>
                                 </div>
                             </div>
-                            <div id="statAuditEvents" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
-                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">Deterministic tamper-proof log</div>
+                            <div id="statAuditEvents" style="font-size: 1.95rem; font-weight: 800; color: var(--gray-900);">--</div>
+                            <div style="font-size: 0.82rem; color: var(--gray-500); margin-top: 0.35rem;">Tamper-proof HMAC SHA-256</div>
                         </div>
 
                     </div>
 
                     <!-- User Management & Quota Table Section -->
-                    <div class="admin-users-panel" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.75rem; box-shadow: var(--shadow-sm);">
+                    <div class="admin-users-panel">
                         
                         <!-- Table Toolbar -->
                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
                             <div>
                                 <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--gray-900); margin: 0 0 0.25rem 0;">Litigator Resource Allocation &amp; Access Controls</h2>
-                                <p style="font-size: 0.85rem; color: var(--gray-500); margin: 0;">Configure monthly report allocations (enter <code style="background: var(--gray-100); padding: 2px 5px; border-radius: 4px;">-1</code> for Unlimited), reset monthly counters, or suspend accounts.</p>
+                                <p style="font-size: 0.85rem; color: var(--gray-500); margin: 0;">Configure monthly report allocations (enter <code style="background: rgba(99,102,241,0.1); color: #4f46e5; padding: 2px 6px; border-radius: 4px; font-weight: 700;">-1</code> for Unlimited), reset monthly counters, or suspend accounts.</p>
                             </div>
-                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
                                 <div class="search-input-wrapper" style="position: relative;">
                                     <i class="fas fa-search" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--gray-400); font-size: 0.85rem;"></i>
-                                    <input type="text" id="adminUserSearchInput" placeholder="Filter by email or User ID..." oninput="filterAdminUsersTable()" style="padding: 0.5rem 1rem 0.5rem 2.2rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--gray-50); font-size: 0.85rem; width: 260px; outline: none;">
+                                    <input type="text" id="adminUserSearchInput" placeholder="Filter by email or User ID..." oninput="filterAdminUsersTable()" style="padding: 0.55rem 1rem 0.55rem 2.2rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--gray-800); font-size: 0.85rem; width: 260px; outline: none;">
                                 </div>
+                                <select id="adminUserRoleFilter" onchange="filterAdminUsersTable()" style="padding: 0.55rem 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--gray-800); font-size: 0.85rem; outline: none; font-weight: 600;">
+                                    <option value="">All Roles / Plans</option>
+                                    <option value="law_firm">Law Firm</option>
+                                    <option value="enterprise">Enterprise</option>
+                                    <option value="citizen">Independent Litigator</option>
+                                    <option value="admin">Administrator</option>
+                                </select>
+                                <button class="btn btn-sm btn-primary" onclick="openCreateLitigatorModal()" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700;">
+                                    <i class="fas fa-user-plus"></i> <span>Add Litigator Account</span>
+                                </button>
                             </div>
                         </div>
 
@@ -2531,11 +2555,11 @@
                         <div style="overflow-x: auto;">
                             <table class="admin-data-table" style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.88rem;">
                                 <thead>
-                                    <tr style="background: var(--gray-50); color: var(--gray-600); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; text-align: left;">
-                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); border-top-left-radius: 8px;">Litigator</th>
+                                    <tr style="background: var(--gray-50); color: var(--gray-700); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; text-align: left;">
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); border-top-left-radius: 8px;">Litigator Identity</th>
                                         <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Role / Plan</th>
-                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 220px;">Monthly Allocation</th>
-                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 180px;">Usage This Month</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 230px;">Monthly Allocation</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 190px;">Usage Progress</th>
                                         <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Status</th>
                                         <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); text-align: right; border-top-right-radius: 8px;">Actions</th>
                                     </tr>
@@ -2554,60 +2578,108 @@
                 </div>
 
                 <!-- ═══════════════════════════════════════════════════════════ -->
-                <!-- TAB 2: BANK & RECOVERY OPERATIONS -->
+                <!-- TAB 2: PENDING MODULAR PLAN APPROVALS -->
                 <!-- ═══════════════════════════════════════════════════════════ -->
-                <div id="adminBankTabContent" class="admin-tab-content hidden">
+                <div id="adminPlansTabContent" class="admin-tab-content" style="display: none;">
+                    <div class="admin-users-panel">
+                        
+                        <!-- Table Toolbar -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div>
+                                <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--gray-900); margin: 0 0 0.25rem 0;">
+                                    <i class="fas fa-file-invoice-dollar" style="color: #f59e0b; margin-right: 0.4rem;"></i>
+                                    Pending Modular Subscription Approvals
+                                </h2>
+                                <p style="font-size: 0.85rem; color: var(--gray-500); margin: 0;">
+                                    Review submitted modular plans. <strong>No case analysis or draft generation is permitted</strong> for these accounts until approved by an administrator.
+                                </p>
+                            </div>
+                            <button class="btn btn-outline btn-sm" onclick="loadAdminPendingPlans()" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700;">
+                                <i class="fas fa-rotate"></i> Refresh Queue
+                            </button>
+                        </div>
+
+                        <!-- Table -->
+                        <div style="overflow-x: auto;">
+                            <table class="admin-data-table" style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.88rem;">
+                                <thead>
+                                    <tr style="background: var(--gray-50); color: var(--gray-700); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; text-align: left;">
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); border-top-left-radius: 8px;">Target User / Email</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Selected Modules</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 150px;">Requested Quota</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 140px;">Monthly Rate</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Approval Status</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); text-align: right; border-top-right-radius: 8px;">Admin Decision</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminPendingPlansTableBody">
+                                    <tr>
+                                        <td colspan="6" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
+                                            <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i> Loading pending plan requests...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <!-- TAB 3: BANK & RECOVERY OPERATIONS -->
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <div id="adminBankTabContent" class="admin-tab-content" style="display: none;">
                     <!-- Bank Metrics Overview Cards -->
                     <div class="admin-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
                         
-                        <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+                        <div class="admin-stat-card">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Bank Officers</span>
-                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(14, 165, 233, 0.1); color: #0ea5e9; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                <span style="font-size: 0.82rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Bank Officers</span>
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(14, 165, 233, 0.12); color: #0ea5e9; display: flex; align-items: center; justify-content: center; font-size: 1.05rem;">
                                     <i class="fas fa-user-tie"></i>
                                 </div>
                             </div>
-                            <div id="statBankOfficers" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
-                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">Active Officers: <strong id="statActiveBankOfficers" style="color: #10b981;">--</strong></div>
+                            <div id="statBankOfficers" style="font-size: 1.95rem; font-weight: 800; color: var(--gray-900);">--</div>
+                            <div style="font-size: 0.82rem; color: var(--gray-500); margin-top: 0.35rem;">Active Officers: <strong id="statActiveBankOfficers" style="color: #10b981;">--</strong></div>
                         </div>
 
-                        <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+                        <div class="admin-stat-card">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Institutional Partners</span>
-                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                <span style="font-size: 0.82rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Institutional Partners</span>
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(245, 158, 11, 0.12); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 1.05rem;">
                                     <i class="fas fa-building-columns"></i>
                                 </div>
                             </div>
-                            <div id="statBankPartners" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
-                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">SBI, PNB, HDFC, BOB &amp; Private</div>
+                            <div id="statBankPartners" style="font-size: 1.95rem; font-weight: 800; color: var(--gray-900);">--</div>
+                            <div style="font-size: 0.82rem; color: var(--gray-500); margin-top: 0.35rem;">SBI, PNB, HDFC, BOB &amp; Private</div>
                         </div>
 
-                        <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+                        <div class="admin-stat-card">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Audits Performed</span>
-                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(16, 185, 129, 0.1); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                <span style="font-size: 0.82rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Audits Performed</span>
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.05rem;">
                                     <i class="fas fa-scale-balanced"></i>
                                 </div>
                             </div>
-                            <div id="statBankAudits" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">--</div>
-                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">This Month: <strong id="statBankAuditsMonth">--</strong></div>
+                            <div id="statBankAudits" style="font-size: 1.95rem; font-weight: 800; color: var(--gray-900);">--</div>
+                            <div style="font-size: 0.82rem; color: var(--gray-500); margin-top: 0.35rem;">This Month: <strong id="statBankAuditsMonth" style="color: var(--gray-800);">--</strong></div>
                         </div>
 
-                        <div class="admin-stat-card" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+                        <div class="admin-stat-card">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Recovery Volume Audited</span>
-                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99, 102, 241, 0.1); color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                                <span style="font-size: 0.82rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;">Recovery Volume Audited</span>
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(99, 102, 241, 0.12); color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 1.05rem;">
                                     <i class="fas fa-indian-rupee-sign"></i>
                                 </div>
                             </div>
-                            <div id="statBankVolume" style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">₹0.00</div>
-                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem;">Deterministic rule evaluated</div>
+                            <div id="statBankVolume" style="font-size: 1.95rem; font-weight: 800; color: var(--gray-900);">₹0.00</div>
+                            <div style="font-size: 0.82rem; color: var(--gray-500); margin-top: 0.35rem;">Deterministic rule evaluated</div>
                         </div>
 
                     </div>
 
                     <!-- Bank Officers Management Table Section -->
-                    <div class="admin-users-panel" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.75rem; box-shadow: var(--shadow-sm); margin-bottom: 2rem;">
+                    <div class="admin-users-panel" style="margin-bottom: 2rem;">
                         
                         <!-- Table Toolbar -->
                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
@@ -2618,9 +2690,9 @@
                             <div style="display: flex; align-items: center; gap: 0.75rem;">
                                 <div class="search-input-wrapper" style="position: relative;">
                                     <i class="fas fa-search" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--gray-400); font-size: 0.85rem;"></i>
-                                    <input type="text" id="adminBankSearchInput" placeholder="Filter bank or officer code..." oninput="filterAdminBankOfficersTable()" style="padding: 0.5rem 1rem 0.5rem 2.2rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--gray-50); font-size: 0.85rem; width: 260px; outline: none;">
+                                    <input type="text" id="adminBankSearchInput" placeholder="Filter bank or officer code..." oninput="filterAdminBankOfficersTable()" style="padding: 0.55rem 1rem 0.55rem 2.2rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--gray-800); font-size: 0.85rem; width: 260px; outline: none;">
                                 </div>
-                                <button class="btn btn-sm btn-primary" onclick="openCreateBankOfficerModal()" style="display: flex; align-items: center; gap: 0.4rem;">
+                                <button class="btn btn-sm btn-primary" onclick="openCreateBankOfficerModal()" style="display: flex; align-items: center; gap: 0.4rem; font-weight: 700;">
                                     <i class="fas fa-plus"></i> <span>Add Bank Officer</span>
                                 </button>
                             </div>
@@ -2630,7 +2702,7 @@
                         <div style="overflow-x: auto;">
                             <table class="admin-data-table" style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.88rem;">
                                 <thead>
-                                    <tr style="background: var(--gray-50); color: var(--gray-600); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; text-align: left;">
+                                    <tr style="background: var(--gray-50); color: var(--gray-700); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; text-align: left;">
                                         <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); border-top-left-radius: 8px;">Officer / Bank</th>
                                         <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Branch / Recovery Cell</th>
                                         <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Role</th>
@@ -2653,20 +2725,20 @@
                     </div>
 
                     <!-- Tamper-Proof Bank Compliance Audit Stream -->
-                    <div class="admin-users-panel" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.75rem; box-shadow: var(--shadow-sm);">
+                    <div class="admin-users-panel">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
                             <div>
                                 <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--gray-900); margin: 0 0 0.25rem 0;">Institutional Compliance Ledger Stream</h3>
                                 <p style="font-size: 0.82rem; color: var(--gray-500); margin: 0;">Deterministic rule evaluation history across all bank branches.</p>
                             </div>
-                            <span class="badge" style="background: rgba(14, 165, 233, 0.1); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.3);">
+                            <span class="badge" style="background: rgba(14, 165, 233, 0.12); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.35); font-weight: 700;">
                                 <i class="fas fa-shield-check"></i> Tamper-Proof Audit
                             </span>
                         </div>
                         <div style="overflow-x: auto;">
                             <table class="admin-data-table" style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem;">
                                 <thead>
-                                    <tr style="background: var(--gray-50); color: var(--gray-600); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em; text-align: left;">
+                                    <tr style="background: var(--gray-50); color: var(--gray-700); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em; text-align: left;">
                                         <th style="padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border-color);">Audit Ref</th>
                                         <th style="padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border-color);">Branch / Officer</th>
                                         <th style="padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border-color);">Borrower / Account</th>
@@ -2689,15 +2761,252 @@
                 </div>
 
                 <!-- ═══════════════════════════════════════════════════════════ -->
-                <!-- TAB 3: PLATFORM SECURITY & COMPLIANCE LOGS -->
+                <!-- TAB 4: AI ENGINES & KNOWLEDGE PIPELINE -->
                 <!-- ═══════════════════════════════════════════════════════════ -->
-                <div id="adminSecurityTabContent" class="admin-tab-content hidden">
-                    <div class="admin-users-panel" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.75rem; box-shadow: var(--shadow-sm);">
+                <div id="adminEnginesTabContent" class="admin-tab-content" style="display: none;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                        
+                        <!-- AI Model & Copilot Control Panel -->
+                        <div class="admin-users-panel">
+                            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(79, 70, 229, 0.12); color: #4f46e5; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                                    <i class="fas fa-brain"></i>
+                                </div>
+                                <div>
+                                    <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--gray-900); margin: 0;">LLM Copilot Architecture</h3>
+                                    <p style="font-size: 0.82rem; color: var(--gray-500); margin: 0;">Select Copilot layer model for drafting &amp; strategic summaries</p>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
+                                <label style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-surface); cursor: pointer;">
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <input type="radio" name="adminLlmModel" value="groq" checked style="accent-color: #4f46e5;">
+                                        <div>
+                                            <div style="font-weight: 700; color: var(--gray-900); font-size: 0.9rem;">Groq Llama-3.3 70B Versatile</div>
+                                            <div style="font-size: 0.78rem; color: var(--gray-500);">Ultra-low latency (~280 tokens/sec), supreme drafting quality</div>
+                                        </div>
+                                    </div>
+                                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;">DEFAULT</span>
+                                </label>
+
+                                <label style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-surface); cursor: pointer;">
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <input type="radio" name="adminLlmModel" value="ollama" style="accent-color: #4f46e5;">
+                                        <div>
+                                            <div style="font-weight: 700; color: var(--gray-900); font-size: 0.9rem;">Local Ollama DeepSeek-R1 / Qwen</div>
+                                            <div style="font-size: 0.78rem; color: var(--gray-500);">Private on-premise air-gapped inference</div>
+                                        </div>
+                                    </div>
+                                    <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6; font-weight: 700;">AIR-GAPPED</span>
+                                </label>
+
+                                <label style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-surface); cursor: pointer;">
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <input type="radio" name="adminLlmModel" value="deterministic" style="accent-color: #4f46e5;">
+                                        <div>
+                                            <div style="font-weight: 700; color: var(--gray-900); font-size: 0.9rem;">Pure Deterministic Rule Engine</div>
+                                            <div style="font-size: 0.78rem; color: var(--gray-500);">Zero-hallucination fallback using strict statutory graph matrices</div>
+                                        </div>
+                                    </div>
+                                    <span class="badge" style="background: rgba(14, 165, 233, 0.15); color: #0ea5e9; font-weight: 700;">FAILSAFE</span>
+                                </label>
+                            </div>
+
+                            <button class="btn btn-primary btn-sm" onclick="saveAdminLlmSettings()" style="font-weight: 700; width: 100%;">
+                                <i class="fas fa-check"></i> Apply Copilot Configuration
+                            </button>
+                        </div>
+
+                        <!-- Statutory Domain Engine Status -->
+                        <div class="admin-users-panel">
+                            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(16, 185, 129, 0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                                    <i class="fas fa-scale-balanced"></i>
+                                </div>
+                                <div>
+                                    <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--gray-900); margin: 0;">Domain Statutory Engines</h3>
+                                    <p style="font-size: 0.82rem; color: var(--gray-500); margin: 0;">Manage core rule matrices and verification gateways</p>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--gray-50);">
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 0.88rem; color: var(--gray-900);">Section 138 NI Act Engine</div>
+                                        <div style="font-size: 0.75rem; color: var(--gray-500);">30-day notice, 15-day cure, S.141 director vicarious liability</div>
+                                    </div>
+                                    <span class="status-badge-active"><i class="fas fa-circle-check"></i> OPERATIONAL</span>
+                                </div>
+
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--gray-50);">
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 0.88rem; color: var(--gray-900);">SARFAESI Act 2002 &amp; DRT Engine</div>
+                                        <div style="font-size: 0.75rem; color: var(--gray-500);">S.13(2) 60-day demand, S.13(4) possession, S.31(i) agri bar</div>
+                                    </div>
+                                    <span class="status-badge-active"><i class="fas fa-circle-check"></i> OPERATIONAL</span>
+                                </div>
+
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--gray-50);">
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 0.88rem; color: var(--gray-900);">Criminal Defense &amp; Satender Antil Matrix</div>
+                                        <div style="font-size: 0.75rem; color: var(--gray-500);">4-category bail rubric, S.482 quashing, trial cross-exam kit</div>
+                                    </div>
+                                    <span class="status-badge-active"><i class="fas fa-circle-check"></i> OPERATIONAL</span>
+                                </div>
+
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--gray-50);">
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 0.88rem; color: var(--gray-900);">Live Statutory Verifiers (MCA21 &amp; Post)</div>
+                                        <div style="font-size: 0.75rem; color: var(--gray-500);">Direct MCA corporate registry &amp; India Post Article tracking</div>
+                                    </div>
+                                    <span class="status-badge-active"><i class="fas fa-circle-check"></i> LIVE LINK</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Judicial Precedent Ingestion Tool -->
+                    <div class="admin-users-panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                            <div>
+                                <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--gray-900); margin: 0 0 0.25rem 0;">
+                                    <i class="fas fa-book-bookmark" style="color: #4f46e5; margin-right: 0.4rem;"></i>
+                                    Judicial Precedent Direct Ingestion Pipeline
+                                </h3>
+                                <p style="font-size: 0.85rem; color: var(--gray-500); margin: 0;">
+                                    Ingest new Supreme Court / High Court precedent ratios directly into the vector database &amp; neural citation reranker.
+                                </p>
+                            </div>
+                            <span class="badge" style="background: rgba(79, 70, 229, 0.12); color: #4f46e5; font-weight: 700;">
+                                <i class="fas fa-bolt"></i> Vector RAG Ready
+                            </span>
+                        </div>
+
+                        <form id="adminIngestPrecedentForm" onsubmit="submitAdminPrecedentIngestion(event)">
+                            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--gray-700); margin-bottom: 0.35rem;">Case Title / Parties *</label>
+                                    <input type="text" id="adminPrecTitle" required placeholder="e.g. Dashrathbhai Trikambhai Patel v. Hitesh Mahendrabhai Patel" style="width: 100%; padding: 0.55rem 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--gray-900); font-size: 0.85rem;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--gray-700); margin-bottom: 0.35rem;">Neutral Citation *</label>
+                                    <input type="text" id="adminPrecCitation" required placeholder="e.g. (2023) 1 SCC 578" style="width: 100%; padding: 0.55rem 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--gray-900); font-size: 0.85rem;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--gray-700); margin-bottom: 0.35rem;">Court Jurisdiction</label>
+                                    <select id="adminPrecCourt" style="width: 100%; padding: 0.55rem 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--gray-900); font-size: 0.85rem;">
+                                        <option value="Supreme Court of India">Supreme Court of India</option>
+                                        <option value="Bombay High Court">Bombay High Court</option>
+                                        <option value="Delhi High Court">Delhi High Court</option>
+                                        <option value="Karnataka High Court">Karnataka High Court</option>
+                                        <option value="Madras High Court">Madras High Court</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--gray-700); margin-bottom: 0.35rem;">Binding Legal Proposition (Summary) *</label>
+                                    <textarea id="adminPrecProposition" required rows="3" placeholder="e.g. Part-payment endorsement under Section 56 is mandatory before presenting cheque for original amount." style="width: 100%; padding: 0.55rem 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--gray-900); font-size: 0.85rem;"></textarea>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--gray-700); margin-bottom: 0.35rem;">Ratio Decidendi / Exact Quotation *</label>
+                                    <textarea id="adminPrecRatio" required rows="3" placeholder="Exact judicial holding text to index in FAISS vector embeddings..." style="width: 100%; padding: 0.55rem 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--gray-900); font-size: 0.85rem;"></textarea>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                                <button type="submit" class="btn btn-primary" style="font-weight: 700;">
+                                    <i class="fas fa-upload"></i> Ingest Precedent into Vector Index
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <!-- TAB 5: SYSTEM HEALTH & DIAGNOSTICS -->
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <div id="adminHealthTabContent" class="admin-tab-content" style="display: none;">
+                    <div class="admin-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+                        
+                        <div class="admin-stat-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.82rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase;">API Gateway</span>
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); color: #10b981; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-server"></i>
+                                </div>
+                            </div>
+                            <div style="font-size: 1.6rem; font-weight: 800; color: #10b981;">HEALTHY</div>
+                            <div style="font-size: 0.82rem; color: var(--gray-500); margin-top: 0.35rem;">Uptime: <strong>99.98%</strong></div>
+                        </div>
+
+                        <div class="admin-stat-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.82rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase;">Database Connection</span>
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(59, 130, 246, 0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-database"></i>
+                                </div>
+                            </div>
+                            <div style="font-size: 1.6rem; font-weight: 800; color: var(--gray-900);">POOLED</div>
+                            <div style="font-size: 0.82rem; color: var(--gray-500); margin-top: 0.35rem;">Active Pool: <strong>SQLite / PG</strong></div>
+                        </div>
+
+                        <div class="admin-stat-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.82rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase;">Server Memory</span>
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(245, 158, 11, 0.12); color: #f59e0b; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-memory"></i>
+                                </div>
+                            </div>
+                            <div id="statMemoryPercent" style="font-size: 1.6rem; font-weight: 800; color: var(--gray-900);">32.4%</div>
+                            <div style="font-size: 0.82rem; color: var(--gray-500); margin-top: 0.35rem;">Memory Status: <strong style="color: #10b981;">OPTIMAL</strong></div>
+                        </div>
+
+                        <div class="admin-stat-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.82rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase;">Median Latency</span>
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(139, 92, 246, 0.12); color: #8b5cf6; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                            </div>
+                            <div style="font-size: 1.6rem; font-weight: 800; color: var(--gray-900);">135 ms</div>
+                            <div style="font-size: 0.82rem; color: var(--gray-500); margin-top: 0.35rem;">Deterministic cache hit</div>
+                        </div>
+
+                    </div>
+
+                    <!-- System Diagnostics & Maintenance Actions -->
+                    <div class="admin-users-panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                            <div>
+                                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--gray-900); margin: 0 0 0.25rem 0;">System Maintenance &amp; Memory Buffer Tools</h3>
+                                <p style="font-size: 0.82rem; color: var(--gray-500); margin: 0;">Perform zero-downtime maintenance operations and flush memory cache</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                            <button class="btn btn-outline" onclick="performAdminCacheClear()" style="display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #4f46e5; border-color: rgba(79, 70, 229, 0.4);">
+                                <i class="fas fa-broom"></i> Clear In-Memory Cache &amp; Buffers
+                            </button>
+                            <button class="btn btn-outline" onclick="loadAdminSystemHealth()" style="display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700;">
+                                <i class="fas fa-heart-pulse"></i> Run Live Diagnostic Health Check
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <!-- TAB 6: PLATFORM SECURITY & COMPLIANCE LOGS -->
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <div id="adminSecurityTabContent" class="admin-tab-content" style="display: none;">
+                    <div class="admin-users-panel" style="margin-bottom: 2rem;">
                         <div style="margin-bottom: 1.5rem;">
                             <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--gray-900); margin: 0 0 0.25rem 0;">System Security Telemetry &amp; Threat Defences</h2>
                             <p style="font-size: 0.85rem; color: var(--gray-500); margin: 0;">Multi-layered defense telemetry: SQL injection detection, rate limiting, and access authorization.</p>
                         </div>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
                             <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem;">
                                 <div style="font-weight: 700; color: var(--gray-900); margin-bottom: 0.5rem;"><i class="fas fa-shield-halved" style="color: #10b981;"></i> JWT Token Guard</div>
                                 <div style="font-size: 0.85rem; color: var(--gray-600);">HS256 cryptographic signature validation with automatic expiration and refresh token rotation.</div>
@@ -2712,58 +3021,139 @@
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- ═══════════════════════════════════════════════════════════ -->
-                <!-- TAB 4: PENDING MODULAR PLAN APPROVALS -->
-                <!-- ═══════════════════════════════════════════════════════════ -->
-                <div id="adminPlansTabContent" class="admin-tab-content" style="display: none;">
-                    <div class="admin-users-panel" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.75rem; box-shadow: var(--shadow-sm);">
-                        
-                        <!-- Table Toolbar -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+                    <!-- Live Cryptographic Audit Trail Stream -->
+                    <div class="admin-users-panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
                             <div>
-                                <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--gray-900); margin: 0 0 0.25rem 0;">
-                                    <i class="fas fa-file-invoice-dollar" style="color: #f59e0b; margin-right: 0.4rem;"></i>
-                                    Pending Modular Subscription Approvals
-                                </h2>
-                                <p style="font-size: 0.85rem; color: var(--gray-500); margin: 0;">
-                                    Review submitted modular plans. <strong>No case analysis or draft generation is permitted</strong> for these accounts until approved by an administrator.
-                                </p>
+                                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--gray-900); margin: 0 0 0.25rem 0;">Cryptographic Audit Trail Stream</h3>
+                                <p style="font-size: 0.82rem; color: var(--gray-500); margin: 0;">Immutable, tamper-proof record of all analysis executions and administrative mutations.</p>
                             </div>
-                            <button class="btn btn-outline btn-sm" onclick="loadAdminPendingPlans()" style="display: inline-flex; align-items: center; gap: 0.4rem;">
-                                <i class="fas fa-rotate"></i> Refresh Queue
-                            </button>
+                            <div style="display: flex; gap: 0.75rem;">
+                                <button class="btn btn-outline btn-sm" onclick="exportAdminAuditLogs('json')" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700;">
+                                    <i class="fas fa-download"></i> Export JSON
+                                </button>
+                                <button class="btn btn-outline btn-sm" onclick="loadAdminSecurityLogs()" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700;">
+                                    <i class="fas fa-rotate"></i> Refresh Logs
+                                </button>
+                            </div>
                         </div>
-
-                        <!-- Table -->
                         <div style="overflow-x: auto;">
-                            <table class="admin-data-table" style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.88rem;">
+                            <table class="admin-data-table" style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem;">
                                 <thead>
-                                    <tr style="background: var(--gray-50); color: var(--gray-600); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; text-align: left;">
-                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); border-top-left-radius: 8px;">Target User / Email</th>
-                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Selected Modules</th>
-                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 150px;">Requested Quota</th>
-                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 140px;">Monthly Rate</th>
-                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Approval Status</th>
-                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); text-align: right; border-top-right-radius: 8px;">Admin Decision</th>
+                                    <tr style="background: var(--gray-50); color: var(--gray-700); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em; text-align: left;">
+                                        <th style="padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border-color);">Event ID</th>
+                                        <th style="padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border-color);">User Identity</th>
+                                        <th style="padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border-color);">Case ID</th>
+                                        <th style="padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border-color);">Action Triggered</th>
+                                        <th style="padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border-color);">Metadata</th>
+                                        <th style="padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border-color); text-align: right;">Timestamp</th>
                                     </tr>
                                 </thead>
-                                <tbody id="adminPendingPlansTableBody">
+                                <tbody id="adminSecurityLogsTableBody">
                                     <tr>
-                                        <td colspan="6" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
-                                            <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i> Loading pending plan requests...
+                                        <td colspan="6" style="padding: 2rem; text-align: center; color: var(--gray-400);">
+                                            No audit logs recorded yet.
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-
                     </div>
                 </div>
 
             </div>
         </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- PROVISION NEW LITIGATOR ACCOUNT MODAL (ADMIN CONTROL CENTER) -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div id="createLitigatorModal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(7, 11, 20, 0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 1.5rem;">
+            <div class="modal-container" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-2xl); width: 100%; max-width: 540px; box-shadow: var(--shadow-2xl); overflow: hidden;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #4f46e5, #3b82f6); color: #ffffff; padding: 1.5rem 2rem; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.85rem;">
+                        <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff;">Provision Litigator Account</h3>
+                            <p style="margin: 0.2rem 0 0; font-size: 0.82rem; color: #e0e7ff;">Onboard an advocate, law firm, or enterprise client</p>
+                        </div>
+                    </div>
+                    <button onclick="closeCreateLitigatorModal()" style="background: transparent; border: none; color: #ffffff; font-size: 1.4rem; cursor: pointer; line-height: 1;">&times;</button>
+                </div>
+                
+                <div class="modal-body" style="padding: 1.75rem 2rem;">
+                    <form id="createLitigatorForm" onsubmit="submitCreateLitigator(event)">
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--gray-800); margin-bottom: 0.35rem;">Litigator Email Address *</label>
+                            <input type="email" id="newLitigatorEmail" required class="bank-input-text" placeholder="e.g. advocate@vermalaw.in" style="width: 100%;">
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--gray-800); margin-bottom: 0.35rem;">Role / Plan Designation</label>
+                                <select id="newLitigatorRole" class="bank-input-select" style="width: 100%;">
+                                    <option value="law_firm">Law Firm / Chamber</option>
+                                    <option value="enterprise">Enterprise Legal Cell</option>
+                                    <option value="citizen">Independent Litigator</option>
+                                    <option value="admin">System Administrator</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--gray-800); margin-bottom: 0.35rem;">Monthly Report Quota (-1 for ∞)</label>
+                                <input type="number" id="newLitigatorLimit" class="bank-input-text" value="25" style="width: 100%;">
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                            <button type="button" class="btn btn-outline" onclick="closeCreateLitigatorModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary" style="font-weight: 700;">
+                                <i class="fas fa-check"></i> Provision Account
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- BULK BONUS CREDITS MODAL (ADMIN CONTROL CENTER) -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div id="bulkBonusModal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(7, 11, 20, 0.85); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 1.5rem;">
+            <div class="modal-container" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-2xl); width: 100%; max-width: 480px; box-shadow: var(--shadow-2xl); overflow: hidden;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #ffffff; padding: 1.5rem 2rem; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.85rem;">
+                        <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff;">Grant Bulk Bonus Credits</h3>
+                            <p style="margin: 0.2rem 0 0; font-size: 0.82rem; color: #ede9fe;">Add report allocations across all active litigators</p>
+                        </div>
+                    </div>
+                    <button onclick="closeBulkBonusModal()" style="background: transparent; border: none; color: #ffffff; font-size: 1.4rem; cursor: pointer; line-height: 1;">&times;</button>
+                </div>
+                
+                <div class="modal-body" style="padding: 1.75rem 2rem;">
+                    <form id="bulkBonusForm" onsubmit="submitBulkBonus(event)">
+                        <div style="margin-bottom: 1.25rem;">
+                            <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--gray-800); margin-bottom: 0.35rem;">Bonus Report Credits to Add *</label>
+                            <input type="number" id="bulkBonusAmount" required value="10" min="1" max="1000" class="bank-input-text" style="width: 100%; font-size: 1.1rem; font-weight: 700; text-align: center;">
+                            <p style="font-size: 0.78rem; color: var(--gray-500); margin: 0.4rem 0 0;">This will increase the monthly limit of every active account by this amount in 1 click.</p>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                            <button type="button" class="btn btn-outline" onclick="closeBulkBonusModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #6366f1); font-weight: 700; border: none;">
+                                <i class="fas fa-sparkles"></i> Grant Bonus Credits
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
 
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- BANKING & RECOVERY OS SECTION (INSTITUTIONAL VERTICAL) -->

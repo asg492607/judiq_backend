@@ -1527,3 +1527,63 @@ class DatabaseManager:
         finally:
             if conn:
                 conn.close()
+
+    @staticmethod
+    def get_recent_audit_logs(limit: int = 50) -> list:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"""
+                SELECT id, user_id, case_id, action, metadata, timestamp
+                FROM audit_logs
+                ORDER BY id DESC
+                LIMIT {limit}
+            """)
+            logs = []
+            for r in cursor.fetchall():
+                try:
+                    meta = json.loads(r[4]) if r[4] else {}
+                except Exception:
+                    meta = {}
+                logs.append({
+                    "id": r[0],
+                    "user_id": r[1] or "ANON",
+                    "case_id": r[2] or "SYS",
+                    "action": r[3] or "UNKNOWN",
+                    "metadata": meta,
+                    "timestamp": r[5]
+                })
+            return logs
+        except Exception as e:
+            logger.error(f"Error fetching audit logs: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def bulk_add_user_quotas(bonus: int = 10) -> int:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now_iso = datetime.now().isoformat()
+            cursor.execute(f"""
+                UPDATE user_quotas
+                SET monthly_report_limit = CASE WHEN monthly_report_limit = -1 THEN -1 ELSE monthly_report_limit + {p} END,
+                    updated_at = {p}
+                WHERE is_active = 1
+            """, (bonus, now_iso))
+            affected = cursor.rowcount
+            conn.commit()
+            return affected
+        except Exception as e:
+            logger.error(f"Error bulk adding quotas: {e}")
+            return 0
+        finally:
+            if conn:
+                conn.close()
+
