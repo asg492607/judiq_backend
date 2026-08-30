@@ -332,7 +332,10 @@ class CreateUserRequest(BaseModel):
     user_id: str = Field(..., description="Unique User ID / UID")
     email: str = Field(..., description="Litigator Email Address")
     role: str = Field("law_firm", description="Plan/Role (law_firm, enterprise, citizen, admin)")
-    monthly_limit: int = Field(25, description="Monthly Report Limit")
+    monthly_limit: int = Field(25, description="Monthly Report Limit (-1 for unlimited)")
+    selected_modules: Optional[list] = Field(default_factory=lambda: ["s138"], description="Subscribed Modular Engines")
+    monthly_price_inr: Optional[float] = Field(500.0, description="Monthly price rate in INR")
+    plan_status: Optional[str] = Field("APPROVED", description="Approval Status (APPROVED, PENDING_APPROVAL)")
 
 
 class BulkBonusRequest(BaseModel):
@@ -361,10 +364,22 @@ def bulk_bonus_quotas(req: BulkBonusRequest = Body(...), admin: dict = Depends(r
 @router.post("/users/create", tags=["Admin Control"])
 def create_litigator_account(req: CreateUserRequest = Body(...), admin: dict = Depends(require_admin)):
     """
-    Directly provisions a new litigator account with customized quota and role.
+    Directly provisions a new litigator account with customized quota, role, modules, and pricing.
     """
-    quota = DatabaseManager.get_or_create_user_quota(req.user_id.strip(), req.email.strip(), req.role, default_limit=req.monthly_limit)
+    admin_email = admin.get("email", "admin@judiq.ai")
+    quota = DatabaseManager.create_or_update_full_user(
+        user_id=req.user_id.strip(),
+        email=req.email.strip(),
+        role=req.role,
+        monthly_limit=req.monthly_limit,
+        selected_modules=req.selected_modules or ["s138"],
+        monthly_price_inr=req.monthly_price_inr or 500.0,
+        plan_status=req.plan_status or "APPROVED",
+        approved_by=admin_email if (req.plan_status or "APPROVED") == "APPROVED" else None
+    )
+    logger.info(f"[ADMIN] Admin {admin_email} provisioned litigator account {req.user_id} ({req.email})")
     return {"success": True, "quota": quota, "message": f"Account provisioned for {req.email}."}
+
 
 
 @router.get("/system/health", tags=["Admin Control"])

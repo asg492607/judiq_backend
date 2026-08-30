@@ -3136,6 +3136,44 @@
                             </div>
                         </div>
 
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--gray-800); margin-bottom: 0.35rem;">Monthly Rate (INR ₹)</label>
+                                <input type="number" id="newLitigatorPrice" class="bank-input-text" value="1500" style="width: 100%;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--gray-800); margin-bottom: 0.35rem;">Initial Plan Status</label>
+                                <select id="newLitigatorStatus" class="bank-input-select" style="width: 100%;">
+                                    <option value="APPROVED">APPROVED (Active &amp; Ready)</option>
+                                    <option value="PENDING_APPROVAL">PENDING_APPROVAL (Locked)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 1.25rem;">
+                            <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--gray-800); margin-bottom: 0.5rem;">Subscribed Modular AI Engines</label>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; background: var(--gray-50); padding: 0.85rem; border-radius: 10px; border: 1px solid var(--border-color);">
+                                <label style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; font-weight: 600; color: var(--gray-800); cursor: pointer;">
+                                    <input type="checkbox" name="newLitigatorEngines" value="s138" checked> ⚖️ S.138 NI Act
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; font-weight: 600; color: var(--gray-800); cursor: pointer;">
+                                    <input type="checkbox" name="newLitigatorEngines" value="sarfaesi" checked> 🏦 SARFAESI &amp; DRT
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; font-weight: 600; color: var(--gray-800); cursor: pointer;">
+                                    <input type="checkbox" name="newLitigatorEngines" value="criminal" checked> 🏛️ Criminal (BNSS)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; font-weight: 600; color: var(--gray-800); cursor: pointer;">
+                                    <input type="checkbox" name="newLitigatorEngines" value="civil"> 📜 Civil (CPC)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; font-weight: 600; color: var(--gray-800); cursor: pointer;">
+                                    <input type="checkbox" name="newLitigatorEngines" value="bank_recovery"> 💼 Banking OS
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; font-weight: 600; color: var(--gray-800); cursor: pointer;">
+                                    <input type="checkbox" name="newLitigatorEngines" value="counsel_intel"> 🧠 Counsel Intel
+                                </label>
+                            </div>
+                        </div>
+
                         <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
                             <button type="button" class="btn btn-outline" onclick="closeCreateLitigatorModal()">Cancel</button>
                             <button type="submit" class="btn btn-primary" style="font-weight: 700;">

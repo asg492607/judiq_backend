@@ -4270,15 +4270,23 @@ window.submitCreateLitigator = async (e) => {
 
     const email = document.getElementById('newLitigatorEmail').value.trim();
     const role = document.getElementById('newLitigatorRole').value;
-    const limit = parseInt(document.getElementById('newLitigatorLimit').value, 10) || 25;
+    const limit = parseInt(document.getElementById('newLitigatorLimit').value, 10);
+    const price = parseFloat(document.getElementById('newLitigatorPrice').value) || 500.0;
+    const planStatus = document.getElementById('newLitigatorStatus').value || 'APPROVED';
     const userId = 'LIT_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+
+    const engineCheckboxes = document.querySelectorAll('input[name="newLitigatorEngines"]:checked');
+    const selectedEngines = Array.from(engineCheckboxes).map(cb => cb.value);
 
     try {
         const res = await api.createLitigatorAccount({
             user_id: userId,
             email: email,
             role: role,
-            monthly_limit: limit
+            monthly_limit: isNaN(limit) ? 25 : limit,
+            selected_modules: selectedEngines.length > 0 ? selectedEngines : ['s138'],
+            monthly_price_inr: price,
+            plan_status: planStatus
         }, adminAuthToken);
 
         if (res && res.success) {

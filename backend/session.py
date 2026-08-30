@@ -880,6 +880,66 @@ class DatabaseManager:
                 conn.close()
 
     @staticmethod
+    def create_or_update_full_user(
+        user_id: str,
+        email: str,
+        role: str = "law_firm",
+        monthly_limit: int = 25,
+        selected_modules: list = None,
+        monthly_price_inr: float = 500.0,
+        plan_status: str = "APPROVED",
+        approved_by: str = None
+    ) -> dict:
+        """
+        Creates or updates a litigator account with full subscription parameters.
+        """
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now_iso = datetime.now().isoformat()
+            current_month = datetime.now().strftime("%Y-%m")
+            mods = selected_modules or ["s138"]
+            mods_json = json.dumps(mods)
+            is_active = 1 if plan_status == "APPROVED" else 0
+            approved_at = now_iso if plan_status == "APPROVED" else None
+
+            cursor.execute(f"SELECT user_id FROM user_quotas WHERE user_id = {p}", (user_id,))
+            exists = cursor.fetchone()
+
+            if exists:
+                cursor.execute(f"""
+                    UPDATE user_quotas
+                    SET email = {p}, role = {p}, monthly_report_limit = {p},
+                        selected_modules = {p}, monthly_price_inr = {p}, plan_status = {p},
+                        is_active = {p}, approved_by = {p}, approved_at = {p}, updated_at = {p}
+                    WHERE user_id = {p}
+                """, (email, role, monthly_limit, mods_json, monthly_price_inr, plan_status, is_active, approved_by, approved_at, now_iso, user_id))
+            else:
+                cursor.execute(f"""
+                    INSERT INTO user_quotas (
+                        user_id, email, role, monthly_report_limit, reports_used_this_month,
+                        current_month_period, is_active, created_at, updated_at,
+                        plan_status, selected_modules, monthly_price_inr, requested_quota,
+                        approved_by, approved_at
+                    ) VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+                """, (
+                    user_id, email, role, monthly_limit, current_month, is_active,
+                    now_iso, now_iso, plan_status, mods_json, monthly_price_inr,
+                    monthly_limit, approved_by, approved_at
+                ))
+            conn.commit()
+            return DatabaseManager.get_or_create_user_quota(user_id, email)
+        except Exception as e:
+            logger.error(f"Error creating/updating full user: {e}")
+            raise e
+        finally:
+            if conn:
+                conn.close()
+
+
+    @staticmethod
     def get_pending_plan_requests() -> list:
         """
         Returns all user accounts with PENDING_APPROVAL status.
