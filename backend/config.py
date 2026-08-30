@@ -22,8 +22,11 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     DATABASE_URL: str = ""
     BACKEND_CORS_ORIGINS: list = [
-        "https://cold-smoke-f63f.judiqai.workers.dev",
+        "https://judiq-ai.netlify.app",
         "https://judiq.netlify.app",
+        "https://cold-smoke-f63f.judiqai.workers.dev",
+        "https://asg492607.github.io",
+        "https://cheque-bounce-ragbased.onrender.com",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",

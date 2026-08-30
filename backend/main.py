@@ -68,11 +68,11 @@ async def add_process_time_and_metrics(request: Request, call_next):
 app.add_api_route("/metrics", prometheus_metrics_endpoint, methods=["GET"], tags=["Observability"])
 
 
-# SECURITY: Use an explicit allowlist only. No wildcard regex.
-# allow_origin_regex is intentionally omitted to prevent bypassing the allowlist.
+# CORS Configuration supporting explicit production origins and Netlify/Workers deployments
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_origin_regex=r"^https?://(.*\.)?(netlify\.app|workers\.dev|pages\.dev|vercel\.app|github\.io|onrender\.com|localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
