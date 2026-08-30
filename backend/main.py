@@ -43,9 +43,28 @@ from metrics import prometheus_metrics_endpoint, JUDIQ_REQUESTS_TOTAL, JUDIQ_REQ
 @app.middleware("http")
 async def add_process_time_and_metrics(request: Request, call_next):
     start_time = time.time()
+    origin = request.headers.get("origin")
+    
+    # Handle preflight OPTIONS requests immediately
+    if request.method == "OPTIONS":
+        response = Response(status_code=200)
+        if origin:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD"
+            response.headers["Access-Control-Allow-Headers"] = request.headers.get("access-control-request-headers", "*")
+            response.headers["Access-Control-Max-Age"] = "86400"
+        return response
+
     response = await call_next(request)
     process_time = time.time() - start_time
     response.headers["X-Process-Time"] = str(process_time)
+    
+    if origin and "Access-Control-Allow-Origin" not in response.headers:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD"
+        response.headers["Access-Control-Allow-Headers"] = "*"
     
     # Record Prometheus Metrics
     try:
