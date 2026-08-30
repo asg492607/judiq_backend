@@ -23,9 +23,12 @@ export async function fetchWithRetry(url, options = {}, maxRetries = 2, baseDela
         }
     }
 
-    if (token) {
-        options.headers = options.headers || {};
-        options.headers['Authorization'] = `Bearer ${token}`;
+    options.headers = options.headers || {};
+    // Preserve caller-provided Authorization headers (e.g. admin JWT)
+    if (!options.headers['Authorization'] && !options.headers['authorization']) {
+        if (token) {
+            options.headers['Authorization'] = `Bearer ${token}`;
+        }
     }
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -38,7 +41,7 @@ export async function fetchWithRetry(url, options = {}, maxRetries = 2, baseDela
             } finally {
                 clearTimeout(timeout);
             }
-            if (response.status === 401 && !url.includes('/auth/anonymous')) {
+            if (response.status === 401 && !url.includes('/auth/anonymous') && !url.includes('/admin/')) {
                 localStorage.removeItem("judiq_jwt");
                 try {
                     const authRes = await fetch(`${API_BASE_URL}/api/v1/auth/anonymous`, { method: 'POST' });
@@ -47,8 +50,9 @@ export async function fetchWithRetry(url, options = {}, maxRetries = 2, baseDela
                         token = authData.access_token;
                         localStorage.setItem("judiq_jwt", token);
                         if (window.state) window.state.user_id = authData.user_id;
-                        options.headers = options.headers || {};
-                        options.headers['Authorization'] = `Bearer ${token}`;
+                        if (!options.headers['Authorization'] && !options.headers['authorization']) {
+                            options.headers['Authorization'] = `Bearer ${token}`;
+                        }
                         continue;
                     }
                 } catch (e) {

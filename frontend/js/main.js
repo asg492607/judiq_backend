@@ -1,5 +1,5 @@
 import { firebaseConfig, roleActions, wizardSteps } from '../config.js?v=14';
-import { api } from '../api.js?v=14';
+import { api } from '../api.js?v=15';
 import { ui, switchScreen } from '../ui.js?v=14';
 import { renderWizardStep } from '../wizard.js?v=14';
 import { renderResults, switchResultTab } from '../renderer.js?v=14';
