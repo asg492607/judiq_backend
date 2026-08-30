@@ -4701,5 +4701,303 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   LAWYER CASE VERSIONING & SNAPSHOT TIMELINE CONTROLLER
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+window.currentCaseVersion = 1;
+window.caseVersionsHistory = [];
+
+window.updateCaseVersionBadge = (versionNum = 1, deltaScore = 0) => {
+    window.currentCaseVersion = versionNum;
+    const badge = document.getElementById('activeVersionBadge');
+    if (badge) {
+        badge.textContent = `Version ${versionNum}`;
+    }
+    const deltaBadge = document.getElementById('activeVersionDeltaBadge');
+    if (deltaBadge) {
+        if (deltaScore && Math.abs(deltaScore) > 0.1) {
+            deltaBadge.style.display = 'inline-block';
+            deltaBadge.textContent = (deltaScore > 0 ? `+${deltaScore}` : `${deltaScore}`) + ' pts';
+            deltaBadge.style.background = deltaScore > 0 ? '#10b981' : '#f59e0b';
+        } else {
+            deltaBadge.style.display = 'none';
+        }
+    }
+};
+
+window.showSaveVersionModal = () => {
+    const modal = document.getElementById('saveVersionModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        const titleInput = document.getElementById('versionTitleInput');
+        const nextVer = (window.currentCaseVersion || 1) + 1;
+        if (titleInput) {
+            titleInput.value = `Version ${nextVer} — Evidence & Strategy Update`;
+            titleInput.focus();
+        }
+    }
+};
+
+window.closeSaveVersionModal = () => {
+    const modal = document.getElementById('saveVersionModal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.handleSaveVersionSubmit = async (e) => {
+    if (e) e.preventDefault();
+    const title = document.getElementById('versionTitleInput')?.value?.trim() || 'Updated Version';
+    const note = document.getElementById('versionNoteInput')?.value?.trim() || 'Strategy refinement';
+
+    const caseData = window.state?.currentCaseData || (window.currentCase && window.currentCase.case_data) || {};
+    const analysisResult = window.state?.currentAnalysisResult || (window.currentCase && window.currentCase.analysis_result) || {};
+    const caseId = caseData.case_id || (window.currentCase && window.currentCase.id) || 'CASE_ACTIVE';
+    const user = window.state?.currentUser;
+    const userId = user?.uid || user?.email || 'ANONYMOUS';
+
+    const score = analysisResult.score !== undefined ? analysisResult.score : (analysisResult.merit_score || 0);
+    const verdict = analysisResult.verdict || analysisResult.primary_verdict || 'ANALYZED';
+
+    try {
+        const payload = {
+            case_data: caseData,
+            analysis_result: analysisResult,
+            score: score,
+            verdict: verdict,
+            version_title: title,
+            version_note: note,
+            user_id: userId
+        };
+
+        const res = await fetch(`${api.baseUrl || 'http://127.0.0.1:8000'}/api/v1/cases/${encodeURIComponent(caseId)}/versions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(r => r.json());
+
+        if (res && res.version_num) {
+            window.updateCaseVersionBadge(res.version_num, res.delta_score);
+            window.closeSaveVersionModal();
+
+            // Real-Time Cloud Sync: Firebase Firestore
+            if (typeof firebase !== 'undefined' && firebase.firestore) {
+                try {
+                    const db = firebase.firestore();
+                    await db.collection('cases').doc(caseId).collection('versions').doc(String(res.version_num)).set({
+                        ...payload,
+                        version_num: res.version_num,
+                        delta_score: res.delta_score,
+                        created_at: new Date().toISOString()
+                    }, { merge: true });
+                } catch (fbErr) {
+                    console.warn('[Firestore] Version sync notice:', fbErr);
+                }
+            }
+
+            if (window.ui && window.ui.toast) {
+                window.ui.toast(`✅ Archived Version ${res.version_num}: "${title}"`, 'success');
+            } else {
+                alert(`✅ Archived Version ${res.version_num}: "${title}"`);
+            }
+        } else {
+            alert('Failed to save version snapshot.');
+        }
+    } catch (err) {
+        console.error('Error archiving case version:', err);
+        alert('Error saving version: ' + err.message);
+    }
+};
+
+window.showVersionHistoryModal = async () => {
+    const modal = document.getElementById('versionHistoryModal');
+    const container = document.getElementById('versionHistoryTimelineContainer');
+    const titleEl = document.getElementById('versionModalCaseTitle');
+    if (!modal) return;
+
+    modal.classList.remove('hidden');
+
+    const caseData = window.state?.currentCaseData || (window.currentCase && window.currentCase.case_data) || {};
+    const caseId = caseData.case_id || (window.currentCase && window.currentCase.id) || 'CASE_ACTIVE';
+    const caseTitle = caseData.case_title || 'Active Case Matter';
+    if (titleEl) titleEl.textContent = `Matter: ${caseTitle} (Ref: ${caseId})`;
+
+    if (container) {
+        container.innerHTML = `
+            <div style="text-align: center; color: var(--gray-500); padding: 2rem;">
+                <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i> Loading version timeline from database & Firestore...
+            </div>
+        `;
+    }
+
+    try {
+        let versions = [];
+        try {
+            const res = await fetch(`${api.baseUrl || 'http://127.0.0.1:8000'}/api/v1/cases/${encodeURIComponent(caseId)}/versions`);
+            if (res.ok) versions = await res.json();
+        } catch (apiErr) {
+            console.warn('Backend version fetch notice:', apiErr);
+        }
+
+        // Firestore Fallback if offline/empty
+        if ((!versions || versions.length === 0) && typeof firebase !== 'undefined' && firebase.firestore) {
+            try {
+                const db = firebase.firestore();
+                const snap = await db.collection('cases').doc(caseId).collection('versions').get();
+                snap.forEach(doc => versions.push(doc.data()));
+                versions.sort((a, b) => (b.version_num || 0) - (a.version_num || 0));
+            } catch (fbErr) {
+                console.warn('[Firestore] Version list fallback notice:', fbErr);
+            }
+        }
+
+        if (!versions || versions.length === 0) {
+            if (container) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 2.5rem 1.5rem; color: var(--gray-500); border: 2px dashed var(--gray-300); border-radius: 0.75rem;">
+                        <i class="fas fa-code-branch" style="font-size: 2rem; color: var(--gray-400); margin-bottom: 0.75rem; display: block;"></i>
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-800);">No Archived Version Snapshots Yet</h4>
+                        <p style="margin: 0 0 1.25rem 0; font-size: 0.85rem;">Click "Save New Snapshot" to archive your first formal baseline version for this case.</p>
+                        <button class="btn btn-primary btn-sm" onclick="window.showSaveVersionModal()">
+                            <i class="fas fa-save"></i> Save Initial Version
+                        </button>
+                    </div>
+                `;
+            }
+            return;
+        }
+
+        window.caseVersionsHistory = versions;
+
+        if (container) {
+            container.innerHTML = `
+                <div class="version-timeline-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                    ${versions.map(v => {
+                        const isCurrent = v.version_num === window.currentCaseVersion;
+                        const delta = v.delta_score || 0;
+                        const deltaMarkup = Math.abs(delta) > 0.1 
+                            ? `<span style="font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 9999px; background: ${delta > 0 ? '#10b98122' : '#f59e0b22'}; color: ${delta > 0 ? '#10b981' : '#f59e0b'}; border: 1px solid ${delta > 0 ? '#10b98144' : '#f59e0b44'};">
+                                ${delta > 0 ? '+' + delta : delta} pts
+                               </span>`
+                            : '';
+
+                        return `
+                            <div class="version-timeline-card" style="border: 1px solid ${isCurrent ? '#3b82f6' : 'var(--gray-200)'}; background: ${isCurrent ? 'rgba(59, 130, 246, 0.04)' : 'var(--bg-card, #ffffff)'}; border-radius: 0.75rem; padding: 1rem 1.25rem; transition: all 0.2s ease; box-shadow: ${isCurrent ? '0 4px 12px rgba(59, 130, 246, 0.08)' : 'none'};">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.5rem;">
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                            <span style="font-weight: 800; font-size: 0.95rem; color: #1e293b;">
+                                                <i class="fas fa-tag" style="color: #3b82f6; font-size: 0.85rem; margin-right: 0.25rem;"></i>
+                                                ${escapeHtml(v.version_title || `Version ${v.version_num}`)}
+                                            </span>
+                                            ${isCurrent ? '<span style="background: #3b82f6; color: white; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 9999px; text-transform: uppercase;">ACTIVE</span>' : ''}
+                                            ${deltaMarkup}
+                                        </div>
+                                        <div style="font-size: 0.75rem; color: var(--gray-400); margin-top: 0.2rem;">
+                                            Archived: <strong>${new Date(v.created_at || Date.now()).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</strong>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: right; min-width: 100px;">
+                                        <div style="font-size: 1.15rem; font-weight: 800; color: ${v.score >= 70 ? '#10b981' : (v.score >= 40 ? '#f59e0b' : '#ef4444')};">
+                                            ${Math.round(v.score || 0)} / 100
+                                        </div>
+                                        <div style="font-size: 0.7rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase;">
+                                            ${escapeHtml(v.verdict || 'EVALUATED')}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                ${v.version_note ? `
+                                    <div style="font-size: 0.85rem; color: var(--gray-700); background: var(--gray-50); padding: 0.6rem 0.75rem; border-radius: 0.5rem; border-left: 3px solid #3b82f6; margin-bottom: 0.75rem; line-height: 1.45;">
+                                        ${escapeHtml(v.version_note)}
+                                    </div>
+                                ` : ''}
+
+                                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">
+                                    <button class="btn btn-outline btn-sm" onclick="window.loadVersionSnapshot(${v.version_num})" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;">
+                                        <i class="fas fa-eye"></i> View Snapshot
+                                    </button>
+                                    ${!isCurrent ? `
+                                        <button class="btn btn-primary btn-sm" onclick="window.restoreVersionSnapshot(${v.version_num})" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+                                            <i class="fas fa-history"></i> Restore This Version
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+    } catch (err) {
+        console.error('Failed to load version history:', err);
+        if (container) container.innerHTML = `<p style="color: #ef4444; padding: 1rem;">Failed to load version history: ${err.message}</p>`;
+    }
+};
+
+window.closeVersionHistoryModal = () => {
+    const modal = document.getElementById('versionHistoryModal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.loadVersionSnapshot = async (versionNum) => {
+    const caseData = window.state?.currentCaseData || (window.currentCase && window.currentCase.case_data) || {};
+    const caseId = caseData.case_id || (window.currentCase && window.currentCase.id) || 'CASE_ACTIVE';
+
+    try {
+        const res = await fetch(`${api.baseUrl || 'http://127.0.0.1:8000'}/api/v1/cases/${encodeURIComponent(caseId)}/versions/${versionNum}`).then(r => r.json());
+        if (res && res.case_data) {
+            window.currentCase = {
+                id: caseId,
+                case_data: res.case_data,
+                analysis_result: res.analysis_result,
+                score: res.score,
+                verdict: res.verdict
+            };
+            if (window.state) {
+                window.state.currentCaseData = res.case_data;
+                window.state.currentAnalysisResult = res.analysis_result;
+            }
+
+            window.updateCaseVersionBadge(res.version_num, res.delta_score);
+            window.closeVersionHistoryModal();
+
+            // Re-render analysis with snapshot
+            renderResults(res.analysis_result);
+            if (window.ui && window.ui.toast) {
+                window.ui.toast(`Viewing historical snapshot: Version ${versionNum} ("${res.version_title || 'Snapshot'}")`, 'info');
+            }
+        }
+    } catch (err) {
+        alert('Failed to load snapshot version: ' + err.message);
+    }
+};
+
+window.restoreVersionSnapshot = async (versionNum) => {
+    if (!confirm(`Restore active case state to Version ${versionNum}? Current unsaved edits will be replaced.`)) return;
+
+    const caseData = window.state?.currentCaseData || (window.currentCase && window.currentCase.case_data) || {};
+    const caseId = caseData.case_id || (window.currentCase && window.currentCase.id) || 'CASE_ACTIVE';
+    const user = window.state?.currentUser;
+    const userId = user?.uid || user?.email || 'ANONYMOUS';
+
+    try {
+        const res = await fetch(`${api.baseUrl || 'http://127.0.0.1:8000'}/api/v1/cases/${encodeURIComponent(caseId)}/restore/${versionNum}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId })
+        }).then(r => r.json());
+
+        if (res && res.success) {
+            window.loadVersionSnapshot(versionNum);
+            if (window.ui && window.ui.toast) {
+                window.ui.toast(`Restored Case to Version ${versionNum} successfully!`, 'success');
+            }
+        }
+    } catch (err) {
+        alert('Failed to restore version: ' + err.message);
+    }
+};
+
+
 
 

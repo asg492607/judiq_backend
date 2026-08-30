@@ -102,6 +102,23 @@ class DatabaseManager:
                 )
             """)
             cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS case_versions (
+                    id {serial_primary},
+                    case_id TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    version_num INTEGER NOT NULL,
+                    version_title TEXT,
+                    version_note TEXT,
+                    case_data TEXT,
+                    analysis_result TEXT,
+                    score REAL,
+                    verdict TEXT,
+                    delta_score REAL DEFAULT 0.0,
+                    created_at TEXT,
+                    UNIQUE(case_id, version_num)
+                )
+            """)
+            cursor.execute(f"""
                 CREATE TABLE IF NOT EXISTS saved_drafts (
                     id {serial_primary},
                     case_id TEXT NOT NULL,
@@ -333,6 +350,21 @@ class DatabaseManager:
             except Exception as fb_err:
                 logger.debug(f"Firebase case sync notice: {fb_err}")
 
+            # Automatically record version snapshot
+            try:
+                DatabaseManager.save_case_version(
+                    case_id=case_id,
+                    user_id=user_id,
+                    case_data=case_data,
+                    analysis_result=analysis_result,
+                    score=score,
+                    verdict=verdict,
+                    version_title=case_data.get("version_title"),
+                    version_note=case_data.get("version_note")
+                )
+            except Exception as v_err:
+                logger.debug(f"Automatic version snapshot notice: {v_err}")
+
             return True
         except Exception as e:
             logger.error(f"Failed to save case {case_id}: {e}")
@@ -340,6 +372,217 @@ class DatabaseManager:
         finally:
             if conn:
                 conn.close()
+
+    @staticmethod
+    def save_case_version(
+        case_id: str,
+        user_id: str,
+        case_data: dict,
+        analysis_result: dict,
+        score: float,
+        verdict: str,
+        version_title: str = None,
+        version_note: str = None
+    ) -> dict:
+        """
+        Archives a versioned snapshot of a case and its analysis report.
+        Automatically assigns sequential version numbers and computes score deltas.
+        """
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now().isoformat()
+
+            # Find latest version number & previous score
+            cursor.execute(f"SELECT MAX(version_num), score FROM case_versions WHERE case_id = {p} GROUP BY case_id", (case_id,))
+            row = cursor.fetchone()
+            if row and row[0]:
+                next_version = row[0] + 1
+                prev_score = float(row[1]) if row[1] is not None else float(score)
+            else:
+                next_version = 1
+                prev_score = float(score)
+
+            delta_score = round(float(score) - prev_score, 1)
+            v_title = version_title or f"Version {next_version}"
+            v_note = version_note or ("Initial Case Intake Analysis" if next_version == 1 else "Updated Case Re-Analysis")
+
+            cursor.execute(f"""
+                INSERT INTO case_versions
+                (case_id, user_id, version_num, version_title, version_note, case_data, analysis_result, score, verdict, delta_score, created_at)
+                VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+            """, (
+                case_id, user_id, next_version, v_title, v_note,
+                json.dumps(case_data), json.dumps(analysis_result),
+                float(score), verdict, delta_score, now
+            ))
+            conn.commit()
+
+            # Real-Time Cloud Sync: Firebase Firestore
+            try:
+                from firebase_manager import FirebaseManager
+                FirebaseManager.save_case_version(
+                    case_id=case_id,
+                    user_id=user_id,
+                    version_num=next_version,
+                    version_title=v_title,
+                    version_note=v_note,
+                    case_data=case_data,
+                    analysis_result=analysis_result,
+                    score=float(score),
+                    verdict=verdict,
+                    delta_score=delta_score
+                )
+            except Exception as fb_err:
+                logger.debug(f"Firebase case version sync notice: {fb_err}")
+
+            return {
+                "success": True,
+                "case_id": case_id,
+                "version_num": next_version,
+                "version_title": v_title,
+                "version_note": v_note,
+                "score": float(score),
+                "delta_score": delta_score,
+                "verdict": verdict,
+                "created_at": now
+            }
+        except Exception as e:
+            logger.error(f"Error saving case version: {e}")
+            raise e
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def get_case_versions(case_id: str) -> list:
+        """
+        Lists all version snapshots for a case with metadata, score progression, and notes.
+        """
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"""
+                SELECT version_num, version_title, version_note, score, delta_score, verdict, created_at, user_id
+                FROM case_versions
+                WHERE case_id = {p}
+                ORDER BY version_num DESC
+            """, (case_id,))
+            rows = cursor.fetchall()
+            versions = []
+            for r in rows:
+                versions.append({
+                    "version_num": r[0],
+                    "version_title": r[1] or f"Version {r[0]}",
+                    "version_note": r[2] or "",
+                    "score": float(r[3]) if r[3] is not None else 0.0,
+                    "delta_score": float(r[4]) if r[4] is not None else 0.0,
+                    "verdict": r[5] or "Unknown",
+                    "created_at": r[6],
+                    "user_id": r[7]
+                })
+
+            if not versions:
+                # Fallback to Firebase Firestore
+                try:
+                    from firebase_manager import FirebaseManager
+                    fb_versions = FirebaseManager.get_case_versions(case_id)
+                    if fb_versions:
+                        return fb_versions
+                except Exception:
+                    pass
+
+            return versions
+        except Exception as e:
+            logger.error(f"Error fetching case versions for {case_id}: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def get_case_version(case_id: str, version_num: int) -> dict:
+        """
+        Fetches the complete case data and analysis snapshot for a specific version number.
+        """
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"""
+                SELECT case_id, user_id, version_num, version_title, version_note, case_data, analysis_result, score, verdict, delta_score, created_at
+                FROM case_versions
+                WHERE case_id = {p} AND version_num = {p}
+            """, (case_id, int(version_num)))
+            r = cursor.fetchone()
+            if not r:
+                # Fallback to Firebase
+                try:
+                    from firebase_manager import FirebaseManager
+                    fb_v = FirebaseManager.get_case_version(case_id, int(version_num))
+                    if fb_v:
+                        return fb_v
+                except Exception:
+                    pass
+                return None
+
+            try:
+                cdata = json.loads(r[5]) if r[5] else {}
+            except Exception:
+                cdata = {}
+            try:
+                aresult = json.loads(r[6]) if r[6] else {}
+            except Exception:
+                aresult = {}
+
+            return {
+                "case_id": r[0],
+                "user_id": r[1],
+                "version_num": r[2],
+                "version_title": r[3],
+                "version_note": r[4],
+                "case_data": cdata,
+                "analysis_result": aresult,
+                "score": float(r[7]) if r[7] is not None else 0.0,
+                "verdict": r[8],
+                "delta_score": float(r[9]) if r[9] is not None else 0.0,
+                "created_at": r[10]
+            }
+        except Exception as e:
+            logger.error(f"Error fetching version {version_num} for case {case_id}: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def restore_case_version(case_id: str, version_num: int, user_id: str) -> dict:
+        """
+        Restores the active case record in saved_cases to match a historical snapshot version.
+        """
+        version_data = DatabaseManager.get_case_version(case_id, version_num)
+        if not version_data:
+            return {"success": False, "error": f"Version {version_num} not found"}
+
+        # Save as current case
+        DatabaseManager.save_case(
+            case_id=case_id,
+            user_id=user_id or version_data.get("user_id", "ANONYMOUS"),
+            case_data=version_data.get("case_data", {}),
+            analysis_result=version_data.get("analysis_result", {}),
+            score=version_data.get("score", 0.0),
+            verdict=version_data.get("verdict", "Unknown")
+        )
+        return {
+            "success": True,
+            "message": f"Successfully restored case {case_id} to Version {version_num}",
+            "version": version_data
+        }
 
     @staticmethod
     def get_case(case_id):

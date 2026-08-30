@@ -290,3 +290,95 @@ class FirebaseManager:
         except Exception as e:
             logger.warning(f"Failed to save bank officer {officer_id} to Firebase: {e}")
             return False
+
+    @classmethod
+    def save_case_version(cls, case_id: str, user_id: str, version_num: int,
+                          version_title: str, version_note: str,
+                          case_data: Dict[str, Any], analysis_result: Dict[str, Any],
+                          score: float, verdict: str, delta_score: float = 0.0) -> bool:
+        """
+        Saves a distinct historical snapshot version of a case analysis to Firestore.
+        Collection path: `/cases/{case_id}/versions/{version_num}`
+        """
+        try:
+            db = cls.get_firestore()
+            if not db:
+                return False
+
+            now = datetime.utcnow().isoformat()
+            version_doc = {
+                "case_id": case_id,
+                "user_id": user_id,
+                "version_num": version_num,
+                "version_title": version_title or f"Version {version_num}",
+                "version_note": version_note or "Analysis Snapshot",
+                "case_data": case_data,
+                "analysis_result": analysis_result,
+                "score": float(score),
+                "verdict": verdict,
+                "delta_score": float(delta_score),
+                "created_at": now
+            }
+
+            # 1. Store in global case subcollection
+            db.collection("cases").document(case_id).collection("versions").document(str(version_num)).set(version_doc, merge=True)
+
+            # 2. Store in user's case version subcollection if user_id is provided
+            if user_id and user_id != "ANONYMOUS":
+                db.collection("users").document(user_id).collection("cases").document(case_id).collection("versions").document(str(version_num)).set({
+                    "version_num": version_num,
+                    "version_title": version_doc["version_title"],
+                    "version_note": version_doc["version_note"],
+                    "score": version_doc["score"],
+                    "delta_score": version_doc["delta_score"],
+                    "verdict": version_doc["verdict"],
+                    "created_at": now
+                }, merge=True)
+
+            logger.info(f"🔥 Case {case_id} Version {version_num} successfully archived in Firestore.")
+            return True
+        except Exception as e:
+            logger.warning(f"Failed to save case version {case_id} v{version_num} to Firebase: {e}")
+            return False
+
+    @classmethod
+    def get_case_versions(cls, case_id: str) -> List[Dict[str, Any]]:
+        """Retrieves list of all saved version metadata from Firestore."""
+        try:
+            db = cls.get_firestore()
+            if not db:
+                return []
+            versions_ref = db.collection("cases").document(case_id).collection("versions").order_by("version_num", direction=firestore.Query.DESCENDING)
+            docs = versions_ref.stream()
+            versions = []
+            for doc in docs:
+                data = doc.to_dict()
+                versions.append({
+                    "version_num": data.get("version_num"),
+                    "version_title": data.get("version_title"),
+                    "version_note": data.get("version_note"),
+                    "score": data.get("score"),
+                    "delta_score": data.get("delta_score", 0.0),
+                    "verdict": data.get("verdict"),
+                    "created_at": data.get("created_at")
+                })
+            return versions
+        except Exception as e:
+            logger.warning(f"Failed to fetch case versions for {case_id} from Firebase: {e}")
+            return []
+
+    @classmethod
+    def get_case_version(cls, case_id: str, version_num: int) -> Optional[Dict[str, Any]]:
+        """Retrieves a specific case version payload from Firestore."""
+        try:
+            db = cls.get_firestore()
+            if not db:
+                return None
+            doc = db.collection("cases").document(case_id).collection("versions").document(str(version_num)).get()
+            if doc.exists:
+                return doc.to_dict()
+            return None
+        except Exception as e:
+            logger.warning(f"Failed to fetch case {case_id} v{version_num} from Firebase: {e}")
+            return None
+
