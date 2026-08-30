@@ -325,6 +325,14 @@ class DatabaseManager:
                         VALUES ({p}, {p}, {p}, {p}, {p})
                     """, (case_id, draft_type, draft_content, next_version, now))
             conn.commit()
+
+            # Real-Time Cloud Sync: Firebase Firestore
+            try:
+                from firebase_manager import FirebaseManager
+                FirebaseManager.save_case_analysis(case_id, user_id, case_data, analysis_result, score, verdict, tags)
+            except Exception as fb_err:
+                logger.debug(f"Firebase case sync notice: {fb_err}")
+
             return True
         except Exception as e:
             logger.error(f"Failed to save case {case_id}: {e}")
@@ -843,6 +851,19 @@ class DatabaseManager:
             """, (req_quota, admin_email, now_iso, now_iso, user_id))
             conn.commit()
 
+            # Real-Time Cloud Sync: Firebase Firestore
+            try:
+                from firebase_manager import FirebaseManager
+                FirebaseManager.save_user_profile(
+                    user_id=user_id,
+                    email="",
+                    plan_status="APPROVED",
+                    monthly_report_limit=req_quota,
+                    is_active=True
+                )
+            except Exception as fb_err:
+                logger.debug(f"Firebase approval sync notice: {fb_err}")
+
             return DatabaseManager.get_or_create_user_quota(user_id)
         except Exception as e:
             logger.error(f"Error approving user plan: {e}")
@@ -870,6 +891,19 @@ class DatabaseManager:
                 WHERE user_id = {p}
             """, (f"{admin_email} (REJECTED: {reason})", now_iso, user_id))
             conn.commit()
+
+            # Real-Time Cloud Sync: Firebase Firestore
+            try:
+                from firebase_manager import FirebaseManager
+                FirebaseManager.save_user_profile(
+                    user_id=user_id,
+                    email="",
+                    plan_status="REJECTED",
+                    monthly_report_limit=0,
+                    is_active=False
+                )
+            except Exception as fb_err:
+                logger.debug(f"Firebase rejection sync notice: {fb_err}")
 
             return DatabaseManager.get_or_create_user_quota(user_id)
         except Exception as e:
@@ -930,6 +964,23 @@ class DatabaseManager:
                     monthly_limit, approved_by, approved_at
                 ))
             conn.commit()
+
+            # Real-Time Cloud Sync: Firebase Firestore
+            try:
+                from firebase_manager import FirebaseManager
+                FirebaseManager.save_user_profile(
+                    user_id=user_id,
+                    email=email,
+                    role=role,
+                    monthly_report_limit=monthly_limit,
+                    plan_status=plan_status,
+                    selected_modules=mods,
+                    monthly_price_inr=monthly_price_inr,
+                    is_active=(plan_status == "APPROVED")
+                )
+            except Exception as fb_err:
+                logger.debug(f"Firebase user sync notice: {fb_err}")
+
             return DatabaseManager.get_or_create_user_quota(user_id, email)
         except Exception as e:
             logger.error(f"Error creating/updating full user: {e}")

@@ -122,6 +122,21 @@ function setupAuthListeners() {
             const userEmailEl = document.getElementById('userEmail');
             if (userEmailEl) ui.setText('userEmail', user.email);
 
+            // Real-Time Cloud Sync: Firebase Firestore user profile
+            if (typeof firebase !== 'undefined' && firebase.firestore) {
+                try {
+                    const db = firebase.firestore();
+                    db.collection('users').doc(user.uid).set({
+                        user_id: user.uid,
+                        email: user.email || '',
+                        displayName: user.displayName || user.email || 'Advocate',
+                        last_login: new Date().toISOString()
+                    }, { merge: true });
+                } catch (fbErr) {
+                    console.warn('[Firestore] User login sync notice:', fbErr);
+                }
+            }
+
             // Read permanently locked domain (defaults to ni_act for legacy accounts)
             const savedDomain = localStorage.getItem(`judiq_domain_${user.uid}`) || 'ni_act';
             window.state.userDomain = savedDomain;
@@ -812,10 +827,10 @@ function formatDate(dateStr) {
     }
 }
 
-window.saveCaseToHistory = (caseData, analysisResult) => {
+window.saveCaseToHistory = async (caseData, analysisResult) => {
     try {
-        const userId = window.state.currentUser ? window.state.currentUser.uid : 'ANONYMOUS';
-        const caseId = caseData.case_id;
+        const userId = window.state.currentUser ? (window.state.currentUser.uid || window.state.currentUser.email) : 'ANONYMOUS';
+        const caseId = caseData.case_id || (analysisResult && analysisResult.case_id) || ('case_' + Date.now());
         if (!caseId) return;
 
         let localCases = [];
@@ -823,26 +838,74 @@ window.saveCaseToHistory = (caseData, analysisResult) => {
             localCases = JSON.parse(localStorage.getItem('judiq_recent_cases_v1') || '[]');
         } catch (_) {}
 
+        const score = analysisResult.score !== undefined ? analysisResult.score : (analysisResult.merit_score || 0);
+        const verdict = analysisResult.verdict || analysisResult.primary_verdict || 'ANALYZED';
         const newCaseObj = {
             id: caseId,
             user_id: userId,
             domain: window.state.userDomain || 'ni_act',  // stamp domain permanently
             title: caseData.case_title || 'Untitled Case',
             date: new Date().toISOString(),
-            score: analysisResult.score !== undefined ? analysisResult.score : 0,
+            score: score,
             risk_level: analysisResult.risk_level || analysisResult.defence_risk || 'Unknown',
-            verdict: analysisResult.verdict || 'Unknown',
+            verdict: verdict,
             case_data: caseData,
             analysis_result: analysisResult
         };
         // Remove duplicates and put new one at the start
         localCases = localCases.filter(c => c.id !== caseId);
         localCases.unshift(newCaseObj);
-        if (localCases.length > 20) {
+        if (localCases.length > 30) {
             localCases.pop();
         }
 
         localStorage.setItem('judiq_recent_cases_v1', JSON.stringify(localCases));
+
+        // 🔥 Real-Time Cloud Sync: Firebase Firestore
+        if (typeof firebase !== 'undefined' && firebase.firestore) {
+            try {
+                const db = firebase.firestore();
+                const now = new Date().toISOString();
+                const globalDoc = {
+                    case_id: caseId,
+                    user_id: userId,
+                    case_title: newCaseObj.title,
+                    complainant_name: caseData.complainant_name || '',
+                    accused_name: caseData.accused_name || '',
+                    case_type: caseData.case_type || 'Cheque Bounce',
+                    score: score,
+                    verdict: verdict,
+                    case_data: caseData,
+                    analysis_result: analysisResult,
+                    created_at: now,
+                    updated_at: now
+                };
+
+                // 1. Write to global 'cases' collection
+                await db.collection('cases').doc(caseId).set(globalDoc, { merge: true });
+
+                // 2. Write to user's personal case sub-collection
+                if (userId && userId !== 'ANONYMOUS') {
+                    await db.collection('users').doc(userId).collection('cases').doc(caseId).set({
+                        case_id: caseId,
+                        case_title: newCaseObj.title,
+                        score: score,
+                        verdict: verdict,
+                        case_type: caseData.case_type || 'Cheque Bounce',
+                        updated_at: now
+                    }, { merge: true });
+
+                    await db.collection('users').doc(userId).set({
+                        user_id: userId,
+                        email: (window.state.currentUser && window.state.currentUser.email) || '',
+                        last_active: now
+                    }, { merge: true });
+                }
+                console.log('🔥 [Firestore] Successfully stored case and analysis to Firebase:', caseId);
+            } catch (fbErr) {
+                console.warn('⚠️ [Firestore] Notice while syncing case to Firebase:', fbErr);
+            }
+        }
         
         // Refresh dashboard view if it's currently rendered
         const recentCasesContainer = document.getElementById('recentCases');
@@ -879,6 +942,30 @@ window.loadRecentCases = async () => {
                 backendCases = Array.isArray(res) ? res : [];
             } catch (err) {
                 console.warn('Failed to fetch recent cases from backend:', err);
+            }
+
+            // Cloud Firestore Fallback
+            if (backendCases.length === 0 && typeof firebase !== 'undefined' && firebase.firestore) {
+                try {
+                    const db = firebase.firestore();
+                    const snap = await db.collection('cases').where('user_id', '==', userId).limit(20).get();
+                    snap.forEach(doc => {
+                        const d = doc.data();
+                        backendCases.push({
+                            id: d.case_id || doc.id,
+                            user_id: d.user_id,
+                            title: d.case_title || 'Untitled Case',
+                            date: d.updated_at || d.created_at || new Date().toISOString(),
+                            score: d.score || 0,
+                            risk_level: (d.analysis_result && (d.analysis_result.risk_level || d.analysis_result.defence_risk)) || 'Standard',
+                            verdict: d.verdict || 'ANALYZED',
+                            case_data: d.case_data || {},
+                            analysis_result: d.analysis_result || {}
+                        });
+                    });
+                } catch (fbErr) {
+                    console.warn('[Firestore] Direct case fetch notice:', fbErr);
+                }
             }
         }
 

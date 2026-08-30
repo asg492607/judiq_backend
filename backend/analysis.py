@@ -153,19 +153,24 @@ async def analyze(request_data: Dict[str, Any], request: Request):
 
     try:
         case_data = result.get("case_data", {})
-        uid = case_data.get("user_id", "ANONYMOUS")
-        cid = case_data.get("case_id", "")
-        if uid and cid and uid != "ANONYMOUS":
-            await asyncio.to_thread(
-                DatabaseManager.save_case,
-                cid,
-                uid,
-                case_data,
-                result,
-                result.get("score", 0),
-                result.get("verdict", "Unknown")
-            )
-            AuditLogger.log_interaction(user_id, cid, "FINISH_ANALYSIS", {"score": result.get("score")})
+        uid = user_id or case_data.get("user_id", "ANONYMOUS")
+        cid = case_data.get("case_id", "") or result.get("case_id", "")
+        if not cid:
+            import uuid
+            cid = f"CASE_{uuid.uuid4().hex[:8].upper()}"
+            case_data["case_id"] = cid
+
+        await asyncio.to_thread(
+            DatabaseManager.save_case,
+            cid,
+            uid,
+            case_data,
+            result,
+            result.get("score", 0),
+            result.get("verdict", "Unknown")
+        )
+        AuditLogger.log_interaction(uid, cid, "FINISH_ANALYSIS", {"score": result.get("score")})
+        if uid != "ANONYMOUS":
             existing_room_id = DatabaseManager.get_caseroom_by_case_id(cid)
             if not existing_room_id:
                 CaseroomManager.initialize_caseroom_for_case(cid, uid)
