@@ -3377,6 +3377,7 @@ window.loadAdminPortalData = async () => {
         if (usersRes && usersRes.success && Array.isArray(usersRes.users)) {
             adminCachedUsers = usersRes.users;
             window.renderAdminUsersTable(adminCachedUsers);
+            window.updateFilterPillCounts();
         }
 
         // 2b. Fetch Pending Plan Requests
@@ -3441,6 +3442,69 @@ window.loadAdminPortalData = async () => {
     }
 };
 
+window.copyToClipboard = (text, label) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+        if (window.ui) window.ui.toast(`${label || 'Item'} copied to clipboard!`, 'success');
+    }).catch(() => {
+        if (window.ui) window.ui.toast('Could not copy to clipboard', 'warning');
+    });
+};
+
+window.updateFilterPillCounts = () => {
+    const users = adminCachedUsers || [];
+    const setPill = (id, count) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = count;
+    };
+    setPill('pillCountAll', users.length);
+    setPill('pillCountLawFirm', users.filter(u => u.role === 'law_firm').length);
+    setPill('pillCountEnterprise', users.filter(u => u.role === 'enterprise').length);
+    setPill('pillCountCitizen', users.filter(u => u.role === 'citizen').length);
+    setPill('pillCountPending', users.filter(u => u.plan_status === 'PENDING_APPROVAL').length);
+    setPill('pillCountSuspended', users.filter(u => u.is_active === false).length);
+};
+
+window.setQuickFilter = (filterKey) => {
+    const select = document.getElementById('adminUserRoleFilter');
+    if (select) select.value = filterKey;
+
+    const pillMap = {
+        '': 'filterPillAll',
+        'law_firm': 'filterPillLawFirm',
+        'enterprise': 'filterPillEnterprise',
+        'citizen': 'filterPillCitizen',
+        'status_pending': 'filterPillPending',
+        'status_suspended': 'filterPillSuspended'
+    };
+
+    document.querySelectorAll('.admin-filter-pill').forEach(btn => btn.classList.remove('active'));
+    const targetId = pillMap[filterKey] || 'filterPillAll';
+    const targetBtn = document.getElementById(targetId);
+    if (targetBtn) targetBtn.classList.add('active');
+
+    window.filterAdminUsersTable();
+};
+
+window.exportAdminUsers = (format = 'json') => {
+    const users = adminCachedUsers || [];
+    if (users.length === 0) {
+        if (window.ui) window.ui.toast('No litigator accounts to export.', 'warning');
+        return;
+    }
+
+    if (format === 'json') {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(users, null, 2));
+        const dlAnchor = document.createElement('a');
+        dlAnchor.setAttribute("href", dataStr);
+        dlAnchor.setAttribute("download", `judiq_litigators_${new Date().toISOString().slice(0, 10)}.json`);
+        document.body.appendChild(dlAnchor);
+        dlAnchor.click();
+        dlAnchor.remove();
+        if (window.ui) window.ui.toast('Exported litigators JSON successfully.', 'success');
+    }
+};
+
 window.renderAdminUsersTable = (users) => {
     const tbody = document.getElementById('adminUsersTableBody');
     if (!tbody) return;
@@ -3448,59 +3512,123 @@ window.renderAdminUsersTable = (users) => {
     if (!users || users.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
-                    <i class="fas fa-user-slash" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
-                    No litigator accounts found matching filter.
+                <td colspan="7" style="padding: 3rem 1.5rem; text-align: center; color: var(--gray-400);">
+                    <div style="font-size: 2rem; color: var(--gray-300); margin-bottom: 0.75rem;"><i class="fas fa-user-slash"></i></div>
+                    <div style="font-size: 1rem; font-weight: 700; color: var(--gray-700); margin-bottom: 0.25rem;">No litigator accounts found</div>
+                    <div style="font-size: 0.82rem; color: var(--gray-400);">Try clearing search filters or add a new litigator account.</div>
                 </td>
             </tr>
         `;
         return;
     }
 
+    const moduleConfig = {
+        's138': { label: 'S.138 NI Act', bg: 'rgba(59, 130, 246, 0.12)', color: '#2563eb', icon: 'fa-scale-balanced' },
+        'sarfaesi': { label: 'SARFAESI', bg: 'rgba(245, 158, 11, 0.12)', color: '#d97706', icon: 'fa-building-columns' },
+        'criminal': { label: 'BNSS Criminal', bg: 'rgba(239, 68, 68, 0.12)', color: '#dc2626', icon: 'fa-gavel' },
+        'civil': { label: 'Civil CPC', bg: 'rgba(16, 185, 129, 0.12)', color: '#059669', icon: 'fa-file-shield' },
+        'bank_recovery': { label: 'Banking OS', bg: 'rgba(14, 165, 233, 0.12)', color: '#0284c7', icon: 'fa-landmark' },
+        'counsel_intel': { label: 'Counsel Intel', bg: 'rgba(139, 92, 246, 0.12)', color: '#7c3aed', icon: 'fa-brain' }
+    };
+
+    const roleAvatarGradients = {
+        'admin': 'linear-gradient(135deg, #4f46e5, #06b6d4)',
+        'enterprise': 'linear-gradient(135deg, #0284c7, #0369a1)',
+        'law_firm': 'linear-gradient(135deg, #8b5cf6, #6366f1)',
+        'citizen': 'linear-gradient(135deg, #10b981, #059669)'
+    };
+
     tbody.innerHTML = users.map(u => {
         const isUnlimited = u.monthly_report_limit === -1;
         const used = u.reports_used_this_month || 0;
         const limit = isUnlimited ? '∞' : u.monthly_report_limit;
+        const remaining = isUnlimited ? '∞' : Math.max(0, u.monthly_report_limit - used);
         const pct = isUnlimited ? 0 : Math.min(100, Math.round((used / Math.max(1, u.monthly_report_limit)) * 100));
         const isWarning = pct >= 80;
 
+        const email = u.email || 'Anonymous Litigator';
+        const initials = email.substring(0, 2).toUpperCase();
+        const avatarBg = roleAvatarGradients[u.role] || 'linear-gradient(135deg, #64748b, #475569)';
+
         const statusBadge = u.is_active
-            ? `<span class="status-badge-active"><i class="fas fa-circle-check"></i> Active</span>`
-            : `<span class="status-badge-suspended"><i class="fas fa-circle-xmark"></i> Suspended</span>`;
+            ? `<span class="status-badge-active" title="Account active and verified"><i class="fas fa-circle-check"></i> Active</span>`
+            : `<span class="status-badge-suspended" title="Account suspended"><i class="fas fa-circle-xmark"></i> Suspended</span>`;
+
+        const planStatusBadge = u.plan_status === 'APPROVED'
+            ? `<span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981; font-weight: 700; font-size: 0.7rem; margin-top: 3px; display: inline-flex; align-items: center; gap: 0.25rem;"><i class="fas fa-check-circle"></i> Approved</span>`
+            : (u.plan_status === 'PENDING_APPROVAL'
+                ? `<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #d97706; font-weight: 700; font-size: 0.7rem; margin-top: 3px; display: inline-flex; align-items: center; gap: 0.25rem;"><i class="fas fa-hourglass-half"></i> Pending Plan</span>`
+                : `<span class="badge" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; font-weight: 700; font-size: 0.7rem; margin-top: 3px; display: inline-flex; align-items: center; gap: 0.25rem;"><i class="fas fa-ban"></i> Rejected</span>`);
+
+        const modules = Array.isArray(u.selected_modules) ? u.selected_modules : ['s138'];
+        const moduleBadges = modules.slice(0, 3).map(m => {
+            const conf = moduleConfig[m] || { label: m, bg: 'rgba(56, 189, 248, 0.12)', color: '#0284c7', icon: 'fa-bolt' };
+            return `
+                <span class="admin-module-badge" style="background: ${conf.bg}; color: ${conf.color};">
+                    <i class="fas ${conf.icon}" style="font-size: 0.65rem;"></i> ${conf.label}
+                </span>
+            `;
+        }).join('') + (modules.length > 3 ? `<span style="font-size: 0.7rem; color: var(--gray-500); font-weight: 700; margin-left: 2px;">+${modules.length - 3}</span>` : '');
+
+        const priceText = u.monthly_price_inr ? `₹${Number(u.monthly_price_inr).toLocaleString('en-IN')}/mo` : '₹500/mo';
+        const createdDate = u.created_at ? new Date(u.created_at).toLocaleDateString() : '';
 
         return `
             <tr id="adminRow_${u.user_id}">
                 <td>
-                    <div style="font-weight: 700; color: var(--gray-900);">${u.email || 'Anonymous Litigator'}</div>
-                    <div style="font-size: 0.75rem; color: var(--gray-400); font-family: monospace;">${u.user_id}</div>
+                    <div class="admin-user-cell">
+                        <div class="admin-avatar-bubble" style="background: ${avatarBg};">
+                            ${initials}
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; color: var(--gray-900); font-size: 0.88rem; display: flex; align-items: center; gap: 0.35rem;">
+                                <span>${email}</span>
+                                <span class="admin-copy-chip" onclick="window.copyToClipboard('${email}', 'Email')" title="Copy Email" style="font-size: 0.75rem; color: var(--gray-400);">
+                                    <i class="fas fa-copy"></i>
+                                </span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.35rem; margin-top: 2px;">
+                                <span style="font-size: 0.72rem; color: var(--gray-400); font-family: monospace;" title="Litigator UID">${u.user_id}</span>
+                                <span class="admin-copy-chip" onclick="window.copyToClipboard('${u.user_id}', 'User ID')" title="Copy User ID" style="font-size: 0.68rem; color: var(--gray-400);">
+                                    <i class="fas fa-copy"></i>
+                                </span>
+                            </div>
+                            ${createdDate ? `<div style="font-size: 0.68rem; color: var(--gray-400); margin-top: 1px;"><i class="fas fa-calendar-day" style="font-size: 0.62rem;"></i> Joined: ${createdDate}</div>` : ''}
+                        </div>
+                    </div>
                 </td>
                 <td>
-                    <select id="adminRole_${u.user_id}" style="padding: 0.3rem 0.6rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--gray-50); font-size: 0.8rem; font-weight: 600; color: var(--gray-800);">
-                        <option value="law_firm" ${u.role === 'law_firm' ? 'selected' : ''}>Law Firm</option>
-                        <option value="enterprise" ${u.role === 'enterprise' ? 'selected' : ''}>Enterprise / Corporate</option>
+                    <select id="adminRole_${u.user_id}" style="padding: 0.35rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--gray-50); font-size: 0.8rem; font-weight: 700; color: var(--gray-800); width: 100%;">
+                        <option value="law_firm" ${u.role === 'law_firm' ? 'selected' : ''}>Law Firm / Chamber</option>
+                        <option value="enterprise" ${u.role === 'enterprise' ? 'selected' : ''}>Enterprise Legal</option>
                         <option value="citizen" ${u.role === 'citizen' ? 'selected' : ''}>Independent Litigator</option>
                         <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>System Administrator</option>
                     </select>
+                    <div>${planStatusBadge}</div>
                 </td>
                 <td>
-                    <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.3rem;">
-                        <input type="number" id="adminLimit_${u.user_id}" value="${u.monthly_report_limit}" style="width: 70px; padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 700; text-align: center;">
-                        <span style="font-size: 0.75rem; color: var(--gray-500);">reports/mo</span>
+                    <div style="display: flex; flex-wrap: wrap; gap: 2px; margin-bottom: 3px;">${moduleBadges}</div>
+                    <div style="font-size: 0.76rem; font-weight: 800; color: #4f46e5;">${priceText}</div>
+                </td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem;">
+                        <input type="number" id="adminLimit_${u.user_id}" value="${u.monthly_report_limit}" style="width: 65px; padding: 0.25rem 0.4rem; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 800; text-align: center; color: var(--gray-900);">
+                        <span style="font-size: 0.72rem; color: var(--gray-500); font-weight: 600;">reports/mo</span>
                     </div>
-                    <div style="display: flex; gap: 0.25rem;">
+                    <div style="display: flex; gap: 0.2rem;">
                         <button class="quota-preset-btn" onclick="window.setQuotaPreset('${u.user_id}', 10)">10</button>
                         <button class="quota-preset-btn" onclick="window.setQuotaPreset('${u.user_id}', 25)">25</button>
                         <button class="quota-preset-btn" onclick="window.setQuotaPreset('${u.user_id}', 50)">50</button>
                         <button class="quota-preset-btn" onclick="window.setQuotaPreset('${u.user_id}', 100)">100</button>
-                        <button class="quota-preset-btn" onclick="window.setQuotaPreset('${u.user_id}', -1)" title="Unlimited">∞</button>
+                        <button class="quota-preset-btn" onclick="window.setQuotaPreset('${u.user_id}', -1)" title="Unlimited Allowance">∞</button>
                     </div>
                 </td>
                 <td>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; color: var(--gray-800);">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.76rem; font-weight: 700; color: var(--gray-800); margin-bottom: 2px;">
                         <span>${used} used</span>
-                        <span>/ ${limit}</span>
+                        <span style="color: ${isWarning ? '#ef4444' : 'var(--gray-500)'};">${remaining} left</span>
                     </div>
-                    <div class="quota-progress-track">
+                    <div class="quota-progress-track" title="${pct}% of monthly quota consumed">
                         <div class="quota-progress-fill ${isWarning ? 'warning' : ''}" style="width: ${pct}%;"></div>
                     </div>
                 </td>
@@ -3508,14 +3636,17 @@ window.renderAdminUsersTable = (users) => {
                     ${statusBadge}
                 </td>
                 <td style="text-align: right;">
-                    <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                        <button class="btn btn-sm btn-primary" onclick="window.saveUserQuota('${u.user_id}', '${u.email || ''}')" title="Save Allocation Changes" style="padding: 0.3rem 0.6rem; font-size: 0.78rem;">
+                    <div style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                        <button class="btn btn-sm btn-primary" onclick="window.saveUserQuota('${u.user_id}', '${u.email || ''}')" title="Save Allocation Changes" style="padding: 0.3rem 0.55rem; font-size: 0.78rem;">
                             <i class="fas fa-check"></i> Save
                         </button>
-                        <button class="btn btn-sm btn-outline" onclick="window.resetUserUsage('${u.user_id}')" title="Reset Monthly Usage" style="padding: 0.3rem 0.55rem; font-size: 0.78rem;">
-                            <i class="fas fa-arrow-rotate-left"></i> Reset
+                        <button class="btn btn-sm btn-outline" onclick="window.openUserDetailsModal('${u.user_id}')" title="View Full Litigator Dossier" style="padding: 0.3rem 0.55rem; font-size: 0.78rem; color: #4f46e5; border-color: rgba(79,70,229,0.4);">
+                            <i class="fas fa-id-card"></i>
                         </button>
-                        <button class="btn btn-sm ${u.is_active ? 'btn-danger' : 'btn-secondary'}" onclick="window.toggleUserStatus('${u.user_id}', ${u.is_active})" title="${u.is_active ? 'Suspend Account' : 'Activate Account'}" style="padding: 0.3rem 0.55rem; font-size: 0.78rem;">
+                        <button class="btn btn-sm btn-outline" onclick="window.resetUserUsage('${u.user_id}')" title="Reset Monthly Usage Counter" style="padding: 0.3rem 0.45rem; font-size: 0.78rem;">
+                            <i class="fas fa-arrow-rotate-left"></i>
+                        </button>
+                        <button class="btn btn-sm ${u.is_active ? 'btn-danger' : 'btn-secondary'}" onclick="window.toggleUserStatus('${u.user_id}', ${u.is_active})" title="${u.is_active ? 'Suspend Account' : 'Activate Account'}" style="padding: 0.3rem 0.45rem; font-size: 0.78rem;">
                             <i class="fas ${u.is_active ? 'fa-ban' : 'fa-check-circle'}"></i>
                         </button>
                     </div>
@@ -3523,6 +3654,101 @@ window.renderAdminUsersTable = (users) => {
             </tr>
         `;
     }).join('');
+};
+
+
+window.openUserDetailsModal = (userId) => {
+    const user = (adminCachedUsers || []).find(u => u.user_id === userId);
+    if (!user) return;
+
+    const modal = document.getElementById('adminAccountDetailsModal');
+    if (!modal) return;
+
+    const moduleDetails = {
+        's138': { title: 'Section 138 NI Act Cheque Dishonour Engine', desc: 'Statutory 30-day notice verification, 15-day cure window, S.141 director vicarious liability, signature & part-payment defenses.' },
+        'sarfaesi': { title: 'SARFAESI Act 2002 & DRT Enforcement Engine', desc: 'S.13(2) 60-day demand notices, S.13(4) possession measures, S.31(i) agricultural land immunity bars, CERSAI security interest priority.' },
+        'criminal': { title: 'Criminal Defense & Satender Kumar Antil Matrix', desc: '4-Category Supreme Court bail rubric (A/B/C/D), S.482 CrPC quashing strategy, cross-examination blueprint generator.' },
+        'civil': { title: 'Civil Litigation & Commercial Court Matrix', desc: 'Order VII Rule 11 CPC rejection of plaint, Section 12A commercial pre-institution mediation, summary suits under Order 37.' },
+        'bank_recovery': { title: 'Institutional Banking & SARB Recovery OS', desc: 'Pre-litigation recovery viability score, statutory defect auditing, loan asset reconstruction workflows.' },
+        'counsel_intel': { title: 'Neural Precedent RAG & Counsel Intel', desc: 'Vector semantic precedent retrieval, binding High Court / Supreme Court neural citation reranker.' }
+    };
+
+    const isUnlimited = user.monthly_report_limit === -1;
+    const used = user.reports_used_this_month || 0;
+    const limitStr = isUnlimited ? '∞ Unlimited' : `${user.monthly_report_limit} Reports`;
+    const remainingStr = isUnlimited ? '∞ Unlimited' : `${Math.max(0, user.monthly_report_limit - used)} Reports`;
+    const usagePct = isUnlimited ? '0%' : `${Math.min(100, Math.round((used / Math.max(1, user.monthly_report_limit)) * 100))}%`;
+
+    const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+
+    setEl('modalUserEmail', user.email || 'Anonymous Litigator');
+    setEl('modalUserIdSubtitle', user.user_id);
+    setHtml('modalUserStatusBadge', user.is_active
+        ? '<i class="fas fa-circle-check"></i> Active'
+        : '<i class="fas fa-circle-xmark"></i> Suspended');
+    const statusBadgeEl = document.getElementById('modalUserStatusBadge');
+    if (statusBadgeEl) {
+        statusBadgeEl.className = user.is_active ? 'status-badge-active' : 'status-badge-suspended';
+    }
+
+    setEl('modalUserPlanBadge', user.plan_status || 'APPROVED');
+    setEl('modalUserLimitVal', isUnlimited ? '∞' : user.monthly_report_limit);
+    setEl('modalUserUsedVal', used);
+    setEl('modalUserPeriodVal', `Cycle: ${user.current_month_period || 'Active Period'}`);
+    setEl('modalUserRemainingVal', isUnlimited ? '∞' : Math.max(0, user.monthly_report_limit - used));
+    setEl('modalUserPriceVal', `₹${Number(user.monthly_price_inr || 500).toLocaleString('en-IN')}`);
+    setEl('modalUserRoleVal', user.role ? user.role.replace('_', ' ').toUpperCase() : 'LAW FIRM');
+    setEl('modalUserUsagePct', usagePct);
+
+    const modules = Array.isArray(user.selected_modules) ? user.selected_modules : ['s138'];
+    setEl('modalUserModuleCountBadge', `${modules.length} Engine${modules.length === 1 ? '' : 's'} Active`);
+
+    const modulesHtml = modules.map(m => {
+        const info = moduleDetails[m] || { title: m.toUpperCase(), desc: 'Statutory automated litigation engine.' };
+        return `
+            <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem 1rem; width: 100%;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.25rem;">
+                    <div style="font-weight: 700; color: var(--gray-900); font-size: 0.85rem;">
+                        <i class="fas fa-check-circle" style="color: #10b981; margin-right: 0.35rem;"></i> ${info.title}
+                    </div>
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981; font-weight: 700; font-size: 0.7rem;">ENABLED</span>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--gray-500); line-height: 1.4;">${info.desc}</div>
+            </div>
+        `;
+    }).join('');
+    setHtml('modalUserModulesContainer', modulesHtml);
+
+    setEl('modalUserCreatedAt', user.created_at ? new Date(user.created_at).toLocaleString() : 'Initial Core Initialization');
+    setEl('modalUserUpdatedAt', user.updated_at ? new Date(user.updated_at).toLocaleString() : 'N/A');
+    setEl('modalUserApprovedBy', user.approved_by || (user.plan_status === 'APPROVED' ? 'System / Auto-Verified' : 'Pending Administrator Action'));
+    setEl('modalUserApprovedAt', user.approved_at ? new Date(user.approved_at).toLocaleString() : (user.plan_status === 'APPROVED' ? 'Active' : 'Pending'));
+
+    const resetBtn = document.getElementById('modalResetUsageBtn');
+    if (resetBtn) {
+        resetBtn.onclick = async () => {
+            await window.resetUserUsage(user.user_id);
+            window.closeUserDetailsModal();
+        };
+    }
+
+    const toggleBtn = document.getElementById('modalToggleStatusBtn');
+    if (toggleBtn) {
+        toggleBtn.innerHTML = user.is_active ? '<i class="fas fa-ban"></i> Suspend Account' : '<i class="fas fa-circle-check"></i> Activate Account';
+        toggleBtn.className = user.is_active ? 'btn btn-outline btn-sm' : 'btn btn-primary btn-sm';
+        toggleBtn.onclick = async () => {
+            await window.toggleUserStatus(user.user_id, user.is_active);
+            window.closeUserDetailsModal();
+        };
+    }
+
+    modal.classList.remove('hidden');
+};
+
+window.closeUserDetailsModal = () => {
+    const modal = document.getElementById('adminAccountDetailsModal');
+    if (modal) modal.classList.add('hidden');
 };
 
 window.renderAdminBankOfficersTable = (officers) => {
@@ -3562,9 +3788,10 @@ window.renderAdminBankOfficersTable = (officers) => {
                 <td>
                     <div style="font-size: 0.82rem; color: var(--gray-800); max-width: 260px;">${o.branch_name || '--'}</div>
                     <div style="font-size: 0.72rem; color: var(--gray-400);">${o.email || ''}</div>
+                    ${o.ifsc_code && o.ifsc_code !== 'N/A' ? `<div style="font-size: 0.7rem; color: #0284c7; font-family: monospace;">IFSC: ${o.ifsc_code}</div>` : ''}
                 </td>
                 <td>
-                    <select id="adminBankRole_${o.officer_id}" style="padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--gray-50); font-size: 0.78rem; font-weight: 600;">
+                    <select id="adminBankRole_${o.officer_id}" style="padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--gray-50); font-size: 0.78rem; font-weight: 600; width: 100%;">
                         <option value="bank_officer" ${o.role === 'bank_officer' ? 'selected' : ''}>Bank Officer</option>
                         <option value="sarb_manager" ${o.role === 'sarb_manager' ? 'selected' : ''}>SARB Manager</option>
                         <option value="recovery_head" ${o.role === 'recovery_head' ? 'selected' : ''}>Recovery Head</option>
@@ -3593,6 +3820,9 @@ window.renderAdminBankOfficersTable = (officers) => {
                         <button class="btn btn-sm btn-primary" onclick="window.saveBankOfficerQuota('${o.officer_id}')" title="Save Changes" style="padding: 0.3rem 0.6rem; font-size: 0.78rem; background: #0284c7;">
                             <i class="fas fa-check"></i>
                         </button>
+                        <button class="btn btn-sm btn-outline" onclick="window.openBankOfficerDetailsModal('${o.officer_id}')" title="View Full Officer Dossier" style="padding: 0.3rem 0.55rem; font-size: 0.78rem; color: #0284c7; border-color: rgba(2,132,199,0.4);">
+                            <i class="fas fa-id-card"></i>
+                        </button>
                         <button class="btn btn-sm ${o.is_active ? 'btn-danger' : 'btn-secondary'}" onclick="window.toggleBankOfficerStatus('${o.officer_id}', ${o.is_active})" title="${o.is_active ? 'Suspend Officer' : 'Activate Officer'}" style="padding: 0.3rem 0.55rem; font-size: 0.78rem;">
                             <i class="fas ${o.is_active ? 'fa-ban' : 'fa-check-circle'}"></i>
                         </button>
@@ -3601,6 +3831,53 @@ window.renderAdminBankOfficersTable = (officers) => {
             </tr>
         `;
     }).join('');
+};
+
+window.openBankOfficerDetailsModal = (officerId) => {
+    const officer = (adminCachedBankOfficers || []).find(o => o.officer_id === officerId);
+    if (!officer) return;
+
+    const modal = document.getElementById('adminBankOfficerDetailsModal');
+    if (!modal) return;
+
+    const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+
+    setEl('modalBankOfficerName', officer.name || officer.officer_id);
+    setEl('modalBankOfficerIdSubtitle', officer.officer_id);
+    setHtml('modalBankOfficerStatusBadge', officer.is_active
+        ? '<i class="fas fa-circle-check"></i> Active'
+        : '<i class="fas fa-circle-xmark"></i> Suspended');
+    const badgeEl = document.getElementById('modalBankOfficerStatusBadge');
+    if (badgeEl) {
+        badgeEl.className = officer.is_active ? 'status-badge-active' : 'status-badge-suspended';
+    }
+
+    setEl('modalBankOfficerLimitVal', officer.monthly_audit_limit === -1 ? '∞ Unlimited' : officer.monthly_audit_limit);
+    setEl('modalBankOfficerUsedVal', officer.audits_used_this_month || 0);
+    setEl('modalBankOfficerBankVal', officer.bank_name || 'Institutional Partner');
+    setEl('modalBankOfficerRoleVal', officer.role ? officer.role.replace('_', ' ').toUpperCase() : 'BANK OFFICER');
+    setEl('modalBankOfficerBranchVal', officer.branch_name || 'SARB Division');
+    setEl('modalBankOfficerEmailVal', officer.email || 'N/A');
+    setEl('modalBankOfficerIfscVal', officer.ifsc_code || 'N/A');
+    setEl('modalBankOfficerDeptVal', officer.department || 'Stressed Assets Resolution');
+
+    const toggleBtn = document.getElementById('modalBankToggleStatusBtn');
+    if (toggleBtn) {
+        toggleBtn.innerHTML = officer.is_active ? '<i class="fas fa-ban"></i> Suspend Access' : '<i class="fas fa-circle-check"></i> Activate Access';
+        toggleBtn.className = officer.is_active ? 'btn btn-outline btn-sm' : 'btn btn-primary btn-sm';
+        toggleBtn.onclick = async () => {
+            await window.toggleBankOfficerStatus(officer.officer_id, officer.is_active);
+            window.closeBankOfficerDetailsModal();
+        };
+    }
+
+    modal.classList.remove('hidden');
+};
+
+window.closeBankOfficerDetailsModal = () => {
+    const modal = document.getElementById('adminBankOfficerDetailsModal');
+    if (modal) modal.classList.add('hidden');
 };
 
 window.renderAdminBankAuditsTable = (audits) => {
@@ -3655,18 +3932,29 @@ window.filterAdminUsersTable = () => {
     const input = document.getElementById('adminUserSearchInput');
     const roleFilter = document.getElementById('adminUserRoleFilter');
     const query = (input ? input.value : '').toLowerCase().trim();
-    const selectedRole = roleFilter ? roleFilter.value : '';
+    const selectedFilter = roleFilter ? roleFilter.value : '';
 
     let filtered = adminCachedUsers || [];
     if (query) {
-        filtered = filtered.filter(u => 
-            (u.email && u.email.toLowerCase().includes(query)) ||
-            (u.user_id && u.user_id.toLowerCase().includes(query)) ||
-            (u.role && u.role.toLowerCase().includes(query))
-        );
+        filtered = filtered.filter(u => {
+            const modulesStr = Array.isArray(u.selected_modules) ? u.selected_modules.join(' ') : '';
+            return (u.email && u.email.toLowerCase().includes(query)) ||
+                (u.user_id && u.user_id.toLowerCase().includes(query)) ||
+                (u.role && u.role.toLowerCase().includes(query)) ||
+                (u.plan_status && u.plan_status.toLowerCase().includes(query)) ||
+                modulesStr.toLowerCase().includes(query);
+        });
     }
-    if (selectedRole) {
-        filtered = filtered.filter(u => u.role === selectedRole);
+    if (selectedFilter) {
+        if (selectedFilter === 'status_active') {
+            filtered = filtered.filter(u => u.is_active === true);
+        } else if (selectedFilter === 'status_suspended') {
+            filtered = filtered.filter(u => u.is_active === false);
+        } else if (selectedFilter === 'status_pending') {
+            filtered = filtered.filter(u => u.plan_status === 'PENDING_APPROVAL');
+        } else {
+            filtered = filtered.filter(u => u.role === selectedFilter);
+        }
     }
     window.renderAdminUsersTable(filtered);
 };
@@ -3682,10 +3970,13 @@ window.filterAdminBankOfficersTable = () => {
         (o.name && o.name.toLowerCase().includes(query)) ||
         (o.officer_id && o.officer_id.toLowerCase().includes(query)) ||
         (o.bank_name && o.bank_name.toLowerCase().includes(query)) ||
-        (o.branch_name && o.branch_name.toLowerCase().includes(query))
+        (o.branch_name && o.branch_name.toLowerCase().includes(query)) ||
+        (o.ifsc_code && o.ifsc_code.toLowerCase().includes(query)) ||
+        (o.department && o.department.toLowerCase().includes(query))
     );
     window.renderAdminBankOfficersTable(filtered);
 };
+
 
 window.setQuotaPreset = (userId, limit) => {
     const input = document.getElementById(`adminLimit_${userId}`);

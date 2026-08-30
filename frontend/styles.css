@@ -4702,6 +4702,102 @@ input:checked + .slider-switch:before { transform: translateX(26px); }
     font-size: 1rem;
 }
 
+/* ── Admin Filter Pills & Table Styling ── */
+.admin-filter-pills-strip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px dashed var(--border-color);
+}
+
+.admin-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.admin-filter-pill:hover {
+    color: #4f46e5;
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.08);
+}
+
+.admin-filter-pill.active {
+    background: linear-gradient(135deg, #4f46e5, #3b82f6);
+    color: #ffffff;
+    border-color: #4f46e5;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+}
+
+.admin-filter-pill .pill-count {
+    background: rgba(0, 0, 0, 0.15);
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+}
+
+.admin-filter-pill.active .pill-count {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+.admin-user-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-avatar-bubble {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: #ffffff;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.admin-copy-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.admin-copy-chip:hover {
+    color: #4f46e5 !important;
+}
+
+.admin-module-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    margin: 1px;
+}
+
+
 
 /* ============================================================================
    ENTERPRISE BANK RECOVERY OS: 5-TAB SUITE STYLES (EXECUTIVE LIGHT THEME)

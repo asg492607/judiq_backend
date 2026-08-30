@@ -168,7 +168,8 @@ def verify_admin_credentials(email: str, password: Optional[str] = None) -> bool
         if hmac.compare_digest(str(password), str(configured_pwd)):
             return True
 
-    return True
+    return False
+
 
 
 from fastapi import Depends, HTTPException, Request

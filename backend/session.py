@@ -248,6 +248,7 @@ class DatabaseManager:
             """)
             conn.commit()
             logger.info("Database, Caseroom, User Quota, and Bank Recovery tables initialized successfully.")
+            DatabaseManager._seed_initial_litigators(cursor, conn)
             DatabaseManager._seed_initial_bank_officers(cursor, conn)
         except Exception as e:
             logger.error(f"Database init failed: {e}")
@@ -1037,6 +1038,7 @@ class DatabaseManager:
         try:
             conn = DatabaseManager.get_connection()
             cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
             current_month = datetime.now().strftime("%Y-%m")
 
             cursor.execute("SELECT COUNT(*) FROM user_quotas")
@@ -1045,7 +1047,7 @@ class DatabaseManager:
             cursor.execute("SELECT COUNT(*) FROM user_quotas WHERE is_active = 1")
             active_users = cursor.fetchone()[0]
 
-            cursor.execute("SELECT SUM(reports_used_this_month) FROM user_quotas WHERE current_month_period = ?", (current_month,))
+            cursor.execute(f"SELECT SUM(reports_used_this_month) FROM user_quotas WHERE current_month_period = {p}", (current_month,))
             res = cursor.fetchone()[0]
             total_reports_this_month = int(res) if res is not None else 0
 
@@ -1055,12 +1057,16 @@ class DatabaseManager:
             cursor.execute("SELECT COUNT(*) FROM audit_logs")
             total_audit_events = cursor.fetchone()[0]
 
+            cursor.execute("SELECT COUNT(*) FROM user_quotas WHERE plan_status = 'PENDING_APPROVAL'")
+            pending_plans = cursor.fetchone()[0]
+
             return {
                 "total_users": total_users,
                 "active_users": active_users,
                 "total_reports_this_month": total_reports_this_month,
                 "total_saved_cases": total_saved_cases,
                 "total_audit_events": total_audit_events,
+                "pending_plans": pending_plans,
                 "current_period": current_month
             }
         except Exception as e:
@@ -1071,11 +1077,36 @@ class DatabaseManager:
                 "total_reports_this_month": 0,
                 "total_saved_cases": 0,
                 "total_audit_events": 0,
+                "pending_plans": 0,
                 "current_period": datetime.now().strftime("%Y-%m")
             }
         finally:
             if conn:
                 conn.close()
+
+    @staticmethod
+    def _seed_initial_litigators(cursor, conn):
+        try:
+            now_iso = datetime.now().isoformat()
+            current_month = datetime.now().strftime("%Y-%m")
+            seed_litigators = [
+                ("admin@judiq.ai", "admin@judiq.ai", "admin", -1, 4, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"]), 0.0, -1, "SYSTEM", now_iso),
+                ("gandhiatharv565@gmail.com", "gandhiatharv565@gmail.com", "admin", -1, 2, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"]), 0.0, -1, "SYSTEM", now_iso),
+                ("USR_DEL_VERMA_88", "advocate.verma@delhibar.in", "law_firm", 50, 14, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "criminal"]), 1500.0, 50, "admin@judiq.ai", now_iso),
+                ("USR_MUM_TATA_CORP", "corp.legal@tatacapital.com", "enterprise", 100, 42, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "criminal", "civil", "bank_recovery"]), 2500.0, 100, "admin@judiq.ai", now_iso),
+                ("USR_BOM_MEHTA_HC", "counsel.mehta@bombayhc.in", "citizen", 25, 6, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "civil"]), 1000.0, 25, "admin@judiq.ai", now_iso),
+                ("USR_PUN_SINGH_SOL", "contact@singhpartners.in", "law_firm", 75, 19, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "bank_recovery"]), 1500.0, 75, "admin@judiq.ai", now_iso),
+                ("USR_BLR_KAPOOR_LAW", "verma.associates@lawfirm.in", "law_firm", 20, 0, current_month, 0, now_iso, now_iso, "PENDING_APPROVAL", json.dumps(["s138", "sarfaesi"]), 1000.0, 20, "", "")
+            ]
+            for lit in seed_litigators:
+                cursor.execute("""
+                    INSERT OR IGNORE INTO user_quotas
+                    (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota, approved_by, approved_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, lit)
+            conn.commit()
+        except Exception as e:
+            logger.warning(f"Seed litigators skipped or failed: {e}")
 
     @staticmethod
     def _seed_initial_bank_officers(cursor, conn):
@@ -1185,11 +1216,11 @@ class DatabaseManager:
             conn = DatabaseManager.get_connection()
             cursor = conn.cursor()
             current_month = datetime.now().strftime("%Y-%m")
-            cursor.execute("SELECT officer_id, name, bank_name, branch_name, role, email, monthly_audit_limit, audits_used_this_month, current_month_period, is_active, created_at FROM bank_officers ORDER BY created_at DESC")
+            cursor.execute("SELECT officer_id, name, bank_name, branch_name, role, email, monthly_audit_limit, audits_used_this_month, current_month_period, is_active, created_at, ifsc_code, department FROM bank_officers ORDER BY created_at DESC")
             rows = cursor.fetchall()
             officers = []
             for r in rows:
-                off_id, name, bank, branch, role, email, limit_val, used_val, period, is_active, created = r
+                off_id, name, bank, branch, role, email, limit_val, used_val, period, is_active, created, ifsc, dept = r
                 if period != current_month:
                     used_val = 0
                 rem = -1 if limit_val == -1 else max(0, limit_val - used_val)
@@ -1205,7 +1236,9 @@ class DatabaseManager:
                     "current_month_period": current_month,
                     "is_active": bool(is_active),
                     "remaining_audits": rem,
-                    "created_at": created
+                    "created_at": created,
+                    "ifsc_code": ifsc or "N/A",
+                    "department": dept or "SARB / Recovery"
                 })
             return officers
         except Exception as e:

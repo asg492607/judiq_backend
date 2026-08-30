@@ -2527,28 +2527,58 @@
                     <div class="admin-users-panel">
                         
                         <!-- Table Toolbar -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
                             <div>
                                 <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--gray-900); margin: 0 0 0.25rem 0;">Litigator Resource Allocation &amp; Access Controls</h2>
                                 <p style="font-size: 0.85rem; color: var(--gray-500); margin: 0;">Configure monthly report allocations (enter <code style="background: rgba(99,102,241,0.1); color: #4f46e5; padding: 2px 6px; border-radius: 4px; font-weight: 700;">-1</code> for Unlimited), reset monthly counters, or suspend accounts.</p>
                             </div>
-                            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
                                 <div class="search-input-wrapper" style="position: relative;">
                                     <i class="fas fa-search" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--gray-400); font-size: 0.85rem;"></i>
-                                    <input type="text" id="adminUserSearchInput" placeholder="Filter by email or User ID..." oninput="filterAdminUsersTable()" style="padding: 0.55rem 1rem 0.55rem 2.2rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--gray-800); font-size: 0.85rem; width: 260px; outline: none;">
+                                    <input type="text" id="adminUserSearchInput" placeholder="Filter by email, ID, role or module..." oninput="filterAdminUsersTable()" style="padding: 0.55rem 1rem 0.55rem 2.2rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--gray-800); font-size: 0.85rem; width: 270px; outline: none;">
                                 </div>
                                 <select id="adminUserRoleFilter" onchange="filterAdminUsersTable()" style="padding: 0.55rem 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--gray-800); font-size: 0.85rem; outline: none; font-weight: 600;">
-                                    <option value="">All Roles / Plans</option>
-                                    <option value="law_firm">Law Firm</option>
-                                    <option value="enterprise">Enterprise</option>
+                                    <option value="">All Roles &amp; Status</option>
+                                    <option value="law_firm">Law Firm / Chamber</option>
+                                    <option value="enterprise">Enterprise Legal Cell</option>
                                     <option value="citizen">Independent Litigator</option>
-                                    <option value="admin">Administrator</option>
+                                    <option value="admin">System Administrator</option>
+                                    <option value="status_active">Status: Active Only</option>
+                                    <option value="status_suspended">Status: Suspended Only</option>
+                                    <option value="status_pending">Status: Pending Plan Approval</option>
                                 </select>
+                                <button class="btn btn-sm btn-outline" onclick="window.exportAdminUsers('json')" title="Export Accounts JSON" style="display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700;">
+                                    <i class="fas fa-file-export"></i> <span>Export</span>
+                                </button>
                                 <button class="btn btn-sm btn-primary" onclick="openCreateLitigatorModal()" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700;">
-                                    <i class="fas fa-user-plus"></i> <span>Add Litigator Account</span>
+                                    <i class="fas fa-user-plus"></i> <span>Add Litigator</span>
                                 </button>
                             </div>
                         </div>
+
+                        <!-- 1-Click Quick Filter Pills Strip -->
+                        <div class="admin-filter-pills-strip">
+                            <span style="font-size: 0.75rem; font-weight: 800; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 0.25rem;">Quick Filter:</span>
+                            <button class="admin-filter-pill active" id="filterPillAll" onclick="window.setQuickFilter('')">
+                                All Accounts <span class="pill-count" id="pillCountAll">0</span>
+                            </button>
+                            <button class="admin-filter-pill" id="filterPillLawFirm" onclick="window.setQuickFilter('law_firm')">
+                                <i class="fas fa-building-user" style="font-size: 0.72rem;"></i> Law Firms <span class="pill-count" id="pillCountLawFirm">0</span>
+                            </button>
+                            <button class="admin-filter-pill" id="filterPillEnterprise" onclick="window.setQuickFilter('enterprise')">
+                                <i class="fas fa-building" style="font-size: 0.72rem;"></i> Enterprise <span class="pill-count" id="pillCountEnterprise">0</span>
+                            </button>
+                            <button class="admin-filter-pill" id="filterPillCitizen" onclick="window.setQuickFilter('citizen')">
+                                <i class="fas fa-user" style="font-size: 0.72rem;"></i> Independent <span class="pill-count" id="pillCountCitizen">0</span>
+                            </button>
+                            <button class="admin-filter-pill" id="filterPillPending" onclick="window.setQuickFilter('status_pending')">
+                                <i class="fas fa-hourglass-half" style="font-size: 0.72rem; color: #f59e0b;"></i> Pending Approvals <span class="pill-count" id="pillCountPending">0</span>
+                            </button>
+                            <button class="admin-filter-pill" id="filterPillSuspended" onclick="window.setQuickFilter('status_suspended')">
+                                <i class="fas fa-ban" style="font-size: 0.72rem; color: #f43f5e;"></i> Suspended <span class="pill-count" id="pillCountSuspended">0</span>
+                            </button>
+                        </div>
+
 
                         <!-- Responsive Table Container -->
                         <div style="overflow-x: auto;">
@@ -2556,16 +2586,17 @@
                                 <thead>
                                     <tr style="background: var(--gray-50); color: var(--gray-700); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; text-align: left;">
                                         <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); border-top-left-radius: 8px;">Litigator Identity</th>
-                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Role / Plan</th>
-                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 230px;">Monthly Allocation</th>
-                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 190px;">Usage Progress</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Role &amp; Plan Tier</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Subscribed Engines</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 210px;">Monthly Allocation</th>
+                                        <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); width: 170px;">Usage Progress</th>
                                         <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color);">Status</th>
                                         <th style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); text-align: right; border-top-right-radius: 8px;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="adminUsersTableBody">
                                     <tr>
-                                        <td colspan="6" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
+                                        <td colspan="7" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
                                             <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i> Loading litigator accounts...
                                         </td>
                                     </tr>
@@ -3152,6 +3183,226 @@
                 </div>
             </div>
         </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- LITIGATOR FULL ACCOUNT DOSSIER MODAL (ADMIN VIEW) -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div id="adminAccountDetailsModal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(7, 11, 20, 0.88); backdrop-filter: blur(14px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 1.5rem;">
+            <div class="modal-container" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-2xl); width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-2xl); position: relative;">
+                
+                <!-- Modal Header -->
+                <div class="modal-header" style="background: linear-gradient(135deg, #1e1b4b, #312e81, #1e293b); color: #ffffff; padding: 1.75rem 2rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, #4f46e5, #3b82f6); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                <h3 id="modalUserEmail" style="margin: 0; font-size: 1.3rem; font-weight: 800; color: #ffffff;">advocate@vermalaw.in</h3>
+                                <span id="modalUserStatusBadge" class="status-badge-active"><i class="fas fa-circle-check"></i> Active</span>
+                                <span id="modalUserPlanBadge" class="badge" style="background: rgba(56,189,248,0.2); color: #38bdf8; font-weight: 800; border: 1px solid rgba(56,189,248,0.4); font-size: 0.72rem;">APPROVED</span>
+                            </div>
+                            <p id="modalUserIdSubtitle" style="margin: 0.3rem 0 0; font-size: 0.8rem; color: #94a3b8; font-family: monospace;">USR_DEL_VERMA_88</p>
+                        </div>
+                    </div>
+                    <button onclick="window.closeUserDetailsModal()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; width: 34px; height: 34px; color: #ffffff; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">&times;</button>
+                </div>
+
+                <div class="modal-body" style="padding: 1.75rem 2rem;">
+                    
+                    <!-- 6-Metric Quota & Economic Telemetry Grid -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                        
+                        <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.9rem 1rem;">
+                            <div style="font-size: 0.75rem; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Monthly Allocation</div>
+                            <div id="modalUserLimitVal" style="font-size: 1.4rem; font-weight: 800; color: var(--gray-900); margin-top: 0.2rem;">50</div>
+                            <div style="font-size: 0.72rem; color: var(--gray-400);">Reports / 30-Day Cycle</div>
+                        </div>
+
+                        <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.9rem 1rem;">
+                            <div style="font-size: 0.75rem; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Reports Consumed</div>
+                            <div id="modalUserUsedVal" style="font-size: 1.4rem; font-weight: 800; color: #f59e0b; margin-top: 0.2rem;">14</div>
+                            <div id="modalUserPeriodVal" style="font-size: 0.72rem; color: var(--gray-400);">Cycle: 2026-08</div>
+                        </div>
+
+                        <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.9rem 1rem;">
+                            <div style="font-size: 0.75rem; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Remaining Quota</div>
+                            <div id="modalUserRemainingVal" style="font-size: 1.4rem; font-weight: 800; color: #10b981; margin-top: 0.2rem;">36</div>
+                            <div style="font-size: 0.72rem; color: var(--gray-400);">Available Immediately</div>
+                        </div>
+
+                        <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.9rem 1rem;">
+                            <div style="font-size: 0.75rem; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Monthly Pricing</div>
+                            <div id="modalUserPriceVal" style="font-size: 1.4rem; font-weight: 800; color: #6366f1; margin-top: 0.2rem;">₹1,500</div>
+                            <div style="font-size: 0.72rem; color: var(--gray-400);">INR / Month (Billed)</div>
+                        </div>
+
+                        <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.9rem 1rem;">
+                            <div style="font-size: 0.75rem; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Account Designation</div>
+                            <div id="modalUserRoleVal" style="font-size: 1.15rem; font-weight: 800; color: var(--gray-900); margin-top: 0.35rem;">Law Firm</div>
+                            <div style="font-size: 0.72rem; color: var(--gray-400);">Privilege Tier</div>
+                        </div>
+
+                        <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.9rem 1rem;">
+                            <div style="font-size: 0.75rem; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Usage Capacity</div>
+                            <div id="modalUserUsagePct" style="font-size: 1.4rem; font-weight: 800; color: var(--gray-900); margin-top: 0.2rem;">28%</div>
+                            <div style="font-size: 0.72rem; color: #10b981; font-weight: 700;">Within Safe Quota</div>
+                        </div>
+
+                    </div>
+
+                    <!-- Subscribed Modular Legal Engines -->
+                    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 14px; padding: 1.25rem; margin-bottom: 1.5rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem;">
+                            <div style="font-size: 0.88rem; font-weight: 800; color: var(--gray-900);">
+                                <i class="fas fa-cubes-stacked" style="color: #38bdf8; margin-right: 0.4rem;"></i> Subscribed Modular AI Engines
+                            </div>
+                            <span id="modalUserModuleCountBadge" class="badge" style="background: rgba(99,102,241,0.12); color: #6366f1; font-weight: 700;">3 Engines Active</span>
+                        </div>
+                        <div id="modalUserModulesContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Account Governance & Timestamp Ledger -->
+                    <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: 14px; padding: 1.25rem; margin-bottom: 1.75rem; font-size: 0.83rem;">
+                        <div style="font-size: 0.85rem; font-weight: 800; color: var(--gray-900); margin-bottom: 0.75rem;">
+                            <i class="fas fa-fingerprint" style="color: #10b981; margin-right: 0.4rem;"></i> Cryptographic Audit &amp; Registration Metadata
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                            <div>
+                                <span style="color: var(--gray-500);">Account Registration:</span>
+                                <div id="modalUserCreatedAt" style="font-weight: 700; color: var(--gray-800); margin-top: 2px;">--</div>
+                            </div>
+                            <div>
+                                <span style="color: var(--gray-500);">Last Activity / Update:</span>
+                                <div id="modalUserUpdatedAt" style="font-weight: 700; color: var(--gray-800); margin-top: 2px;">--</div>
+                            </div>
+                            <div>
+                                <span style="color: var(--gray-500);">Plan Approved By:</span>
+                                <div id="modalUserApprovedBy" style="font-weight: 700; color: var(--gray-800); margin-top: 2px;">--</div>
+                            </div>
+                            <div>
+                                <span style="color: var(--gray-500);">Plan Approved Timestamp:</span>
+                                <div id="modalUserApprovedAt" style="font-weight: 700; color: var(--gray-800); margin-top: 2px;">--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- In-Modal Fast Admin Actions -->
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button id="modalResetUsageBtn" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700;">
+                                <i class="fas fa-arrow-rotate-left"></i> Reset Month Counter
+                            </button>
+                            <button id="modalToggleStatusBtn" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700;">
+                                <i class="fas fa-ban"></i> Suspend Account
+                            </button>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="window.closeUserDetailsModal()">Close Dossier</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- BANK OFFICER FULL ACCOUNT DOSSIER MODAL (ADMIN VIEW) -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div id="adminBankOfficerDetailsModal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(7, 11, 20, 0.88); backdrop-filter: blur(14px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 1.5rem;">
+            <div class="modal-container" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-2xl); width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-2xl);">
+                
+                <!-- Modal Header -->
+                <div class="modal-header" style="background: linear-gradient(135deg, #0c4a6e, #0369a1, #0f172a); color: #ffffff; padding: 1.75rem 2rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);">
+                            <i class="fas fa-building-columns"></i>
+                        </div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                <h3 id="modalBankOfficerName" style="margin: 0; font-size: 1.3rem; font-weight: 800; color: #ffffff;">Rajesh Nambiar</h3>
+                                <span id="modalBankOfficerStatusBadge" class="status-badge-active"><i class="fas fa-circle-check"></i> Active</span>
+                            </div>
+                            <p id="modalBankOfficerIdSubtitle" style="margin: 0.3rem 0 0; font-size: 0.8rem; color: #7dd3fc; font-family: monospace;">OFFICER_SARB_842</p>
+                        </div>
+                    </div>
+                    <button onclick="window.closeBankOfficerDetailsModal()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; width: 34px; height: 34px; color: #ffffff; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">&times;</button>
+                </div>
+
+                <div class="modal-body" style="padding: 1.75rem 2rem;">
+                    
+                    <!-- 4-Metric Quota & Audit Telemetry Grid -->
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                        
+                        <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem;">
+                            <div style="font-size: 0.75rem; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Monthly Audit Allocation</div>
+                            <div id="modalBankOfficerLimitVal" style="font-size: 1.5rem; font-weight: 800; color: var(--gray-900); margin-top: 0.2rem;">250</div>
+                            <div style="font-size: 0.72rem; color: var(--gray-400);">Audits / 30-Day Cycle</div>
+                        </div>
+
+                        <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem;">
+                            <div style="font-size: 0.75rem; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Audits Executed This Month</div>
+                            <div id="modalBankOfficerUsedVal" style="font-size: 1.5rem; font-weight: 800; color: #0284c7; margin-top: 0.2rem;">18</div>
+                            <div style="font-size: 0.72rem; color: var(--gray-400);">Deterministic SARB Evaluations</div>
+                        </div>
+
+                        <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem;">
+                            <div style="font-size: 0.75rem; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Institutional Bank Partner</div>
+                            <div id="modalBankOfficerBankVal" style="font-size: 1.15rem; font-weight: 800; color: var(--gray-900); margin-top: 0.35rem;">State Bank of India</div>
+                            <div style="font-size: 0.72rem; color: var(--gray-400);">Scheduled Commercial Bank</div>
+                        </div>
+
+                        <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem;">
+                            <div style="font-size: 0.75rem; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">Role &amp; Jurisdiction</div>
+                            <div id="modalBankOfficerRoleVal" style="font-size: 1.15rem; font-weight: 800; color: #0284c7; margin-top: 0.35rem;">SARB Manager</div>
+                            <div style="font-size: 0.72rem; color: var(--gray-400);">Recovery Cell Head</div>
+                        </div>
+
+                    </div>
+
+                    <!-- Branch, IFSC & Contact Dossier -->
+                    <div style="background: var(--gray-50); border: 1px solid var(--border-color); border-radius: 14px; padding: 1.25rem; margin-bottom: 1.75rem; font-size: 0.85rem;">
+                        <div style="font-size: 0.88rem; font-weight: 800; color: var(--gray-900); margin-bottom: 0.75rem;">
+                            <i class="fas fa-location-dot" style="color: #0284c7; margin-right: 0.4rem;"></i> Branch &amp; Institutional Assignment
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                            <div>
+                                <span style="color: var(--gray-500);">Branch Cell Name:</span>
+                                <div id="modalBankOfficerBranchVal" style="font-weight: 700; color: var(--gray-800); margin-top: 2px;">--</div>
+                            </div>
+                            <div>
+                                <span style="color: var(--gray-500);">Institutional Work Email:</span>
+                                <div id="modalBankOfficerEmailVal" style="font-weight: 700; color: var(--gray-800); margin-top: 2px;">--</div>
+                            </div>
+                            <div>
+                                <span style="color: var(--gray-500);">IFSC / Branch Code:</span>
+                                <div id="modalBankOfficerIfscVal" style="font-weight: 700; color: var(--gray-800); margin-top: 2px;">--</div>
+                            </div>
+                            <div>
+                                <span style="color: var(--gray-500);">Division / Department:</span>
+                                <div id="modalBankOfficerDeptVal" style="font-weight: 700; color: var(--gray-800); margin-top: 2px;">--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- In-Modal Action Strip -->
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                        <div>
+                            <button id="modalBankToggleStatusBtn" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700;">
+                                <i class="fas fa-ban"></i> Suspend Access
+                            </button>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="window.closeBankOfficerDetailsModal()">Close Dossier</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
 
 
         <!-- ═══════════════════════════════════════════════════════════════ -->
