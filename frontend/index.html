@@ -4845,6 +4845,163 @@
         </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: TERMS OF SERVICE & CONDITIONS (COURT-READY & STATUTORY) -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div id="termsConditionsModal" class="modal-overlay legal-modal hidden" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px); z-index: 999999; display: flex; align-items: center; justify-content: center; padding: 1.5rem;">
+        <div class="modal-card" style="background: var(--bg-card, #ffffff); border-radius: 1rem; max-width: 800px; width: 100%; max-height: 88vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); border: 1px solid var(--border-color, #e2e8f0); overflow: hidden;">
+            <div style="padding: 1.25rem 1.75rem; background: linear-gradient(135deg, #0f172a, #1e293b); color: white; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <i class="fas fa-file-contract" style="color: #38bdf8; font-size: 1.3rem;"></i>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; font-family: 'Outfit', sans-serif;">JUDIQ AI — TERMS OF SERVICE & SUBSCRIPTION CONDITIONS</h3>
+                        <span style="font-size: 0.75rem; color: #94a3b8;">Effective Version 12.6 | Statutory Framework: IT Act 2000, Advocates Act 1961 & DPDP Act 2023</span>
+                    </div>
+                </div>
+                <button type="button" onclick="window.closeLegalModal('termsConditionsModal')" style="background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div style="padding: 1.75rem; overflow-y: auto; flex: 1; font-size: 0.88rem; line-height: 1.6; color: var(--gray-800);">
+                <div style="background: rgba(59, 130, 246, 0.08); border-left: 4px solid #2563eb; padding: 0.85rem 1rem; border-radius: 0.4rem; margin-bottom: 1.25rem; font-weight: 600; color: #1e3a8a;">
+                    IMPORTANT: By creating an account, running legal analysis, or generating court drafts on JudiQ AI, you agree to be bound by these Terms of Service.
+                </div>
+
+                <h4 style="font-size: 1rem; color: #0f172a; margin-top: 1rem; margin-bottom: 0.4rem; font-weight: 700;">1. Nature of Platform & Non-Advocate Regulatory Classification</h4>
+                <p>
+                    JudiQ AI is an advanced algorithmic litigation intelligence, statutory audit, and decision-support software platform operated under Section 79 of the Information Technology Act, 2000. JudiQ AI is <strong>not a law firm</strong> and does not provide legal representation. Use of the software does not create an advocate-client relationship as governed by the <em>Advocates Act, 1961</em> or Bar Council of India regulations.
+                </p>
+
+                <h4 style="font-size: 1rem; color: #0f172a; margin-top: 1rem; margin-bottom: 0.4rem; font-weight: 700;">2. Automated Statutory Legal Analysis Engines</h4>
+                <p>
+                    The platform provides analytical evaluation across specialized Indian statutory domains including:
+                    <ul>
+                        <li><strong>Section 138/141/142 Negotiable Instruments Act, 1881:</strong> Limitation computing, cheque dishonour tracking, and statutory notice verification.</li>
+                        <li><strong>SARFAESI Act, 2002 & DRT Framework:</strong> Section 13(2), 13(4) statutory notices, DM/CMM Section 14 petition auditing, and OTS evaluation.</li>
+                        <li><strong>Criminal Litigation (BNS 2023 / IPC & BNSS 2023 / CrPC):</strong> Bail viability, Bhajan Lal quashing grounds, and Section 65B BSA electronic evidence verification.</li>
+                        <li><strong>Commercial & Civil Litigation (CPC 1908):</strong> Order XXXVII summary suits, Order VII Rule 11 rejection of plaints, and pre-institution mediation audits.</li>
+                    </ul>
+                </p>
+
+                <h4 style="font-size: 1rem; color: #0f172a; margin-top: 1rem; margin-bottom: 0.4rem; font-weight: 700;">3. Case Versioning, Snapshot Archiving & Advocate Work-Product</h4>
+                <p>
+                    All case intake records, evidentiary attachments, versioned snapshots (`v1`, `v2`, `v3`...), and strategy memos saved by licensed practitioners remain the exclusive intellectual property and confidential work-product of the subscribing advocate/firm. Data is encrypted using AES-256 military-grade standards and replicated in private Firestore cloud vaults.
+                </p>
+
+                <h4 style="font-size: 1rem; color: #0f172a; margin-top: 1rem; margin-bottom: 0.4rem; font-weight: 700;">4. Professional Vetting Requirement</h4>
+                <p>
+                    All AI-generated strategy memos, merit scores, procedural graphs, and legal drafts (complaints, notices, affidavits, rejoinders) are assistive templates. Advocates and litigants must exercise independent professional judgment, verify jurisdictional precedents, and ensure compliance before filing before any Court or Tribunal.
+                </p>
+
+                <h4 style="font-size: 1rem; color: #0f172a; margin-top: 1rem; margin-bottom: 0.4rem; font-weight: 700;">5. Subscription Plans, Pricing & Fair Use Quotas</h4>
+                <p>
+                    Modular subscriptions (S.138 Engine, SARFAESI Engine, Criminal Intelligence, Banking OS) are billed on a recurring monthly/annual basis in INR (₹). Quotas reset on a 30-day billing cycle. Custom plan alterations are subject to administrative review and approval.
+                </p>
+
+                <h4 style="font-size: 1rem; color: #0f172a; margin-top: 1rem; margin-bottom: 0.4rem; font-weight: 700;">6. Limitation of Liability</h4>
+                <p>
+                    In no event shall JudiQ AI, its developers, or affiliates be liable for any indirect, consequential, punitive, or incidental damages arising from judicial decisions, courtroom outcomes, or limitation bar consequences resulting from incorrect user evidentiary inputs.
+                </p>
+
+                <h4 style="font-size: 1rem; color: #0f172a; margin-top: 1rem; margin-bottom: 0.4rem; font-weight: 700;">7. Governing Law & Jurisdiction</h4>
+                <p>
+                    These Terms are governed by and construed under the laws of the Republic of India. Any disputes arising hereunder shall be subject to the exclusive jurisdiction of the competent Courts in New Delhi, India.
+                </p>
+            </div>
+            <div style="padding: 1rem 1.75rem; background: var(--gray-50); border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <button class="btn btn-primary" onclick="window.closeLegalModal('termsConditionsModal')">
+                    <i class="fas fa-check"></i> I Understand &amp; Agree
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: PRIVACY POLICY & DPDP ACT 2023 COMPLIANCE -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div id="privacyPolicyModal" class="modal-overlay legal-modal hidden" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px); z-index: 999999; display: flex; align-items: center; justify-content: center; padding: 1.5rem;">
+        <div class="modal-card" style="background: var(--bg-card, #ffffff); border-radius: 1rem; max-width: 780px; width: 100%; max-height: 88vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); border: 1px solid var(--border-color, #e2e8f0); overflow: hidden;">
+            <div style="padding: 1.25rem 1.75rem; background: linear-gradient(135deg, #0f172a, #1e293b); color: white; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <i class="fas fa-shield-halved" style="color: #10b981; font-size: 1.3rem;"></i>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800;">PRIVACY & DATA PROTECTION POLICY</h3>
+                        <span style="font-size: 0.75rem; color: #94a3b8;">Compliant with the Digital Personal Data Protection Act (DPDP), 2023</span>
+                    </div>
+                </div>
+                <button type="button" onclick="window.closeLegalModal('privacyPolicyModal')" style="background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div style="padding: 1.75rem; overflow-y: auto; flex: 1; font-size: 0.88rem; line-height: 1.6; color: var(--gray-800);">
+                <h4 style="font-size: 1rem; color: #0f172a; margin-top: 0; font-weight: 700;">1. Zero Data Reselling & Confidentiality</h4>
+                <p>
+                    JudiQ AI enforces a strict zero-telemetry resale policy. We do not sell, rent, monetize, or disclose litigation facts, party identities, or evidence documents to any third party or public data broker.
+                </p>
+
+                <h4 style="font-size: 1rem; color: #0f172a; margin-top: 1rem; font-weight: 700;">2. 256-Bit Vault Storage & Access Controls</h4>
+                <p>
+                    All case intake dossiers, versions, and generated drafts are secured with TLS 1.3 in-transit and AES-256 at-rest. Access is strictly partitioned by user IDs and role credentials.
+                </p>
+
+                <h4 style="font-size: 1rem; color: #0f172a; margin-top: 1rem; font-weight: 700;">3. Data Retention & Right to Complete Deletion</h4>
+                <p>
+                    Users maintain full sovereignty over their case files. You can delete individual cases, version snapshots, or entire user accounts at any time via the dashboard. Upon deletion, data is purged from active databases and cloud replicas within 24 hours.
+                </p>
+            </div>
+            <div style="padding: 1rem 1.75rem; background: var(--gray-50); border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end;">
+                <button class="btn btn-primary" onclick="window.closeLegalModal('privacyPolicyModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: STATUTORY LEGAL DISCLAIMER -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div id="disclaimerModal" class="modal-overlay legal-modal hidden" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px); z-index: 999999; display: flex; align-items: center; justify-content: center; padding: 1.5rem;">
+        <div class="modal-card" style="background: var(--bg-card, #ffffff); border-radius: 1rem; max-width: 740px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); border: 1px solid var(--border-color, #e2e8f0); overflow: hidden;">
+            <div style="padding: 1.25rem 1.75rem; background: linear-gradient(135deg, #0f172a, #1e293b); color: white; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <i class="fas fa-gavel" style="color: #f59e0b; font-size: 1.3rem;"></i>
+                    <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800;">STATUTORY LEGAL & JUDICIAL DISCLAIMER</h3>
+                </div>
+                <button type="button" onclick="window.closeLegalModal('disclaimerModal')" style="background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div style="padding: 1.75rem; overflow-y: auto; flex: 1; font-size: 0.88rem; line-height: 1.6; color: var(--gray-800);">
+                <p>
+                    The assessments, risk probabilities, merit scores, statutory limitation countdowns, and procedural graphs provided by JudiQ AI are generated through algorithmic analysis of Indian statutory laws and judicial precedents.
+                </p>
+                <p>
+                    Judicial outcomes in Indian Courts and Tribunals depend on a wide array of oral testimony, judicial discretion, High Court coordinate bench precedents, and evidentiary cross-examination. JudiQ AI scores reflect analytical probability based strictly on inputted facts and do not guarantee any specific court ruling.
+                </p>
+            </div>
+            <div style="padding: 1rem 1.75rem; background: var(--gray-50); border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end;">
+                <button class="btn btn-primary" onclick="window.closeLegalModal('disclaimerModal')">Acknowledge</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: DOCUMENTATION & SYSTEM MANUAL -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div id="documentationModal" class="modal-overlay legal-modal hidden" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px); z-index: 999999; display: flex; align-items: center; justify-content: center; padding: 1.5rem;">
+        <div class="modal-card" style="background: var(--bg-card, #ffffff); border-radius: 1rem; max-width: 800px; width: 100%; max-height: 88vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); border: 1px solid var(--border-color, #e2e8f0); overflow: hidden;">
+            <div style="padding: 1.25rem 1.75rem; background: linear-gradient(135deg, #0f172a, #1e293b); color: white; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <i class="fas fa-book-open" style="color: #38bdf8; font-size: 1.3rem;"></i>
+                    <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800;">JUDIQ AI — PLATFORM DOCUMENTATION</h3>
+                </div>
+                <button type="button" onclick="window.closeLegalModal('documentationModal')" style="background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div style="padding: 1.75rem; overflow-y: auto; flex: 1; font-size: 0.88rem; line-height: 1.6; color: var(--gray-800);">
+                <h4 style="color: #0f172a; font-weight: 700; margin-top: 0;">1. Analytical Engine Architecture</h4>
+                <p>JudiQ AI utilizes a dual-engine architecture comprising a deterministic statutory rule engine (verifying exact dates, statutory limitation periods, notice service presumptions) coupled with an adversarial litigation intelligence model that predicts opponent defence strategies and cross-examination vulnerability points.</p>
+
+                <h4 style="color: #0f172a; font-weight: 700; margin-top: 1rem;">2. Draft Studio & Court Templates</h4>
+                <p>The Draft Studio generates 13+ court-ready document formats including Legal Demand Notices (S.138), Section 142 Criminal Complaints, Section 13(2) & 13(4) SARFAESI Notices, Section 65B BSA Electronic Evidence Certificates, and Anticipatory Bail Applications.</p>
+            </div>
+            <div style="padding: 1rem 1.75rem; background: var(--gray-50); border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end;">
+                <button class="btn btn-primary" onclick="window.closeLegalModal('documentationModal')">Close Manual</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>

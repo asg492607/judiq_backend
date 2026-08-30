@@ -107,12 +107,13 @@ function setupAuthListeners() {
     if (mobileNavRegisterBtn) mobileNavRegisterBtn.addEventListener('click', () => { window.toggleMobileNav(false); window.showRegister(); });
 
     if (!auth) {
-        // Fallback for non-Firebase environment (dev/offline testing)
-        console.warn('Firebase is not available, running in offline/demo mode.');
-        const mockUser = { email: 'demo@judiq.ai', uid: 'demo_user_123' };
-        window.state.currentUser = mockUser;
-        ui.setText('userEmail', mockUser.email);
-        window.selectRole('law_firm');
+        console.info('Firebase auth service initialized in direct mode.');
+        const savedEmail = localStorage.getItem('judiq_active_user_email');
+        if (savedEmail) {
+            loginLocally(savedEmail);
+        } else {
+            switchScreen('landingScreen');
+        }
         return;
     }
 
