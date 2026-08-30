@@ -1,9 +1,9 @@
 import logging
 import time
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from config import settings
 from api_v1 import api_router
 from session import DatabaseManager
@@ -128,7 +128,6 @@ async def health_check():
 
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 
 frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
 
