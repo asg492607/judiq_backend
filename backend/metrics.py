@@ -4,8 +4,28 @@ Instruments legal engine execution, API latency, fatal defect detection, and dat
 """
 
 import time
+import logging
 from fastapi import Request, Response
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+
+logger = logging.getLogger(__name__)
+
+try:
+    from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+    PROMETHEUS_AVAILABLE = True
+except ImportError:
+    PROMETHEUS_AVAILABLE = False
+    CONTENT_TYPE_LATEST = "text/plain; version=0.0.4; charset=utf-8"
+    
+    class _DummyMetric:
+        def __init__(self, *args, **kwargs): pass
+        def labels(self, *args, **kwargs): return self
+        def inc(self, *args, **kwargs): pass
+        def observe(self, *args, **kwargs): pass
+        def set(self, *args, **kwargs): pass
+    
+    Counter = Histogram = Gauge = _DummyMetric
+    def generate_latest():
+        return b"# prometheus_client not available in runtime\n"
 
 # 1. Platform Ingress & Traffic Metrics
 JUDIQ_REQUESTS_TOTAL = Counter(
@@ -59,6 +79,7 @@ JUDIQ_KNOWLEDGE_BASE_SIZE = Gauge(
     "Total verified legal precedents indexed across all domains",
     ["domain"]
 )
+
 
 
 def record_engine_metric(engine_name: str, duration_sec: float):
