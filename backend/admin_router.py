@@ -166,6 +166,7 @@ def submit_modular_plan_request(req: PlanSubmitRequest = Body(...)):
 
 
 @router.get("/pending-plans", tags=["Admin Control"])
+@router.get("/plans/pending", tags=["Admin Control"])
 def get_pending_plans(admin: dict = Depends(require_admin)):
     """
     Returns all subscription plan requests awaiting admin approval.
@@ -175,6 +176,7 @@ def get_pending_plans(admin: dict = Depends(require_admin)):
 
 
 @router.post("/approve-plan", tags=["Admin Control"])
+@router.post("/plans/approve", tags=["Admin Control"])
 def approve_plan_request(req: PlanActionRequest = Body(...), admin: dict = Depends(require_admin)):
     """
     Admin approves a pending modular subscription plan, activating the account and unlocking full analysis and drafting quota.
@@ -193,6 +195,7 @@ def approve_plan_request(req: PlanActionRequest = Body(...), admin: dict = Depen
 
 
 @router.post("/reject-plan", tags=["Admin Control"])
+@router.post("/plans/reject", tags=["Admin Control"])
 def reject_plan_request(req: PlanActionRequest = Body(...), admin: dict = Depends(require_admin)):
     """
     Admin rejects a subscription plan request, keeping account access locked.
