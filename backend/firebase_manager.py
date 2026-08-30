@@ -348,13 +348,13 @@ class FirebaseManager:
             db = cls.get_firestore()
             if not db:
                 return []
-            versions_ref = db.collection("cases").document(case_id).collection("versions").order_by("version_num", direction=firestore.Query.DESCENDING)
+            versions_ref = db.collection("cases").document(case_id).collection("versions")
             docs = versions_ref.stream()
             versions = []
             for doc in docs:
                 data = doc.to_dict()
                 versions.append({
-                    "version_num": data.get("version_num"),
+                    "version_num": data.get("version_num", 1),
                     "version_title": data.get("version_title"),
                     "version_note": data.get("version_note"),
                     "score": data.get("score"),
@@ -362,6 +362,7 @@ class FirebaseManager:
                     "verdict": data.get("verdict"),
                     "created_at": data.get("created_at")
                 })
+            versions.sort(key=lambda x: x.get("version_num", 0), reverse=True)
             return versions
         except Exception as e:
             logger.warning(f"Failed to fetch case versions for {case_id} from Firebase: {e}")
