@@ -109,7 +109,12 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-@app.get("/health")
+@app.api_route("/ping", methods=["GET", "HEAD"], tags=["Observability"])
+async def ping():
+    return {"status": "ok", "pong": True}
+
+
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
     health_data = {"status": "healthy", "version": settings.VERSION, "timestamp": time.time()}
     try:
