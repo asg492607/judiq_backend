@@ -409,8 +409,371 @@ export const api = {
             body: JSON.stringify(payload)
         });
         try { return await response.json(); } catch (e) { throw new Error("Failed to ingest precedent."); }
+    },
+
+    // ══════════════════════════════════════════════════════════
+    // CMS — CASE MANAGEMENT API
+    // ══════════════════════════════════════════════════════════
+    async createCase(caseData) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(caseData)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to create case."); }
+    },
+
+    async listCases(filters = {}) {
+        const params = new URLSearchParams();
+        if (filters.status) params.append('status', filters.status);
+        if (filters.case_type) params.append('case_type', filters.case_type);
+        if (filters.priority) params.append('priority', filters.priority);
+        if (filters.search) params.append('search', filters.search);
+        if (filters.page) params.append('page', filters.page);
+        if (filters.limit) params.append('limit', filters.limit);
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases?${params.toString()}`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to list cases."); }
+    },
+
+    async getCaseDetail(caseId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases/${encodeURIComponent(caseId)}`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load case detail."); }
+    },
+
+    async updateCase(caseId, updates) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases/${encodeURIComponent(caseId)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to update case."); }
+    },
+
+    async updateCaseStatus(caseId, status) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases/${encodeURIComponent(caseId)}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to update status."); }
+    },
+
+    async deleteCase(caseId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases/${encodeURIComponent(caseId)}`, {
+            method: 'DELETE'
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to archive case."); }
+    },
+
+    async shareCase(caseId, userIds) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases/${encodeURIComponent(caseId)}/share`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_ids: userIds })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to share case."); }
+    },
+
+    async getCaseTimeline(caseId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases/${encodeURIComponent(caseId)}/timeline`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load timeline."); }
+    },
+
+    async analyzeCmsCase(caseId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases/${encodeURIComponent(caseId)}/analyze`, {
+            method: 'POST'
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to run case analysis."); }
+    },
+
+    // ══════════════════════════════════════════════════════════
+    // CMS — CLIENT MANAGEMENT API
+    // ══════════════════════════════════════════════════════════
+    async createClient(clientData) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/clients`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(clientData)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to create client."); }
+    },
+
+    async listClients(filters = {}) {
+        const params = new URLSearchParams();
+        if (filters.search) params.append('search', filters.search);
+        if (filters.client_type) params.append('client_type', filters.client_type);
+        if (filters.page) params.append('page', filters.page);
+        if (filters.limit) params.append('limit', filters.limit);
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/clients?${params.toString()}`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to list clients."); }
+    },
+
+    async getClientDetail(clientId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/clients/${encodeURIComponent(clientId)}`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load client detail."); }
+    },
+
+    async updateClient(clientId, updates) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/clients/${encodeURIComponent(clientId)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to update client."); }
+    },
+
+    async linkClientToCase(caseId, clientId, role = 'creditor') {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases/${encodeURIComponent(caseId)}/link-client`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ client_id: clientId, role })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to link client."); }
+    },
+
+    async unlinkClientFromCase(caseId, clientId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases/${encodeURIComponent(caseId)}/unlink-client/${encodeURIComponent(clientId)}`, {
+            method: 'DELETE'
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to unlink client."); }
+    },
+
+    // ══════════════════════════════════════════════════════════
+    // CMS — DOCUMENT MANAGEMENT API
+    // ══════════════════════════════════════════════════════════
+    async uploadCmsDocument(caseId, formData) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases/${encodeURIComponent(caseId)}/documents`, {
+            method: 'POST',
+            body: formData
+        }, 0);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to upload document."); }
+    },
+
+    async listCmsDocuments(caseId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases/${encodeURIComponent(caseId)}/documents`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to list documents."); }
+    },
+
+    async getCmsDocumentDetail(documentId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/documents/${encodeURIComponent(documentId)}`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load document."); }
+    },
+
+    async downloadCmsDocument(documentId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/documents/${encodeURIComponent(documentId)}/download`);
+        try { return await response.blob(); } catch (e) { throw new Error("Failed to download document."); }
+    },
+
+    async deleteCmsDocument(documentId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/documents/${encodeURIComponent(documentId)}`, {
+            method: 'DELETE'
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to delete document."); }
+    },
+
+    async generateS65BCert(documentId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/documents/${encodeURIComponent(documentId)}/s65b`, {
+            method: 'POST'
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to generate certificate template."); }
+    },
+
+    async certifyDocument(documentId, certPayload) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/documents/${encodeURIComponent(documentId)}/certify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(certPayload)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to certify document."); }
+    },
+
+    // ══════════════════════════════════════════════════════════
+    // CMS — DRAFT WORKFLOW API
+    // ══════════════════════════════════════════════════════════
+    async createCmsDraft(caseId, draftType = 'LEGAL_NOTICE', tone = 'standard', customContent = null) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases/${encodeURIComponent(caseId)}/drafts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ draft_type: draftType, tone, custom_content: customContent })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to create draft."); }
+    },
+
+    async listCmsDrafts(caseId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases/${encodeURIComponent(caseId)}/drafts`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to list drafts."); }
+    },
+
+    async getCmsDraftDetail(workflowId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/drafts/${encodeURIComponent(workflowId)}`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load draft detail."); }
+    },
+
+    async updateCmsDraft(workflowId, content, assignedReviewer = null) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/drafts/${encodeURIComponent(workflowId)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content, assigned_reviewer: assignedReviewer })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to update draft."); }
+    },
+
+    async submitCmsDraft(workflowId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/drafts/${encodeURIComponent(workflowId)}/submit`, {
+            method: 'POST'
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to submit draft."); }
+    },
+
+    async reviewCmsDraft(workflowId, comment, status = 'IN_REVISION') {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/drafts/${encodeURIComponent(workflowId)}/review`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment, status })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to submit review."); }
+    },
+
+    async approveCmsDraft(workflowId, note = '') {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/drafts/${encodeURIComponent(workflowId)}/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ note })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to approve draft."); }
+    },
+
+    async markCmsDraftFiled(workflowId, filedReference) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/drafts/${encodeURIComponent(workflowId)}/filed`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filed_reference: filedReference })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to mark draft as filed."); }
+    },
+
+    async exportCmsDraft(workflowId, format = 'pdf') {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/drafts/${encodeURIComponent(workflowId)}/export/${format}`);
+        try { return await response.blob(); } catch (e) { throw new Error("Failed to export draft."); }
+    },
+
+    // ══════════════════════════════════════════════════════════
+    // CMS — DEADLINE MANAGEMENT API
+    // ══════════════════════════════════════════════════════════
+    async calculateCaseDeadlines(caseId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/deadlines/cases/${encodeURIComponent(caseId)}/deadlines/calculate`, {
+            method: 'POST'
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to calculate deadlines."); }
+    },
+
+    async listCaseDeadlines(caseId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/deadlines/cases/${encodeURIComponent(caseId)}/deadlines`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to list deadlines."); }
+    },
+
+    async completeDeadline(deadlineId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/deadlines/deadlines/${encodeURIComponent(deadlineId)}/complete`, {
+            method: 'PATCH'
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to complete deadline."); }
+    },
+
+    async getUpcomingDeadlines() {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/deadlines/deadlines/upcoming`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load upcoming deadlines."); }
+    },
+
+    // ══════════════════════════════════════════════════════════
+    // CMS — TEAM MANAGEMENT API
+    // ══════════════════════════════════════════════════════════
+    async addTeamMember(memberData) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/team/members`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(memberData)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to add team member."); }
+    },
+
+    async listTeamMembers(orgId = null) {
+        const url = orgId ? `${API_BASE_URL}/api/v1/cms/team/members?org_id=${encodeURIComponent(orgId)}` : `${API_BASE_URL}/api/v1/cms/team/members`;
+        const response = await fetchWithRetry(url);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to list team members."); }
+    },
+
+    async updateTeamMember(memberId, updates) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/team/members/${encodeURIComponent(memberId)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to update team member."); }
+    },
+
+    async toggleTeamMemberStatus(memberId, isActive) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/team/members/${encodeURIComponent(memberId)}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_active: isActive })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to toggle status."); }
+    },
+
+    // ══════════════════════════════════════════════════════════
+    // CMS — COMMUNICATION & AUDIT API
+    // ══════════════════════════════════════════════════════════
+    async sendCaseNotification(caseId, subject, message, channels = ['email'], recipientEmails = null) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases/${encodeURIComponent(caseId)}/notify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subject, message, channels, recipient_emails: recipientEmails })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to dispatch notification."); }
+    },
+
+    async getCaseCommunications(caseId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases/${encodeURIComponent(caseId)}/communications`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load communications."); }
+    },
+
+    async getCaseAuditTrail(caseId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/audit/case/${encodeURIComponent(caseId)}`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load audit trail."); }
+    },
+
+    async exportAuditCsv(caseId = null, userId = null) {
+        const params = new URLSearchParams();
+        if (caseId) params.append('case_id', caseId);
+        if (userId) params.append('user_id', userId);
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/audit/export?${params.toString()}`);
+        try { return await response.blob(); } catch (e) { throw new Error("Failed to export audit CSV."); }
+    },
+
+    // ══════════════════════════════════════════════════════════
+    // CMS — REAL-TIME ANALYTICS API
+    // ══════════════════════════════════════════════════════════
+    async getCmsPortfolioStats() {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/analytics/portfolio`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load portfolio stats."); }
+    },
+
+    async getCmsCaseTypes() {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/analytics/case-types`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load case types."); }
+    },
+
+    async getCmsMonthlyTrends() {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/analytics/monthly`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load monthly trends."); }
+    },
+
+    async getCmsDeadlineHeatmap() {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/analytics/deadlines`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load deadline heatmap."); }
     }
 };
+
 
 
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com https://*.googleapis.com https://*.firebaseio.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 ws://localhost:8000 wss://* https://*; frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://*.google.com;">
@@ -9,7 +9,7 @@
     <meta property="og:title" content="JudiQ – AI Litigation Strategist">
     <meta property="og:description" content="Adversarial litigation simulation, weakness detection, and courtroom strategy for law firms and in-house counsel.">
     <!-- Stylesheet loaded first to prevent Flash of Unstyled Content (FOUC) -->
-    <link rel="stylesheet" href="styles.css?v=14">
+    <link rel="stylesheet" href="styles.css?v=19">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Error handler and i18n loaded with defer to avoid blocking HTML parsing -->
@@ -76,6 +76,9 @@
                     </button>
                 </div>
                 <div class="landing-nav">
+                    <!-- <button class="btn btn-outline hide-on-mobile cms-nav-btn" onclick="switchScreen('caseListScreen')" style="font-size: 0.82rem; padding: 0.4rem 0.85rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 0.45rem; background: rgba(99,102,241,0.15); color: #818cf8; border-color: rgba(99,102,241,0.45); font-weight: 600;">
+                        <i class="fas fa-briefcase"></i> Case Management
+                    </button> -->
                     <button class="btn btn-outline hide-on-mobile bank-nav-btn" onclick="switchScreen('bankRecoveryScreen')" style="font-size: 0.82rem; padding: 0.4rem 0.85rem; border-radius: 20px; display: inline-flex; align-items: center; gap: 0.45rem; background: rgba(14,165,233,0.15); color: #38bdf8; border-color: rgba(56,189,248,0.45); font-weight: 600;">
                         <i class="fas fa-building-columns"></i> Bank Recovery OS
                     </button>
@@ -4915,6 +4918,553 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- CMS SCREENS: CASE MANAGEMENT SYSTEM -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <!-- 1. CMS Home / Dashboard (COMMENTED OUT) -->
+    <!--
+    <section id="cmsHomeScreen" class="screen hidden">
+        <div class="cms-layout-container">
+            <aside class="cms-sidebar">
+                <div class="cms-sidebar-header">Case Management OS</div>
+                <a class="cms-nav-item active" onclick="showCmsHome()"><i class="fas fa-home"></i> Home</a>
+                <a class="cms-nav-item" onclick="showCaseList()"><i class="fas fa-briefcase"></i> Cases</a>
+                <a class="cms-nav-item" onclick="showClientList()"><i class="fas fa-users"></i> Clients</a>
+                <a class="cms-nav-item" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i> Analytics</a>
+                <a class="cms-nav-item" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
+                <div style="margin-top:auto;">
+                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Suite</a>
+                </div>
+            </aside>
+            <main class="cms-main-content">
+                <div class="cms-view-header">
+                    <div class="cms-view-title">
+                        <h2>Case Management Hub</h2>
+                        <p>End-to-end litigation tracking, client profiles, and automated compliance.</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" onclick="showCaseCreate()"><i class="fas fa-plus"></i> New Case</button>
+                        <button class="btn btn-outline" onclick="showClientCreate()"><i class="fas fa-user-plus"></i> Add Client</button>
+                    </div>
+                </div>
+
+                <div class="domain-actions-grid" style="margin-bottom: 2rem;">
+                    <div class="domain-action-card" onclick="showCaseList()">
+                        <div class="dac-icon" style="color:#6366f1;"><i class="fas fa-folder-open"></i></div>
+                        <div class="dac-title">Active Litigation Dossiers</div>
+                        <div class="dac-sub">View, filter, and manage all active court cases, NI Act matters, and SARFAESI enforcement files.</div>
+                    </div>
+                    <div class="domain-action-card" onclick="showClientList()">
+                        <div class="dac-icon" style="color:#10b981;"><i class="fas fa-address-book"></i></div>
+                        <div class="dac-title">Client & Bank Registry</div>
+                        <div class="dac-sub">Corporate clients, banking institutions, and borrower contacts with linked matters.</div>
+                    </div>
+                    <div class="domain-action-card" onclick="showCmsAnalytics()">
+                        <div class="dac-icon" style="color:#3b82f6;"><i class="fas fa-chart-pie"></i></div>
+                        <div class="dac-title">Portfolio Performance</div>
+                        <div class="dac-sub">Real-time recovery metrics, compliance scores, and statutory limitation heatmaps.</div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </section>
+    -->
+
+    <!-- 2. Case List Screen -->
+    <section id="caseListScreen" class="screen hidden">
+        <div class="cms-layout-container">
+            <aside class="cms-sidebar">
+                <div class="cms-sidebar-header">Case Management OS</div>
+                <a class="cms-nav-item" onclick="showCmsHome()"><i class="fas fa-home"></i> Home</a>
+                <a class="cms-nav-item active" onclick="showCaseList()"><i class="fas fa-briefcase"></i> Cases</a>
+                <a class="cms-nav-item" onclick="showClientList()"><i class="fas fa-users"></i> Clients</a>
+                <a class="cms-nav-item" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i> Analytics</a>
+                <a class="cms-nav-item" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
+                <div style="margin-top:auto;">
+                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Suite</a>
+                </div>
+            </aside>
+            <main class="cms-main-content">
+                <div class="cms-view-header">
+                    <div class="cms-view-title">
+                        <h2>All Cases & Matters</h2>
+                        <p>Filter, search, and monitor your entire case registry.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="showCaseCreate()"><i class="fas fa-plus"></i> New Case</button>
+                </div>
+
+                <!-- Filter & Search Controls -->
+                <div class="cms-filter-bar">
+                    <div class="cms-search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="caseSearchInput" placeholder="Search by case title, ID, or description...">
+                    </div>
+                    <div class="cms-filter-pills">
+                        <span class="cms-filter-pill active" onclick="filterCasesByStatus('all')">All</span>
+                        <span class="cms-filter-pill" onclick="filterCasesByStatus('ongoing')">Ongoing</span>
+                        <span class="cms-filter-pill" onclick="filterCasesByStatus('draft')">Drafts</span>
+                        <span class="cms-filter-pill" onclick="filterCasesByStatus('resolved')">Resolved</span>
+                    </div>
+                </div>
+
+                <div id="caseListStats" style="display:flex; gap:0.75rem; margin-bottom: 1rem;"></div>
+
+                <!-- Case Table -->
+                <div class="cms-table-wrapper">
+                    <table class="cms-table">
+                        <thead>
+                            <tr>
+                                <th>Case ID</th>
+                                <th>Matter Title</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th>Compliance</th>
+                                <th>Last Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody id="caseListTableBody">
+                            <tr><td colspan="7" class="cms-table-loading"><i class="fas fa-spinner fa-spin"></i> Loading cases...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="caseListPagination" style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem;"></div>
+            </main>
+        </div>
+    </section>
+
+    <!-- 3. Case Create Screen -->
+    <section id="caseCreateScreen" class="screen hidden">
+        <div class="cms-layout-container">
+            <aside class="cms-sidebar">
+                <div class="cms-sidebar-header">Case Management OS</div>
+                <a class="cms-nav-item" onclick="showCmsHome()"><i class="fas fa-home"></i> Home</a>
+                <a class="cms-nav-item active" onclick="showCaseList()"><i class="fas fa-briefcase"></i> Cases</a>
+                <a class="cms-nav-item" onclick="showClientList()"><i class="fas fa-users"></i> Clients</a>
+                <a class="cms-nav-item" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i> Analytics</a>
+                <a class="cms-nav-item" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
+                <div style="margin-top:auto;">
+                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Suite</a>
+                </div>
+            </aside>
+            <main class="cms-main-content">
+                <div class="cms-view-header">
+                    <div class="cms-view-title">
+                        <h2>Create New Case Dossier</h2>
+                        <p>Enter matter details to initialize automated compliance tracking.</p>
+                    </div>
+                    <button class="btn btn-outline" onclick="showCaseList()"><i class="fas fa-times"></i> Cancel</button>
+                </div>
+
+                <form id="caseCreateForm" class="cms-form-card">
+                    <div class="cms-overview-grid">
+                        <div class="cms-card">
+                            <h4><i class="fas fa-info-circle"></i> 1. Basic Matter Identity</h4>
+                            <div class="form-group">
+                                <label>Case Title / Caption *</label>
+                                <input type="text" id="ccCaseName" class="form-control" placeholder="e.g. ABC Bank v. Rajesh Kumar" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Case Type *</label>
+                                <select id="ccCaseType" class="form-control" required>
+                                    <option value="section_138">Section 138 (Cheque Bounce)</option>
+                                    <option value="sarfaesi">SARFAESI / DRT Enforcement</option>
+                                    <option value="criminal">Criminal (BNS / IPC)</option>
+                                    <option value="civil">Civil Suit / CPC Commercial</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Priority Level</label>
+                                <select id="ccPriority" class="form-control">
+                                    <option value="high">High Priority</option>
+                                    <option value="medium" selected>Medium Priority</option>
+                                    <option value="low">Low Priority</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="cms-card">
+                            <h4><i class="fas fa-users"></i> 2. Primary Parties</h4>
+                            <div class="form-group">
+                                <label>Complainant / Creditor Name</label>
+                                <input type="text" id="ccCreditorName" class="form-control" placeholder="e.g. State Bank of India">
+                            </div>
+                            <div class="form-group">
+                                <label>Accused / Borrower Name</label>
+                                <input type="text" id="ccDebtorName" class="form-control" placeholder="e.g. Ramesh Sharma">
+                            </div>
+                            <div class="form-group">
+                                <label>Designated Court / Forum</label>
+                                <input type="text" id="ccCourtName" class="form-control" placeholder="e.g. Metropolitan Magistrate, Mumbai">
+                            </div>
+                        </div>
+
+                        <div class="cms-card" style="grid-column: 1/-1;">
+                            <h4><i class="fas fa-coins"></i> 3. Financial Particulars & Key Dates</h4>
+                            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+                                <div class="form-group">
+                                    <label>Claim / Cheque Amount (₹)</label>
+                                    <input type="number" id="ccAmount" class="form-control" placeholder="e.g. 5000000">
+                                </div>
+                                <div class="form-group">
+                                    <label>Transaction / Cheque Date</label>
+                                    <input type="date" id="ccTransactionDate" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Dishonour Memo Date</label>
+                                    <input type="date" id="ccDishonourDate" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Demand Notice Date</label>
+                                    <input type="date" id="ccNoticeDate" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="cms-card" style="grid-column: 1/-1;">
+                            <h4><i class="fas fa-align-left"></i> 4. Summary & Context</h4>
+                            <div class="form-group">
+                                <label>Case Notes / Factual Background</label>
+                                <textarea id="ccDescription" class="form-control" rows="3" placeholder="Enter background facts, loan agreement numbers, collateral notes..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem;">
+                        <button type="button" class="btn btn-outline" onclick="showCaseList()">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Create Case Dossier</button>
+                    </div>
+                </form>
+            </main>
+        </div>
+    </section>
+
+    <!-- 4. Case Detail Screen -->
+    <section id="caseDetailScreen" class="screen hidden">
+        <div class="cms-layout-container">
+            <aside class="cms-sidebar">
+                <div class="cms-sidebar-header">Case Management OS</div>
+                <a class="cms-nav-item" onclick="showCmsHome()"><i class="fas fa-home"></i> Home</a>
+                <a class="cms-nav-item active" onclick="showCaseList()"><i class="fas fa-briefcase"></i> Cases</a>
+                <a class="cms-nav-item" onclick="showClientList()"><i class="fas fa-users"></i> Clients</a>
+                <a class="cms-nav-item" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i> Analytics</a>
+                <a class="cms-nav-item" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
+                <div style="margin-top:auto;">
+                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Suite</a>
+                </div>
+            </aside>
+            <main class="cms-main-content">
+                <div id="caseDetailContainer"></div>
+            </main>
+        </div>
+    </section>
+
+    <!-- 5. Client List Screen -->
+    <section id="clientListScreen" class="screen hidden">
+        <div class="cms-layout-container">
+            <aside class="cms-sidebar">
+                <div class="cms-sidebar-header">Case Management OS</div>
+                <a class="cms-nav-item" onclick="showCmsHome()"><i class="fas fa-home"></i> Home</a>
+                <a class="cms-nav-item" onclick="showCaseList()"><i class="fas fa-briefcase"></i> Cases</a>
+                <a class="cms-nav-item active" onclick="showClientList()"><i class="fas fa-users"></i> Clients</a>
+                <a class="cms-nav-item" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i> Analytics</a>
+                <a class="cms-nav-item" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
+                <div style="margin-top:auto;">
+                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Suite</a>
+                </div>
+            </aside>
+            <main class="cms-main-content">
+                <div class="cms-view-header">
+                    <div class="cms-view-title">
+                        <h2>Client & Institutional Directory</h2>
+                        <p>Manage banks, NBFCs, corporate litigants, and individuals.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="showClientCreate()"><i class="fas fa-user-plus"></i> Add Client</button>
+                </div>
+
+                <div class="cms-filter-bar">
+                    <div class="cms-search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="clientSearchInput" placeholder="Search clients by name, email, or client ID...">
+                    </div>
+                </div>
+
+                <div id="clientListGrid" class="cms-docs-grid"></div>
+            </main>
+        </div>
+    </section>
+
+    <!-- 6. Client Create Screen -->
+    <section id="clientCreateScreen" class="screen hidden">
+        <div class="cms-layout-container">
+            <aside class="cms-sidebar">
+                <div class="cms-sidebar-header">Case Management OS</div>
+                <a class="cms-nav-item" onclick="showCmsHome()"><i class="fas fa-home"></i> Home</a>
+                <a class="cms-nav-item" onclick="showCaseList()"><i class="fas fa-briefcase"></i> Cases</a>
+                <a class="cms-nav-item active" onclick="showClientList()"><i class="fas fa-users"></i> Clients</a>
+                <a class="cms-nav-item" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i> Analytics</a>
+                <a class="cms-nav-item" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
+                <div style="margin-top:auto;">
+                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Suite</a>
+                </div>
+            </aside>
+            <main class="cms-main-content">
+                <div class="cms-view-header">
+                    <div class="cms-view-title">
+                        <h2>Register Client Profile</h2>
+                        <p>Store corporate KYC, tax identifiers, and official communication channels.</p>
+                    </div>
+                    <button class="btn btn-outline" onclick="showClientList()"><i class="fas fa-times"></i> Cancel</button>
+                </div>
+
+                <form id="clientCreateForm" class="cms-form-card">
+                    <div class="cms-overview-grid">
+                        <div class="cms-card">
+                            <h4><i class="fas fa-user"></i> 1. Profile Information</h4>
+                            <div class="form-group">
+                                <label>Client / Institution Name *</label>
+                                <input type="text" id="clName" class="form-control" placeholder="e.g. HDFC Bank Ltd" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Entity Type *</label>
+                                <select id="clType" class="form-control" required>
+                                    <option value="bank">Scheduled Commercial Bank</option>
+                                    <option value="nbfc">NBFC / Financial Institution</option>
+                                    <option value="company">Corporate / Pvt Ltd Company</option>
+                                    <option value="individual">Individual / Proprietor</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Primary Legal Role</label>
+                                <select id="clRole" class="form-control">
+                                    <option value="creditor">Creditor / Complainant</option>
+                                    <option value="debtor">Debtor / Accused</option>
+                                    <option value="guarantor">Guarantor</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="cms-card">
+                            <h4><i class="fas fa-envelope"></i> 2. Contact & Tax Identifiers</h4>
+                            <div class="form-group">
+                                <label>Official Email</label>
+                                <input type="email" id="clEmail" class="form-control" placeholder="legal@institution.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone / Landline</label>
+                                <input type="text" id="clPhone" class="form-control" placeholder="+91 22 12345678">
+                            </div>
+                            <div class="form-group">
+                                <label>PAN Number</label>
+                                <input type="text" id="clPan" class="form-control" placeholder="ABCDE1234F">
+                            </div>
+                            <div class="form-group">
+                                <label>GSTIN</label>
+                                <input type="text" id="clGstin" class="form-control" placeholder="27AAAAA0000A1Z5">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem;">
+                        <button type="button" class="btn btn-outline" onclick="showClientList()">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Save Client Profile</button>
+                    </div>
+                </form>
+            </main>
+        </div>
+    </section>
+
+    <!-- 7. Client Detail Screen -->
+    <section id="clientDetailScreen" class="screen hidden">
+        <div class="cms-layout-container">
+            <aside class="cms-sidebar">
+                <div class="cms-sidebar-header">Case Management OS</div>
+                <a class="cms-nav-item" onclick="showCmsHome()"><i class="fas fa-home"></i> Home</a>
+                <a class="cms-nav-item" onclick="showCaseList()"><i class="fas fa-briefcase"></i> Cases</a>
+                <a class="cms-nav-item active" onclick="showClientList()"><i class="fas fa-users"></i> Clients</a>
+                <a class="cms-nav-item" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i> Analytics</a>
+                <a class="cms-nav-item" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
+                <div style="margin-top:auto;">
+                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Suite</a>
+                </div>
+            </aside>
+            <main class="cms-main-content">
+                <div id="clientDetailContainer"></div>
+            </main>
+        </div>
+    </section>
+
+    <!-- 8. CMS Analytics Screen -->
+    <section id="cmsAnalyticsScreen" class="screen hidden">
+        <div class="cms-layout-container">
+            <aside class="cms-sidebar">
+                <div class="cms-sidebar-header">Case Management OS</div>
+                <a class="cms-nav-item" onclick="showCmsHome()"><i class="fas fa-home"></i> Home</a>
+                <a class="cms-nav-item" onclick="showCaseList()"><i class="fas fa-briefcase"></i> Cases</a>
+                <a class="cms-nav-item" onclick="showClientList()"><i class="fas fa-users"></i> Clients</a>
+                <a class="cms-nav-item active" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i> Analytics</a>
+                <a class="cms-nav-item" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
+                <div style="margin-top:auto;">
+                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Suite</a>
+                </div>
+            </aside>
+            <main class="cms-main-content">
+                <div class="cms-view-header">
+                    <div class="cms-view-title">
+                        <h2>Portfolio & Recovery Analytics</h2>
+                        <p>Aggregate performance metrics from live database records.</p>
+                    </div>
+                </div>
+
+                <div id="cmsAnalyticsMetrics" class="domain-stats-grid" style="margin-bottom: 2rem;"></div>
+
+                <div class="cms-overview-grid">
+                    <div class="cms-card">
+                        <h4><i class="fas fa-chart-pie"></i> Case Type Distribution</h4>
+                        <div style="height: 260px; position: relative;">
+                            <canvas id="cmsCaseTypeChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="cms-card">
+                        <h4><i class="fas fa-chart-line"></i> Litigation Volume & Score Trends</h4>
+                        <div style="height: 260px; position: relative;">
+                            <canvas id="cmsMonthlyTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </section>
+
+    <!-- 9. Audit Trail Screen -->
+    <section id="auditTrailScreen" class="screen hidden">
+        <div class="cms-layout-container">
+            <aside class="cms-sidebar">
+                <div class="cms-sidebar-header">Case Management OS</div>
+                <a class="cms-nav-item" onclick="showCmsHome()"><i class="fas fa-home"></i> Home</a>
+                <a class="cms-nav-item" onclick="showCaseList()"><i class="fas fa-briefcase"></i> Cases</a>
+                <a class="cms-nav-item" onclick="showClientList()"><i class="fas fa-users"></i> Clients</a>
+                <a class="cms-nav-item" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i> Analytics</a>
+                <a class="cms-nav-item active" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
+                <div style="margin-top:auto;">
+                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Suite</a>
+                </div>
+            </aside>
+            <main class="cms-main-content">
+                <div class="cms-view-header">
+                    <div class="cms-view-title">
+                        <h2>Immutable Security & Compliance Audit Log</h2>
+                        <p>Complete traceability of all case creations, document views, edits, and exports.</p>
+                    </div>
+                    <button class="btn btn-outline" onclick="window.handleExportAuditCsv()"><i class="fas fa-file-csv"></i> Export CSV</button>
+                </div>
+
+                <div class="cms-table-wrapper">
+                    <table class="cms-table">
+                        <thead>
+                            <tr>
+                                <th>Log ID</th>
+                                <th>Timestamp</th>
+                                <th>Actor</th>
+                                <th>Case / Ref</th>
+                                <th>Action</th>
+                                <th>Summary</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditTrailTableBody">
+                            <tr><td colspan="6" class="cms-table-loading"><i class="fas fa-spinner fa-spin"></i> Loading audit logs...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- CMS MODALS -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <!-- Modal: Link Client to Case -->
+    <div id="cmsLinkClientModal" class="cms-modal-overlay hidden">
+        <div class="cms-modal-dialog">
+            <div class="cms-modal-header">
+                <h3>Link Client to Matter</h3>
+                <button class="btn btn-icon" onclick="this.closest('.cms-modal-overlay').classList.add('hidden')">&times;</button>
+            </div>
+            <div class="cms-modal-body">
+                <div class="form-group">
+                    <label>Select Client / Institution</label>
+                    <select id="linkClientSelect" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label>Party Role</label>
+                    <select id="linkClientRoleSelect" class="form-control">
+                        <option value="creditor">Creditor / Complainant</option>
+                        <option value="debtor">Debtor / Accused</option>
+                        <option value="guarantor">Guarantor / Mortgagor</option>
+                    </select>
+                </div>
+            </div>
+            <div class="cms-modal-footer">
+                <button class="btn btn-outline" onclick="this.closest('.cms-modal-overlay').classList.add('hidden')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitLinkClientModal()">Link Client</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Draft In-App Editor -->
+    <div id="cmsDraftEditorModal" class="cms-modal-overlay hidden">
+        <div class="cms-modal-dialog" style="max-width: 850px;">
+            <div class="cms-modal-header">
+                <div>
+                    <h3 id="draftModalTitle">Legal Draft Editor</h3>
+                    <span id="draftModalStatus" class="text-muted" style="font-size:0.8rem;"></span>
+                </div>
+                <button class="btn btn-icon" onclick="this.closest('.cms-modal-overlay').classList.add('hidden')">&times;</button>
+            </div>
+            <div class="cms-modal-body">
+                <textarea id="draftModalEditor" class="cms-textarea-large"></textarea>
+                <div id="draftModalComments" style="margin-top:1rem;"></div>
+            </div>
+            <div class="cms-modal-footer">
+                <button class="btn btn-outline" onclick="submitSaveDraftContent()"><i class="fas fa-save"></i> Save Changes</button>
+                <button class="btn btn-outline" onclick="submitDraftForReviewAction()"><i class="fas fa-paper-plane"></i> Submit for Review</button>
+                <button class="btn btn-primary" onclick="approveDraftAction()"><i class="fas fa-check-double"></i> Approve Draft</button>
+                <button class="btn btn-outline" onclick="markDraftFiledAction()"><i class="fas fa-gavel"></i> Mark Filed</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Section 65B Certification -->
+    <div id="cmsS65BModal" class="cms-modal-overlay hidden">
+        <div class="cms-modal-dialog">
+            <div class="cms-modal-header">
+                <h3>Generate Section 65B BSA Evidence Certificate</h3>
+                <button class="btn btn-icon" onclick="this.closest('.cms-modal-overlay').classList.add('hidden')">&times;</button>
+            </div>
+            <div class="cms-modal-body">
+                <div class="form-group">
+                    <label>Certifier Full Name *</label>
+                    <input type="text" id="s65bCertifierName" class="form-control" placeholder="Advocate / Branch Manager Name" required>
+                </div>
+                <div class="form-group">
+                    <label>Official Designation *</label>
+                    <input type="text" id="s65bCertifierDesig" class="form-control" placeholder="Chief Manager / Legal Officer">
+                </div>
+                <div class="form-group">
+                    <label>Certificate Preview</label>
+                    <textarea id="s65bTemplatePreview" class="cms-textarea-large" style="height:150px;" readonly></textarea>
+                </div>
+            </div>
+            <div class="cms-modal-footer">
+                <button class="btn btn-outline" onclick="this.closest('.cms-modal-overlay').classList.add('hidden')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitS65BCertification()"><i class="fas fa-certificate"></i> Certify &amp; Sign</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
     <!-- MODAL: PRIVACY POLICY & DPDP ACT 2023 COMPLIANCE -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
     <div id="privacyPolicyModal" class="modal-overlay legal-modal hidden" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px); z-index: 999999; display: flex; align-items: center; justify-content: center; padding: 1.5rem;">
@@ -5013,7 +5563,7 @@
     <!-- Chart.js for Visualizations --><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Main Application Script (ES6 Module) -->
-    <script type="module" src="js/main.js?v=16"></script>
+    <script type="module" src="js/main.js?v=17"></script>
 </body>
 </html>
 

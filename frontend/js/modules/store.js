@@ -14,6 +14,16 @@ class JudiQStore {
             caseData: {},
             currentExperienceMode: 'executive',
             analysisResult: null,
+            activeCaseId: null,
+            activeClientId: null,
+            cmsActiveTab: 'overview',
+            cmsListFilters: {
+                status: 'all',
+                case_type: 'all',
+                priority: 'all',
+                search: '',
+                page: 1
+            },
             ...initialState
         };
         this._listeners = new Set();

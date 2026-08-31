@@ -466,3 +466,48 @@ export const roleActions = {
         { title: 'Generate Draft', description: 'Generate court-ready legal drafts', icon: 'fa-file-contract', color: '#10b981', action: 'generateDraft' }
     ]
 };
+
+// ── CMS Configuration & Enums ─────────────────────────────────
+export const caseTypes = [
+    { value: 'section_138', label: 'Section 138 (Cheque Bounce)', icon: 'fa-file-invoice-dollar', color: '#3b82f6' },
+    { value: 'sarfaesi', label: 'SARFAESI / DRT Enforcement', icon: 'fa-university', color: '#10b981' },
+    { value: 'drt', label: 'DRT Debt Recovery', icon: 'fa-landmark', color: '#8b5cf6' },
+    { value: 'ibc', label: 'IBC / NCLT Insolvency', icon: 'fa-building', color: '#f59e0b' },
+    { value: 'criminal', label: 'Criminal Law (BNS / IPC)', icon: 'fa-user-shield', color: '#ef4444' },
+    { value: 'civil', label: 'Civil / CPC Litigation', icon: 'fa-balance-scale', color: '#6366f1' }
+];
+
+export const caseStatuses = [
+    { value: 'draft', label: 'Draft', color: '#6b7280' },
+    { value: 'ongoing', label: 'Ongoing', color: '#3b82f6' },
+    { value: 'resolved', label: 'Resolved', color: '#10b981' },
+    { value: 'archived', label: 'Archived', color: '#9ca3af' }
+];
+
+export const casePriorities = [
+    { value: 'high', label: 'High', color: '#ef4444' },
+    { value: 'medium', label: 'Medium', color: '#f59e0b' },
+    { value: 'low', label: 'Low', color: '#6b7280' }
+];
+
+export const documentTypes = [
+    { value: 'cheque', label: 'Original Dishonoured Cheque' },
+    { value: 'bank_return_memo', label: 'Bank Return / Dishonour Memo' },
+    { value: 'demand_notice', label: 'Statutory Demand Notice (S.138 / S.13(2))' },
+    { value: 'postal_receipt', label: 'Postal Dispatch / AD Card / Tracking' },
+    { value: 'court_order', label: 'Court Order / Interim Injunction' },
+    { value: 'loan_agreement', label: 'Sanction Letter / Loan Agreement' },
+    { value: 'mortgage_deed', label: 'Mortgage Deed / Title Deed' },
+    { value: 'valuation_report', label: 'Valuation & Inspection Report' },
+    { value: 'affidavit', label: 'Sworn Affidavit / Declaration' },
+    { value: 'bsa_certificate', label: 'S.65B IEA / S.63 BSA Certificate' },
+    { value: 'other', label: 'Other Document' }
+];
+
+export const clientTypes = [
+    { value: 'bank', label: 'Bank / Scheduled Commercial Bank' },
+    { value: 'nbfc', label: 'NBFC / Financial Institution' },
+    { value: 'company', label: 'Private / Public Limited Company' },
+    { value: 'individual', label: 'Individual / Proprietor' }
+];
+

@@ -110,12 +110,34 @@ export function switchScreen(targetScreenId) {
         }
     }
 
+    // Auth gate for CMS screens
+    const isCmsScreen = targetScreenId.startsWith('cms') || targetScreenId.startsWith('case') || 
+                        targetScreenId.startsWith('client') || targetScreenId.startsWith('document') ||
+                        targetScreenId.startsWith('draft') || targetScreenId.startsWith('team') ||
+                        targetScreenId.startsWith('audit');
+    if (isCmsScreen && targetScreenId !== 'caseWizardScreen') {
+        const currentUser = (window.state && window.state.currentUser) || (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser);
+        const hasGeneralAuth = !!currentUser || !!localStorage.getItem('judiq_token') || !!localStorage.getItem('judiq_jwt');
+        if (!hasGeneralAuth) {
+            if (ui && typeof ui.toast === 'function') {
+                ui.toast("Please sign in to access Case Management.", "warning");
+            }
+            switchScreen('loginScreen');
+            return;
+        }
+    }
+
     const screens = [
         'landingScreen', 'loginScreen', 'registerScreen', 
         'roleScreen', 'dashboardScreen', 'caseWizardScreen', 
         'resultsScreen', 'termsScreen', 'privacyScreen', 'refundScreen',
         'draftGeneratorScreen', 'draftStudioScreen', 'quickAnalysisScreen',
-        'reportScreen', 'bankRecoveryScreen', 'adminPortalScreen'
+        'reportScreen', 'bankRecoveryScreen', 'adminPortalScreen',
+        // ── CMS Screens ───────────────────────────────────────
+        'cmsHomeScreen', 'caseListScreen', 'caseCreateScreen', 'caseDetailScreen',
+        'clientListScreen', 'clientCreateScreen', 'clientDetailScreen',
+        'documentLibraryScreen', 'draftWorkflowScreen',
+        'teamManagementScreen', 'cmsAnalyticsScreen', 'auditTrailScreen'
     ];
     
     screens.forEach(id => ui.hide(id));

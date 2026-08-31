@@ -14,6 +14,12 @@ from counsel_router import router as counsel_router
 from analytics_router import router as analytics_router
 from client_portal_router import router as client_portal_router
 from deadline_router import router as deadline_router
+from case_manager import router as case_manager_router
+from client_manager import router as client_manager_router
+from document_manager import router as document_manager_router
+from draft_workflow import router as draft_workflow_router
+from team_manager import router as team_manager_router
+from communication import router as communication_router
 
 api_router.include_router(analysis.router, prefix="/analyze", tags=["Analysis"])
 api_router.include_router(banking_router, prefix="/bank", tags=["Banking & Recovery OS"])
@@ -29,6 +35,14 @@ api_router.include_router(cases.router, prefix="/cases", tags=["Cases"])
 api_router.include_router(telemetry.router, prefix="/telemetry", tags=["Telemetry"])
 api_router.include_router(admin_control_router, prefix="/admin", tags=["Admin Control"])
 api_router.include_router(user_quota_router, prefix="/user", tags=["User Quota"])
+
+# ── CMS Routers ──────────────────────────────────────────────
+api_router.include_router(case_manager_router, prefix="/cms", tags=["Case Management"])
+api_router.include_router(client_manager_router, prefix="/cms", tags=["Client Management"])
+api_router.include_router(document_manager_router, prefix="/cms", tags=["Document Management"])
+api_router.include_router(draft_workflow_router, prefix="/cms", tags=["Draft Workflow"])
+api_router.include_router(team_manager_router, prefix="/cms", tags=["Team Management"])
+api_router.include_router(communication_router, prefix="/cms", tags=["Communication & Audit"])
 
 from knowledge_pipeline import PrecedentIngestionPayload, PrecedentIngestionService
 from fastapi import Body

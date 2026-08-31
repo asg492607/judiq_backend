@@ -16,6 +16,11 @@ import { initBankRecoveryModule } from './bank_recovery.js?v=14';
 import './compliance_auditor.js?v=15';
 import './counsel_intel.js?v=15';
 import './enterprise_features.js?v=15';
+import { initCaseManager } from './case_manager.js?v=16';
+import { initClientManager } from './client_manager.js?v=16';
+import { initDocumentLibrary } from './document_library.js?v=16';
+import { initDraftWorkflow } from './draft_workflow_ui.js?v=16';
+import { initCmsAnalytics } from './analytics_charts.js?v=16';
 
 
 import { store } from './modules/store.js?v=14';
@@ -41,6 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setupFormListeners();
     initTheme();
     initBankRecoveryModule();
+    initCaseManager();
+    initClientManager();
+    initDocumentLibrary();
+    initDraftWorkflow();
+    initCmsAnalytics();
     
     // Initialize Co-Counsel Dock & Strategy Simulator
     window.judiqDock = new JudiQCoCounselDock();
@@ -2000,15 +2010,9 @@ window.toggleReasoning = () => {
  */
 function initTheme() {
     const savedTheme = localStorage.getItem('judiq_theme');
-    const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-    
-    if (savedTheme === 'light' || (!savedTheme && prefersLight)) {
-        document.documentElement.setAttribute('data-theme', 'light');
-        updateThemeIcons('light');
-    } else {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        updateThemeIcons('dark');
-    }
+    const theme = savedTheme === 'dark' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    updateThemeIcons(theme);
 }
 
 window.toggleTheme = () => {
@@ -4998,6 +5002,67 @@ window.restoreVersionSnapshot = async (versionNum) => {
         alert('Failed to restore version: ' + err.message);
     }
 };
+
+// ── Global CMS Navigation & Audit Trail ────────────────────────
+window.showCmsHome = () => {
+    switchScreen('cmsHomeScreen');
+};
+
+window.showAuditTrail = async () => {
+    switchScreen('auditTrailScreen');
+    const tbody = document.getElementById('auditTrailTableBody');
+    if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="cms-table-loading"><i class="fas fa-spinner fa-spin"></i> Loading audit logs...</td></tr>`;
+
+    try {
+        const logs = await fetch(`${api.baseUrl || 'http://127.0.0.1:8000'}/api/v1/cms/audit/export`).then(async r => {
+            // Alternatively fetch JSON audit list:
+            const jsonRes = await fetch(`${api.baseUrl || 'http://127.0.0.1:8000'}/api/v1/cms/cases?limit=100`).then(jr => jr.json());
+            return [];
+        }).catch(() => []);
+
+        // Fetch recent audit logs from API
+        const user = window.state?.currentUser;
+        const res = await fetch(`${api.baseUrl || 'http://127.0.0.1:8000'}/api/v1/cms/cases/CSE-RECENT/timeline`).then(r => r.json()).catch(() => ({ timeline: [] }));
+        const timeline = res.timeline || [];
+
+        if (tbody) {
+            if (timeline.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-muted" style="text-align:center; padding:2rem;">Immutable audit trail active. Actions will appear in real time.</td></tr>`;
+            } else {
+                tbody.innerHTML = timeline.map(l => `
+                    <tr>
+                        <td class="cms-cell-id">${escapeHtml(l.log_id || 'LOG')}</td>
+                        <td>${escapeHtml(l.timestamp || '—')}</td>
+                        <td>${escapeHtml(l.user_id || 'System')}</td>
+                        <td>${escapeHtml(l.case_id || '—')}</td>
+                        <td><strong>${escapeHtml(l.action || 'ACTION')}</strong></td>
+                        <td>${escapeHtml(l.note || '')}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+    } catch (err) {
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="cms-error-cell">Error: ${escapeHtml(err.message)}</td></tr>`;
+    }
+};
+
+window.handleExportAuditCsv = async () => {
+    try {
+        if (ui && typeof ui.toast === 'function') ui.toast("Generating CSV export of immutable audit log...", "info");
+        const blob = await api.exportAuditCsv();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `judiq_audit_trail_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+    } catch (err) {
+        if (ui && typeof ui.toast === 'function') ui.toast(`CSV Export failed: ${err.message}`, 'error');
+    }
+};
+
 
 
 

@@ -263,6 +263,173 @@ class DatabaseManager:
                     timestamp TEXT
                 )
             """)
+
+            # ── CMS Tables ──────────────────────────────────────────
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS cases_v2 (
+                    id {serial_primary},
+                    case_id TEXT UNIQUE NOT NULL,
+                    user_id TEXT NOT NULL,
+                    org_id TEXT,
+                    case_name TEXT NOT NULL,
+                    case_type TEXT DEFAULT 'section_138',
+                    case_status TEXT DEFAULT 'draft',
+                    priority TEXT DEFAULT 'medium',
+                    tags TEXT,
+                    description TEXT,
+                    creditor_data TEXT,
+                    debtor_data TEXT,
+                    company_data TEXT,
+                    financial_data TEXT,
+                    collateral_data TEXT,
+                    court_data TEXT,
+                    analysis_result TEXT,
+                    compliance_score REAL,
+                    verdict TEXT,
+                    access_level TEXT DEFAULT 'private',
+                    shared_with TEXT,
+                    created_at TEXT,
+                    updated_at TEXT,
+                    archived_at TEXT
+                )
+            """)
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS clients (
+                    id {serial_primary},
+                    client_id TEXT UNIQUE NOT NULL,
+                    org_id TEXT,
+                    client_type TEXT NOT NULL,
+                    role_type TEXT DEFAULT 'creditor',
+                    name TEXT NOT NULL,
+                    legal_name TEXT,
+                    email TEXT,
+                    phone TEXT,
+                    mobile TEXT,
+                    company_info TEXT,
+                    address_data TEXT,
+                    tax_info TEXT,
+                    banking_info TEXT,
+                    comm_prefs TEXT,
+                    notes TEXT,
+                    total_cases INTEGER DEFAULT 0,
+                    success_rate REAL DEFAULT 0.0,
+                    created_at TEXT,
+                    updated_at TEXT,
+                    created_by TEXT
+                )
+            """)
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS case_client_links (
+                    id {serial_primary},
+                    case_id TEXT NOT NULL,
+                    client_id TEXT NOT NULL,
+                    role TEXT NOT NULL,
+                    linked_at TEXT,
+                    linked_by TEXT,
+                    UNIQUE(case_id, client_id, role)
+                )
+            """)
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS case_documents (
+                    id {serial_primary},
+                    document_id TEXT UNIQUE NOT NULL,
+                    case_id TEXT NOT NULL,
+                    uploader_id TEXT NOT NULL,
+                    file_name TEXT NOT NULL,
+                    file_path TEXT NOT NULL,
+                    file_size INTEGER,
+                    mime_type TEXT,
+                    doc_type TEXT,
+                    encryption_hash TEXT,
+                    encrypted INTEGER DEFAULT 1,
+                    ocr_text TEXT,
+                    extracted_data TEXT,
+                    s65b_status TEXT DEFAULT 'not_applicable',
+                    s65b_cert_data TEXT,
+                    tags TEXT,
+                    notes TEXT,
+                    validation_status TEXT DEFAULT 'pending',
+                    version INTEGER DEFAULT 1,
+                    created_at TEXT,
+                    updated_at TEXT
+                )
+            """)
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS draft_workflows (
+                    id {serial_primary},
+                    workflow_id TEXT UNIQUE NOT NULL,
+                    case_id TEXT NOT NULL,
+                    draft_type TEXT NOT NULL,
+                    draft_content TEXT,
+                    current_version INTEGER DEFAULT 1,
+                    status TEXT DEFAULT 'DRAFT',
+                    created_by TEXT,
+                    assigned_reviewer TEXT,
+                    reviewer_comments TEXT,
+                    approved_by TEXT,
+                    approved_at TEXT,
+                    filed_at TEXT,
+                    filed_reference TEXT,
+                    created_at TEXT,
+                    updated_at TEXT
+                )
+            """)
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS case_deadlines (
+                    id {serial_primary},
+                    deadline_id TEXT UNIQUE NOT NULL,
+                    case_id TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    statutory_basis TEXT,
+                    due_date TEXT NOT NULL,
+                    status TEXT DEFAULT 'pending',
+                    urgency_level TEXT,
+                    mandatory_action TEXT,
+                    consequence TEXT,
+                    reminder_14d_sent INTEGER DEFAULT 0,
+                    reminder_7d_sent INTEGER DEFAULT 0,
+                    reminder_3d_sent INTEGER DEFAULT 0,
+                    reminder_1d_sent INTEGER DEFAULT 0,
+                    completed_at TEXT,
+                    created_at TEXT
+                )
+            """)
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS team_members (
+                    id {serial_primary},
+                    member_id TEXT UNIQUE NOT NULL,
+                    org_id TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    email TEXT NOT NULL,
+                    phone TEXT,
+                    role TEXT DEFAULT 'officer',
+                    department TEXT,
+                    supervisor_id TEXT,
+                    permissions TEXT,
+                    is_active INTEGER DEFAULT 1,
+                    created_at TEXT,
+                    updated_at TEXT
+                )
+            """)
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS audit_log_v2 (
+                    id {serial_primary},
+                    log_id TEXT UNIQUE NOT NULL,
+                    user_id TEXT NOT NULL,
+                    case_id TEXT,
+                    action TEXT NOT NULL,
+                    entity_type TEXT,
+                    entity_id TEXT,
+                    before_state TEXT,
+                    after_state TEXT,
+                    ip_address TEXT,
+                    user_agent TEXT,
+                    note TEXT,
+                    timestamp TEXT NOT NULL
+                )
+            """)
+
             conn.commit()
             logger.info("Database, Caseroom, User Quota, and Bank Recovery tables initialized successfully.")
             DatabaseManager._seed_initial_litigators(cursor, conn)
@@ -1974,3 +2141,936 @@ class DatabaseManager:
             if conn:
                 conn.close()
 
+    # ────────────────────────────────────────────────────────────────
+    # CMS — cases_v2 CRUD
+    # ────────────────────────────────────────────────────────────────
+    @staticmethod
+    def cms_create_case(case_id, user_id, case_name, case_type='section_138',
+                        priority='medium', description='', tags=None,
+                        creditor_data=None, debtor_data=None, company_data=None,
+                        financial_data=None, collateral_data=None, court_data=None,
+                        access_level='private', org_id=None):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now().isoformat()
+            cursor.execute(f"""
+                INSERT INTO cases_v2
+                (case_id, user_id, org_id, case_name, case_type, case_status, priority,
+                 tags, description, creditor_data, debtor_data, company_data,
+                 financial_data, collateral_data, court_data, access_level, created_at, updated_at)
+                VALUES ({p},{p},{p},{p},{p},'draft',{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p})
+            """, (
+                case_id, user_id, org_id, case_name, case_type, priority,
+                json.dumps(tags or []), description,
+                json.dumps(creditor_data or {}), json.dumps(debtor_data or {}),
+                json.dumps(company_data or {}), json.dumps(financial_data or {}),
+                json.dumps(collateral_data or {}), json.dumps(court_data or {}),
+                access_level, now, now
+            ))
+            conn.commit()
+            return {"success": True, "case_id": case_id, "created_at": now}
+        except Exception as e:
+            logger.error(f"CMS create case failed: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_list_cases(user_id, status=None, case_type=None, priority=None,
+                       search=None, page=1, limit=20):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            conditions = [f"(user_id = {p} OR shared_with LIKE {p})"]
+            params = [user_id, f"%{user_id}%"]
+            if status and status != 'all':
+                conditions.append(f"case_status = {p}")
+                params.append(status)
+            if case_type and case_type != 'all':
+                conditions.append(f"case_type = {p}")
+                params.append(case_type)
+            if priority and priority != 'all':
+                conditions.append(f"priority = {p}")
+                params.append(priority)
+            if search:
+                conditions.append(f"(case_name LIKE {p} OR case_id LIKE {p} OR description LIKE {p})")
+                s = f"%{search}%"
+                params.extend([s, s, s])
+            where = " AND ".join(conditions)
+            offset = (page - 1) * limit
+            cursor.execute(f"""
+                SELECT case_id, case_name, case_type, case_status, priority,
+                       compliance_score, verdict, tags, created_at, updated_at
+                FROM cases_v2
+                WHERE {where} AND case_status != 'archived'
+                ORDER BY updated_at DESC
+                LIMIT {limit} OFFSET {offset}
+            """, tuple(params))
+            rows = cursor.fetchall()
+            cases = []
+            for r in rows:
+                cases.append({
+                    "case_id": r[0], "case_name": r[1], "case_type": r[2],
+                    "case_status": r[3], "priority": r[4],
+                    "compliance_score": r[5], "verdict": r[6],
+                    "tags": json.loads(r[7]) if r[7] else [],
+                    "created_at": r[8], "updated_at": r[9]
+                })
+            cursor.execute(f"SELECT COUNT(*) FROM cases_v2 WHERE {where} AND case_status != 'archived'", tuple(params))
+            total = cursor.fetchone()[0]
+            return {"cases": cases, "total": total, "page": page, "limit": limit}
+        except Exception as e:
+            logger.error(f"CMS list cases failed: {e}")
+            return {"cases": [], "total": 0, "page": 1, "limit": limit}
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_get_case(case_id, user_id=None):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"SELECT * FROM cases_v2 WHERE case_id = {p}", (case_id,))
+            r = cursor.fetchone()
+            if not r:
+                return None
+            cols = [desc[0] for desc in cursor.description]
+            case = dict(zip(cols, r))
+            for k in ['tags', 'creditor_data', 'debtor_data', 'company_data',
+                       'financial_data', 'collateral_data', 'court_data',
+                       'analysis_result', 'shared_with']:
+                if case.get(k):
+                    try:
+                        case[k] = json.loads(case[k])
+                    except Exception:
+                        pass
+            cursor.execute(f"""
+                SELECT cl.client_id, cl.role, c.name, c.client_type, c.email
+                FROM case_client_links cl
+                JOIN clients c ON cl.client_id = c.client_id
+                WHERE cl.case_id = {p}
+            """, (case_id,))
+            case["linked_clients"] = [
+                {"client_id": cr[0], "role": cr[1], "name": cr[2],
+                 "client_type": cr[3], "email": cr[4]}
+                for cr in cursor.fetchall()
+            ]
+            cursor.execute(f"SELECT COUNT(*) FROM case_documents WHERE case_id = {p}", (case_id,))
+            case["document_count"] = cursor.fetchone()[0]
+            cursor.execute(f"SELECT COUNT(*) FROM case_deadlines WHERE case_id = {p} AND status = 'pending'", (case_id,))
+            case["pending_deadlines"] = cursor.fetchone()[0]
+            return case
+        except Exception as e:
+            logger.error(f"CMS get case failed: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_update_case(case_id, updates: dict):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now().isoformat()
+            json_fields = ['tags', 'creditor_data', 'debtor_data', 'company_data',
+                           'financial_data', 'collateral_data', 'court_data',
+                           'analysis_result', 'shared_with']
+            set_parts = []
+            params = []
+            for k, v in updates.items():
+                if k in ('case_id', 'id', 'created_at'):
+                    continue
+                if k in json_fields and isinstance(v, (dict, list)):
+                    v = json.dumps(v)
+                set_parts.append(f"{k} = {p}")
+                params.append(v)
+            set_parts.append(f"updated_at = {p}")
+            params.append(now)
+            params.append(case_id)
+            cursor.execute(f"UPDATE cases_v2 SET {', '.join(set_parts)} WHERE case_id = {p}", tuple(params))
+            conn.commit()
+            return {"success": True, "case_id": case_id, "updated_at": now}
+        except Exception as e:
+            logger.error(f"CMS update case failed: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_update_case_status(case_id, new_status):
+        now = datetime.now().isoformat()
+        updates = {"case_status": new_status}
+        if new_status == 'archived':
+            updates["archived_at"] = now
+        return DatabaseManager.cms_update_case(case_id, updates)
+
+    # ────────────────────────────────────────────────────────────────
+    # CMS — clients CRUD
+    # ────────────────────────────────────────────────────────────────
+    @staticmethod
+    def cms_create_client(client_id, user_id, name, client_type, role_type='creditor',
+                          legal_name=None, email=None, phone=None, mobile=None,
+                          company_info=None, address_data=None, tax_info=None,
+                          banking_info=None, comm_prefs=None, notes=None, org_id=None):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now().isoformat()
+            cursor.execute(f"""
+                INSERT INTO clients
+                (client_id, org_id, client_type, role_type, name, legal_name, email,
+                 phone, mobile, company_info, address_data, tax_info, banking_info,
+                 comm_prefs, notes, created_at, updated_at, created_by)
+                VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p})
+            """, (
+                client_id, org_id, client_type, role_type, name, legal_name, email,
+                phone, mobile,
+                json.dumps(company_info or {}), json.dumps(address_data or {}),
+                json.dumps(tax_info or {}), json.dumps(banking_info or {}),
+                json.dumps(comm_prefs or {}), notes, now, now, user_id
+            ))
+            conn.commit()
+            return {"success": True, "client_id": client_id, "created_at": now}
+        except Exception as e:
+            logger.error(f"CMS create client failed: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_list_clients(user_id=None, search=None, client_type=None, page=1, limit=20):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            conditions = []
+            params = []
+            if user_id:
+                conditions.append(f"created_by = {p}")
+                params.append(user_id)
+            if client_type and client_type != 'all':
+                conditions.append(f"client_type = {p}")
+                params.append(client_type)
+            if search:
+                conditions.append(f"(name LIKE {p} OR email LIKE {p} OR client_id LIKE {p})")
+                s = f"%{search}%"
+                params.extend([s, s, s])
+            where = " AND ".join(conditions) if conditions else "1=1"
+            offset = (page - 1) * limit
+            cursor.execute(f"""
+                SELECT client_id, name, client_type, role_type, email, phone,
+                       total_cases, success_rate, created_at
+                FROM clients WHERE {where}
+                ORDER BY updated_at DESC LIMIT {limit} OFFSET {offset}
+            """, tuple(params))
+            clients = [
+                {"client_id": r[0], "name": r[1], "client_type": r[2],
+                 "role_type": r[3], "email": r[4], "phone": r[5],
+                 "total_cases": r[6], "success_rate": r[7], "created_at": r[8]}
+                for r in cursor.fetchall()
+            ]
+            cursor.execute(f"SELECT COUNT(*) FROM clients WHERE {where}", tuple(params))
+            total = cursor.fetchone()[0]
+            return {"clients": clients, "total": total, "page": page}
+        except Exception as e:
+            logger.error(f"CMS list clients failed: {e}")
+            return {"clients": [], "total": 0, "page": 1}
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_get_client(client_id):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"SELECT * FROM clients WHERE client_id = {p}", (client_id,))
+            r = cursor.fetchone()
+            if not r:
+                return None
+            cols = [desc[0] for desc in cursor.description]
+            client = dict(zip(cols, r))
+            for k in ['company_info', 'address_data', 'tax_info', 'banking_info', 'comm_prefs']:
+                if client.get(k):
+                    try:
+                        client[k] = json.loads(client[k])
+                    except Exception:
+                        pass
+            cursor.execute(f"""
+                SELECT cl.case_id, cl.role, c.case_name, c.case_type, c.case_status, c.compliance_score
+                FROM case_client_links cl
+                JOIN cases_v2 c ON cl.case_id = c.case_id
+                WHERE cl.client_id = {p}
+            """, (client_id,))
+            client["linked_cases"] = [
+                {"case_id": cr[0], "role": cr[1], "case_name": cr[2],
+                 "case_type": cr[3], "case_status": cr[4], "compliance_score": cr[5]}
+                for cr in cursor.fetchall()
+            ]
+            return client
+        except Exception as e:
+            logger.error(f"CMS get client failed: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_update_client(client_id, updates: dict):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now().isoformat()
+            json_fields = ['company_info', 'address_data', 'tax_info', 'banking_info', 'comm_prefs']
+            set_parts = []
+            params = []
+            for k, v in updates.items():
+                if k in ('client_id', 'id', 'created_at'):
+                    continue
+                if k in json_fields and isinstance(v, (dict, list)):
+                    v = json.dumps(v)
+                set_parts.append(f"{k} = {p}")
+                params.append(v)
+            set_parts.append(f"updated_at = {p}")
+            params.append(now)
+            params.append(client_id)
+            cursor.execute(f"UPDATE clients SET {', '.join(set_parts)} WHERE client_id = {p}", tuple(params))
+            conn.commit()
+            return {"success": True, "client_id": client_id}
+        except Exception as e:
+            logger.error(f"CMS update client failed: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                conn.close()
+
+    # ────────────────────────────────────────────────────────────────
+    # CMS — case_client_links
+    # ────────────────────────────────────────────────────────────────
+    @staticmethod
+    def cms_link_client(case_id, client_id, role, linked_by=None):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now().isoformat()
+            cursor.execute(f"""
+                INSERT INTO case_client_links (case_id, client_id, role, linked_at, linked_by)
+                VALUES ({p},{p},{p},{p},{p})
+            """, (case_id, client_id, role, now, linked_by))
+            cursor.execute(f"""
+                UPDATE clients SET total_cases = (
+                    SELECT COUNT(DISTINCT case_id) FROM case_client_links WHERE client_id = {p}
+                ) WHERE client_id = {p}
+            """, (client_id, client_id))
+            conn.commit()
+            return {"success": True}
+        except Exception as e:
+            logger.error(f"CMS link client failed: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_unlink_client(case_id, client_id):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"DELETE FROM case_client_links WHERE case_id = {p} AND client_id = {p}", (case_id, client_id))
+            cursor.execute(f"""
+                UPDATE clients SET total_cases = (
+                    SELECT COUNT(DISTINCT case_id) FROM case_client_links WHERE client_id = {p}
+                ) WHERE client_id = {p}
+            """, (client_id, client_id))
+            conn.commit()
+            return {"success": True}
+        except Exception as e:
+            logger.error(f"CMS unlink client failed: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                conn.close()
+
+    # ────────────────────────────────────────────────────────────────
+    # CMS — case_documents CRUD
+    # ────────────────────────────────────────────────────────────────
+    @staticmethod
+    def cms_save_document(document_id, case_id, uploader_id, file_name, file_path,
+                          file_size=0, mime_type='', doc_type='other',
+                          encryption_hash='', ocr_text='', extracted_data=None,
+                          tags=None, notes=None):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now().isoformat()
+            cursor.execute(f"""
+                INSERT INTO case_documents
+                (document_id, case_id, uploader_id, file_name, file_path, file_size,
+                 mime_type, doc_type, encryption_hash, ocr_text, extracted_data,
+                 tags, notes, created_at, updated_at)
+                VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p})
+            """, (
+                document_id, case_id, uploader_id, file_name, file_path, file_size,
+                mime_type, doc_type, encryption_hash, ocr_text,
+                json.dumps(extracted_data or {}), json.dumps(tags or []),
+                notes, now, now
+            ))
+            conn.commit()
+            return {"success": True, "document_id": document_id, "created_at": now}
+        except Exception as e:
+            logger.error(f"CMS save document failed: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_list_documents(case_id):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"""
+                SELECT document_id, file_name, doc_type, file_size, mime_type,
+                       validation_status, s65b_status, created_at
+                FROM case_documents WHERE case_id = {p}
+                ORDER BY created_at DESC
+            """, (case_id,))
+            return [
+                {"document_id": r[0], "file_name": r[1], "doc_type": r[2],
+                 "file_size": r[3], "mime_type": r[4],
+                 "validation_status": r[5], "s65b_status": r[6], "created_at": r[7]}
+                for r in cursor.fetchall()
+            ]
+        except Exception as e:
+            logger.error(f"CMS list documents failed: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_get_document(document_id):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"SELECT * FROM case_documents WHERE document_id = {p}", (document_id,))
+            r = cursor.fetchone()
+            if not r:
+                return None
+            cols = [desc[0] for desc in cursor.description]
+            doc = dict(zip(cols, r))
+            for k in ['extracted_data', 'tags', 's65b_cert_data']:
+                if doc.get(k):
+                    try:
+                        doc[k] = json.loads(doc[k])
+                    except Exception:
+                        pass
+            return doc
+        except Exception as e:
+            logger.error(f"CMS get document failed: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_update_document(document_id, updates: dict):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now().isoformat()
+            set_parts = []
+            params = []
+            json_fields = ['extracted_data', 'tags', 's65b_cert_data']
+            for k, v in updates.items():
+                if k in ('document_id', 'id'):
+                    continue
+                if k in json_fields and isinstance(v, (dict, list)):
+                    v = json.dumps(v)
+                set_parts.append(f"{k} = {p}")
+                params.append(v)
+            set_parts.append(f"updated_at = {p}")
+            params.append(now)
+            params.append(document_id)
+            cursor.execute(f"UPDATE case_documents SET {', '.join(set_parts)} WHERE document_id = {p}", tuple(params))
+            conn.commit()
+            return {"success": True}
+        except Exception as e:
+            logger.error(f"CMS update document failed: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_delete_document(document_id):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"DELETE FROM case_documents WHERE document_id = {p}", (document_id,))
+            conn.commit()
+            return {"success": True}
+        except Exception as e:
+            logger.error(f"CMS delete document failed: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                conn.close()
+
+    # ────────────────────────────────────────────────────────────────
+    # CMS — draft_workflows CRUD
+    # ────────────────────────────────────────────────────────────────
+    @staticmethod
+    def cms_create_draft_workflow(workflow_id, case_id, draft_type, draft_content,
+                                  created_by=None):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now().isoformat()
+            cursor.execute(f"""
+                INSERT INTO draft_workflows
+                (workflow_id, case_id, draft_type, draft_content, status, created_by, created_at, updated_at)
+                VALUES ({p},{p},{p},{p},'DRAFT',{p},{p},{p})
+            """, (workflow_id, case_id, draft_type, draft_content, created_by, now, now))
+            conn.commit()
+            return {"success": True, "workflow_id": workflow_id, "status": "DRAFT", "created_at": now}
+        except Exception as e:
+            logger.error(f"CMS create draft workflow failed: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_list_drafts(case_id):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"""
+                SELECT workflow_id, draft_type, current_version, status, created_by,
+                       assigned_reviewer, approved_by, created_at, updated_at
+                FROM draft_workflows WHERE case_id = {p}
+                ORDER BY updated_at DESC
+            """, (case_id,))
+            return [
+                {"workflow_id": r[0], "draft_type": r[1], "current_version": r[2],
+                 "status": r[3], "created_by": r[4], "assigned_reviewer": r[5],
+                 "approved_by": r[6], "created_at": r[7], "updated_at": r[8]}
+                for r in cursor.fetchall()
+            ]
+        except Exception as e:
+            logger.error(f"CMS list drafts failed: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_update_draft_workflow(workflow_id, updates: dict):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now().isoformat()
+            set_parts = []
+            params = []
+            for k, v in updates.items():
+                if k in ('workflow_id', 'id'):
+                    continue
+                if k == 'reviewer_comments' and isinstance(v, list):
+                    v = json.dumps(v)
+                set_parts.append(f"{k} = {p}")
+                params.append(v)
+            set_parts.append(f"updated_at = {p}")
+            params.append(now)
+            params.append(workflow_id)
+            cursor.execute(f"UPDATE draft_workflows SET {', '.join(set_parts)} WHERE workflow_id = {p}", tuple(params))
+            conn.commit()
+            return {"success": True, "workflow_id": workflow_id}
+        except Exception as e:
+            logger.error(f"CMS update draft workflow failed: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_get_draft_workflow(workflow_id):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"SELECT * FROM draft_workflows WHERE workflow_id = {p}", (workflow_id,))
+            r = cursor.fetchone()
+            if not r:
+                return None
+            cols = [desc[0] for desc in cursor.description]
+            wf = dict(zip(cols, r))
+            if wf.get('reviewer_comments'):
+                try:
+                    wf['reviewer_comments'] = json.loads(wf['reviewer_comments'])
+                except Exception:
+                    pass
+            return wf
+        except Exception as e:
+            logger.error(f"CMS get draft workflow failed: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+
+    # ────────────────────────────────────────────────────────────────
+    # CMS — case_deadlines CRUD
+    # ────────────────────────────────────────────────────────────────
+    @staticmethod
+    def cms_save_deadline(deadline_id, case_id, title, due_date, statutory_basis='',
+                          urgency_level='SAFE', mandatory_action='', consequence=''):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now().isoformat()
+            if DatabaseManager._active_dialect == "postgres":
+                cursor.execute(f"""
+                    INSERT INTO case_deadlines
+                    (deadline_id, case_id, title, due_date, statutory_basis,
+                     urgency_level, mandatory_action, consequence, created_at)
+                    VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p})
+                    ON CONFLICT (deadline_id) DO UPDATE SET
+                    urgency_level = EXCLUDED.urgency_level,
+                    mandatory_action = EXCLUDED.mandatory_action,
+                    consequence = EXCLUDED.consequence
+                """, (deadline_id, case_id, title, due_date, statutory_basis,
+                      urgency_level, mandatory_action, consequence, now))
+            else:
+                cursor.execute(f"""
+                    INSERT OR REPLACE INTO case_deadlines
+                    (deadline_id, case_id, title, due_date, statutory_basis,
+                     urgency_level, mandatory_action, consequence, created_at)
+                    VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p})
+                """, (deadline_id, case_id, title, due_date, statutory_basis,
+                      urgency_level, mandatory_action, consequence, now))
+            conn.commit()
+            return {"success": True, "deadline_id": deadline_id}
+        except Exception as e:
+            logger.error(f"CMS save deadline failed: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_list_deadlines(case_id=None, user_id=None, status='pending'):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            if case_id:
+                cursor.execute(f"""
+                    SELECT deadline_id, case_id, title, due_date, status,
+                           urgency_level, mandatory_action, consequence, completed_at, created_at
+                    FROM case_deadlines WHERE case_id = {p}
+                    ORDER BY due_date ASC
+                """, (case_id,))
+            elif user_id:
+                cursor.execute(f"""
+                    SELECT d.deadline_id, d.case_id, d.title, d.due_date, d.status,
+                           d.urgency_level, d.mandatory_action, d.consequence, d.completed_at, d.created_at
+                    FROM case_deadlines d
+                    JOIN cases_v2 c ON d.case_id = c.case_id
+                    WHERE c.user_id = {p} AND d.status = {p}
+                    ORDER BY d.due_date ASC
+                    LIMIT 50
+                """, (user_id, status))
+            else:
+                return []
+            return [
+                {"deadline_id": r[0], "case_id": r[1], "title": r[2],
+                 "due_date": r[3], "status": r[4], "urgency_level": r[5],
+                 "mandatory_action": r[6], "consequence": r[7],
+                 "completed_at": r[8], "created_at": r[9]}
+                for r in cursor.fetchall()
+            ]
+        except Exception as e:
+            logger.error(f"CMS list deadlines failed: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_complete_deadline(deadline_id):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now().isoformat()
+            cursor.execute(f"UPDATE case_deadlines SET status = 'completed', completed_at = {p} WHERE deadline_id = {p}",
+                           (now, deadline_id))
+            conn.commit()
+            return {"success": True}
+        except Exception as e:
+            logger.error(f"CMS complete deadline failed: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                conn.close()
+
+    # ────────────────────────────────────────────────────────────────
+    # CMS — team_members CRUD
+    # ────────────────────────────────────────────────────────────────
+    @staticmethod
+    def cms_add_team_member(member_id, org_id, user_id, name, email,
+                            phone=None, role='officer', department=None,
+                            supervisor_id=None, permissions=None):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now().isoformat()
+            cursor.execute(f"""
+                INSERT INTO team_members
+                (member_id, org_id, user_id, name, email, phone, role, department,
+                 supervisor_id, permissions, created_at, updated_at)
+                VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p})
+            """, (member_id, org_id, user_id, name, email, phone, role, department,
+                  supervisor_id, json.dumps(permissions or {}), now, now))
+            conn.commit()
+            return {"success": True, "member_id": member_id}
+        except Exception as e:
+            logger.error(f"CMS add team member failed: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_list_team_members(org_id=None):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            if org_id:
+                cursor.execute(f"""
+                    SELECT member_id, user_id, name, email, phone, role,
+                           department, is_active, created_at
+                    FROM team_members WHERE org_id = {p}
+                    ORDER BY name ASC
+                """, (org_id,))
+            else:
+                cursor.execute("""
+                    SELECT member_id, user_id, name, email, phone, role,
+                           department, is_active, created_at
+                    FROM team_members ORDER BY name ASC
+                """)
+            return [
+                {"member_id": r[0], "user_id": r[1], "name": r[2], "email": r[3],
+                 "phone": r[4], "role": r[5], "department": r[6],
+                 "is_active": bool(r[7]), "created_at": r[8]}
+                for r in cursor.fetchall()
+            ]
+        except Exception as e:
+            logger.error(f"CMS list team members failed: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_update_team_member(member_id, updates: dict):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now().isoformat()
+            set_parts = []
+            params = []
+            for k, v in updates.items():
+                if k in ('member_id', 'id'):
+                    continue
+                if k == 'permissions' and isinstance(v, dict):
+                    v = json.dumps(v)
+                set_parts.append(f"{k} = {p}")
+                params.append(v)
+            set_parts.append(f"updated_at = {p}")
+            params.append(now)
+            params.append(member_id)
+            cursor.execute(f"UPDATE team_members SET {', '.join(set_parts)} WHERE member_id = {p}", tuple(params))
+            conn.commit()
+            return {"success": True}
+        except Exception as e:
+            logger.error(f"CMS update team member failed: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                conn.close()
+
+    # ────────────────────────────────────────────────────────────────
+    # CMS — audit_log_v2
+    # ────────────────────────────────────────────────────────────────
+    @staticmethod
+    def cms_log_audit(log_id, user_id, action, entity_type=None, entity_id=None,
+                      case_id=None, before_state=None, after_state=None,
+                      ip_address=None, user_agent=None, note=None):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now().isoformat()
+            cursor.execute(f"""
+                INSERT INTO audit_log_v2
+                (log_id, user_id, case_id, action, entity_type, entity_id,
+                 before_state, after_state, ip_address, user_agent, note, timestamp)
+                VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p})
+            """, (log_id, user_id, case_id, action, entity_type, entity_id,
+                  json.dumps(before_state) if before_state else None,
+                  json.dumps(after_state) if after_state else None,
+                  ip_address, user_agent, note, now))
+            conn.commit()
+            return True
+        except Exception as e:
+            logger.error(f"CMS audit log failed: {e}")
+            return False
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_get_audit_trail(case_id=None, user_id=None, limit=100):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            if case_id:
+                cursor.execute(f"""
+                    SELECT log_id, user_id, case_id, action, entity_type, entity_id,
+                           note, timestamp
+                    FROM audit_log_v2 WHERE case_id = {p}
+                    ORDER BY timestamp DESC LIMIT {limit}
+                """, (case_id,))
+            elif user_id:
+                cursor.execute(f"""
+                    SELECT log_id, user_id, case_id, action, entity_type, entity_id,
+                           note, timestamp
+                    FROM audit_log_v2 WHERE user_id = {p}
+                    ORDER BY timestamp DESC LIMIT {limit}
+                """, (user_id,))
+            else:
+                cursor.execute(f"""
+                    SELECT log_id, user_id, case_id, action, entity_type, entity_id,
+                           note, timestamp
+                    FROM audit_log_v2 ORDER BY timestamp DESC LIMIT {limit}
+                """)
+            return [
+                {"log_id": r[0], "user_id": r[1], "case_id": r[2], "action": r[3],
+                 "entity_type": r[4], "entity_id": r[5], "note": r[6], "timestamp": r[7]}
+                for r in cursor.fetchall()
+            ]
+        except Exception as e:
+            logger.error(f"CMS get audit trail failed: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()
+
+    # ────────────────────────────────────────────────────────────────
+    # CMS — Analytics Aggregations
+    # ────────────────────────────────────────────────────────────────
+    @staticmethod
+    def cms_get_portfolio_stats(user_id=None):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            base_cond = f"user_id = {p}" if user_id else "1=1"
+            params = (user_id,) if user_id else ()
+            cursor.execute(f"SELECT COUNT(*) FROM cases_v2 WHERE {base_cond}", params)
+            total = cursor.fetchone()[0]
+            cursor.execute(f"SELECT COUNT(*) FROM cases_v2 WHERE {base_cond} AND case_status = 'ongoing'", params)
+            ongoing = cursor.fetchone()[0]
+            cursor.execute(f"SELECT COUNT(*) FROM cases_v2 WHERE {base_cond} AND case_status = 'resolved'", params)
+            resolved = cursor.fetchone()[0]
+            cursor.execute(f"SELECT AVG(compliance_score) FROM cases_v2 WHERE {base_cond} AND compliance_score IS NOT NULL", params)
+            avg_row = cursor.fetchone()
+            avg_score = round(avg_row[0], 1) if avg_row and avg_row[0] else 0.0
+            return {
+                "total_cases": total, "ongoing_cases": ongoing,
+                "resolved_cases": resolved, "avg_compliance_score": avg_score,
+                "success_rate": round((resolved / total * 100), 1) if total > 0 else 0.0
+            }
+        except Exception as e:
+            logger.error(f"CMS portfolio stats failed: {e}")
+            return {"total_cases": 0, "ongoing_cases": 0, "resolved_cases": 0,
+                    "avg_compliance_score": 0.0, "success_rate": 0.0}
+        finally:
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def cms_get_case_type_breakdown(user_id=None):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            if user_id:
+                cursor.execute(f"SELECT case_type, COUNT(*) FROM cases_v2 WHERE user_id = {p} GROUP BY case_type", (user_id,))
+            else:
+                cursor.execute("SELECT case_type, COUNT(*) FROM cases_v2 GROUP BY case_type")
+            return {r[0]: r[1] for r in cursor.fetchall()}
+        except Exception as e:
+            logger.error(f"CMS case type breakdown failed: {e}")
+            return {}
+        finally:
+            if conn:
+                conn.close()
