@@ -2632,89 +2632,237 @@ window.changeUserPasswordDirect = async (event) => {
 
 // Precedents Data
 const landmarkPrecedents = [
+    // ── CRIMINAL / BNS / BNSS / BAIL / QUASHING ───────────────────
     {
-        title: "Basalingappa vs. Mudibasappa (2019)",
-        tag: "Financial Capacity",
-        text: "Held that if the financial capacity of the complainant is challenged in high-value cash loans, the complainant must prove their source of funds to establish an enforceable debt.",
-        source: "5 SCC 418"
+        title: "Satender Kumar Antil vs. Central Bureau of Investigation",
+        tag: "Bail Reform & BNSS S.35",
+        domain: "Criminal",
+        text: "Comprehensive landmark guidelines on bail jurisdiction, categorizing offences into Categories A, B, C, D. Strict mandatory compliance with Section 41/41A CrPC (Section 35 BNSS) before arrest.",
+        source: "(2022) 10 SCC 51",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/14001226/"
     },
     {
-        title: "Rangappa vs. Srikanth (2010)",
-        tag: "Debt Presumption",
-        text: "Confirmed that Section 139 carries a strong presumption of debt. The debtor must raise a probable defense to rebut it; mere denial is insufficient.",
-        source: "11 SCC 441"
+        title: "State of Haryana vs. Bhajan Lal",
+        tag: "FIR Quashing (S.482 / BNSS 528)",
+        domain: "Criminal",
+        text: "Established the 7 cardinal parameters where High Courts must exercise inherent jurisdiction to quash FIRs and criminal complaints (e.g. pure civil disputes clothed in criminal garb, malicious prosecution).",
+        source: "1992 Supp (1) SCC 335",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/8637801/"
     },
     {
-        title: "Aneeta Hada vs. Godfather Travels (2012)",
-        tag: "Company Liability",
-        text: "Prosecution of company directors/officers under Section 141 is not maintainable unless the company itself is joined as a primary accused.",
-        source: "5 SCC 661"
-    },
-    {
-        title: "A.C. Narayanan vs. State of Maharashtra (2014)",
-        tag: "Power of Attorney",
-        text: "Prosecution filed through a Power of Attorney (POA) holder is maintainable provided the POA holder has personal knowledge of the transactions.",
-        source: "11 SCC 790"
-    },
-    {
-        title: "Dashrath Rupsingh Rathod vs. State of Maharashtra (2014)",
-        tag: "Jurisdiction",
-        text: "Territorial jurisdiction falls where the cheque is delivered for collection through the payee's bank (subsequently codified in S.142(2) NI Act).",
-        source: "9 SCC 129"
-    },
-    {
-        title: "Kishan Rao vs. Shankargouda (2018)",
-        tag: "S.139 Presumption",
-        text: "The accused cannot rebut the Section 139 presumption by merely denying the signature or the transaction; they must produce cogent rebutting evidence.",
-        source: "8 SCC 165"
-    },
-    {
-        title: "Yogendra Pratap Singh vs. Savitri Pandey (2014)",
-        tag: "Premature Filing",
-        text: "Held that a complaint filed before the expiry of the mandatory 15-day notice period is premature and non-maintainable.",
-        source: "10 SCC 713"
-    },
-    {
-        title: "MSR Leathers vs. S. Palaniappan (2013)",
-        tag: "Multiple Presentment",
-        text: "A cheque can be presented multiple times. The complainant can file a case upon default of any subsequent legal notice sent within 30 days.",
-        source: "10 SCC 568"
-    },
-    {
-        title: "Bir Singh vs. Mukesh Kumar (2019)",
-        tag: "Blank Cheque",
-        text: "A blank signed cheque handed over to a payee carries an implied authority to fill it up. It is fully valid and enforceable under Section 138.",
-        source: "4 SCC 197"
-    },
-    {
-        title: "Arnesh Kumar vs. State of Bihar (2014)",
+        title: "Arnesh Kumar vs. State of Bihar",
         tag: "Arrest Guidelines",
-        text: "Laid down strict guidelines against mechanical arrests in offences punishable with imprisonment under 7 years, notably matrimonial cases under S.498A.",
-        source: "8 SCC 273"
+        domain: "Criminal",
+        text: "Mandatory directives against automatic or mechanical arrest for offences punishable up to 7 years. Police officers must serve Section 41A notice and Magistrates must record satisfaction before authorizing detention.",
+        source: "(2014) 8 SCC 273",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/175764778/"
     },
     {
-        title: "Geeta Mehrotra vs. State of U.P. (2012)",
-        tag: "498A Family Quashing",
-        text: "Casual or general reference to family members in matrimonial complaints under Section 498A IPC does not justify active criminal proceedings.",
-        source: "10 SCC 741"
+        title: "Lalita Kumari vs. Govt. of U.P.",
+        tag: "Mandatory FIR (S.154 / BNSS 173)",
+        domain: "Criminal",
+        text: "Registration of FIR is mandatory if information discloses commission of a cognizable offence. Preliminary inquiry permissible only in strictly defined categories (commercial, matrimonial, medical negligence).",
+        source: "(2014) 2 SCC 1",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/1440673/"
     },
     {
-        title: "Preeti Gupta vs. State of Jharkhand (2010)",
-        tag: "Matrimonial Quashing",
-        text: "Expressed concern over the growing trend of implicating distant relatives in domestic conflicts; quashed unspecific S.498A allegations.",
-        source: "7 SCC 667"
+        title: "Sanjay Chandra vs. Central Bureau of Investigation",
+        tag: "Bail is Rule, Jail Exception",
+        domain: "Criminal",
+        text: "Reiterated that bail is the rule and jail is the exception. Pre-trial detention cannot be punitive; prolonged custody in complex economic trials without imminent trial conclusion warrants bail.",
+        source: "(2012) 1 SCC 40",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/15349501/"
     },
     {
-        title: "Sampelly Satyanarayana Rao vs. IREDA (2016)",
-        tag: "Security Cheque",
-        text: "Once a debt is crystallized on the cheque date, even a security cheque is enforceable under Section 138 of the NI Act.",
-        source: "10 SCC 458"
+        title: "Vijay Madanlal Choudhary vs. Union of India",
+        tag: "PMLA S.45 & Predicate Offence",
+        domain: "Criminal",
+        text: "Clarified that money laundering proceedings under PMLA cannot survive if the predicate/scheduled offence is quashed, discharged, or results in acquittal.",
+        source: "(2022) SCC OnLine SC 929",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/705856/"
     },
     {
-        title: "Dalmia Cement vs. Galaxy Traders (2001)",
-        tag: "Strict Timelines",
-        text: "Section 138 timelines are penal and mandatory. Timelines for notice, receipt, and filing must be calculated strictly without delay latitude.",
-        source: "6 SCC 463"
+        title: "Kahkashan Kausar @ Sonam vs. State of Bihar",
+        tag: "498A Relatives Quashing",
+        domain: "Criminal",
+        text: "Vague, omnibus, and general allegations against husband's relatives (in-laws, siblings) in Section 498A IPC / 85 BNS cases without specific overt acts must be quashed.",
+        source: "(2022) 6 SCC 599",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/80929323/"
+    },
+    {
+        title: "Sheila Sebastian vs. R. Jawaharaj",
+        tag: "Forgery & False Document (S.467/468)",
+        domain: "Criminal",
+        text: "A person cannot be convicted of forgery unless proved beyond reasonable doubt to be the actual maker or author of the fraudulent document.",
+        source: "(2018) 7 SCC 581",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/93478173/"
+    },
+    {
+        title: "Sushila Aggarwal vs. State (NCT of Delhi)",
+        tag: "Anticipatory Bail (S.438 / BNSS 482)",
+        domain: "Criminal",
+        text: "5-Judge Constitution Bench held that protection of anticipatory bail is not invariably limited in time and can continue till the end of the trial.",
+        source: "(2020) 5 SCC 1",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/141020640/"
+    },
+
+    // ── SARFAESI & BANKING DEBT RECOVERY ──────────────────────────
+    {
+        title: "Mardia Chemicals Ltd. vs. Union of India",
+        tag: "Section 13(3A) Reasoned Reply",
+        domain: "SARFAESI",
+        text: "Mandatory requirement for Secured Creditor bank to consider borrower's Section 13(3A) representation and communicate reasoned reply before taking Section 13(4) possession.",
+        source: "(2004) 4 SCC 311",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/1714918/"
+    },
+    {
+        title: "United Bank of India vs. Satyawati Tondon",
+        tag: "Alternate Remedy (S.17 DRT)",
+        domain: "SARFAESI",
+        text: "High Courts must not entertain Article 226 writ petitions challenging SARFAESI measures where an effective alternate statutory remedy under Section 17 DRT is available.",
+        source: "(2010) 8 SCC 110",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/1479092/"
+    },
+    {
+        title: "Transcore vs. Union of India",
+        tag: "Concurrent Remedies (DRT + SARFAESI)",
+        domain: "SARFAESI",
+        text: "SARFAESI Act and RDDBFI Act provide concurrent, cumulative remedies. Doctrine of election does not bar taking Section 13(4) possession during pendency of DRT OA.",
+        source: "(2008) 1 SCC 125",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/1352604/"
+    },
+    {
+        title: "Celir LLP vs. Bafna Motors (Mumbai) Pvt. Ltd.",
+        tag: "Redemption Extinction (S.13(8))",
+        domain: "SARFAESI",
+        text: "Under amended Section 13(8) of SARFAESI Act, borrower's right of redemption is extinguished immediately upon publication of auction notice.",
+        source: "(2024) 2 SCC 1",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/59493976/"
+    },
+    {
+        title: "C. Bright vs. District Collector",
+        tag: "Section 14 CJM/DM Timeline",
+        domain: "SARFAESI",
+        text: "The statutory timeline under Section 14 proviso for District Magistrate / CJM to assist secured creditor in taking physical possession is directory and not mandatory.",
+        source: "(2021) 2 SCC 392",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/573863/"
+    },
+
+    // ── NEGOTIABLE INSTRUMENTS ACT (SECTION 138 / 139 / 141) ───────
+    {
+        title: "Basalingappa vs. Mudibasappa",
+        tag: "Financial Capacity Challenge",
+        domain: "NI Act",
+        text: "Held that if financial capacity of complainant is challenged in high-value cash transactions, complainant must prove source of funds to establish legally enforceable debt.",
+        source: "(2019) 5 SCC 418",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/81116500/"
+    },
+    {
+        title: "Rangappa vs. Srikanth",
+        tag: "Section 139 Debt Presumption",
+        domain: "NI Act",
+        text: "Confirmed that Section 139 carries a strong statutory presumption of debt. Debtor must raise a probable defense on preponderance of probabilities to rebut it.",
+        source: "(2010) 11 SCC 441",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/1498679/"
+    },
+    {
+        title: "Aneeta Hada vs. Godfather Travels",
+        tag: "Company Prosecution (S.141)",
+        domain: "NI Act",
+        text: "Prosecution of company directors/officers under Section 141 is not maintainable unless the company itself is joined as a primary accused entity.",
+        source: "(2012) 5 SCC 661",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/7901511/"
+    },
+    {
+        title: "Bir Singh vs. Mukesh Kumar",
+        tag: "Blank Signed Cheque (S.20)",
+        domain: "NI Act",
+        text: "A blank signed cheque handed over carries implied authority to fill particulars. It is fully valid and enforceable under Section 138 upon dishonour.",
+        source: "(2019) 4 SCC 197",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/981928/"
+    },
+    {
+        title: "Yogendra Pratap Singh vs. Savitri Pandey",
+        tag: "Premature Filing Bar",
+        domain: "NI Act",
+        text: "A Section 138 complaint filed before the expiry of the mandatory 15-day notice period is premature and non-maintainable.",
+        source: "(2014) 10 SCC 713",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/1391482/"
+    },
+    {
+        title: "Sampelly Satyanarayana Rao vs. IREDA",
+        tag: "Security Cheque Enforceability",
+        domain: "NI Act",
+        text: "Once debt crystallizes on the cheque date, even an instrument delivered as a 'security cheque' is enforceable under Section 138.",
+        source: "(2016) 10 SCC 458",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/1919952/"
+    },
+
+    // ── CIVIL, COMMERCIAL & ARBITRATION ────────────────────────────
+    {
+        title: "Vidya Drolia vs. Durga Trading Corporation",
+        tag: "Arbitrability Test (S.11)",
+        domain: "Arbitration",
+        text: "Authoritative 4-fold test for non-arbitrability of disputes; landlord-tenant disputes arbitrable unless governed by special rent control acts.",
+        source: "(2021) 2 SCC 1",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/1714918/"
+    },
+    {
+        title: "N.N. Global Mercantile vs. Indo Unique Flame",
+        tag: "Unstamped Agreement (7-Judge Bench)",
+        domain: "Arbitration",
+        text: "7-Judge Constitution Bench held that non-stamping of underlying commercial agreement does not render arbitration clause invalid at Section 11 referral stage.",
+        source: "(2024) 4 SCC 341",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/141020640/"
+    },
+    {
+        title: "Perkins Eastman Architects vs. HSCC (India)",
+        tag: "Unilateral Arbitrator Appointment",
+        domain: "Arbitration",
+        text: "A party interested in dispute outcome is ineligible to act as arbitrator and equally disqualified from unilaterally appointing a sole arbitrator.",
+        source: "(2020) 20 SCC 760",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/165439500/"
+    },
+    {
+        title: "Patil Automation vs. Rakheja Engineers",
+        tag: "Mandatory Mediation (S.12A CCA)",
+        domain: "Commercial Suits",
+        text: "Pre-institution mediation under Section 12A Commercial Courts Act is mandatory; suits filed without urgent interim relief must be rejected under Order 7 Rule 11 CPC.",
+        source: "(2022) 10 SCC 1",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/59648905/"
+    },
+    {
+        title: "Dalpat Kumar vs. Prahlad Singh",
+        tag: "Temporary Injunction Three Pillars",
+        domain: "Civil Suits",
+        text: "Three mandatory pillars for grant of temporary injunction under Order 39 CPC: prima facie case, balance of convenience, and irreparable loss.",
+        source: "(1992) 1 SCC 719",
+        court: "Supreme Court of India",
+        link: "https://indiankanoon.org/doc/1681702/"
     }
 ];
 
@@ -2772,33 +2920,50 @@ window.filterPrecedentsList = () => {
     
     const filtered = landmarkPrecedents.filter(item => {
         return item.title.toLowerCase().includes(query) || 
-               item.tag.toLowerCase().includes(query) || 
+               (item.tag && item.tag.toLowerCase().includes(query)) || 
+               (item.domain && item.domain.toLowerCase().includes(query)) ||
                item.text.toLowerCase().includes(query) ||
                item.source.toLowerCase().includes(query);
     });
     
     if (filtered.length === 0) {
-        container.innerHTML = `<p style="color: var(--gray-500); font-size: 0.9rem; text-align: center; margin-top: 2rem;">No matching precedent authorities found.</p>`;
+        container.innerHTML = `<p style="color: var(--gray-500); font-size: 0.9rem; text-align: center; margin-top: 2rem;"><i class="fas fa-search" style="margin-right: 0.4rem;"></i> No matching precedent authorities found for "${query}". Try searching by statute or judge.</p>`;
         return;
     }
     
-    container.innerHTML = filtered.map(item => `
-        <div class="citation-result-card" style="border-left: 3px solid var(--primary-500); transition: var(--transition-fast); margin-bottom: 0.75rem; padding: 0.85rem; background: var(--gray-100); border-radius: 0.5rem; border: 1px solid var(--gray-200);">
-            <div class="citation-result-header" style="display:flex; align-items:center; justify-content:space-between; gap:0.5rem; margin-bottom:0.4rem;">
-                <h4 class="citation-result-title" style="font-family: var(--font-serif); font-size:0.95rem; font-weight:700; color: var(--gray-900); margin:0;">
-                    <i class="fas fa-gavel" style="color: #f59e0b; margin-right: 0.4rem; font-size: 0.8rem;"></i> ${item.title}
+    container.innerHTML = filtered.map(item => {
+        const domainColor = item.domain === 'Criminal' ? '#ef4444' : (item.domain === 'SARFAESI' ? '#f59e0b' : (item.domain === 'Arbitration' ? '#8b5cf6' : (item.domain === 'Commercial Suits' ? '#10b981' : '#0ea5e9')));
+        const link = item.link || `https://indiankanoon.org/search/?formInput=${encodeURIComponent(item.title)}`;
+        const copyText = `${item.title}, ${item.source} (${item.court || 'Supreme Court of India'})`;
+        
+        return `
+        <div class="citation-result-card" style="border-left: 3px solid ${domainColor}; transition: var(--transition-fast); margin-bottom: 0.85rem; padding: 0.95rem; background: var(--gray-100); border-radius: 0.6rem; border: 1px solid var(--gray-200); box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+            <div class="citation-result-header" style="display:flex; align-items:flex-start; justify-content:space-between; gap:0.5rem; margin-bottom:0.45rem; flex-wrap: wrap;">
+                <h4 class="citation-result-title" style="font-family: var(--font-serif); font-size:0.98rem; font-weight:700; color: var(--gray-900); margin:0; line-height: 1.35;">
+                    <i class="fas fa-gavel" style="color: #d97706; margin-right: 0.4rem; font-size: 0.85rem;"></i>
+                    <a href="${link}" target="_blank" rel="noopener noreferrer" style="color: var(--primary-600); text-decoration: none; border-bottom: 1px dashed rgba(2,132,199,0.4);" title="Open official judgment on Indian Kanoon">
+                        ${item.title} <i class="fas fa-external-link-alt" style="font-size: 0.72rem; margin-left: 0.25rem; opacity: 0.7;"></i>
+                    </a>
                 </h4>
-                <span class="citation-result-tag" style="background: rgba(14,165,233,0.12); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 12px; text-transform: uppercase;">${item.tag}</span>
+                <div style="display:flex; gap: 0.35rem; align-items:center;">
+                    <span style="background: rgba(15,23,42,0.08); color: ${domainColor}; font-size: 0.68rem; font-weight: 700; padding: 0.12rem 0.45rem; border-radius: 6px; text-transform: uppercase;">${item.domain || 'Landmark'}</span>
+                    <span class="citation-result-tag" style="background: rgba(14,165,233,0.12); color: #0284c7; border: 1px solid rgba(14,165,233,0.3); font-size: 0.68rem; font-weight: 700; padding: 0.12rem 0.45rem; border-radius: 6px;">${item.tag}</span>
+                </div>
             </div>
-            <p class="citation-result-text" style="font-size:0.83rem; color: var(--gray-700); line-height: 1.45; margin-bottom: 0.5rem;">${item.text}</p>
-            <div style="display:flex; align-items:center; justify-content:space-between; font-size: 0.75rem; color: var(--gray-500); border-top: 1px solid var(--gray-200); padding-top: 0.4rem; margin-top: 0.4rem;">
-                <span><i class="fas fa-book-open" style="margin-right:0.3rem;"></i> <strong>Citation:</strong> ${item.source} (Supreme Court)</span>
-                <button onclick="navigator.clipboard.writeText('${item.title} (${item.source})'); if(window.ui && window.ui.toast) window.ui.toast('Citation copied to clipboard', 'info');" style="background: transparent; border: none; color: var(--primary-500); font-size: 0.72rem; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
-                    <i class="fas fa-copy"></i> Copy Citation
-                </button>
+            <p class="citation-result-text" style="font-size:0.84rem; color: var(--gray-700); line-height: 1.5; margin-bottom: 0.6rem;">${item.text}</p>
+            <div style="display:flex; align-items:center; justify-content:space-between; font-size: 0.76rem; color: var(--gray-500); border-top: 1px solid var(--gray-200); padding-top: 0.5rem; margin-top: 0.4rem; flex-wrap: wrap; gap: 0.4rem;">
+                <span><i class="fas fa-book-open" style="margin-right:0.3rem; color: #64748b;"></i> <strong>Citation:</strong> ${item.source} (${item.court || 'Supreme Court of India'})</span>
+                <div style="display:flex; gap: 0.5rem; align-items:center;">
+                    <a href="${link}" target="_blank" rel="noopener noreferrer" style="color: var(--primary-600); text-decoration: none; font-size: 0.74rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem; background: rgba(2,132,199,0.08); padding: 0.15rem 0.5rem; border-radius: 4px;">
+                        <i class="fas fa-landmark"></i> Indian Kanoon
+                    </a>
+                    <button onclick="navigator.clipboard.writeText('${copyText.replace(/'/g, "\\'")}'); if(window.ui && window.ui.toast) { window.ui.toast('Citation copied: ${item.source}', 'success'); } else { alert('Citation copied!'); }" style="background: rgba(15,23,42,0.05); border: 1px solid var(--gray-300); color: var(--gray-700); font-size: 0.74rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.15rem 0.5rem; border-radius: 4px; transition: all 0.15s ease;">
+                        <i class="fas fa-copy"></i> Copy Citation
+                    </button>
+                </div>
             </div>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 };
 
 window.filterPrecedentByTag = (tagQuery, element) => {

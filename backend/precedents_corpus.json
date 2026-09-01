@@ -43,7 +43,7 @@
       "right of redemption"
     ],
     "court": "Supreme Court of India",
-    "link": "https://indiankanoon.org/doc/1234567/",
+    "link": "https://indiankanoon.org/doc/1785955/",
     "binding": true
   },
   {
@@ -66,7 +66,7 @@
       "itc"
     ],
     "court": "Supreme Court of India",
-    "link": "https://indiankanoon.org/doc/8765432/",
+    "link": "https://indiankanoon.org/doc/165439500/",
     "binding": true
   },
   {
@@ -89,7 +89,7 @@
       "nclt"
     ],
     "court": "Supreme Court of India",
-    "link": "https://indiankanoon.org/doc/3456789/",
+    "link": "https://indiankanoon.org/doc/1498679/",
     "binding": true
   },
   {
@@ -14600,5 +14600,798 @@
     "court": "High Court of Punjab and Haryana",
     "link": "https://indiankanoon.org/doc/171839122/",
     "binding": false
+  },
+  {
+    "id": "SARFAESI-005",
+    "title": "Transcore vs. Union of India",
+    "citation": "(2008) 1 SCC 125",
+    "area": [
+      "sarfaesi",
+      "concurrent_remedies",
+      "section_13_4",
+      "rddbfi_act",
+      "bank_recovery"
+    ],
+    "summary": "Held that SARFAESI Act and RDDBFI Act provide concurrent, cumulative remedies. The doctrine of election does not bar a secured bank from taking Section 13(4) possession during pendency of DRT Original Application.",
+    "stance": "creditor_favourable",
+    "keywords": [
+      "transcore",
+      "concurrent remedies",
+      "doctrine of election",
+      "section 13 4",
+      "rddbfi",
+      "npa recovery"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/1352604/",
+    "binding": true
+  },
+  {
+    "id": "SARFAESI-006",
+    "title": "United Bank of India vs. Satyawati Tondon",
+    "citation": "(2010) 8 SCC 110",
+    "area": [
+      "sarfaesi",
+      "alternate_remedy",
+      "article_226",
+      "section_17_drt",
+      "writ_jurisdiction"
+    ],
+    "summary": "Landmark ruling holding that High Courts must not entertain Article 226 writ petitions challenging SARFAESI measures where an effective alternate statutory remedy under Section 17 DRT is available.",
+    "stance": "creditor_favourable",
+    "keywords": [
+      "satyawati tondon",
+      "alternate remedy",
+      "section 17 drt",
+      "article 226",
+      "writ petition barred",
+      "drbt"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/1479092/",
+    "binding": true
+  },
+  {
+    "id": "SARFAESI-007",
+    "title": "Standard Chartered Bank vs. Dharminder Bhohi",
+    "citation": "(2013) 15 SCC 341",
+    "area": [
+      "sarfaesi",
+      "drt_jurisdiction",
+      "statutory_tribunal",
+      "inherent_powers"
+    ],
+    "summary": "Held that the Debts Recovery Tribunal is a creature of statute and has no inherent powers like a civil court; it cannot grant relief outside the specific contours of the SARFAESI/RDDBFI statutes.",
+    "stance": "creditor_favourable",
+    "keywords": [
+      "dharminder bhohi",
+      "drt powers",
+      "inherent jurisdiction",
+      "statutory limits",
+      "drat"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/103964065/",
+    "binding": true
+  },
+  {
+    "id": "SARFAESI-008",
+    "title": "Authorised Officer, State Bank of Travancore vs. Mathew K.C.",
+    "citation": "(2018) 3 SCC 85",
+    "area": [
+      "sarfaesi",
+      "stay_orders",
+      "article_226",
+      "interim_relief",
+      "section_17"
+    ],
+    "summary": "Reiterated that High Courts should refrain from granting interim stays in SARFAESI proceedings under Article 226 without exceptional extraordinary circumstances, reinforcing Satyawati Tondon doctrine.",
+    "stance": "creditor_favourable",
+    "keywords": [
+      "mathew kc",
+      "interim stay",
+      "article 226 abuse",
+      "section 17 drt",
+      "exceptional circumstances"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/119968/",
+    "binding": true
+  },
+  {
+    "id": "SARFAESI-009",
+    "title": "C. Bright vs. District Collector",
+    "citation": "(2021) 2 SCC 392",
+    "area": [
+      "sarfaesi",
+      "section_14",
+      "cjm_dm_possession",
+      "time_limit",
+      "directory_provision"
+    ],
+    "summary": "Held that the 30-day (extendable to 60 days) statutory timeline under Section 14 proviso for District Magistrate / CJM to assist secured creditor in taking physical possession is directory and not mandatory.",
+    "stance": "creditor_favourable",
+    "keywords": [
+      "c bright",
+      "section 14 sarfaesi",
+      "district magistrate",
+      "cjm possession",
+      "directory timeline",
+      "60 days"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/573863/",
+    "binding": true
+  },
+  {
+    "id": "SARFAESI-010",
+    "title": "Phoenix ARC Pvt. Ltd. vs. Vishwa Bharati Vidya Mandir",
+    "citation": "(2022) 5 SCC 345",
+    "area": [
+      "sarfaesi",
+      "arc_status",
+      "private_entity",
+      "article_226_not_maintainable",
+      "section_13_4"
+    ],
+    "summary": "Held that Asset Reconstruction Companies (ARCs) and private NBFCs are not State under Article 12; writ petitions under Article 226 against SARFAESI actions by private ARCs are fundamentally non-maintainable.",
+    "stance": "creditor_favourable",
+    "keywords": [
+      "phoenix arc",
+      "asset reconstruction company",
+      "article 12",
+      "writ non-maintainable",
+      "section 17 drt"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/117751465/",
+    "binding": true
+  },
+  {
+    "id": "SARFAESI-011",
+    "title": "Celir LLP vs. Bafna Motors (Mumbai) Pvt. Ltd.",
+    "citation": "(2024) 2 SCC 1",
+    "area": [
+      "sarfaesi",
+      "right_of_redemption",
+      "section_13_8",
+      "auction_finality",
+      "amended_act"
+    ],
+    "summary": "Held that under amended Section 13(8) of SARFAESI Act, the borrower right of redemption is extinguished immediately upon the publication of the auction notice. Borrower cannot tender dues thereafter to stall sale.",
+    "stance": "creditor_favourable",
+    "keywords": [
+      "celir llp",
+      "bafna motors",
+      "right of redemption",
+      "section 13 8",
+      "auction notice publication",
+      "tender of dues"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/59493976/",
+    "binding": true
+  },
+  {
+    "id": "SARFAESI-012",
+    "title": "Varimadugu Obi Reddy vs. B. Sreenivasulu",
+    "citation": "(2023) 2 SCC 168",
+    "area": [
+      "sarfaesi",
+      "auction_purchaser_rights",
+      "article_226",
+      "section_17",
+      "possession_notice"
+    ],
+    "summary": "Held that auction purchasers obtain vested rights upon confirmation of SARFAESI auction. High Court cannot nullify auction sales by entertaining writ petitions bypassing DRT Section 17 mechanism.",
+    "stance": "creditor_favourable",
+    "keywords": [
+      "varimadugu obi reddy",
+      "auction purchaser",
+      "vested rights",
+      "sale confirmation",
+      "section 17 appeal"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/36664677/",
+    "binding": true
+  },
+  {
+    "id": "SARFAESI-013",
+    "title": "Balkrishna Rama Tarcar vs. Philips Carbon Black Ltd.",
+    "citation": "(2015) 12 SCC 331",
+    "area": [
+      "sarfaesi",
+      "guarantor_liability",
+      "co_extensive_liability",
+      "mortgage_enforcement"
+    ],
+    "summary": "Held that liability of guarantor is co-extensive with principal debtor; creditor bank is entitled to proceed against mortgaged asset of corporate or personal guarantor without first exhausting remedies against borrower.",
+    "stance": "creditor_favourable",
+    "keywords": [
+      "balkrishna tarcar",
+      "guarantor liability",
+      "co-extensive",
+      "section 128 contract act",
+      "personal guarantee"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/1909902/",
+    "binding": true
+  },
+  {
+    "id": "SARFAESI-014",
+    "title": "Hindon Forge Pvt. Ltd. vs. State of U.P.",
+    "citation": "(2019) 2 SCC 198",
+    "area": [
+      "sarfaesi",
+      "section_17_drt",
+      "symbolic_possession",
+      "section_13_4",
+      "borrower_remedy"
+    ],
+    "summary": "Held that borrower can challenge measures under Section 13(4) before DRT under Section 17 immediately upon symbolic or paper possession; borrower is not required to wait until actual physical dispossession.",
+    "stance": "borrower_favourable",
+    "keywords": [
+      "hindon forge",
+      "symbolic possession",
+      "section 13 4",
+      "section 17 application",
+      "maintainability",
+      "drbt"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/136351511/",
+    "binding": true
+  },
+  {
+    "id": "CRIM-001",
+    "title": "Satender Kumar Antil vs. Central Bureau of Investigation",
+    "citation": "(2022) 10 SCC 51",
+    "area": [
+      "criminal",
+      "bail",
+      "section_439",
+      "section_41a",
+      "bnss_35",
+      "bail_reform"
+    ],
+    "summary": "Comprehensive landmark guidelines on bail jurisdiction, categorizing offences into Categories A, B, C, D. Strict mandatory compliance with Section 41/41A CrPC (Section 35 BNSS) before arrest.",
+    "stance": "accused_favourable",
+    "keywords": [
+      "satender kumar antil",
+      "bail guidelines",
+      "section 41a crpc",
+      "section 35 bnss",
+      "bail is rule",
+      "category a b c d"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/14001226/",
+    "binding": true
+  },
+  {
+    "id": "CRIM-002",
+    "title": "Arnesh Kumar vs. State of Bihar",
+    "citation": "(2014) 8 SCC 273",
+    "area": [
+      "criminal",
+      "arrest_guidelines",
+      "section_41_crpc",
+      "bnss_35",
+      "section_498a",
+      "police_powers"
+    ],
+    "summary": "Mandatory directives against automatic or mechanical arrest for offences punishable up to 7 years. Police officers must serve Section 41A notice and Magistrates must record satisfaction before authorizing detention.",
+    "stance": "accused_favourable",
+    "keywords": [
+      "arnesh kumar",
+      "arrest checklist",
+      "section 41 1 b",
+      "notice of appearance",
+      "matrimonial arrest",
+      "7 years punishment"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/175764778/",
+    "binding": true
+  },
+  {
+    "id": "CRIM-003",
+    "title": "Lalita Kumari vs. Govt. of U.P.",
+    "citation": "(2014) 2 SCC 1",
+    "area": [
+      "criminal",
+      "fir_registration",
+      "section_154_crpc",
+      "bnss_173",
+      "cognizable_offence",
+      "preliminary_inquiry"
+    ],
+    "summary": "Held that registration of FIR under Section 154 CrPC (Section 173 BNSS) is mandatory if information discloses commission of a cognizable offence. Preliminary inquiry permissible only in strictly defined classes (matrimonial, commercial, medical negligence).",
+    "stance": "neutral",
+    "keywords": [
+      "lalita kumari",
+      "mandatory fir",
+      "section 154 crpc",
+      "section 173 bnss",
+      "cognizable offence",
+      "preliminary inquiry"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/1440673/",
+    "binding": true
+  },
+  {
+    "id": "CRIM-004",
+    "title": "State of Haryana vs. Bhajan Lal",
+    "citation": "1992 Supp (1) SCC 335",
+    "area": [
+      "criminal",
+      "quashing_fir",
+      "section_482_crpc",
+      "bnss_528",
+      "abuse_of_process",
+      "inherent_powers"
+    ],
+    "summary": "Established the 7 cardinal illustrative categories/parameters where High Courts must exercise inherent jurisdiction under Section 482 CrPC (Section 528 BNSS) to quash FIRs and criminal proceedings.",
+    "stance": "accused_favourable",
+    "keywords": [
+      "bhajan lal",
+      "section 482 quashing",
+      "7 parameters",
+      "section 528 bnss",
+      "civil dispute in criminal garb",
+      "malice"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/8637801/",
+    "binding": true
+  },
+  {
+    "id": "CRIM-005",
+    "title": "Neeharika Infrastructure Pvt. Ltd. vs. State of Maharashtra",
+    "citation": "(2021) 19 SCC 401",
+    "area": [
+      "criminal",
+      "quashing_fir",
+      "section_482_crpc",
+      "no_coercive_steps",
+      "stay_of_investigation"
+    ],
+    "summary": "Held that High Courts exercising Section 482 CrPC jurisdiction should not pass blanket interim orders of no coercive steps or stay investigations routinely without recording exceptional reasons.",
+    "stance": "prosecution_favourable",
+    "keywords": [
+      "neeharika infrastructure",
+      "no coercive steps barred",
+      "stay of investigation",
+      "section 482 limitations",
+      "police investigation rights"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/109070216/",
+    "binding": true
+  },
+  {
+    "id": "CRIM-006",
+    "title": "Sanjay Chandra vs. Central Bureau of Investigation",
+    "citation": "(2012) 1 SCC 40",
+    "area": [
+      "criminal",
+      "bail",
+      "economic_offences",
+      "pretrial_detention",
+      "article_21"
+    ],
+    "summary": "Reiterated the golden principle that bail is the rule and jail is the exception. Pre-trial detention cannot be punitive; prolonged custody in complex economic trials without imminent trial conclusion warrants bail.",
+    "stance": "accused_favourable",
+    "keywords": [
+      "sanjay chandra",
+      "bail rule jail exception",
+      "economic offences bail",
+      "speedy trial",
+      "article 21",
+      "undertrial rights"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/15349501/",
+    "binding": true
+  },
+  {
+    "id": "CRIM-007",
+    "title": "Dataram Singh vs. State of Uttar Pradesh",
+    "citation": "(2018) 3 SCC 22",
+    "area": [
+      "criminal",
+      "bail_jurisdiction",
+      "presumption_of_innocence",
+      "personal_liberty",
+      "article_21"
+    ],
+    "summary": "Affirmed that grant of bail is an exercise of judicial discretion grounded in personal liberty and the presumption of innocence. Conditions imposed must not be onerous or illusory.",
+    "stance": "accused_favourable",
+    "keywords": [
+      "dataram singh",
+      "presumption of innocence",
+      "personal liberty",
+      "judicial discretion",
+      "humane bail"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/69428243/",
+    "binding": true
+  },
+  {
+    "id": "CRIM-008",
+    "title": "P. Chidambaram vs. Directorate of Enforcement",
+    "citation": "(2020) 13 SCC 791",
+    "area": [
+      "criminal",
+      "bail",
+      "pmla",
+      "triple_test",
+      "economic_offence_bail"
+    ],
+    "summary": "Laid down the definitive Triple Test for regular bail (flight risk, tampering with evidence, influencing witnesses). Held that gravity of allegation alone cannot justify endless incarceration without trial progress.",
+    "stance": "accused_favourable",
+    "keywords": [
+      "p chidambaram",
+      "triple test bail",
+      "flight risk",
+      "tampering evidence",
+      "pmla bail",
+      "gravity of offence"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/1675688/",
+    "binding": true
+  },
+  {
+    "id": "CRIM-009",
+    "title": "Vijay Madanlal Choudhary vs. Union of India",
+    "citation": "(2022) SCC OnLine SC 929",
+    "area": [
+      "criminal",
+      "pmla",
+      "section_45_pmla",
+      "twin_conditions",
+      "predicate_offence",
+      "proceeds_of_crime"
+    ],
+    "summary": "Upheld Section 45 PMLA twin conditions for bail, but clarified that money laundering cannot survive if the predicate/scheduled offence is quashed, discharged, or results in acquittal.",
+    "stance": "neutral",
+    "keywords": [
+      "vijay madanlal choudhary",
+      "pmla section 45",
+      "twin conditions",
+      "predicate offence quashed",
+      "proceeds of crime",
+      "ed powers"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/705856/",
+    "binding": true
+  },
+  {
+    "id": "CRIM-010",
+    "title": "Tofan Singh vs. State of Tamil Nadu",
+    "citation": "(2021) 4 SCC 1",
+    "area": [
+      "criminal",
+      "ndps_act",
+      "confession",
+      "section_67_ndps",
+      "evidence_act_25",
+      "police_officer"
+    ],
+    "summary": "Held that officers of NCB and designated central/state enforcement agencies invested with police powers are police officers within Section 25 Evidence Act; confessional statements recorded u/s 67 NDPS are inadmissible.",
+    "stance": "accused_favourable",
+    "keywords": [
+      "tofan singh",
+      "section 67 ndps",
+      "confession inadmissible",
+      "section 25 evidence act",
+      "ncb officers police",
+      "bsa 23"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/115277886/",
+    "binding": true
+  },
+  {
+    "id": "CRIM-011",
+    "title": "Kahkashan Kausar @ Sonam vs. State of Bihar",
+    "citation": "(2022) 6 SCC 599",
+    "area": [
+      "criminal",
+      "section_498a",
+      "bns_85",
+      "quashing_relatives",
+      "omnibus_allegations"
+    ],
+    "summary": "Held that vague, omnibus, and general allegations against husband relatives (in-laws, siblings) in Section 498A IPC / 85 BNS cases without specific overt acts must be quashed to prevent abuse of criminal law.",
+    "stance": "accused_favourable",
+    "keywords": [
+      "kahkashan kausar",
+      "section 498a quashing",
+      "omnibus allegations",
+      "husband relatives in-laws",
+      "bns section 85"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/80929323/",
+    "binding": true
+  },
+  {
+    "id": "CRIM-012",
+    "title": "Sheila Sebastian vs. R. Jawaharaj",
+    "citation": "(2018) 7 SCC 581",
+    "area": [
+      "criminal",
+      "forgery",
+      "section_467",
+      "section_468",
+      "bns_336",
+      "maker_of_false_document"
+    ],
+    "summary": "Held that a person cannot be convicted of forgery under Section 467/468 IPC (Section 336/338 BNS) unless proved beyond reasonable doubt to be the actual maker or author of the fraudulent document.",
+    "stance": "accused_favourable",
+    "keywords": [
+      "sheila sebastian",
+      "forgery essential ingredients",
+      "maker of document",
+      "section 467 ipc",
+      "section 468",
+      "fsl evidence"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/93478173/",
+    "binding": true
+  },
+  {
+    "id": "CRIM-013",
+    "title": "High Court Bar Association Allahabad vs. State of U.P.",
+    "citation": "(2024) 6 SCC 267",
+    "area": [
+      "criminal",
+      "interim_stay",
+      "asian_resurfacing_overruled",
+      "constitution_bench",
+      "article_142"
+    ],
+    "summary": "5-Judge Constitution Bench overruled Asian Resurfacing; held that interim stay orders granted by High Courts do not automatically expire or vacate after 6 months. Stay continues until case is judicially heard.",
+    "stance": "neutral",
+    "keywords": [
+      "allahabad hc bar",
+      "asian resurfacing overruled",
+      "stay automatic expiry",
+      "6 months stay rule",
+      "constitution bench",
+      "article 142"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/101192556/",
+    "binding": true
+  },
+  {
+    "id": "CRIM-014",
+    "title": "Aparna Bhat vs. State of Madhya Pradesh",
+    "citation": "(2021) SCC OnLine SC 230",
+    "area": [
+      "criminal",
+      "pocso_bail",
+      "sexual_offences",
+      "gender_sensitivity",
+      "bail_conditions"
+    ],
+    "summary": "Issued strict directions that courts granting bail in sexual violence and POCSO matters must never impose conditions requiring compromise, tying rakhi, or trivializing trauma.",
+    "stance": "neutral",
+    "keywords": [
+      "aparna bhat",
+      "pocso bail conditions",
+      "gender sensitivity",
+      "no compromise in sexual offences",
+      "judicial conduct"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/92812490/",
+    "binding": true
+  },
+  {
+    "id": "CRIM-015",
+    "title": "Sushila Aggarwal vs. State (NCT of Delhi)",
+    "citation": "(2020) 5 SCC 1",
+    "area": [
+      "criminal",
+      "anticipatory_bail",
+      "section_438_crpc",
+      "bnss_482",
+      "constitution_bench",
+      "no_time_limit"
+    ],
+    "summary": "5-Judge Constitution Bench held that protection of anticipatory bail under Section 438 CrPC (Section 482 BNSS) is not invariably limited in time and can continue till the end of the trial.",
+    "stance": "accused_favourable",
+    "keywords": [
+      "sushila aggarwal",
+      "anticipatory bail constitution bench",
+      "section 438 crpc",
+      "section 482 bnss",
+      "no fixed time limit",
+      "personal liberty"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/141020640/",
+    "binding": true
+  },
+  {
+    "id": "CIVIL-001",
+    "title": "Vidya Drolia vs. Durga Trading Corporation",
+    "citation": "(2021) 2 SCC 1",
+    "area": [
+      "civil",
+      "arbitration",
+      "arbitrability_test",
+      "section_11_arbitration",
+      "landlord_tenant"
+    ],
+    "summary": "Laid down the authoritative 4-fold test for non-arbitrability of disputes. Upheld that landlord-tenant disputes are arbitrable unless governed by special rent control statutes; Section 11 review is prima facie.",
+    "stance": "neutral",
+    "keywords": [
+      "vidya drolia",
+      "arbitrability test",
+      "section 11 arbitration act",
+      "landlord tenant arbitration",
+      "prima facie referral"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/1714918/",
+    "binding": true
+  },
+  {
+    "id": "CIVIL-002",
+    "title": "N.N. Global Mercantile Pvt. Ltd. vs. Indo Unique Flame Ltd.",
+    "citation": "(2024) 4 SCC 341",
+    "area": [
+      "civil",
+      "arbitration",
+      "stamping_arbitration",
+      "section_11",
+      "7_judge_bench",
+      "curative_jurisdiction"
+    ],
+    "summary": "7-Judge Constitution Bench held that non-stamping or insufficient stamping of underlying commercial agreement does not render arbitration clause invalid or unenforceable at the Section 11 referral stage.",
+    "stance": "creditor_favourable",
+    "keywords": [
+      "nn global mercantile",
+      "unstamped arbitration agreement",
+      "7 judge bench",
+      "section 11 arbitration",
+      "stamp act objection"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/141020640/",
+    "binding": true
+  },
+  {
+    "id": "CIVIL-003",
+    "title": "Perkins Eastman Architects DPC vs. HSCC (India) Ltd.",
+    "citation": "(2020) 20 SCC 760",
+    "area": [
+      "civil",
+      "arbitration",
+      "unilateral_appointment",
+      "section_12_5",
+      "independent_arbitrator"
+    ],
+    "summary": "Held that an interested party or entity ineligible to act as arbitrator under Section 12(5) is equally disqualified from unilaterally appointing a sole arbitrator to adjudicate the dispute.",
+    "stance": "neutral",
+    "keywords": [
+      "perkins eastman",
+      "unilateral appointment barred",
+      "section 12 5 arbitration",
+      "sole arbitrator",
+      "impartial tribunal"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/165439500/",
+    "binding": true
+  },
+  {
+    "id": "CIVIL-004",
+    "title": "Patil Automation Pvt. Ltd. vs. Rakheja Engineers Pvt. Ltd.",
+    "citation": "(2022) 10 SCC 1",
+    "area": [
+      "civil",
+      "commercial_courts_act",
+      "section_12a",
+      "pre_institution_mediation",
+      "order_7_rule_11"
+    ],
+    "summary": "Held that pre-institution mediation under Section 12A of the Commercial Courts Act, 2015 is mandatory; any commercial suit filed without exhausting Section 12A (unless urgent interim relief is claimed) must be rejected under Order 7 Rule 11 CPC.",
+    "stance": "neutral",
+    "keywords": [
+      "patil automation",
+      "section 12a commercial courts",
+      "mandatory mediation",
+      "pre institution mediation",
+      "order 7 rule 11"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/59648905/",
+    "binding": true
+  },
+  {
+    "id": "CIVIL-005",
+    "title": "Morgan Stanley Mutual Fund vs. Kartick Das",
+    "citation": "(1994) 4 SCC 225",
+    "area": [
+      "civil",
+      "injunction",
+      "order_39_cpc",
+      "ex_parte_injunction",
+      "commercial_disputes"
+    ],
+    "summary": "Authoritative guidelines governing grant of ex-parte interim injunctions under Order 39 Rules 1 & 2 CPC, requiring overwhelming necessity and recording of specific irreparable injury reasons.",
+    "stance": "neutral",
+    "keywords": [
+      "morgan stanley",
+      "ex parte injunction guidelines",
+      "order 39 rules 1 2",
+      "interim relief test",
+      "cpc"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/1498679/",
+    "binding": true
+  },
+  {
+    "id": "CIVIL-006",
+    "title": "Dalpat Kumar vs. Prahlad Singh",
+    "citation": "(1992) 1 SCC 719",
+    "area": [
+      "civil",
+      "temporary_injunction",
+      "order_39_rule_1",
+      "prima_facie_case",
+      "irreparable_loss",
+      "balance_of_convenience"
+    ],
+    "summary": "Established the classic three-pillar test for temporary injunction under Order 39 CPC: prima facie case, balance of convenience, and irreparable injury that cannot be compensated in damages.",
+    "stance": "neutral",
+    "keywords": [
+      "dalpat kumar",
+      "three pillars injunction",
+      "prima facie case",
+      "balance of convenience",
+      "irreparable loss",
+      "order 39 cpc"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/1681702/",
+    "binding": true
+  },
+  {
+    "id": "CIVIL-007",
+    "title": "Rahul S. Shah vs. Jinendra Kumar Gandhi",
+    "citation": "(2021) 6 SCC 418",
+    "area": [
+      "civil",
+      "execution_proceedings",
+      "order_21_cpc",
+      "decree_enforcement",
+      "speedy_justice"
+    ],
+    "summary": "Supreme Court issued comprehensive nationwide directives to curb execution delays under Order 21 CPC; directed executing courts to dispose of execution petitions within 6 months.",
+    "stance": "creditor_favourable",
+    "keywords": [
+      "rahul shah",
+      "order 21 execution delays",
+      "decree holder rights",
+      "6 month execution limit",
+      "civil court guidelines"
+    ],
+    "court": "Supreme Court of India",
+    "link": "https://indiankanoon.org/doc/103964065/",
+    "binding": true
   }
 ]

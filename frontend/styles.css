@@ -2460,6 +2460,58 @@ button.primary:hover:not(:disabled),
     color: var(--primary-600);
 }
 
+.precedent-tag-pills {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    margin: 0.75rem 0 1rem 0;
+}
+
+.precedent-tag-pill {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.precedent-tag-pill:hover {
+    background: var(--primary-50);
+    border-color: var(--primary-300);
+    color: var(--primary-600);
+    transform: translateY(-1px);
+}
+
+.precedent-tag-pill.active {
+    background: var(--primary-600);
+    border-color: var(--primary-600);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.35);
+}
+
+.rl-precedent-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    margin-bottom: 0.85rem;
+    background: var(--bg-elevated);
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.rl-precedent-card:hover {
+    border-color: var(--primary-400);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
 /* ============================================================================
    14. PRICING SECTION
    ============================================================================ */

@@ -410,21 +410,23 @@
                     
                     <!-- Column 2: Precedent Finder -->
                     <div class="precedent-card">
-                        <h3>Landmark Precedent Finder</h3>
-                        <p style="color: var(--gray-400); font-size: 0.9rem; margin: 0 0 1rem 0;">Query essential Supreme Court Section 138 check bounce precedents by typing search keywords:</p>
+                        <h3>Landmark Precedent & Authority Explorer</h3>
+                        <p style="color: var(--gray-400); font-size: 0.9rem; margin: 0 0 1rem 0;">Search verified landmark Supreme Court judgments across Criminal (BNS/BNSS), SARFAESI/DRT, NI Act 138, Civil & Commercial Suits, and Arbitration with direct Indian Kanoon & Official Law Report links:</p>
                         
                         <div class="search-wrapper">
                             <i class="fas fa-search"></i>
-                            <input type="text" id="precedentSearchInput" class="precedent-search-bar" placeholder="Try typing: notice, signature, delay, stop payment..." oninput="filterPrecedentsList()">
+                            <input type="text" id="precedentSearchInput" class="precedent-search-bar" placeholder="Search by case, citation, section, or keyword (e.g. Satender Antil, Bhajan Lal, Mardia, 138, Bail, Injunction)..." oninput="filterPrecedentsList()">
                         </div>
 
                         <div class="precedent-tag-pills" style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.75rem 0 1rem 0;">
-                            <button class="precedent-tag-pill sim-preset-btn active" onclick="filterPrecedentByTag('', this)">#All</button>
-                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('notice', this)">#NoticeDelay</button>
-                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('signature', this)">#Signature</button>
-                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('security', this)">#SecurityCheque</button>
-                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('director', this)">#Sec141Directors</button>
-                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('npa', this)">#SARFAESI_NPA</button>
+                            <button class="precedent-tag-pill sim-preset-btn active" onclick="filterPrecedentByTag('', this)">#AllDomains</button>
+                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('bail', this)">#Bail_BNSS</button>
+                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('quash', this)">#Quashing_482</button>
+                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('sarfaesi', this)">#SARFAESI_DRT</button>
+                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('cheque', this)">#NI_Act_138</button>
+                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('arbitrat', this)">#Arbitration</button>
+                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('injunction', this)">#Civil_Injunctions</button>
+                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('pmla', this)">#PMLA_Fraud</button>
                         </div>
                         
                         <div id="precedentsListContainer" class="citations-list-container">

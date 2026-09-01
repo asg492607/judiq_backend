@@ -1257,23 +1257,38 @@ export function renderAIReasoningLayer(data) {
             const title = p.title || p.case || p.citation || 'Unknown Case';
             const citation = p.citation || '';
             const summary = p.summary || p.principle || p.precedent || '';
-            const court = p.court || '';
+            const court = p.court || 'Supreme Court of India';
+            const domain = p.domain || (p.area && p.area[0]) || 'Landmark Law';
             const link = p.link || p.document_url || `https://indiankanoon.org/search/?formInput=${encodeURIComponent(title)}`;
+            const copyText = `${title}, ${citation} (${court})`;
             
             return `
-                <div class="rl-precedent-card">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; gap: 0.5rem;">
-                        <span class="rl-status-badge ${badgeClass}">${badgeText}</span>
-                        ${p.binding ? '<span style="font-size: 0.65rem; color: #1e3a8a; background: #dbeafe; padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: 600; text-transform: uppercase;">Binding</span>' : ''}
+                <div class="rl-precedent-card" style="border: 1px solid var(--gray-200); border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; background: var(--gray-100); transition: var(--transition-fast); box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; gap: 0.5rem; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;">
+                            <span class="rl-status-badge ${badgeClass}" style="font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 6px;">${badgeText}</span>
+                            <span style="font-size: 0.65rem; color: #0369a1; background: #e0f2fe; padding: 0.15rem 0.45rem; border-radius: 6px; font-weight: 700; text-transform: uppercase;">${domain}</span>
+                        </div>
+                        ${p.binding !== false ? '<span style="font-size: 0.65rem; color: #1e3a8a; background: #dbeafe; padding: 0.12rem 0.45rem; border-radius: 6px; font-weight: 700; text-transform: uppercase;"><i class="fas fa-certificate" style="margin-right: 0.2rem;"></i> Binding SC</span>' : ''}
                     </div>
-                    <div class="rl-precedent-case" style="font-size: 1.05rem; font-weight: 600;">
-                        <a href="${link}" target="_blank" style="color: var(--primary-600); text-decoration: none; border-bottom: 1px dashed var(--primary-400);">
-                            ${title}
+                    <div class="rl-precedent-case" style="font-size: 1.05rem; font-weight: 700; color: var(--gray-900);">
+                        <a href="${link}" target="_blank" rel="noopener noreferrer" style="color: var(--primary-600); text-decoration: none; border-bottom: 1px dashed rgba(2,132,199,0.4);" title="Open authoritative judgment">
+                            ${title} <i class="fas fa-external-link-alt" style="font-size: 0.72rem; margin-left: 0.25rem; opacity: 0.7;"></i>
                         </a>
                     </div>
-                    <div class="rl-precedent-citation" style="margin-top: 0.3rem; font-size: 0.85rem; color: var(--gray-600); font-weight: 500;">${citation}</div>
-                    ${court ? `<div style="font-size: .78rem; color: var(--gray-400); margin-top: 0.1rem; margin-bottom: .4rem;">${court}</div>` : ''}
-                    <div class="rl-precedent-principle" style="margin-top: 0.5rem; font-size: 0.85rem; line-height: 1.4; color: var(--gray-700);">${summary}</div>
+                    <div class="rl-precedent-citation" style="margin-top: 0.3rem; font-size: 0.85rem; color: var(--gray-600); font-weight: 600;">
+                        <i class="fas fa-book-open" style="margin-right: 0.3rem; color: var(--gray-400); font-size: 0.75rem;"></i>${citation}
+                    </div>
+                    ${court ? `<div style="font-size: .78rem; color: var(--gray-500); margin-top: 0.15rem; margin-bottom: .4rem;"><i class="fas fa-landmark" style="margin-right: 0.3rem; font-size: 0.72rem;"></i>${court}</div>` : ''}
+                    <div class="rl-precedent-principle" style="margin-top: 0.5rem; font-size: 0.85rem; line-height: 1.45; color: var(--gray-700); background: var(--gray-50); padding: 0.55rem; border-radius: 6px; border-left: 3px solid var(--primary-400);">${summary}</div>
+                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.6rem;">
+                        <a href="${link}" target="_blank" rel="noopener noreferrer" style="font-size: 0.74rem; font-weight: 600; color: var(--primary-600); text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; background: rgba(2,132,199,0.08); padding: 0.2rem 0.5rem; border-radius: 4px;">
+                            <i class="fas fa-landmark"></i> Indian Kanoon
+                        </a>
+                        <button onclick="navigator.clipboard.writeText('${copyText.replace(/'/g, "\\'")}'); if(window.ui && window.ui.toast) { window.ui.toast('Citation copied to clipboard!', 'success'); } else { alert('Citation copied!'); }" style="background: rgba(15,23,42,0.05); border: 1px solid var(--gray-300); color: var(--gray-700); font-size: 0.74rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.5rem; border-radius: 4px; transition: all 0.15s ease;">
+                            <i class="fas fa-copy"></i> Copy Citation
+                        </button>
+                    </div>
                 </div>`;
         };
 
@@ -1294,7 +1309,7 @@ export function renderAIReasoningLayer(data) {
                 return exTitle === title || (title && exTitle && (exTitle.includes(title) || title.includes(exTitle)));
             });
             if (!isAlreadyAdded) {
-                cardsHtml.push(formatCard(p, 'rl-warning-badge', 'Landmark Statute'));
+                cardsHtml.push(formatCard(p, 'rl-warning-badge', 'Landmark Precedent'));
             }
         });
         
