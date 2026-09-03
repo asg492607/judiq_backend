@@ -1,0 +1,135 @@
+{
+  "statutes": {
+    "CPC_1908": {
+      "title": "Code of Civil Procedure, 1908",
+      "key_sections": {
+        "Section 9": "Courts to try all civil suits unless expressly or impliedly barred.",
+        "Section 10": "Stay of suit (Res Sub-Judice) where matter directly in issue in previously instituted suit.",
+        "Section 11": "Res Judicata and Constructive Res Judicata (Explanation IV).",
+        "Section 16": "Suits to be instituted where subject-matter property is situated.",
+        "Section 20": "Other suits to be instituted where defendants reside or cause of action arises.",
+        "Section 26": "Institution of suits by presentation of plaint.",
+        "Section 34": "Interest pre-suit, pendente lite, and future post-decree up to 6% or commercial contractual rate.",
+        "Section 80": "Mandatory 2-month prior notice to Government or Public Officer before institution.",
+        "Section 89": "Alternative Dispute Resolution (Arbitration, Conciliation, Lok Adalat, Mediation).",
+        "Section 151": "Inherent powers of the Court to prevent abuse of process and secure ends of justice."
+      },
+      "key_orders": {
+        "Order II Rule 2": "Suit to include whole claim; omission to sue for one of several reliefs without leave bars subsequent suit.",
+        "Order VI Rule 15A": "Mandatory Statement of Truth for Commercial Suits (Commercial Courts Act, 2015).",
+        "Order VII Rule 11": "Mandatory Rejection of Plaint (11a: no cause of action, 11b: undervaluation, 11c: deficit court fee, 11d: barred by law/limitation).",
+        "Order VIII Rule 1": "Written Statement timeline: 30 days basic, 90 days max for ordinary suits, strictly 120 days mandatory forfeiture for Commercial Suits.",
+        "Order VIII Rule 6": "Legal and Equitable Set-Off.",
+        "Order VIII Rule 6A": "Counter-Claim by Defendant.",
+        "Order XIII-A": "Summary Judgment in Commercial Disputes (no real prospect of succeeding/defending).",
+        "Order XXI Rule 11": "Execution of Decrees and Orders; Garnishee proceedings u/O XXI R 46A-46I.",
+        "Order XXXVII": "Summary Procedure on Bills of Exchange, Hundies, Promissory Notes, and written liquidated debt guarantees.",
+        "Order XXXVIII Rule 5": "Attachment Before Judgment upon strict proof of intent to obstruct execution.",
+        "Order XXXIX Rule 1 & 2": "Temporary Injunction 3-Prong Golden Triad: Prima Facie Case, Balance of Convenience, Irreparable Injury."
+      }
+    },
+    "COMMERCIAL_COURTS_ACT_2015": {
+      "title": "Commercial Courts Act, 2015",
+      "Section 2(1)(c)": "22 distinct categories of commercial transactions and disputes.",
+      "Section 2(1)(i)": "Specified Value threshold (Minimum INR 3,00,000).",
+      "Section 12A": "Pre-Institution Mediation and Settlement (PIMS) mandatory condition precedent unless urgent interim relief is sought."
+    },
+    "SPECIFIC_RELIEF_ACT_1963": {
+      "title": "Specific Relief Act, 1963 (as amended by 2018 Amendment)",
+      "Section 10": "Mandatory Specific Performance of Contracts (discretionary power removed).",
+      "Section 16(c)": "Continuous readiness and willingness of plaintiff from agreement date to decree.",
+      "Section 20": "Substituted Performance of contract after 30 days notice to defaulting party.",
+      "Section 20A": "Absolute statutory bar on granting injunctions that impede or delay Infrastructure Projects.",
+      "Section 34": "Discretion of court as to declaration of legal character or right.",
+      "Section 38": "Perpetual / Permanent Injunction."
+    },
+    "LIMITATION_ACT_1963": {
+      "title": "Limitation Act, 1963",
+      "Section 3": "Mandatory dismissal of suits instituted after prescribed period of limitation.",
+      "Section 18": "Effect of written acknowledgment of liability in writing (restarts 3-year limitation).",
+      "Section 19": "Effect of payment on account of debt or interest (restarts limitation).",
+      "Article 14": "Price of goods sold and delivered: 3 years from date of delivery.",
+      "Article 22": "Money deposited payable on demand: 3 years from date of demand.",
+      "Article 54": "Specific performance of contract: 3 years from date fixed for performance, or date of notice of refusal.",
+      "Article 55": "Compensation for breach of contract: 3 years from date contract is broken.",
+      "Article 58": "Suit for declaration: 3 years from date when right to sue first accrues.",
+      "Article 65": "Possession of immovable property based on title: 12 years when possession becomes adverse.",
+      "Article 113": "Residuary limitation for civil suits: 3 years from accrual of right to sue.",
+      "Article 136": "Execution of decree or order: 12 years from when decree becomes enforceable."
+    }
+  },
+  "landmark_precedents": {
+    "patil_automation": {
+      "citation": "Patil Automation Pvt Ltd v. Rakheja Engineers Pvt Ltd (2022) 10 SCC 1",
+      "court": "Supreme Court of India",
+      "domain": "Commercial Courts Act",
+      "ratio": "Section 12A Pre-Institution Mediation is mandatory in commercial suits. Plaints filed without PIMS and without praying for urgent interim relief must be rejected under Order VII Rule 11 CPC."
+    },
+    "scg_contracts": {
+      "citation": "SCG Contracts (India) Pvt Ltd v. K.S. Chamankar Infrastructure (2019) 12 SCC 210",
+      "court": "Supreme Court of India",
+      "domain": "Commercial Suits / Pleadings",
+      "ratio": "The 120-day outer limit for filing Written Statement in Commercial Suits under Order VIII Rule 1 proviso is mandatory; right to file WS stands irrevocably forfeited after 120 days."
+    },
+    "dahiben": {
+      "citation": "Dahiben v. Arvindbhai Kalyanji Bhanusali (2020) 7 SCC 366",
+      "court": "Supreme Court of India",
+      "domain": "Rejection of Plaint",
+      "ratio": "Order VII Rule 11(d) mandates rejection of plaint if clear reading of plaint demonstrates suit is barred by limitation or is an illusion of cause of action."
+    },
+    "virgo_industries": {
+      "citation": "Virgo Industries (Eng.) Pvt Ltd v. Venturetech Solutions Pvt Ltd (2013) 1 SCC 625",
+      "court": "Supreme Court of India",
+      "domain": "Frame of Suit",
+      "ratio": "Order II Rule 2 CPC bars a subsequent suit for specific performance if the plaintiff earlier filed a suit for injunction on the same cause of action without seeking leave of court."
+    },
+    "dalpat_kumar": {
+      "citation": "Dalpat Kumar v. Prahlad Singh (1992) 1 SCC 719",
+      "court": "Supreme Court of India",
+      "domain": "Temporary Injunctions",
+      "ratio": "Temporary injunction under Order XXXIX Rules 1 & 2 requires conclusive satisfaction of three co-existing conditions: Prima Facie Case, Balance of Convenience, and Irreparable Injury."
+    },
+    "wander_ltd": {
+      "citation": "Wander Ltd v. Antox India Pvt Ltd (1990) Supp SCC 727",
+      "court": "Supreme Court of India",
+      "domain": "Temporary Injunctions",
+      "ratio": "In balance of convenience analysis, court must balance comparative hardship to parties pending final adjudication."
+    },
+    "hubtown": {
+      "citation": "IDBI Trusteeship Services Ltd v. Hubtown Ltd (2017) 1 SCC 568",
+      "court": "Supreme Court of India",
+      "domain": "Order 37 Summary Suits",
+      "ratio": "Principles for Leave to Defend: Substantial defense warrants unconditional leave; triable issue with doubt warrants conditional leave with deposit; sham defense warrants refusal of leave and immediate decree."
+    },
+    "un_krishnamurthy": {
+      "citation": "U.N. Krishnamurthy v. A.M. Krishnamurthy (2022) SCC OnLine SC 840",
+      "court": "Supreme Court of India",
+      "domain": "Specific Performance",
+      "ratio": "Section 16(c) Specific Relief Act mandates continuous readiness and willingness. Plaintiff must produce documentary proof of financial capacity (bank balance, deposits, or credit availability) at date of breach."
+    },
+    "kailash_nath": {
+      "citation": "Kailash Nath Associates v. Delhi Development Authority (2015) 4 SCC 136",
+      "court": "Supreme Court of India",
+      "domain": "Damages & Contract Breach",
+      "ratio": "Under Section 74 Indian Contract Act, liquidated damages named in contract represent upper limit; party claiming compensation must prove actual loss unless impossible to assess."
+    },
+    "booz_allen": {
+      "citation": "Booz Allen & Hamilton Inc v. SBI Home Finance Ltd (2011) 5 SCC 532",
+      "court": "Supreme Court of India",
+      "domain": "Arbitration Bar",
+      "ratio": "Where arbitration agreement exists, Section 8 mandates court to refer parties to arbitration upon application filed before submitting first statement on substance of dispute."
+    },
+    "rahul_s_shah": {
+      "citation": "Rahul S. Shah v. Jinendra Kumar Gandhi (2021) 6 SCC 418",
+      "court": "Supreme Court of India",
+      "domain": "Civil Execution",
+      "ratio": "Executing courts must dispose of execution petitions within 6 months and mandate judgment debtors to file affidavits of assets under Order XXI Rule 41 CPC."
+    },
+    "raman_tech": {
+      "citation": "Raman Tech & Process Engg Co v. Quality Buildcon Pvt Ltd (2008) 2 SCC 302",
+      "court": "Supreme Court of India",
+      "domain": "Attachment Before Judgment",
+      "ratio": "Power under Order XXXVIII Rule 5 is drastic and cannot be exercised routinely to convert unsecured debt into secured debt; clear prima facie proof of intent to obstruct execution required."
+    }
+  }
+}
