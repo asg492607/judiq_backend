@@ -1,6 +1,6 @@
 # JudiQ AI: Frontend
 
-![JudiQ Hero Banner](./judiq_hero_banner_1778733069009.png)
+![JudiQ Hero Banner](./multimedia/judiq_hero_banner_1778733069009.png)
 
 ![Status](https://img.shields.io/badge/Status-Institutional_Beta-gold?style=for-the-badge)
 ![Tech Stack](https://img.shields.io/badge/Tech-Vanilla_JS_ES6-blue?style=for-the-badge)
@@ -47,7 +47,7 @@ Step-by-step case ingestion supporting NPA dates, Section 13(2) demand notices, 
 ### 2. Courtroom Strategy & Threat Meter
 Real-time scoring visualizer displaying procedural defects, limitation status, and simulated opposing counsel arguments using `Chart.js` via a leak-safe `ChartRegistry`.
 
-![Courtroom Strategy](./judiq_courtroom_strategy.png)
+![Courtroom Strategy](./multimedia/judiq_courtroom_strategy.png)
 
 ---
 

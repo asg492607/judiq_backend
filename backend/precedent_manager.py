@@ -4,6 +4,8 @@ import os
 import threading
 from datetime import datetime
 from typing import List, Dict, Any
+from collections import defaultdict
+from functools import lru_cache
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +16,30 @@ class PrecedentManager:
         self._lock = threading.Lock()
         self._ensure_log_exists()
         self._corpus_cache = None
+        self._token_index = None
+        self._search_cache = {}
 
     def _ensure_log_exists(self):
         if not os.path.exists(self.log_path):
             with open(self.log_path, "w", encoding="utf-8") as f:
                 json.dump({"updates": [], "last_sync": None}, f)
+
+    def _build_index(self):
+        if self._corpus_cache is None:
+            return
+        token_index = defaultdict(list)
+        for idx, p in enumerate(self._corpus_cache):
+            title = p.get("title", "").lower()
+            citation = p.get("citation", "").lower()
+            summary = p.get("summary", "").lower()
+            keywords = [k.lower() for k in p.get("keywords", [])]
+            areas = [a.lower() for a in p.get("area", [])]
+
+            text = f"{title} {citation} {' '.join(keywords)} {' '.join(areas)} {summary}"
+            tokens = set(tok for tok in text.replace(",", " ").replace(";", " ").replace("(", " ").replace(")", " ").split() if len(tok) > 2)
+            for tok in tokens:
+                token_index[tok].append(idx)
+        self._token_index = token_index
 
     def _load_corpus(self) -> List[Dict]:
         if self._corpus_cache is not None:
@@ -27,6 +48,7 @@ class PrecedentManager:
             try:
                 with open(self.corpus_path, "r", encoding="utf-8") as f:
                     self._corpus_cache = json.load(f)
+                    self._build_index()
                     return self._corpus_cache
             except Exception as e:
                 logger.error(f"Failed to load precedents corpus from {self.corpus_path}: {e}")
@@ -50,6 +72,7 @@ class PrecedentManager:
                 log["last_sync"] = datetime.now().isoformat()
                 with open(self.log_path, "w", encoding="utf-8") as f:
                     json.dump(log, f, indent=2)
+                self._search_cache.clear()
             logger.info(f"Ingested new precedent: {citation}")
             return True
         except Exception as e:
@@ -65,41 +88,47 @@ class PrecedentManager:
             return []
 
     def search_real_precedents(self, query: str, limit: int = 10) -> List[Dict]:
-        logger.info(f"Initiating precedent search for query: {query}")
+        clean_query = query.strip().lower()
+        if clean_query in self._search_cache:
+            return self._search_cache[clean_query][:limit]
+
         corpus = self._load_corpus()
         if not corpus:
             return []
         
-        q_tokens = [tok.lower() for tok in query.replace(",", " ").replace(";", " ").split() if len(tok) > 2]
+        q_tokens = [tok.lower() for tok in clean_query.replace(",", " ").replace(";", " ").replace("(", " ").replace(")", " ").split() if len(tok) > 2]
         if not q_tokens:
             return corpus[:limit]
 
-        scored_results = []
-        for p in corpus:
-            score = 0
-            title = p.get("title", "").lower()
-            citation = p.get("citation", "").lower()
-            summary = p.get("summary", "").lower()
-            keywords = [k.lower() for k in p.get("keywords", [])]
-            areas = [a.lower() for a in p.get("area", [])]
+        scores = defaultdict(int)
+        for tok in q_tokens:
+            for p_idx in self._token_index.get(tok, []):
+                p = corpus[p_idx]
+                title = p.get("title", "").lower()
+                citation = p.get("citation", "").lower()
+                summary = p.get("summary", "").lower()
+                keywords = [k.lower() for k in p.get("keywords", [])]
+                areas = [a.lower() for a in p.get("area", [])]
 
-            for tok in q_tokens:
                 if tok in title:
-                    score += 5
+                    scores[p_idx] += 5
                 if tok in citation:
-                    score += 4
+                    scores[p_idx] += 4
                 if any(tok in kw for kw in keywords):
-                    score += 3
+                    scores[p_idx] += 3
                 if any(tok in a for a in areas):
-                    score += 3
+                    scores[p_idx] += 3
                 if tok in summary:
-                    score += 1
+                    scores[p_idx] += 1
 
-            if score > 0:
-                scored_results.append((score, p))
+        if not scores:
+            return []
 
-        scored_results.sort(key=lambda x: x[0], reverse=True)
-        return [p for _, p in scored_results[:limit]]
+        sorted_indices = sorted(scores.keys(), key=lambda idx: scores[idx], reverse=True)
+        results = [corpus[idx] for idx in sorted_indices[:limit]]
+        if len(self._search_cache) < 512:
+            self._search_cache[clean_query] = results
+        return results
 
     def verify_citation_authenticity(self, citation: str) -> Dict[str, Any]:
         AUTHORITATIVE_REGISTRY = {

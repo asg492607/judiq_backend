@@ -3,6 +3,8 @@ from core.base_domain_engine import BaseDomainEngine
 from scoring_engine import ScoringEngineV12
 from adversarial_engine import AdversarialEngine
 from utils import days_between, parse_date
+from cheque_bounce.ni_act_statutory_rules import NIActStatutoryRules
+from cheque_bounce.defence_catalogue import Section138DefenceCatalogue
 
 class ChequeBounceEngine(BaseDomainEngine):
     """
@@ -23,26 +25,29 @@ class ChequeBounceEngine(BaseDomainEngine):
 
         notice_defect = None
         notice_days = case_data.get("notice_days")
-        if notice_days is not None and notice_days > 30:
-            notice_defect = f"Statutory Notice delayed to {notice_days} days post-dishonour (Limit: 30 days u/s 138(b))."
+        if notice_days is not None:
+            eval_notice = NIActStatutoryRules.evaluate_notice_timeline(notice_days)
+            if not eval_notice["valid"]:
+                notice_defect = eval_notice["defect"]
         elif dishonour_date and notice_date:
             d = days_between(dishonour_date, notice_date)
-            if d is not None and d > 30:
-                notice_defect = f"Statutory Notice delayed to {d} days post-dishonour (Limit: 30 days u/s 138(b))."
+            if d is not None:
+                eval_notice = NIActStatutoryRules.evaluate_notice_timeline(d)
+                if not eval_notice["valid"]:
+                    notice_defect = eval_notice["defect"]
 
         complaint_defect = None
         days_post_notice = case_data.get("days_post_notice")
         if days_post_notice is not None:
-            if days_post_notice < 15:
-                complaint_defect = f"Complaint filed prematurely on day {days_post_notice}. Cause of action arises only on 16th day post notice receipt."
-            elif days_post_notice > 45:
-                complaint_defect = f"Complaint filed after {days_post_notice} days. Exceeds 1-month statutory window u/s 142(1)(b). Condonation application required."
+            eval_complaint = NIActStatutoryRules.evaluate_complaint_timeline(days_post_notice)
+            if not eval_complaint["valid"]:
+                complaint_defect = eval_complaint["defect"]
         elif notice_date and complaint_date:
             d = days_between(notice_date, complaint_date)
-            if d is not None and d < 15:
-                complaint_defect = f"Complaint filed prematurely on day {d}. Cause of action arises only on 16th day post notice receipt."
-            elif d is not None and d > 45:
-                complaint_defect = f"Complaint filed after {d} days. Exceeds 1-month statutory window u/s 142(1)(b). Condonation application required."
+            if d is not None:
+                eval_complaint = NIActStatutoryRules.evaluate_complaint_timeline(d)
+                if not eval_complaint["valid"]:
+                    complaint_defect = eval_complaint["defect"]
 
         nodes = [
             {
@@ -134,9 +139,10 @@ class ChequeBounceEngine(BaseDomainEngine):
                 "authority": "Section 142(1)(b) & Section 139 NI Act"
             })
             if amount > 0:
+                interim_estimate = NIActStatutoryRules.calculate_interim_compensation_estimate(amount)
                 actions.append({
                     "priority": 2,
-                    "action": "File Application under Section 143A for 20% Interim Compensation",
+                    "action": f"File Application under Section 143A for 20% Interim Compensation (Est: ₹{interim_estimate:,.2f})",
                     "reason": "Court may order drawer to pay up to 20% of cheque amount as interim compensation upon framing of notice.",
                     "authority": "Section 143A NI Act (Rakesh Ranjan Shahi v. State of UP)"
                 })
@@ -148,12 +154,16 @@ class ChequeBounceEngine(BaseDomainEngine):
                 "authority": "Section 143A NI Act"
             })
 
-        if case_data.get("accused_type") in ["Pvt Ltd/Ltd Company", "Pvt Ltd", "Public Ltd", "LLP", "Partnership Firm", "Trust", "Society"] and (not case_data.get("directors_named") or case_data.get("company_arrayed") is False):
+        accused_type = case_data.get("accused_type", "")
+        company_arrayed = case_data.get("company_arrayed")
+        directors_named = case_data.get("directors_named")
+        vicarious_eval = NIActStatutoryRules.evaluate_vicarious_liability(accused_type, company_arrayed, directors_named)
+        if not vicarious_eval["valid"]:
             actions.append({
                 "priority": 1,
                 "action": "Implead Company & Active In-Charge Directors under Section 141",
-                "reason": "Failure to implead company or state specific role of directors is fatal to prosecution.",
-                "authority": "Section 141 NI Act (Anita Hada v. Godfather Travels)"
+                "reason": vicarious_eval["defect"],
+                "authority": "Section 141 NI Act (Aneeta Hada v. Godfather Travels)"
             })
 
         return actions
@@ -169,11 +179,18 @@ class ChequeBounceEngine(BaseDomainEngine):
         instance = cls()
         procedural_graph = instance.build_procedural_graph(case_data)
         next_actions = instance.get_next_actions(case_data, scoring)
+        defenses = Section138DefenceCatalogue.analyze_case_defenses(case_data)
+
+        cheque_amount = float(case_data.get("amount") or case_data.get("cheque_amount") or 0)
+        interim_compensation = NIActStatutoryRules.calculate_interim_compensation_estimate(cheque_amount)
 
         return {
             **scoring,
             "domain": "cheque_bounce",
             "procedural_graph": procedural_graph,
             "next_actions": next_actions,
-            "contradictions": contradictions
+            "contradictions": contradictions,
+            "identified_defenses": defenses,
+            "interim_compensation_estimate": interim_compensation,
+            "statutory_authorities": NIActStatutoryRules.LANDMARK_PRECEDENTS
         }

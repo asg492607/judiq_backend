@@ -1,42 +1,42 @@
 {
   "styles.css": {
-    "sri_integrity": "sha384-NPMGDEDPZpy320TNapcKQb2lMfcx/toKFWCPIp28a8/fgp9EgOv3ItNuej02uhKG",
-    "size_kb": 154.4
+    "sri_integrity": "sha384-/GIIzc9cR25xf2k5V2/VwqSm/UaiFUPxlPDdurFYoj/nFsrSIImiVpK2FTqAUpW3",
+    "size_kb": 247.89
   },
   "renderer.js": {
-    "sri_integrity": "sha384-+g3jr5KDrRRB2RVJsGqAVz3Df+sJJBUVIUOFV0MXpP9+KxTtlluM+9NghKM2UoI2",
-    "size_kb": 147.13
+    "sri_integrity": "sha384-mCW+5ak4wsLR9lSqmxrgJzLSlkf6Gcasbg/fVGyitkAgohyrubxc+7AJgQxjIGHG",
+    "size_kb": 150.3
   },
   "wizard.js": {
-    "sri_integrity": "sha384-Xvwwd9Nr0fuuJRe8Nu4azmYEoVlhihqjSUvmuw8fQZQ1MssJc9e2kzl+y2JJ40Q9",
-    "size_kb": 24.66
+    "sri_integrity": "sha384-a3sRdcr7IaNOdxZlJET0CSn7gR0hXoE5N2RwOyvlMk7Ah+kpepAN8ohZ2fDhwCB/",
+    "size_kb": 32.52
   },
   "api.js": {
-    "sri_integrity": "sha384-cZsu2F/Y7Ado3gXBYua1gWQ+SlQsGNdjrfGb7YIR9VGBo+J5nUYRvqpJBtsNFlh5",
-    "size_kb": 6.14
+    "sri_integrity": "sha384-Tef8HeJRqpsarEZ6OqcIM1lZpzx85orUPLWyiLOcYvRxY16NVpQ35/4tepig6fvD",
+    "size_kb": 38.63
   },
   "draft_templates.js": {
-    "sri_integrity": "sha384-gUHh1/O1BvmRQoN8KrFqEBj5/m2WOiYc81YNqCInJMnrrhWDaIPiTXTKVXy5Xxe9",
-    "size_kb": 81.17
+    "sri_integrity": "sha384-Q+24s9+Nns+ZxCT07upYldBJvg/GhIIdtI5OfSZn31sOdQc9+rEkef8T2S2eefuI",
+    "size_kb": 80.86
   },
   "js/main.js": {
-    "sri_integrity": "sha384-JjDqiqz2LATBlCoaidswf7As2ORinjV3nLowYWB8Kcg/WzUGNyPGsdsf5Tr45tTK",
-    "size_kb": 160.56
+    "sri_integrity": "sha384-0b6sXFsPj+Fw5bVoHg811vqPUG3k5LmI/sXOpzmZ5sLXINslotvoGF28gHvMFTZE",
+    "size_kb": 248.44
   },
   "js/modules/store.js": {
-    "sri_integrity": "sha384-AXDtBpKti2FO+IYEI5eQAS7d9Ux5b72tt8x3+mhI0ZXQnWYFSSYJNOA4BtjjQfcF",
-    "size_kb": 4.21
+    "sri_integrity": "sha384-q2enoYfjzs35HSKZkZlyAYrvISAW2qHpGMUyOBeLSlfUVoiR7fLvg5yzgqSKdxRF",
+    "size_kb": 4.67
   },
   "js/modules/charts.js": {
     "sri_integrity": "sha384-yhf/aUQm806QpQMN3SP3FXBj0ciCz7O6dVArJ7I5B1vGLmnj0mDwrHy0goYwTQLM",
     "size_kb": 18.58
   },
   "js/modules/simulator.js": {
-    "sri_integrity": "sha384-K08I9KWbsnriODptGqKxsSDi+gAroQKKGZgRugHeJEI8SFLd4MYU/mWTvtxNswWw",
-    "size_kb": 7.56
+    "sri_integrity": "sha384-KmWvGdXuXi/0ZEmnScxuUa1yNxIXfiIFZJKiNl5i70OX5+oswRDaJGvzyZ8AStvP",
+    "size_kb": 7.72
   },
   "js/modules/counsel_dock.js": {
-    "sri_integrity": "sha384-xvpG9PkvNzkmjFBZacr/Qkuz3ALhm2PtxGYUjAV986wjYY9X1D+m1BqDk+OQR1UF",
-    "size_kb": 20.91
+    "sri_integrity": "sha384-7iw/xA6XbI41J0NcyjT1V2KWPyPelnPyimf5LGgDeXDmykZcHINgGGVhT3RGtPM2",
+    "size_kb": 21.34
   }
 }
