@@ -455,7 +455,7 @@ Verified at ______________ on ${formatDraftDate(d.affidavit_date)} that the cont
         }
     },
     {
-        id: 'condonation_delay', number: 7, title: 'Application ΓÇô Condonation of Delay', subtitle: 'Late Filing',
+        id: 'condonation_delay', number: 7, title: 'Application – Condonation of Delay', subtitle: 'Late Filing',
         description: 'Filed when the complaint is submitted after the limitation period.',
         icon: 'fa-clock', color: '#f97316',
         fields: [
@@ -977,7 +977,7 @@ Date: ${formatDraftDate(d.settlement_date)}`;
             { name: 'incident_details', label: 'Detailed Description of Incident', type: 'textarea', required: true }
         ],
         generate: function (d) {
-            return `FIRST INFORMATION REPORT (FIR) DRAFT ΓÇö SECTION 154 CrPC / 173 BNSS
+            return `FIRST INFORMATION REPORT (FIR) DRAFT — SECTION 154 CrPC / 173 BNSS
 
 Date: _______________
 
@@ -1256,7 +1256,7 @@ ADVOCATE FOR PETITIONER`;
     }
 ];
 
-// ΓÇöΓÇöΓÇö Template Helper Functions ΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇö
+// ---------------- Template Helper Functions ---------------------------------
 
 function formatDraftDate(dateStr) {
     if (!dateStr) return '_______________';
@@ -1302,7 +1302,7 @@ function numberToWords(num) {
     return res.trim().toUpperCase();
 }
 
-// ΓÇöΓÇöΓÇö Screen & UI Functions ΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇö
+// ---------------- Screen & UI Functions -------------------------------------
 
 
 export { DRAFT_TYPES, formatDraftDate, numberToWords };

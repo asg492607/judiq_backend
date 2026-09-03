@@ -1,4 +1,4 @@
-﻿from typing import List, Dict
+from typing import List, Dict
 from kb_manager import kb_manager
 def ensure_list(x):
     if x is None: return []
