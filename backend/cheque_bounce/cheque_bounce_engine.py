@@ -1,3 +1,10 @@
+"""
+JudiQ AI — Master Section 138 NI Act Cheque Bounce Engine
+Production-grade Domain Engine for Negotiable Instruments Act (1881) litigation.
+Evaluates statutory notices, debt enforceability, S.139/S.118 presumptions,
+S.141 director liability, S.142(2) jurisdiction, S.143A interim compensation, S.148 appellate deposits.
+"""
+
 from typing import Dict, List, Any
 from core.base_domain_engine import BaseDomainEngine
 from scoring_engine import ScoringEngineV12
@@ -9,8 +16,6 @@ from cheque_bounce.defence_catalogue import Section138DefenceCatalogue
 class ChequeBounceEngine(BaseDomainEngine):
     """
     Production-grade Domain Engine for Section 138 Negotiable Instruments Act (1881) litigation.
-    Evaluates statutory notices, debt enforceability, S.139/S.118 presumptions,
-    S.141 director vicarious liability, S.143A interim compensation, and defense strategies.
     """
 
     @property
@@ -19,10 +24,21 @@ class ChequeBounceEngine(BaseDomainEngine):
 
     def build_procedural_graph(self, case_data: Dict[str, Any]) -> Dict[str, Any]:
         """Returns stateful graph of Section 138 NI Act statutory milestones."""
-        dishonour_date = case_data.get("date_of_dishonour") or case_data.get("dishonour_date")
-        notice_date = case_data.get("date_of_notice") or case_data.get("notice_date")
-        complaint_date = case_data.get("date_of_complaint") or case_data.get("complaint_date")
+        norm = NIActStatutoryRules.normalize_s138_payload(case_data)
+        cheque_date = norm.get("cheque_date")
+        presentation_date = norm.get("presentation_date")
+        dishonour_date = norm.get("dishonour_date")
+        notice_date = norm.get("notice_date")
+        complaint_date = norm.get("complaint_date")
 
+        # 1. Cheque Presentation Validity (RBI 90 Days)
+        cheque_defect = None
+        if cheque_date and presentation_date:
+            eval_chk = NIActStatutoryRules.evaluate_cheque_validity(cheque_date, presentation_date)
+            if not eval_chk["valid"]:
+                cheque_defect = eval_chk["defect"]
+
+        # 2. Notice Timeline (30 Days)
         notice_defect = None
         notice_days = case_data.get("notice_days")
         if notice_days is not None:
@@ -36,6 +52,7 @@ class ChequeBounceEngine(BaseDomainEngine):
                 if not eval_notice["valid"]:
                     notice_defect = eval_notice["defect"]
 
+        # 3. Complaint Timeline (15 Grace + 30 Filing)
         complaint_defect = None
         days_post_notice = case_data.get("days_post_notice")
         if days_post_notice is not None:
@@ -50,6 +67,16 @@ class ChequeBounceEngine(BaseDomainEngine):
                     complaint_defect = eval_complaint["defect"]
 
         nodes = [
+            {
+                "id": "cheque_issuance_presentation",
+                "name": "Cheque Presentation (Within 3 Months / 90 Days)",
+                "statute": "Section 138 Proviso (a) NI Act & RBI 2011-12",
+                "authority": "Section 138(a) NI Act",
+                "completed": bool(presentation_date) or bool(dishonour_date) or case_data.get("dishonour_memo", False),
+                "date": presentation_date or cheque_date,
+                "defect": cheque_defect,
+                "severity": "FATAL" if cheque_defect else "NONE"
+            },
             {
                 "id": "cheque_dishonour",
                 "name": "Cheque Dishonour & Bank Return Memo",
@@ -83,7 +110,7 @@ class ChequeBounceEngine(BaseDomainEngine):
             {
                 "id": "complaint_filing",
                 "name": "Section 142 Criminal Complaint before Magistrate (1 Month)",
-                "statute": "Section 142(1)(b) NI Act",
+                "statute": "Section 142(1)(b) & Section 142(2) NI Act",
                 "authority": "Yogendra Pratap Singh v. Savitri Pandey (2014)",
                 "completed": bool(complaint_date) or case_data.get("complaint_filed", False) or days_post_notice is not None,
                 "date": complaint_date,
@@ -120,9 +147,10 @@ class ChequeBounceEngine(BaseDomainEngine):
     def get_next_actions(self, case_data: Dict[str, Any], evaluation_result: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """Returns prioritized next best actions for Section 138 NI Act litigation."""
         actions = []
-        notice_sent = case_data.get("notice_sent") or bool(case_data.get("date_of_notice"))
-        complaint_filed = case_data.get("complaint_filed") or bool(case_data.get("date_of_complaint"))
-        amount = case_data.get("amount") or case_data.get("cheque_amount") or 0
+        norm = NIActStatutoryRules.normalize_s138_payload(case_data)
+        notice_sent = bool(norm.get("notice_date")) or case_data.get("notice_sent")
+        complaint_filed = bool(norm.get("complaint_date")) or case_data.get("complaint_filed")
+        amount = norm.get("cheque_amount", 0.0)
 
         if not notice_sent:
             actions.append({
@@ -134,9 +162,9 @@ class ChequeBounceEngine(BaseDomainEngine):
         elif notice_sent and not complaint_filed:
             actions.append({
                 "priority": 1,
-                "action": "File Section 138 Criminal Complaint before Judicial Magistrate",
-                "reason": "File within 1 month post expiry of 15-day grace period. Invoke S.139 presumption.",
-                "authority": "Section 142(1)(b) & Section 139 NI Act"
+                "action": "File Section 138 Criminal Complaint before Judicial Magistrate (Payee Branch Jurisdiction)",
+                "reason": "File within 1 month post expiry of 15-day grace period u/s 142(1)(b) & Section 142(2) (Bridgestone India).",
+                "authority": "Section 142(1)(b) & Section 142(2) NI Act"
             })
             if amount > 0:
                 interim_estimate = NIActStatutoryRules.calculate_interim_compensation_estimate(amount)
@@ -154,7 +182,7 @@ class ChequeBounceEngine(BaseDomainEngine):
                 "authority": "Section 143A NI Act"
             })
 
-        accused_type = case_data.get("accused_type", "")
+        accused_type = norm.get("accused_type", "")
         company_arrayed = case_data.get("company_arrayed")
         directors_named = case_data.get("directors_named")
         vicarious_eval = NIActStatutoryRules.evaluate_vicarious_liability(accused_type, company_arrayed, directors_named)
@@ -170,19 +198,25 @@ class ChequeBounceEngine(BaseDomainEngine):
 
     @classmethod
     def analyze(cls, case_data: Dict[str, Any], concepts: List[Dict[str, Any]] = None) -> Dict[str, Any]:
-        case_data["case_type"] = "cheque_bounce"
+        norm = NIActStatutoryRules.normalize_s138_payload(case_data)
+        norm["case_type"] = "cheque_bounce"
         if concepts is None:
-            concepts = case_data.get("concepts", [])
-        contradictions = AdversarialEngine.detect_contradictions(case_data, concepts)
-        scoring = ScoringEngineV12.calculate_score_with_trace(case_data, concepts, contradictions, {}, {})
+            concepts = norm.get("concepts", [])
+        contradictions = AdversarialEngine.detect_contradictions(norm, concepts)
+        scoring = ScoringEngineV12.calculate_score_with_trace(norm, concepts, contradictions, {}, {})
         
         instance = cls()
-        procedural_graph = instance.build_procedural_graph(case_data)
-        next_actions = instance.get_next_actions(case_data, scoring)
-        defenses = Section138DefenceCatalogue.analyze_case_defenses(case_data)
+        procedural_graph = instance.build_procedural_graph(norm)
+        next_actions = instance.get_next_actions(norm, scoring)
+        defenses = Section138DefenceCatalogue.analyze_case_defenses(norm)
 
-        cheque_amount = float(case_data.get("amount") or case_data.get("cheque_amount") or 0)
+        cheque_amount = norm.get("cheque_amount", 0.0)
         interim_compensation = NIActStatutoryRules.calculate_interim_compensation_estimate(cheque_amount)
+        appellate_deposit = NIActStatutoryRules.calculate_appellate_deposit_estimate(cheque_amount)
+        jurisdiction_info = NIActStatutoryRules.evaluate_s142_jurisdiction(
+            payee_branch=norm.get("branch_name") or norm.get("payee_branch"),
+            drawer_branch=norm.get("drawer_branch")
+        )
 
         return {
             **scoring,
@@ -192,5 +226,7 @@ class ChequeBounceEngine(BaseDomainEngine):
             "contradictions": contradictions,
             "identified_defenses": defenses,
             "interim_compensation_estimate": interim_compensation,
+            "appellate_deposit_estimate": appellate_deposit,
+            "territorial_jurisdiction_rule": jurisdiction_info,
             "statutory_authorities": NIActStatutoryRules.LANDMARK_PRECEDENTS
         }
