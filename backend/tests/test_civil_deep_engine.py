@@ -44,6 +44,26 @@ def test_cpc_limitation_section_18_acknowledgment_renewal():
     assert res["valid"] is True
     assert "Section 18" in res["renewal_applied"]
 
+def test_cpc_limitation_pims_exclusion():
+    # 3 years = 1095 days. Elapsed = 1150 days. But PIMS mediation = 90 days. Effective = 1060 days (within limit).
+    res = CPCStatutoryRules.evaluate_limitation(
+        cause_of_action_date="2023-01-01",
+        filing_date="2026-02-25",
+        article_key="article_55",
+        pims_duration_days=90
+    )
+    assert res["valid"] is True
+    assert res["status"] == "WITHIN_LIMITATION"
+    assert res["pims_days_excluded"] == 90
+
+def test_order21_execution_2year_notice():
+    res_recent = CPCStatutoryRules.evaluate_order21_execution_timeline("2025-01-01", "2026-01-01")
+    assert res_recent["notice_required"] is False
+
+    res_old = CPCStatutoryRules.evaluate_order21_execution_timeline("2023-01-01", "2026-01-01")
+    assert res_old["notice_required"] is True
+    assert "Order XXI Rule 22" in res_old["statutory_rule"]
+
 def test_commercial_pims_omission_without_urgent_relief_fatal():
     case = {
         "is_commercial": True,

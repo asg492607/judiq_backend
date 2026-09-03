@@ -1,6 +1,7 @@
 """
 JudiQ AI — CPC & Commercial Courts Statutory Rules Engine
-Evaluates limitation periods, Commercial Courts Act compliance, Section 12A PIMS, and procedural mandates.
+Evaluates limitation periods, Commercial Courts Act compliance, Section 12A PIMS,
+Section 12A(3) time exclusion, Section 34 interest rules, and Order XXI Rule 22 execution notices.
 """
 
 from typing import Dict, Any, List, Optional
@@ -17,6 +18,7 @@ class CPCStatutoryRules:
     COMMERCIAL_WS_MAX_DAYS = 120               # Strict 120-day outer limit u/O VIII R 1
     ORDINARY_WS_MAX_DAYS = 90                  # 30 + 60 days u/O VIII R 1
     SECTION_80_NOTICE_DAYS = 60                # 2 months statutory notice to Government
+    ORDER_21_RULE_22_NOTICE_DAYS = 730         # 2 years post-decree notice mandate
 
     LIMITATION_ARTICLES = {
         "article_14": {"years": 3, "label": "Article 14 - Goods Sold & Delivered (3 Years)"},
@@ -37,11 +39,13 @@ class CPCStatutoryRules:
         filing_date: Optional[str],
         article_key: str = "article_113",
         written_acknowledgment_date: Optional[str] = None,
-        last_payment_date: Optional[str] = None
+        last_payment_date: Optional[str] = None,
+        pims_duration_days: Optional[int] = 0
     ) -> Dict[str, Any]:
         """
         Calculates statutory limitation window under Limitation Act, 1963
-        accounting for Section 18 (acknowledgment) and Section 19 (payment) extensions.
+        accounting for Section 18 (acknowledgment), Section 19 (payment) extensions,
+        and Section 12A(3) Commercial Courts Act PIMS time exclusion.
         """
         if not cause_of_action_date or not filing_date:
             return {
@@ -77,15 +81,19 @@ class CPCStatutoryRules:
         statutory_years = art_cfg["years"]
         statutory_days = statutory_years * 365
 
-        elapsed_days = (filing_dt - effective_start_dt).days
-        if elapsed_days < 0:
+        # Section 12A(3) Commercial Courts Act: Exclude PIMS mediation period
+        pims_exclusion = max(0, int(pims_duration_days or 0))
+        raw_elapsed = (filing_dt - effective_start_dt).days
+        elapsed_days = max(0, raw_elapsed - pims_exclusion)
+
+        if raw_elapsed < 0:
             return {"valid": True, "defect": None, "fatal": False, "status": "PRE_INCEPTION"}
 
         if elapsed_days > statutory_days:
             overdue_days = elapsed_days - statutory_days
             return {
                 "valid": False,
-                "defect": f"Suit is barred by limitation under {art_cfg['label']}. Inception to filing elapsed {elapsed_days} days (Statutory Limit: {statutory_days} days; delayed by {overdue_days} days).",
+                "defect": f"Suit is barred by limitation under {art_cfg['label']}. Inception to filing elapsed {elapsed_days} effective days (Statutory Limit: {statutory_days} days; delayed by {overdue_days} days).",
                 "fatal": True,
                 "status": "BARRED_BY_LIMITATION",
                 "authority": "Section 3 Limitation Act, 1963 & Order VII Rule 11(d) CPC (Dahiben v. Arvindbhai Bhanusali)",
@@ -98,8 +106,33 @@ class CPCStatutoryRules:
             "fatal": False,
             "status": "WITHIN_LIMITATION",
             "message": f"Suit filed within {statutory_years}-year limitation period ({elapsed_days}/{statutory_days} days elapsed).",
-            "renewal_applied": renewal_reason
+            "renewal_applied": renewal_reason,
+            "pims_days_excluded": pims_exclusion
         }
+
+    @classmethod
+    def evaluate_order21_execution_timeline(cls, decree_date: Optional[str], execution_filing_date: Optional[str]) -> Dict[str, Any]:
+        """
+        Evaluates Order XXI Rule 22 show-cause notice requirement for execution petitions filed > 2 years post-decree.
+        """
+        if not decree_date or not execution_filing_date:
+            return {"valid": True, "notice_required": False}
+
+        d_dt = parse_date(decree_date)
+        e_dt = parse_date(execution_filing_date)
+        if not d_dt or not e_dt:
+            return {"valid": True, "notice_required": False}
+
+        days = (e_dt - d_dt).days
+        if days > cls.ORDER_21_RULE_22_NOTICE_DAYS:
+            return {
+                "valid": True,
+                "notice_required": True,
+                "statutory_rule": f"Order XXI Rule 22 CPC: Execution filed {days} days post-decree (> 2 years / 730 days). Mandatory show-cause notice must issue to Judgment Debtor before issuing warrant of arrest or attachment.",
+                "authority": "Order XXI Rule 22 Code of Civil Procedure, 1908",
+                "action": "Ensure prayer in Execution Petition includes issuance of notice under Order XXI Rule 22(1)(a) CPC."
+            }
+        return {"valid": True, "notice_required": False, "days_elapsed": days}
 
     @classmethod
     def evaluate_commercial_courts_compliance(
