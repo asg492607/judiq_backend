@@ -1,4 +1,5 @@
 import logging
+import re
 from datetime import datetime
 from typing import Dict, Any, List
 from jinja2 import Environment, FileSystemLoader
@@ -103,18 +104,26 @@ def _safe_float(val) -> float:
         return float(val)
     except (ValueError, TypeError):
         return 0.0
+def _clean_draft_text(text: str) -> str:
+    if not text:
+        return text
+    # Eliminate duplicate currency designators like "Rs. Rs.", "INR Rs.", etc.
+    text = re.sub(r'\b(?:Rs\.|INR)\s*(?:Rs\.|INR)\b', 'Rs.', text, flags=re.IGNORECASE)
+    return text
+
 def _case_meta(case_data: Any):
     today = datetime.now().strftime("%d %B %Y")
     if not isinstance(case_data, dict):
-        return today, "Rs. ___________/-"
-    amount = case_data.get("amount", "________ (Amount)")
-    if isinstance(amount, (int, float)) and amount > 0:
+        return today, "Rs. [Amount]/-"
+    amount_raw = case_data.get("amount") or case_data.get("cheque_amount") or case_data.get("chequeAmount")
+    amount = _safe_float(amount_raw)
+    if amount > 0:
         if amount >= 100000:
             amount_str = f"Rs. {amount:,.0f}/- (Rupees {_num_to_words(int(amount))} only)"
         else:
             amount_str = f"Rs. {amount:,.0f}/-"
     else:
-        amount_str = "Rs. ___________/-"
+        amount_str = "Rs. [Amount]/-"
     return today, amount_str
 def _num_to_words(n: int) -> str:
     ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
@@ -298,24 +307,37 @@ Verified at ________ (Place) on this {today} that the contents of the above affi
 """
 def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "standard") -> str:
     today, amount_str = _case_meta(case_data)
-    place_val = case_data.get("payee_bank_city") or ((case_data.get("complainant_address") or "").split(",")[-1].strip() if "," in case_data.get("complainant_address", "") else "") or "________ (Place)"
+    place_val = case_data.get("payee_bank_city") or ((case_data.get("complainant_address") or "").split(",")[-1].strip() if "," in case_data.get("complainant_address", "") else "") or "[Place of Filing]"
     is_aggressive = (tone or "").lower() == "aggressive"
     is_conciliatory = (tone or "").lower() == "conciliatory"
-    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (Complainant Name)"
-    complainant_addr = case_data.get("complainant_address") or case_data.get("complainantAddress") or "________ (Complainant Address)"
-    complainant_phone = case_data.get("complainant_phone") or case_data.get("complainantPhone") or "________ (Contact Number)"
+    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "[Complainant Name]"
+    complainant_addr = case_data.get("complainant_address") or case_data.get("complainantAddress") or "[Complainant Address]"
     complainant_type = case_data.get("complainant_type", "Individual")
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (Accused Name)"
-    accused_addr = case_data.get("accused_address") or case_data.get("accusedAddress") or "________ (Accused Address)"
+    c_phone = case_data.get("complainant_phone") or case_data.get("complainantPhone") or case_data.get("phone")
+    c_email = case_data.get("complainant_email") or case_data.get("complainantEmail") or case_data.get("email")
+    if c_phone and c_email:
+        complainant_contact_line = f"Contact: {c_phone} | Email: {c_email}"
+    elif c_phone:
+        complainant_contact_line = f"Contact: {c_phone}"
+    elif c_email:
+        complainant_contact_line = f"Email: {c_email}"
+    else:
+        complainant_contact_line = ""
+
+    accused = case_data.get("accused_name") or case_data.get("accusedName") or "[Accused Name]"
+    accused_addr = case_data.get("accused_address") or case_data.get("accusedAddress") or "[Accused Address]"
     accused_type = case_data.get("accused_type", "Individual")
-    cheque_no = case_data.get("cheque_number") or case_data.get("chequeNumber") or "________"
-    cheque_date = case_data.get("cheque_date") or case_data.get("chequeDate") or "________ (Cheque Date)"
-    bank = case_data.get("bank_name") or case_data.get("bankName") or "________ (Bank Name)"
+    a_phone = case_data.get("accused_phone") or case_data.get("accusedPhone")
+    accused_contact_line = f"Contact: {a_phone}" if a_phone else ""
+
+    cheque_no = case_data.get("cheque_number") or case_data.get("chequeNumber") or "[Cheque Number]"
+    cheque_date = case_data.get("cheque_date") or case_data.get("chequeDate") or "[Cheque Date]"
+    bank = case_data.get("bank_name") or case_data.get("bankName") or "[Bank Name]"
     branch = case_data.get("branch_name") or case_data.get("branchName") or ""
     bank_full = f"{bank}, {branch}" if branch else bank
-    dishonour_date = case_data.get("dishonour_date") or case_data.get("dishonourDate") or "________ (Date)"
+    dishonour_date = case_data.get("dishonour_date") or case_data.get("dishonourDate") or "[Dishonour Date]"
     dishonour_reason = case_data.get("dishonour_reason") or case_data.get("dishonourReason") or "Insufficient Funds"
-    notice_date = case_data.get("notice_date") or case_data.get("noticeDate") or "________ (Notice Date)"
+    notice_date = case_data.get("notice_date") or case_data.get("noticeDate") or "[Notice Date]"
     court_name = case_data.get("court_name") or case_data.get("courtName") or "District Court"
     description = case_data.get("description", "")
     purpose = case_data.get("purpose", "")
@@ -418,16 +440,80 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
         prayer_compensation = "(c) Direct the Accused to pay INTERIM COMPENSATION under Section 143A of the NI Act, or encourage the parties to explore an amicable settlement / mediation under Section 89 of the CPC;"
     else:
         prayer_compensation = "(c) Direct the Accused to pay INTERIM COMPENSATION under Section 143A of the NI Act (20% of cheque amount);"
+
     year_val = datetime.now().year
-    transaction_date = case_data.get("transaction_date") or case_data.get("transactionDate") or "________ (Transaction Date)"
-    presentation_date = case_data.get("presentation_date") or case_data.get("presentationDate") or "________ (Presentation Date)"
-    notice_received_date = case_data.get("notice_received_date") or case_data.get("noticeReceivedDate") or "________ (Notice Received Date)"
-    filing_date = case_data.get("filing_date") or case_data.get("filingDate") or "________ (Filing Date)"
+    case_no = case_data.get("complaint_number") or case_data.get("case_number") or case_data.get("caseNumber")
+    if not case_no:
+        cid = str(case_data.get("case_id") or "")
+        if cid and not cid.startswith("ANON") and not cid.startswith("CASE-TEST"):
+            case_no = f"[Filing Ref: {cid}]"
+        else:
+            case_no = f"[To be assigned on filing] / {year_val}"
+    else:
+        case_no = f"{case_no} / {year_val}" if "/" not in str(case_no) else str(case_no)
+    complaint_no_line = f"COMPLAINT NO: {case_no}"
+
+    advocate_name = case_data.get("advocate_name") or case_data.get("advocateName")
+    advocate_bar_id = case_data.get("advocate_bar_id") or case_data.get("advocate_enrollment")
+    if advocate_name:
+        adv_str = str(advocate_name).upper()
+        if advocate_bar_id:
+            adv_str += f" (Enr: {advocate_bar_id})"
+        adv_block = f"{adv_str}, ADVOCATE\n                                                        FOR COMPLAINANT"
+        adv_inline = f"{adv_str}, ADVOCATE\n                FOR THE COMPLAINANT"
+    else:
+        adv_block = "[COUNSEL FOR COMPLAINANT]\n                                                        ADVOCATE, HIGH COURT / DISTRICT COURT"
+        adv_inline = "[COUNSEL FOR COMPLAINANT]\n                ADVOCATE, HIGH COURT / DISTRICT COURT"
+
+    transaction_date = case_data.get("transaction_date") or case_data.get("transactionDate") or "[Transaction Date]"
+    presentation_date = case_data.get("presentation_date") or case_data.get("presentationDate") or "[Presentation Date]"
+    notice_received_date = case_data.get("notice_received_date") or case_data.get("noticeReceivedDate") or "[Notice Delivery Date]"
+    filing_date = case_data.get("filing_date") or case_data.get("filingDate") or "[Filing Date]"
+
+    expiry_phrase = "which expired upon lapse of the statutory 15-day window"
+    try:
+        n_recv = case_data.get("notice_received_date") or case_data.get("noticeReceivedDate") or case_data.get("notice_delivery_date")
+        n_sent = case_data.get("notice_date") or case_data.get("noticeDate")
+        base_d_str = n_recv or n_sent
+        if base_d_str and "Date" not in str(base_d_str) and not str(base_d_str).startswith("[") and not str(base_d_str).startswith("_"):
+            from utils import parse_date
+            parsed = parse_date(str(base_d_str))
+            if parsed:
+                from datetime import timedelta
+                exp_date = parsed + timedelta(days=15)
+                expiry_phrase = f"which expired on {exp_date.strftime('%d-%m-%Y')}"
+    except Exception:
+        pass
+
+    c_type_str = str(complainant_type).lower()
+    is_entity = c_type_str in {"company", "pvt ltd", "proprietorship", "partnership", "firm", "llp"} or any(
+        x in str(complainant).lower() for x in ["pvt", "ltd", "corp", "inc", "co.", "enterprises", "solutions", "llp", "firm"]
+    )
+    auth_rep = case_data.get("authorized_representative") or case_data.get("representative_name") or case_data.get("authorized_person_name")
+    age = case_data.get("complainant_age") or case_data.get("age")
+    parent = case_data.get("complainant_father_name") or case_data.get("father_name")
+
+    if is_entity:
+        rep_display = auth_rep if auth_rep else f"the Authorized Representative of {complainant}"
+        affidavit_deponent_title = "AUTHORIZED REPRESENTATIVE / DEPONENT"
+        affidavit_intro = f"I, {rep_display}, having office at {complainant_addr}, do hereby solemnly affirm and state as under:"
+        comp_verification_name = f"{auth_rep} (Authorized Representative for {complainant})" if auth_rep else complainant
+    else:
+        affidavit_deponent_title = "DEPONENT"
+        details = []
+        if parent:
+            details.append(f"son/daughter of {parent}")
+        if age:
+            details.append(f"aged about {age} years")
+        details_str = (", " + ", ".join(details)) if details else ", of adult age"
+        affidavit_intro = f"I, {complainant}{details_str}, residing at {complainant_addr}, do hereby solemnly affirm and state as under:"
+        comp_verification_name = complainant
+
     index_section = f"""======================================================================
 INDEX OF FILING BUNDLE
 ======================================================================
 IN THE COURT OF THE METROPOLITAN MAGISTRATE AT {court_name}
-COMPLAINT NO: _____ / {year_val}
+{complaint_no_line}
 IN THE MATTER OF:
 {complainant}                                          -- COMPLAINANT
 VERSUS
@@ -441,82 +527,80 @@ S.NO.   PARTICULARS                                     PAGE NO.
 5.      List of Documents / Annexures                   10
 6.      Vakalatnama                                     11
 Place: {place_val}                                      THROUGH:
-Date: {today}                                           __________________, ADVOCATE
-                                                        FOR COMPLAINANT
+Date: {today}                                           {adv_block}
 """
     synopsis_section = f"""======================================================================
 SYNOPSIS AND LIST OF DATES
 ======================================================================
 SYNOPSIS:
-The present complaint is being filed under Section 138 read with Section 141 of the Negotiable Instruments Act, 1881, against the Accused for the dishonour of cheque bearing No. {cheque_no} for Rs. {amount_str} due to "{dishonour_reason}". Despite the service of the statutory demand notice dated {notice_date}, the Accused has failed to clear the outstanding liability within the statutory period of 15 days, thereby committing an offence under the Negotiable Instruments Act, 1881.
+The present complaint is being filed under Section 138 read with Section 141 of the Negotiable Instruments Act, 1881, against the Accused for the dishonour of cheque bearing No. {cheque_no} for {amount_str} due to "{dishonour_reason}". Despite the service of the statutory demand notice dated {notice_date}, the Accused has failed to clear the outstanding liability within the statutory period of 15 days, thereby committing an offence under the Negotiable Instruments Act, 1881.
 LIST OF DATES:
 DATE            PARTICULARS
-{transaction_date}  The Accused approached the Complainant and underlying debt/liability of Rs. {amount_str} was established.
-{cheque_date}   In discharge of the legal liability, the Accused issued cheque bearing No. {cheque_no} for Rs. {amount_str} drawn on {bank_full}.
+{transaction_date}  The Accused approached the Complainant and underlying debt/liability of {amount_str} was established.
+{cheque_date}   In discharge of the legal liability, the Accused issued cheque bearing No. {cheque_no} for {amount_str} drawn on {bank_full}.
 {presentation_date} The cheque was presented for encashment by the Complainant.
 {dishonour_date}    The cheque was returned/dishonoured by the bank with the memo citing "{dishonour_reason}".
 {notice_date}   The Complainant sent the statutory demand notice under Section 138(b) of the NI Act to the Accused.
 {notice_received_date}   The statutory demand notice was served/deemed served on the Accused.
 {filing_date}   Filing of the present complaint before this Honourable Court.
 Place: {place_val}                                      THROUGH:
-Date: {today}                                           __________________, ADVOCATE
-                                                        FOR COMPLAINANT
+Date: {today}                                           {adv_block}
 """
+    complainant_party_block = f"{complainant}\n                {complainant_addr}"
+    if complainant_contact_line:
+        complainant_party_block += f"\n                {complainant_contact_line}"
+
+    accused_party_block = f"{accused}\n                {accused_addr}"
+    if accused_contact_line:
+        accused_party_block += f"\n                {accused_contact_line}"
+
     memo_section = f"""======================================================================
 MEMO OF PARTIES
 ======================================================================
 IN THE COURT OF THE METROPOLITAN MAGISTRATE AT {court_name}
-COMPLAINT NO: _____ / {year_val}
+{complaint_no_line}
 IN THE MATTER OF:
-COMPLAINANT:    {complainant}
-                {complainant_addr}
-                {complainant_phone}
+COMPLAINANT:    {complainant_party_block}
                                                         -- COMPLAINANT
 VERSUS
-ACCUSED:        {accused}
-                {accused_addr}
+ACCUSED:        {accused_party_block}
                                                         -- ACCUSED
 Place: {place_val}                                      THROUGH:
-Date: {today}                                           __________________, ADVOCATE
-                                                        FOR COMPLAINANT
+Date: {today}                                           {adv_block}
 """
     affidavit_section = f"""======================================================================
 AFFIDAVIT IN SUPPORT OF THE COMPLAINT
 ======================================================================
 IN THE COURT OF THE METROPOLITAN MAGISTRATE AT {court_name}
-COMPLAINT NO: _____ / {year_val}
+{complaint_no_line}
 IN THE MATTER OF:
 {complainant}                                          -- COMPLAINANT
 VERSUS
 {accused}                                              -- ACCUSED
 AFFIDAVIT
-I, {complainant}, son/daughter/representative of ________, aged about ____ years, residing/having office at {complainant_addr}, do hereby solemnly affirm and state as under:
+{affidavit_intro}
 1. That I am the Complainant in the accompanying complaint and am fully conversant with the facts of the case, and as such, competent to depose to this affidavit.
 2. That the accompanying Complaint under Section 138 of the Negotiable Instruments Act, 1881 has been drafted under my instructions, the contents of which may be read as part and parcel of this affidavit for the sake of brevity.
 3. That the Accused issued the cheque No. {cheque_no} in discharge of a legally enforceable debt, which was dishonoured upon presentation, and the Accused failed to make payment despite receipt of the statutory demand notice.
 4. That the annexures filed along with the complaint are true copies of their respective originals.
-                                                        DEPONENT
+                                                        {affidavit_deponent_title}
 VERIFICATION:
 Verified at {place_val} on this {today} that the contents of the above affidavit are true and correct to the best of my knowledge and belief, and nothing material has been concealed therefrom.
-                                                        DEPONENT
+                                                        {affidavit_deponent_title}
 """
     complaint_body = f"""======================================================================
 COMPLAINT UNDER SECTION 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881
 ======================================================================
 IN THE COURT OF THE METROPOLITAN MAGISTRATE
 AT {court_name}
-COMPLAINT NO.: _____ / {year_val}
+{complaint_no_line}
 IN THE MATTER OF:
-COMPLAINANT:    {complainant}
-                {complainant_addr}
-                {complainant_phone}
+COMPLAINANT:    {complainant_party_block}
                                                         -- COMPLAINANT
 VERSUS
-ACCUSED:        {accused}
-                {accused_addr}
+ACCUSED:        {accused_party_block}
                                                         -- ACCUSED
-                THROUGH: __________________, ADVOCATE
-                FOR THE COMPLAINANT
+                THROUGH: {adv_inline}
 COMPLAINT U/S 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881
 RESPECTFULLY SHOWETH:
 1. THE COMPLAINANT:
@@ -531,7 +615,7 @@ RESPECTFULLY SHOWETH:
 6. PRESENTATION AND DISHONOUR:
    The Complainant duly presented the said cheque for encashment through its banker. However, the said cheque was returned/dishonoured on {dishonour_date} with the bank memo citing "{dishonour_reason}", thereby constituting an offence under Section 138 of the NI Act, 1881.
 7. STATUTORY DEMAND NOTICE AND ACCUSED'S DEFAULT:
-   As mandated under Section 138(b) of the NI Act, 1881, the Complainant sent a legal demand notice dated {notice_date} to the Accused at their correct and known address via Registered Post (AD)/Speed Post, demanding payment of the cheque amount of {amount_str} within 15 days of receipt of the notice. The notice was duly served/deemed to be served upon the Accused. Despite receipt/deemed receipt of the notice, the Accused failed to make the payment of the cheque amount within the statutory period of 15 days, which expired on ________. The Accused has thus committed an offence punishable under Section 138 of the Negotiable Instruments Act, 1881. {delay_para} {dynamic_rebuttal}
+   As mandated under Section 138(b) of the NI Act, 1881, the Complainant sent a legal demand notice dated {notice_date} to the Accused at their correct and known address via Registered Post (AD)/Speed Post, demanding payment of the cheque amount of {amount_str} within 15 days of receipt of the notice. The notice was duly served/deemed to be served upon the Accused. Despite receipt/deemed receipt of the notice, the Accused failed to make the payment of the cheque amount within the statutory period of 15 days, {expiry_phrase}. The Accused has thus committed an offence punishable under Section 138 of the Negotiable Instruments Act, 1881. {delay_para} {dynamic_rebuttal}
 8. JURISDICTION:
    This Honourable Court has territorial jurisdiction to entertain and try this Complaint as the cheque in question was presented for encashment at {bank_full}, which is situated within the territorial limits of this Court, as per the law laid down by the Honourable Supreme Court in Dashrath Rupsingh Rathod vs. State of Maharashtra.
 9. PRAYER:
@@ -549,15 +633,15 @@ ANNEXURE-D: Office Copy of Legal Demand Notice dated {notice_date}
 ANNEXURE-E: Original Postal Receipt and A.D. Card / Tracking Report
 ANNEXURE-F: Section 63(4) BSA Certificate for WhatsApp/Email records (Mandatory)
 VERIFICATION:
-I, {complainant}, do hereby solemnly verify that the contents of the above Complaint are true and correct to the best of my knowledge, information, and belief. Nothing material has been concealed therefrom, and all supporting documents are annexed herewith.
+I, {comp_verification_name}, do hereby solemnly verify that the contents of the above Complaint are true and correct to the best of my knowledge, information, and belief. Nothing material has been concealed therefrom, and all supporting documents are annexed herewith.
 Place: {place_val}
-                                                        {complainant}
+                                                        {comp_verification_name}
                                                         (Complainant)
 """
     full_complaint_bundle = f"{index_section}\n\n{synopsis_section}\n\n{memo_section}\n\n{complaint_body}\n\n{affidavit_section}"
     if audit_report:
-        return f"{audit_report}\n{full_complaint_bundle}"
-    return full_complaint_bundle
+        full_complaint_bundle = f"{audit_report}\n{full_complaint_bundle}"
+    return _clean_draft_text(full_complaint_bundle)
 def generate_defence_strategy(case_data: Dict, concepts: List[Dict], score: int) -> str:
     today, amount_str = _case_meta(case_data)
     concept_names = {c.get("concept", "") for c in concepts if isinstance(c, dict)}
@@ -1049,59 +1133,59 @@ class DraftEngine:
             return f"DRAFT GENERATION BLOCKED.\n\nReason: {reason}\n\nJudiQ refuses to generate {draft_type} due to critical strategic or procedural defects that make the filing legally untenable or frivolous. Please review the Executive Summary."
         tone = case_data.get("draft_tone", "standard")
         if draft_type == "FIR_DRAFT":
-            return generate_fir_draft(case_data, concepts)
+            draft_out = generate_fir_draft(case_data, concepts)
         elif draft_type == "REGULAR_BAIL":
-            return generate_regular_bail(case_data)
+            draft_out = generate_regular_bail(case_data)
         elif draft_type == "ANTICIPATORY_BAIL":
-            return generate_anticipatory_bail(case_data)
+            draft_out = generate_anticipatory_bail(case_data)
         elif draft_type in ("DEFAULT_BAIL", "DEFAULT_BAIL_APPLICATION"):
-            return generate_default_bail(case_data)
+            draft_out = generate_default_bail(case_data)
         elif draft_type == "DISCHARGE_APPLICATION":
-            return generate_discharge_application(case_data)
+            draft_out = generate_discharge_application(case_data)
         elif draft_type == "QUASHING_PETITION":
-            return generate_quashing_petition(case_data)
+            draft_out = generate_quashing_petition(case_data)
         elif draft_type == "SUSPENSION_SENTENCE":
-            return generate_suspension_sentence(case_data)
+            draft_out = generate_suspension_sentence(case_data)
         elif draft_type == "CRIMINAL_APPEAL":
-            return generate_criminal_appeal(case_data)
+            draft_out = generate_criminal_appeal(case_data)
         elif draft_type == "RECALL_WITNESS":
-            return generate_recall_witness(case_data)
+            draft_out = generate_recall_witness(case_data)
         elif draft_type == "ADD_ACCUSED":
-            return generate_add_accused(case_data)
+            draft_out = generate_add_accused(case_data)
         elif draft_type == "EXEMPTION_APPEARANCE":
-            return generate_exemption_appearance(case_data)
+            draft_out = generate_exemption_appearance(case_data)
         elif draft_type == "SUPERDARI_APPLICATION":
-            return generate_superdari_application(case_data)
+            draft_out = generate_superdari_application(case_data)
         elif draft_type == "PROTEST_PETITION":
-            return generate_protest_petition(case_data)
-        if draft_type == "LEGAL_NOTICE":
-            return generate_legal_notice(case_data, tone=tone)
+            draft_out = generate_protest_petition(case_data)
+        elif draft_type == "LEGAL_NOTICE":
+            draft_out = generate_legal_notice(case_data, tone=tone)
         elif draft_type == "COMPLAINT":
-            return generate_complaint(case_data, concepts, tone=tone)
+            draft_out = generate_complaint(case_data, concepts, tone=tone)
         elif draft_type in ("CERTIFICATE_BSA", "CERTIFICATE_65B"):
-            return generate_certificate_63_bsa(case_data)
+            draft_out = generate_certificate_63_bsa(case_data)
         elif draft_type in ("DEFENCE_STRATEGY", "DEFENCE_REPLY"):
-            return generate_defence_strategy(case_data, concepts, score)
+            draft_out = generate_defence_strategy(case_data, concepts, score)
         elif draft_type == "SETTLEMENT":
-            return generate_settlement_draft(case_data, score)
+            draft_out = generate_settlement_draft(case_data, score)
         elif draft_type == "SARFAESI_13_2_NOTICE":
-            return generate_sarfaesi_13_2_notice(case_data)
+            draft_out = generate_sarfaesi_13_2_notice(case_data)
         elif draft_type == "SARFAESI_13_3A_REPLY":
-            return generate_sarfaesi_13_3a_reply(case_data)
+            draft_out = generate_sarfaesi_13_3a_reply(case_data)
         elif draft_type == "SARFAESI_13_4_POSSESSION_NOTICE":
-            return generate_sarfaesi_13_4_possession(case_data)
+            draft_out = generate_sarfaesi_13_4_possession(case_data)
         elif draft_type == "SARFAESI_SEC_14_APPLICATION":
-            return generate_sarfaesi_sec_14_app(case_data)
+            draft_out = generate_sarfaesi_sec_14_app(case_data)
         elif draft_type == "SARFAESI_SEC_14_AFFIDAVIT":
-            return generate_sarfaesi_sec_14_affidavit(case_data)
+            draft_out = generate_sarfaesi_sec_14_affidavit(case_data)
         elif draft_type == "SARFAESI_RULE_8_6_AUCTION_NOTICE":
-            return generate_sarfaesi_rule_8_6_auction_notice(case_data)
+            draft_out = generate_sarfaesi_rule_8_6_auction_notice(case_data)
         elif draft_type == "SARFAESI_SEC_17_SA_PETITION":
-            return generate_sarfaesi_sec_17_sa(case_data)
+            draft_out = generate_sarfaesi_sec_17_sa(case_data)
         elif draft_type == "SARFAESI_WRITTEN_STATEMENT":
-            return generate_sarfaesi_written_statement(case_data)
+            draft_out = generate_sarfaesi_written_statement(case_data)
         elif draft_type == "DELAY_CONDONATION":
-            return generate_delay_condonation(case_data)
+            draft_out = generate_delay_condonation(case_data)
         elif draft_type == "APPLICATION_143A":
             draft_out = generate_application_143a(case_data)
         else:
@@ -1113,7 +1197,7 @@ class DraftEngine:
         elif lang in ["hi", "hindi"]:
             draft_out = _format_hindi_draft(draft_out, draft_type, case_data)
 
-        return draft_out
+        return _clean_draft_text(draft_out)
 def generate_settlement_draft(case_data: Dict, score: int) -> str:
     return "MEMORANDUM OF SETTLEMENT\n\nThis memorandum of settlement is generated based on the case facts. A formal mediator or counsel should review the terms."
 def generate_fir_draft(case_data: Dict, concepts: List[Dict] = None) -> str:

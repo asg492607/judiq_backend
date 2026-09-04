@@ -141,7 +141,7 @@ class PDFGenerator:
             # ── decision ──────────────────────────────────────────────────
             decision = analysis_result.get('decision', {})
             if decision:
-                decision_block = [Paragraph("Recommended Action", heading_style), Spacer(1, 0.1 * inch)]
+                decision_block = [Paragraph("Strategic Assessment & Priorities", heading_style), Spacer(1, 0.1 * inch)]
                 decision_label = decision.get('decision_label', 'Review Case')
                 decision_detail = decision.get('detail', '')
                 decision_block.append(Paragraph(f"<b>{decision_label}</b>", subheading_style))
@@ -150,7 +150,7 @@ class PDFGenerator:
                 decision_block.append(Spacer(1, 0.15 * inch))
                 next_steps = decision.get('next_steps', [])
                 if next_steps:
-                    decision_block.append(Paragraph("<b>Next Steps:</b>", subheading_style))
+                    decision_block.append(Paragraph("<b>Suggested Review Priorities:</b>", subheading_style))
                     for i, step in enumerate(next_steps, 1):
                         decision_block.append(Paragraph(f"{i}. {step}", body_style))
                         decision_block.append(Spacer(1, 0.05 * inch))

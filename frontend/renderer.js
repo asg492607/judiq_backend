@@ -265,7 +265,7 @@ export function renderDecisionPanel(decision) {
     if (nextSteps.length > 0) {
         html += `
             <div class="decision-steps">
-                <h5><i class="fas fa-list-ol"></i> Next Steps:</h5>
+                <h5><i class="fas fa-list-ol"></i> Suggested Review Priorities:</h5>
                 <ol>
                     ${nextSteps.map(step => `<li>${escapeHtml(String(step))}</li>`).join('')}
                 </ol>

@@ -538,7 +538,7 @@ class ReasoningEngine:
                 "title":     sec138.get("title", "Dishonour of cheque"),
                 "status":    status,
                 "finding":   (
-                    "All Section 138 ingredients are satisfied. The case is prosecution-ready."
+                    "All Section 138 statutory ingredients are satisfied. Case indicators support advocate review."
                     if status == "SATISFIED" else
                     f"Section 138 partially satisfied. Missing: {'; '.join(cond_fail)}."
                 ),

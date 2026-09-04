@@ -100,7 +100,7 @@ class ResponseBuilder:
         return f"[{label}]\n{text}"
     @staticmethod
     def build_final_response(engine_result: Dict[str, Any], case_data: Dict[str, Any]) -> Dict[str, Any]:
-        score = engine_result.get("final_score", 0)
+        score = engine_result.get("final_score") if engine_result.get("final_score") is not None else engine_result.get("score", 0)
         trace = engine_result.get("reasoning_trace", [])
         breakdown = engine_result.get("score_breakdown", [])
         concepts = engine_result.get("concepts", [])
@@ -275,14 +275,36 @@ class ResponseBuilder:
             recommended_action, decision_label, decision_detail = "CONSIDER_SETTLEMENT", "Address Fatal Defects / Consider Settlement", "This case has fatal statutory/procedural defects."
             next_steps = ["Review notice/limitation timelines", "Consider strategic settlement or civil recovery suit"]
         elif score > 75:
-            recommended_action, decision_label, decision_detail = "FILE_COMPLAINT", "Proceed Aggressively", f"Strong case ({score}/100)."
-            next_steps = ["File Criminal Complaint", "Verify originals", "Prepare for summons stage"]
+            recommended_action, decision_label, decision_detail = (
+                "FILE_COMPLAINT",
+                "Assessment: Strong case indicators identified",
+                f"Statutory ingredients and evidentiary indicators support filing ({score}/100); final litigation strategy rests with counsel."
+            )
+            next_steps = [
+                "Verify originals (cheque, return memo, postal receipt)",
+                "Confirm limitation and statutory notice timelines",
+                "Prepare for advocate review and pre-summoning evidence"
+            ]
         elif score >= 50:
-            recommended_action, decision_label, decision_detail = "FIX_THEN_FILE", "Proceed with Caution", f"Moderate case ({score}/100)."
-            next_steps = [f"Fix: {top_3_risks[0]['risk'] if top_3_risks else 'defects'}", "Ensure all evidentiary documents are prepared"]
+            recommended_action, decision_label, decision_detail = (
+                "FIX_THEN_FILE",
+                "Assessment: Moderate case indicators with addressable gaps",
+                f"Moderate case viability ({score}/100); address highlighted evidentiary gaps prior to filing."
+            )
+            next_steps = [
+                f"Address: {top_3_risks[0]['risk'] if top_3_risks else 'defects'}",
+                "Ensure all evidentiary documents are prepared for advocate review"
+            ]
         else:
-            recommended_action, decision_label, decision_detail = "CONSIDER_SETTLEMENT", "Consider Strategic Settlement", f"Case has significant vulnerabilities ({score}/100)."
-            next_steps = ["Draft settlement proposal", "Evaluate time-value of money"]
+            recommended_action, decision_label, decision_detail = (
+                "CONSIDER_SETTLEMENT",
+                "Assessment: Low viability indicators identified",
+                f"Case exhibits significant statutory or evidentiary vulnerabilities ({score}/100)."
+            )
+            next_steps = [
+                "Evaluate strategic settlement or civil remedies",
+                "Review evidentiary gaps with senior counsel"
+            ]
         accused_type = str(case_data.get("accused_type", "")).lower()
         accused_name = str(case_data.get("accused_name", "")).lower()
         is_company = accused_type in {"company", "pvt ltd/ltd company", "partnership firm"} or any(
@@ -342,7 +364,7 @@ class ResponseBuilder:
             "verdict": verdict,
             "biggest_risk": tldr.get("core_risk", "Evidentiary Gaps") if verdict != "DO NOT FILE" else "[!] FATAL: " + tldr.get("core_risk", "Statutorily Dead Case"),
             "strongest_defence": tldr.get("top_threat", "Standard Rebuttal"),
-            "predicted_posture": "Defensive" if score < 50 else "Prosecution-Ready",
+            "predicted_posture": "Defensive" if score < 50 else "Advocate Review Ready",
             "top_actions": [s["title"] for s in suggestions[:3]] if suggestions else ["Review Case File"]
         }
         if verdict == "DO NOT FILE":
