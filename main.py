@@ -1,3 +1,14 @@
+"""
+JudiQ AI — Root Deployment ASGI Entrypoint Shim
+-----------------------------------------------
+This entrypoint allows PaaS platforms (e.g. Render, Railway, Heroku, Docker)
+that launch from the repository root to seamlessly resolve the FastAPI application
+defined in backend/main.py.
+
+For direct backend development or container builds, backend/main.py remains
+the primary application module.
+"""
+
 import sys
 import os
 
