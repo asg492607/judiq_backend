@@ -60,8 +60,7 @@ class CaseInput(BaseModel):
     composite_tracks: Optional[List[str]] = Field(default_factory=lambda: ["sarfaesi", "cheque_bounce", "criminal"])
 
     model_config = {
-
-        "extra": "allow",
+        "extra": "ignore",
         "json_schema_extra": {
             "example": {
                 "case_id": "CASE-2026-001",
