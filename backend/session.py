@@ -2,6 +2,7 @@ import sqlite3
 import json
 import logging
 import os
+from contextlib import contextmanager
 from datetime import datetime
 from typing import Optional, Dict, Any, List, Union
 
@@ -30,6 +31,29 @@ class DatabaseManager:
             except Exception as e:
                 logger.warning(f"⚠️ Failed to initialize PostgreSQL pool: {e}. Falling back to single connections.")
         return cls._pg_pool
+
+    @classmethod
+    def release_connection(cls, conn):
+        """Safely releases a database connection back to the pool or closes it."""
+        if conn is None:
+            return
+        try:
+            if cls._pg_pool is not None and cls._active_dialect == "postgres":
+                cls._pg_pool.putconn(conn)
+            else:
+                DatabaseManager.release_connection(conn)
+        except Exception as e:
+            logger.warning(f"Error releasing DB connection: {e}")
+
+    @classmethod
+    @contextmanager
+    def get_db_connection(cls):
+        """Context manager to acquire and safely release a DB connection."""
+        conn = cls.get_connection()
+        try:
+            yield conn
+        finally:
+            cls.release_connection(conn)
 
     @staticmethod
     def get_connection():
@@ -430,6 +454,14 @@ class DatabaseManager:
                 )
             """)
 
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS case_outcomes (
+                    case_id TEXT PRIMARY KEY,
+                    outcome TEXT,
+                    court_remarks TEXT,
+                    reported_at TEXT
+                )
+            """)
             conn.commit()
             logger.info("Database, Caseroom, User Quota, and Bank Recovery tables initialized successfully.")
             DatabaseManager._seed_initial_litigators(cursor, conn)
@@ -439,7 +471,7 @@ class DatabaseManager:
             raise e
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def save_case(case_id, user_id, case_data, analysis_result, score, verdict):
@@ -538,7 +570,7 @@ class DatabaseManager:
             return False
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def save_case_version(
@@ -621,7 +653,7 @@ class DatabaseManager:
             raise e
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def get_case_versions(case_id: str) -> list:
@@ -669,7 +701,7 @@ class DatabaseManager:
             return []
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def get_case_version(case_id: str, version_num: int) -> dict:
@@ -725,7 +757,7 @@ class DatabaseManager:
             return None
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def restore_case_version(case_id: str, version_num: int, user_id: str) -> dict:
@@ -766,7 +798,7 @@ class DatabaseManager:
             return None
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def get_caseroom_by_case_id(case_id):
@@ -783,7 +815,7 @@ class DatabaseManager:
             return None
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def create_caseroom(caseroom_id, case_id, owner_id):
@@ -809,7 +841,7 @@ class DatabaseManager:
             return False
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def add_participant(caseroom_id, user_id, role="RESEARCHER"):
@@ -835,7 +867,7 @@ class DatabaseManager:
             return False
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def get_caseroom_data(caseroom_id):
@@ -889,7 +921,7 @@ class DatabaseManager:
             return None
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def send_message(caseroom_id, user_id, content):
@@ -910,7 +942,7 @@ class DatabaseManager:
             return False
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def save_document(caseroom_id, uploader_id, file_name, file_path, doc_type, validation_status="PENDING", extracted_data=None):
@@ -934,7 +966,7 @@ class DatabaseManager:
             return None
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def get_caseroom_documents(caseroom_id):
@@ -958,7 +990,7 @@ class DatabaseManager:
             return []
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def save_interaction(log_entry):
@@ -984,7 +1016,7 @@ class DatabaseManager:
             return False
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def get_draft_history(case_id, draft_type):
@@ -1006,7 +1038,7 @@ class DatabaseManager:
             return []
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def get_or_create_user_quota(user_id: str, email: str = "", role: str = "law_firm", default_limit: int = 25) -> dict:
@@ -1120,7 +1152,7 @@ class DatabaseManager:
             }
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def check_and_consume_report_quota(user_id: str, email: str = "", cost: int = 1) -> dict:
@@ -1194,7 +1226,7 @@ class DatabaseManager:
             }
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def submit_subscription_plan(user_id: str, email: str, selected_modules: list, monthly_price_inr: float, requested_quota: int, role: str = "law_firm") -> dict:
@@ -1235,7 +1267,7 @@ class DatabaseManager:
             raise e
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def approve_user_plan(user_id: str, admin_email: str = "admin@judiq.ai") -> dict:
@@ -1280,7 +1312,7 @@ class DatabaseManager:
             raise e
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def reject_user_plan(user_id: str, admin_email: str = "admin@judiq.ai", reason: str = "") -> dict:
@@ -1321,7 +1353,7 @@ class DatabaseManager:
             raise e
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def create_or_update_full_user(
@@ -1397,7 +1429,7 @@ class DatabaseManager:
             raise e
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
 
     @staticmethod
@@ -1440,7 +1472,7 @@ class DatabaseManager:
             return []
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def get_all_users_quotas() -> list:
@@ -1490,7 +1522,7 @@ class DatabaseManager:
             return []
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def update_user_quota_allocation(user_id: str, monthly_limit: int = None, is_active: bool = None, role: str = None, email: str = None) -> bool:
@@ -1529,7 +1561,7 @@ class DatabaseManager:
             return False
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def reset_user_monthly_usage(user_id: str) -> bool:
@@ -1551,7 +1583,7 @@ class DatabaseManager:
             return False
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def get_platform_admin_stats() -> dict:
@@ -1603,7 +1635,7 @@ class DatabaseManager:
             }
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def _seed_initial_litigators(cursor, conn):
@@ -1612,7 +1644,6 @@ class DatabaseManager:
             current_month = datetime.now().strftime("%Y-%m")
             seed_litigators = [
                 ("admin@judiq.ai", "admin@judiq.ai", "admin", -1, 4, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"]), 0.0, -1, "SYSTEM", now_iso),
-                ("gandhiatharv565@gmail.com", "gandhiatharv565@gmail.com", "admin", -1, 2, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"]), 0.0, -1, "SYSTEM", now_iso),
                 ("USR_DEL_VERMA_88", "advocate.verma@delhibar.in", "law_firm", 50, 14, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "criminal"]), 1500.0, 50, "admin@judiq.ai", now_iso),
                 ("USR_MUM_TATA_CORP", "corp.legal@tatacapital.com", "enterprise", 100, 42, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "criminal", "civil", "bank_recovery"]), 2500.0, 100, "admin@judiq.ai", now_iso),
                 ("USR_BOM_MEHTA_HC", "counsel.mehta@bombayhc.in", "citizen", 25, 6, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "civil"]), 1000.0, 25, "admin@judiq.ai", now_iso),
@@ -1728,7 +1759,7 @@ class DatabaseManager:
             }
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def get_all_bank_officers() -> list:
@@ -1767,7 +1798,7 @@ class DatabaseManager:
             return []
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def update_bank_officer_allocation(officer_id: str, monthly_limit: int = None, is_active: bool = None, role: str = None, name: str = None, bank_name: str = None, branch_name: str = None, email: str = None) -> bool:
@@ -1813,7 +1844,7 @@ class DatabaseManager:
             return False
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def register_bank_officer(
@@ -1897,7 +1928,7 @@ class DatabaseManager:
             raise e
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def verify_bank_officer_credentials(identifier: str, password: str = "") -> Optional[dict]:
@@ -1955,7 +1986,7 @@ class DatabaseManager:
             return None
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def log_bank_audit(officer_id: str, bank_name: str, branch_name: str, case_type: str, borrower_name: str, loan_account_no: str, default_amount: float, viability_score: float, verdict: str, defect_count: int, details_json: dict = None) -> str:
@@ -1989,7 +2020,7 @@ class DatabaseManager:
             return ""
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def get_all_bank_audits(limit: int = 50) -> list:
@@ -2028,7 +2059,7 @@ class DatabaseManager:
             return []
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def get_bank_admin_stats() -> dict:
@@ -2080,7 +2111,7 @@ class DatabaseManager:
             }
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def get_recent_audit_logs(limit: int = 50) -> list:
@@ -2115,7 +2146,7 @@ class DatabaseManager:
             return []
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def bulk_add_user_quotas(bonus: int = 10) -> int:
@@ -2139,7 +2170,7 @@ class DatabaseManager:
             return 0
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     # ────────────────────────────────────────────────────────────────
     # CMS — cases_v2 CRUD
@@ -2177,7 +2208,7 @@ class DatabaseManager:
             return {"success": False, "error": str(e)}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_list_cases(user_id, status=None, case_type=None, priority=None,
@@ -2230,7 +2261,7 @@ class DatabaseManager:
             return {"cases": [], "total": 0, "page": 1, "limit": limit}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_get_case(case_id, user_id=None):
@@ -2274,7 +2305,7 @@ class DatabaseManager:
             return None
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_update_case(case_id, updates: dict):
@@ -2307,7 +2338,7 @@ class DatabaseManager:
             return {"success": False, "error": str(e)}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_update_case_status(case_id, new_status):
@@ -2351,7 +2382,7 @@ class DatabaseManager:
             return {"success": False, "error": str(e)}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_list_clients(user_id=None, search=None, client_type=None, page=1, limit=20):
@@ -2394,7 +2425,7 @@ class DatabaseManager:
             return {"clients": [], "total": 0, "page": 1}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_get_client(client_id):
@@ -2432,7 +2463,7 @@ class DatabaseManager:
             return None
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_update_client(client_id, updates: dict):
@@ -2463,7 +2494,7 @@ class DatabaseManager:
             return {"success": False, "error": str(e)}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     # ────────────────────────────────────────────────────────────────
     # CMS — case_client_links
@@ -2492,7 +2523,7 @@ class DatabaseManager:
             return {"success": False, "error": str(e)}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_unlink_client(case_id, client_id):
@@ -2514,7 +2545,7 @@ class DatabaseManager:
             return {"success": False, "error": str(e)}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     # ────────────────────────────────────────────────────────────────
     # CMS — case_documents CRUD
@@ -2549,7 +2580,7 @@ class DatabaseManager:
             return {"success": False, "error": str(e)}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_list_documents(case_id):
@@ -2575,7 +2606,7 @@ class DatabaseManager:
             return []
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_get_document(document_id):
@@ -2602,7 +2633,7 @@ class DatabaseManager:
             return None
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_update_document(document_id, updates: dict):
@@ -2633,7 +2664,7 @@ class DatabaseManager:
             return {"success": False, "error": str(e)}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_delete_document(document_id):
@@ -2650,7 +2681,7 @@ class DatabaseManager:
             return {"success": False, "error": str(e)}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     # ────────────────────────────────────────────────────────────────
     # CMS — draft_workflows CRUD
@@ -2676,7 +2707,7 @@ class DatabaseManager:
             return {"success": False, "error": str(e)}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_list_drafts(case_id):
@@ -2702,7 +2733,7 @@ class DatabaseManager:
             return []
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_update_draft_workflow(workflow_id, updates: dict):
@@ -2732,7 +2763,7 @@ class DatabaseManager:
             return {"success": False, "error": str(e)}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_get_draft_workflow(workflow_id):
@@ -2758,7 +2789,7 @@ class DatabaseManager:
             return None
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     # ────────────────────────────────────────────────────────────────
     # CMS — case_deadlines CRUD
@@ -2799,7 +2830,7 @@ class DatabaseManager:
             return {"success": False, "error": str(e)}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_list_deadlines(case_id=None, user_id=None, status='pending'):
@@ -2839,7 +2870,7 @@ class DatabaseManager:
             return []
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_complete_deadline(deadline_id):
@@ -2858,7 +2889,7 @@ class DatabaseManager:
             return {"success": False, "error": str(e)}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     # ────────────────────────────────────────────────────────────────
     # CMS — team_members CRUD
@@ -2887,7 +2918,7 @@ class DatabaseManager:
             return {"success": False, "error": str(e)}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_list_team_members(org_id=None):
@@ -2920,7 +2951,7 @@ class DatabaseManager:
             return []
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_update_team_member(member_id, updates: dict):
@@ -2950,7 +2981,7 @@ class DatabaseManager:
             return {"success": False, "error": str(e)}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     # ────────────────────────────────────────────────────────────────
     # CMS — audit_log_v2
@@ -2981,7 +3012,7 @@ class DatabaseManager:
             return False
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_get_audit_trail(case_id=None, user_id=None, limit=100):
@@ -3020,7 +3051,7 @@ class DatabaseManager:
             return []
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     # ────────────────────────────────────────────────────────────────
     # CMS — Analytics Aggregations
@@ -3054,7 +3085,7 @@ class DatabaseManager:
                     "avg_compliance_score": 0.0, "success_rate": 0.0}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def cms_get_case_type_breakdown(user_id=None):
@@ -3073,4 +3104,4 @@ class DatabaseManager:
             return {}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
