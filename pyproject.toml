@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "judiq-ai"
+version = "2.4.0"
+description = "JudiQ AI — Indian Legal Strategic Analysis & Litigation Intelligence Platform"
+readme = "README.md"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q"
+testpaths = [
+    "backend/tests"
+]
+pythonpath = [
+    "backend",
+    "."
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning"
+]
