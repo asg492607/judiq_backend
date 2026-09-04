@@ -47,7 +47,7 @@ class ReasoningEngine:
         amount_val = 0
         amount_val = _number(amount)
         if amount_val > 150000 and not case_data.get("loan_via_bank") and not case_data.get("complainant_itr_available"):
-            summary += " ðŸš¨ EVIDENTIARY RISK: Complainant's financial capacity to lend this amount in cash may be challenged under the Basalingappa rule."
+            summary += " 🚨 EVIDENTIARY RISK: Complainant's financial capacity to lend this amount in cash may be challenged under the Basalingappa rule."
         return summary
     @staticmethod
     def generate_client_summary(analysis_result: Dict) -> str:
