@@ -531,20 +531,21 @@ class JudiQEngine:
         else:
             verified_authority = CitationVerifierEngine.verify_citation("Mardia Chemicals Ltd. v. Union of India (2004)") if is_sarfaesi else CitationVerifierEngine.verify_citation("Sunil Todi v. State of Gujarat (2021)")
 
-        # Incomplete-Data Guarding Check
-        has_dates = bool(case_data.get("notice_13_2_date") or case_data.get("npa_date") or case_data.get("possession_13_4_date"))
-        has_property = bool(case_data.get("property_description") or case_data.get("mortgage_survey_number"))
-        has_text = len(case_data.get("description", "").strip()) > 80
-
         abstain_recommended = False
         decision_status = "EVALUATED"
 
-        if not has_dates or not has_property or (not has_dates and not has_text):
-            abstain_recommended = True
-            decision_status = "INSUFFICIENT_EVIDENCE"
-            scoring_result["verdict"] = "INSUFFICIENT_EVIDENCE"
-        elif case_data.get("missing_service_proof") or case_data.get("service_proof_available") == False:
-            abstain_recommended = True
+        # Incomplete-Data Guarding Check (SARFAESI specific)
+        if is_sarfaesi:
+            has_dates = bool(case_data.get("notice_13_2_date") or case_data.get("npa_date") or case_data.get("possession_13_4_date"))
+            has_property = bool(case_data.get("property_description") or case_data.get("mortgage_survey_number"))
+            has_text = len(case_data.get("description", "").strip()) > 80
+
+            if not has_dates or not has_property or (not has_dates and not has_text):
+                abstain_recommended = True
+                decision_status = "INSUFFICIENT_EVIDENCE"
+                scoring_result["verdict"] = "INSUFFICIENT_EVIDENCE"
+            elif case_data.get("missing_service_proof") or case_data.get("service_proof_available") == False:
+                abstain_recommended = True
 
         # Safety & Abstention Check (High-Complexity / Sub-Judice / Moratorium)
         if case_data.get("nclt_ibc_moratorium_active") or case_data.get("drat_order_reserved") or case_data.get("signature_disputed") or case_data.get("conflicting_hc_orders") or (case_data.get("consortium_lenders_count") and case_data.get("consortium_lenders_count") > 3):
