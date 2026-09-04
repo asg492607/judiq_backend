@@ -1,8 +1,14 @@
-export const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? "http://127.0.0.1:8000"
-    : "https://cheque-bounce-ragbased.onrender.com";
+export const API_BASE_URL = window.__JUDIQ_ENV__?.API_BASE_URL || (
+    window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? "http://127.0.0.1:8000"
+        : "https://cheque-bounce-ragbased.onrender.com"
+);
 
-export const firebaseConfig = {
+// Firebase Client Configuration
+// SECURITY NOTICE: In the Firebase Web SDK, these values are client-side project coordinates.
+// Database and storage security MUST be strictly governed by Firebase Security Rules on Firestore.
+// Production Firestore rules should ensure that users can only read/write their own case records.
+export const firebaseConfig = window.__JUDIQ_ENV__?.firebaseConfig || {
     apiKey: "AIzaSyBdqc1C8LPVj4zqvWJWJWMrXhPad20MZCw",
     authDomain: "idcourt-cb58f.firebaseapp.com",
     projectId: "idcourt-cb58f",
