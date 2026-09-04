@@ -24,6 +24,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     curl \
+    tesseract-ocr \
+    libtesseract-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy python dependencies from builder
@@ -46,4 +48,5 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8000/health || exit 1
 
 # Launch with Gunicorn Process Manager with Uvicorn Workers
-CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "--timeout", "120", "main:app"]
+# Note: Concurrency of 1 worker maintains in-memory Caseroom WebSocket broadcast state consistency
+CMD ["gunicorn", "-w", "1", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "--timeout", "120", "main:app"]
