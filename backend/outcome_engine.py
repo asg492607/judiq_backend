@@ -22,14 +22,6 @@ class OutcomeEngine:
             conn = DatabaseManager.get_connection()
             cursor = conn.cursor()
             p = DatabaseManager.get_dialect_placeholder()
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS case_outcomes (
-                    case_id TEXT PRIMARY KEY,
-                    outcome TEXT,
-                    court_remarks TEXT,
-                    reported_at TEXT
-                )
-            """)
             if p == "%s":
                 query = f"""
                     INSERT INTO case_outcomes (case_id, outcome, court_remarks, reported_at)
@@ -52,9 +44,8 @@ class OutcomeEngine:
             logger.error(f"Failed to record outcome: {e}")
             return False
         finally:
-            # Always close in finally to prevent connection leaks
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
     @staticmethod
     def get_learning_metrics():
@@ -92,7 +83,7 @@ class OutcomeEngine:
             return {"error": "Could not compute metrics", "total_validated_cases": 0}
         finally:
             if conn:
-                conn.close()
+                DatabaseManager.release_connection(conn)
 
 
 outcome_engine = OutcomeEngine()
