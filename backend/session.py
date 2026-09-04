@@ -41,7 +41,7 @@ class DatabaseManager:
             if cls._pg_pool is not None and cls._active_dialect == "postgres":
                 cls._pg_pool.putconn(conn)
             else:
-                DatabaseManager.release_connection(conn)
+                conn.close()
         except Exception as e:
             logger.warning(f"Error releasing DB connection: {e}")
 
