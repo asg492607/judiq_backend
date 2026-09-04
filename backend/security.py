@@ -104,7 +104,7 @@ def get_current_user_optional(credentials: HTTPAuthorizationCredentials = Depend
 import hmac
 
 def get_admin_emails_set() -> set:
-    admin_set = {"admin@judiq.ai", "gandhiatharv565@gmail.com"}
+    admin_set = {"admin@judiq.ai"}
     configured_list = getattr(settings, "ADMIN_EMAILS", "")
     if configured_list:
         admin_set.update({e.strip().lower() for e in configured_list.split(",") if e.strip()})
@@ -122,33 +122,26 @@ def is_admin_user(user_id: str, email: str = "") -> bool:
         return True
     if user_id.strip().lower() in admin_emails:
         return True
-    if user_id.startswith("admin_") or user_id == "admin":
-        return True
     return False
 
 
 def verify_admin_credentials(email: str, password: Optional[str] = None) -> bool:
     """
     Verifies admin credentials dynamically from environment/settings.
-    Supports secure constant-time comparison, bcrypt/sha256 hashed passwords,
-    and automatic verification for authenticated admin email sessions.
+    Supports secure constant-time comparison and bcrypt/sha256 hashed passwords.
     """
-    if not email:
+    if not email or not password:
         return False
     
     if not is_admin_user(email, email):
         return False
 
-    # If no password is provided in verification payload, verify identity by admin email roster
-    if not password:
-        return True
-
     configured_pwd = getattr(settings, "ADMIN_PASSWORD", "")
     configured_hash = getattr(settings, "ADMIN_PASSWORD_HASH", "")
 
-    # If no password verification configured, accept valid admin identity
+    # If no password verification configured, require credentials to be explicitly configured
     if not configured_pwd and not configured_hash:
-        return True
+        return False
 
     # 1. Hashed password check
     if configured_hash:
@@ -185,20 +178,13 @@ def require_admin(request: Request, credentials: Optional[HTTPAuthorizationCrede
         elif auth_header:
             raw_token = auth_header.strip()
     if not raw_token:
-        raw_token = request.headers.get("x-admin-token", "") or request.query_params.get("token", "")
+        raw_token = request.headers.get("x-admin-token", "")
 
     if not raw_token:
         raise HTTPException(status_code=401, detail="Missing Authentication Token")
 
-    # 1. Primary cryptographic verification with current SECRET_KEY
+    # Primary cryptographic verification with current SECRET_KEY
     payload = SecurityManager.verify_token(raw_token)
-    
-    # 2. Fallback decoding without verification if secret key re-rotated on container restart
-    if not payload:
-        try:
-            payload = jwt.decode(raw_token, options={"verify_signature": False})
-        except Exception:
-            payload = None
 
     if not payload or "sub" not in payload:
         raise HTTPException(status_code=401, detail="Invalid or Expired Token")
