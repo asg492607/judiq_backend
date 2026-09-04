@@ -291,7 +291,7 @@ from banking.multi_track_orchestrator import MultiTrackOrchestrator, MultiTrackE
 
 @router.post("/section138", response_model=ComplianceReport, tags=["Compliance Audit"])
 @limiter.limit("60/minute")
-def audit_section_138_endpoint(request: Request, case_facts: CaseFactsSchema = None, req: Request = None):
+def audit_section_138_endpoint(request: Request, case_facts: CaseFactsSchema = None):
     """
     Systematically audits Section 138 NI Act case compliance against 10+ statutory dimensions.
     Returns a structured gap report with citations, remedies, and action priorities.
@@ -303,7 +303,7 @@ def audit_section_138_endpoint(request: Request, case_facts: CaseFactsSchema = N
 
 @router.post("/multi-track", response_model=MultiTrackStrategyReport, tags=["Multi-Track Orchestration"])
 @limiter.limit("60/minute")
-def orchestrate_multi_track_endpoint(request: Request, debtor_facts: MultiTrackEvaluationRequest = None, req: Request = None):
+def orchestrate_multi_track_endpoint(request: Request, debtor_facts: MultiTrackEvaluationRequest = None):
     """
     Evaluates recovery viability across 5 statutory tracks, flags conflicts,
     and returns prioritized recovery sequences.
