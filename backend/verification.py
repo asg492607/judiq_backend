@@ -1,7 +1,10 @@
 import logging
 import asyncio
-from fastapi import APIRouter, UploadFile, File
+import re
+from fastapi import APIRouter, UploadFile, File, Request, Depends
 from ocr_engine import OCREngine
+from limiter import limiter
+from security import get_current_user_optional
 
 router = APIRouter()
 logger = logging.getLogger("JudiQ.Verification")
@@ -19,7 +22,6 @@ async def verify_mca_data(cin: str):
     """
     # Validate CIN format: 21 alphanumeric characters
     # Format: L/U + 5 digits + state code + year + 3 chars + 6 digits
-    import re
     CIN_PATTERN = re.compile(r'^[LUlu][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$')
     if not cin or not CIN_PATTERN.match(cin.upper()):
         return {
@@ -29,7 +31,7 @@ async def verify_mca_data(cin: str):
     return {
         "success": True,
         "cin": cin.upper(),
-        "status": "FORMAT_VALID",
+        "status": "FORMAT_VALID_LIVE_CHECK_PENDING",
         "note": "Live MCA21 database integration is not yet active. CIN format is valid — verify company details manually at https://www.mca.gov.in/content/mca/global/en/fo/search-company.html",
         "mca_search_url": f"https://www.mca.gov.in/mcafoportal/viewCompanyMasterData.do?cin={cin.upper()}"
     }
@@ -44,7 +46,6 @@ async def verify_post_data(tracking_id: str):
     Real tracking requires India Post API integration.
     """
     # India Post tracking IDs follow the S/13-char alphanumeric format
-    import re
     TRACKING_PATTERN = re.compile(r'^[A-Z]{2}[0-9]{9}IN$', re.IGNORECASE)
     if not tracking_id or not TRACKING_PATTERN.match(tracking_id):
         return {
@@ -54,18 +55,21 @@ async def verify_post_data(tracking_id: str):
     return {
         "success": True,
         "tracking_id": tracking_id.upper(),
-        "status": "FORMAT_VALID",
+        "status": "FORMAT_VALID_LIVE_CHECK_PENDING",
         "note": "Live India Post tracking is not yet integrated. Verify delivery status at https://www.indiapost.gov.in/VAS/Pages/TrackmailArticles.aspx",
         "india_post_url": f"https://www.indiapost.gov.in/VAS/Pages/TrackmailArticles.aspx"
     }
 
 
 @router.post("/memo")
+@limiter.limit("30/minute")
 async def verify_memo(
+    request: Request,
     file: UploadFile = File(...),
-    claimed_reason: str = "Insufficient Funds"
+    claimed_reason: str = "Insufficient Funds",
+    user_id: str = Depends(get_current_user_optional)
 ):
-    """OCR-based bank dishonour memo verification."""
+    """OCR-based bank dishonour memo verification with rate limiting and optional user auth."""
     content = await file.read()
     if len(content) > 10 * 1024 * 1024:  # 10 MB limit
         return {"success": False, "error": "File too large. Maximum allowed size is 10 MB."}
