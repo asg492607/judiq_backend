@@ -8,7 +8,11 @@ router = APIRouter()
 
 
 @router.get("")
-def get_recent_cases(user_id: str = Depends(get_current_user_optional)) -> List[Dict[str, Any]]:
+def get_recent_cases(
+    user_id: str = Depends(get_current_user_optional),
+    limit: int = Query(20, ge=1, le=100, description="Maximum number of cases to return"),
+    offset: int = Query(0, ge=0, description="Number of cases to skip for pagination")
+) -> List[Dict[str, Any]]:
     conn = None
     try:
         conn = DatabaseManager.get_connection()
@@ -16,7 +20,7 @@ def get_recent_cases(user_id: str = Depends(get_current_user_optional)) -> List[
         p = DatabaseManager.get_dialect_placeholder()
         cursor.execute(
             f"SELECT case_id, user_id, case_data, analysis_result, score, verdict, created_at, updated_at, tags "
-            f"FROM saved_cases WHERE user_id = {p} ORDER BY updated_at DESC LIMIT 20",
+            f"FROM saved_cases WHERE user_id = {p} ORDER BY updated_at DESC LIMIT {limit} OFFSET {offset}",
             (user_id,)
         )
         rows = cursor.fetchall()
@@ -42,7 +46,7 @@ def get_recent_cases(user_id: str = Depends(get_current_user_optional)) -> List[
         if not cases and user_id:
             try:
                 from firebase_manager import FirebaseManager
-                fb_cases = FirebaseManager.list_user_cases(user_id, limit=20)
+                fb_cases = FirebaseManager.list_user_cases(user_id, limit=limit)
                 if fb_cases:
                     return fb_cases
             except Exception as fb_err:
@@ -54,7 +58,7 @@ def get_recent_cases(user_id: str = Depends(get_current_user_optional)) -> List[
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         if conn:
-            conn.close()
+            DatabaseManager.release_connection(conn)
 
 
 @router.get("/detail")
@@ -92,7 +96,7 @@ def delete_case(case_id: str, user_id: str = Depends(get_current_user_optional))
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         if conn:
-            conn.close()
+            DatabaseManager.release_connection(conn)
 
 
 @router.get("/{case_id}")
@@ -144,7 +148,7 @@ def get_case_details(case_id: str, user_id: str = Depends(get_current_user_optio
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         if conn:
-            conn.close()
+            DatabaseManager.release_connection(conn)
 
 
 @router.get("/{case_id}/versions")
