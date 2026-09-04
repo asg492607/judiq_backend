@@ -43,10 +43,10 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
 
     # Administrator Authentication Configuration (from .env)
-    ADMIN_EMAIL: str = "gandhiatharv565@gmail.com"
-    ADMIN_PASSWORD: str = "492607"
+    ADMIN_EMAIL: str = "admin@judiq.ai"
+    ADMIN_PASSWORD: str = ""
     ADMIN_PASSWORD_HASH: str = ""
-    ADMIN_EMAILS: str = "admin@judiq.ai,gandhiatharv565@gmail.com"
+    ADMIN_EMAILS: str = "admin@judiq.ai"
 
 
 @lru_cache()
