@@ -3,6 +3,7 @@ import hashlib
 import logging
 import asyncio
 import threading
+import time
 from datetime import datetime
 from typing import Optional, Dict, Any
 
@@ -36,10 +37,11 @@ class CaseAnalysisRequest(BaseModel):
 
 
 # In-memory LRU cache — keyed by (user_id, content_hash) to prevent
-# cross-user data leakage. Max 100 entries with FIFO eviction.
+# cross-user data leakage. Max 100 entries with TTL expiration (5 minutes).
 ANALYSIS_CACHE: Dict[str, Any] = {}
 CACHE_LOCK = threading.Lock()
 CACHE_MAX_SIZE = 100
+CACHE_TTL_SECONDS = 300  # 5 minute TTL
 
 
 def get_cache_key(user_id: str, data: dict) -> str:
@@ -78,14 +80,18 @@ async def analyze(request_data: Dict[str, Any], request: Request):
         logger.error(f"[{request_id}] Security threats detected: {threats}")
         return JSONResponse(status_code=403, content={"success": False, "error": "Malicious payload detected."})
 
-    # User-scoped cache key prevents cross-user data leakage
+    # User-scoped cache key prevents cross-user data leakage with TTL expiration
     cache_key = get_cache_key(user_id, raw_data)
     with CACHE_LOCK:
         if cache_key in ANALYSIS_CACHE:
-            logger.info(f"[{request_id}] Cache hit for request.")
-            cached = dict(ANALYSIS_CACHE[cache_key])
-            cached["request_id"] = request_id
-            return cached
+            cached_data, cached_at = ANALYSIS_CACHE[cache_key]
+            if time.time() - cached_at < CACHE_TTL_SECONDS:
+                logger.info(f"[{request_id}] Cache hit for request.")
+                cached = dict(cached_data)
+                cached["request_id"] = request_id
+                return cached
+            else:
+                del ANALYSIS_CACHE[cache_key]
 
     logger.info(f"[{request_id}] /analyze request received")
     
@@ -196,10 +202,10 @@ async def analyze(request_data: Dict[str, Any], request: Request):
 
     response_body["data"] = result
 
-    # Single cache write — fixed the previous double-write bug
+    # Single cache write with TTL timestamp
     with CACHE_LOCK:
         _evict_if_full()
-        ANALYSIS_CACHE[cache_key] = dict(response_body)
+        ANALYSIS_CACHE[cache_key] = (dict(response_body), time.time())
 
     return response_body
 
@@ -217,7 +223,8 @@ class SimulationRequest(BaseModel):
     summary="Simulate Cross-Examination Risk & Strategy",
     description="Calculates real-time courtroom survivability score and opposing counsel attack vectors for legal scenarios."
 )
-async def simulate_strategy(req: SimulationRequest):
+@limiter.limit("60/minute")
+async def simulate_strategy(request: Request, req: SimulationRequest):
     notice_delay = req.notice_delay_days or 0
     sig_disputed = req.signature_disputed
     sec_cheque = req.security_cheque
@@ -283,7 +290,8 @@ from banking.multi_track_orchestrator import MultiTrackOrchestrator, MultiTrackE
 
 
 @router.post("/section138", response_model=ComplianceReport, tags=["Compliance Audit"])
-def audit_section_138_endpoint(case_facts: CaseFactsSchema = None, req: Request = None):
+@limiter.limit("60/minute")
+def audit_section_138_endpoint(request: Request, case_facts: CaseFactsSchema = None, req: Request = None):
     """
     Systematically audits Section 138 NI Act case compliance against 10+ statutory dimensions.
     Returns a structured gap report with citations, remedies, and action priorities.
@@ -294,7 +302,8 @@ def audit_section_138_endpoint(case_facts: CaseFactsSchema = None, req: Request 
 
 
 @router.post("/multi-track", response_model=MultiTrackStrategyReport, tags=["Multi-Track Orchestration"])
-def orchestrate_multi_track_endpoint(debtor_facts: MultiTrackEvaluationRequest = None, req: Request = None):
+@limiter.limit("60/minute")
+def orchestrate_multi_track_endpoint(request: Request, debtor_facts: MultiTrackEvaluationRequest = None, req: Request = None):
     """
     Evaluates recovery viability across 5 statutory tracks, flags conflicts,
     and returns prioritized recovery sequences.
