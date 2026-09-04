@@ -83,8 +83,21 @@ async def add_process_time_and_metrics(request: Request, call_next):
         response.headers["Expires"] = "0"
     return response
 
-# Prometheus scraping endpoint
-app.add_api_route("/metrics", prometheus_metrics_endpoint, methods=["GET"], tags=["Observability"])
+import hmac
+
+# Prometheus scraping endpoint (protected if METRICS_TOKEN is configured in environment)
+async def metrics_endpoint_wrapper(request: Request):
+    metrics_token = os.environ.get("METRICS_TOKEN", "")
+    if metrics_token:
+        auth_header = request.headers.get("Authorization", "")
+        provided = request.headers.get("X-Metrics-Token", "")
+        if not provided and auth_header.startswith("Bearer "):
+            provided = auth_header.split(" ", 1)[1].strip()
+        if not provided or not hmac.compare_digest(provided, metrics_token):
+            raise HTTPException(status_code=403, detail="Forbidden: Valid Metrics Token Required")
+    return await prometheus_metrics_endpoint()
+
+app.add_api_route("/metrics", metrics_endpoint_wrapper, methods=["GET"], tags=["Observability"])
 
 
 # CORS Configuration supporting explicit production origins and Netlify/Workers deployments
@@ -152,7 +165,6 @@ from banking.router import router as banking_direct_router
 app.include_router(banking_direct_router, tags=["Banking & Recovery OS Direct"])
 
 # Mount frontend directory for seamless local development & single-port hosting
-frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
 if frontend_dir.exists():
     app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
 else:
