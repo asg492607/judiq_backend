@@ -1,0 +1,13 @@
+{
+  "hints": {
+    "compat-api/css": [
+      "default",
+      {
+        "ignore": [
+          "scrollbar-width",
+          "text-size-adjust"
+        ]
+      }
+    ]
+  }
+}
