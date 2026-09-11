@@ -59,7 +59,8 @@ class OutcomeEngine:
             conn = DatabaseManager.get_connection()
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM case_outcomes")
-            total = cursor.fetchone()[0]
+            row = cursor.fetchone()
+            total = int(row[0]) if row and row[0] is not None else 0
             if total == 0:
                 return {
                     "prediction_accuracy": "Insufficient data",

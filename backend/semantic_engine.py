@@ -53,15 +53,17 @@ class SemanticEngineV12:
             matched_phrases = []
             match_count = 0
             negated_count = 0
+            is_negated = False
             patterns = config.get('patterns', [])
             for pattern in patterns:
                 for m in re.finditer(pattern, text_lower, re.IGNORECASE):
                     match_start = len(re.findall(r'\w+', text_lower[:m.start()]))
-                    is_negated = False
+                    match_is_negated = False
                     if concept in NEGATION_SENSITIVE_CONCEPTS:
-                        is_negated = _is_negated(tokens, match_start)
-                    if is_negated:
+                        match_is_negated = _is_negated(tokens, match_start)
+                    if match_is_negated:
                         negated_count += 1
+                        is_negated = True
                     else:
                         match_count += 1
                         matched_text = m.group(0)

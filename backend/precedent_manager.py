@@ -3,7 +3,7 @@ import json
 import os
 import threading
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from collections import defaultdict
 from functools import lru_cache
 
@@ -16,7 +16,7 @@ class PrecedentManager:
         self._lock = threading.Lock()
         self._ensure_log_exists()
         self._corpus_cache = None
-        self._token_index = None
+        self._token_index = defaultdict(list)
         self._search_cache = {}
 
     def _ensure_log_exists(self):
@@ -54,7 +54,7 @@ class PrecedentManager:
                 logger.error(f"Failed to load precedents corpus from {self.corpus_path}: {e}")
         return []
 
-    def ingest_judgment(self, title: str, citation: str, impact_area: str, summary: str, link: str = None, court: str = "Supreme Court of India"):
+    def ingest_judgment(self, title: str, citation: str, impact_area: str, summary: str, link: Optional[str] = None, court: str = "Supreme Court of India"):
         update_record = {
             "title": title,
             "citation": citation,

@@ -56,11 +56,11 @@ class SecurityManager:
             return None
 class AuditLogger:
     @staticmethod
-    def log_interaction(user_id: str, case_id: str, action: str, metadata: dict = None):
+    def log_interaction(user_id: str, case_id: str, action: str, metadata: Optional[dict] = None):
         def redact_identifier(value: str) -> str:
             if not value or value in {"ANONYMOUS", "PENDING", "THREAT"}:
                 return value
-            return hashlib.sha256(str(value).encode("utf-8")).hexdigest()[:12]
+            return hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
         log_entry = {
             "timestamp": datetime.now().isoformat(),
             "user_id": redact_identifier(user_id),
@@ -156,9 +156,8 @@ def verify_admin_credentials(email: str, password: Optional[str] = None) -> bool
         if hmac.compare_digest(sha_candidate, configured_hash):
             return True
 
-    # 2. Configured environment password check (constant time comparison)
-    if configured_pwd:
-        if hmac.compare_digest(str(password), str(configured_pwd)):
+    if configured_pwd and password:
+        if hmac.compare_digest(password, configured_pwd):
             return True
 
     return False
