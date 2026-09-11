@@ -5,7 +5,7 @@ Evaluates statutory notices, debt enforceability, S.139/S.118 presumptions,
 S.141 director liability, S.142(2) jurisdiction, S.143A interim compensation, S.148 appellate deposits.
 """
 
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from core.base_domain_engine import BaseDomainEngine
 from scoring_engine import ScoringEngineV12
 from adversarial_engine import AdversarialEngine
@@ -144,7 +144,7 @@ class ChequeBounceEngine(BaseDomainEngine):
             "completed_nodes": sum(1 for n in nodes if n["completed"])
         }
 
-    def get_next_actions(self, case_data: Dict[str, Any], evaluation_result: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    def get_next_actions(self, case_data: Dict[str, Any], evaluation_result: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """Returns prioritized next best actions for Section 138 NI Act litigation."""
         actions = []
         norm = NIActStatutoryRules.normalize_s138_payload(case_data)
@@ -197,13 +197,12 @@ class ChequeBounceEngine(BaseDomainEngine):
         return actions
 
     @classmethod
-    def analyze(cls, case_data: Dict[str, Any], concepts: List[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def analyze(cls, case_data: Dict[str, Any], concepts: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
         norm = NIActStatutoryRules.normalize_s138_payload(case_data)
         norm["case_type"] = "cheque_bounce"
-        if concepts is None:
-            concepts = norm.get("concepts", [])
-        contradictions = AdversarialEngine.detect_contradictions(norm, concepts)
-        scoring = ScoringEngineV12.calculate_score_with_trace(norm, concepts, contradictions, {}, {})
+        resolved_concepts: List[Dict[str, Any]] = concepts if concepts is not None else (norm.get("concepts") or [])
+        contradictions = AdversarialEngine.detect_contradictions(norm, resolved_concepts)
+        scoring = ScoringEngineV12.calculate_score_with_trace(norm, resolved_concepts, contradictions, {}, {})
         
         instance = cls()
         procedural_graph = instance.build_procedural_graph(norm)

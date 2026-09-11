@@ -1,4 +1,4 @@
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from core.base_domain_engine import BaseDomainEngine
 from criminal.criminal_adversarial_engine import CriminalAdversarialEngine
 from criminal.criminal_scoring_engine import CriminalScoringEngine
@@ -66,7 +66,7 @@ class CriminalEngine(BaseDomainEngine):
             "completed_nodes": 0
         }
 
-    def get_next_actions(self, case_data: Dict[str, Any], evaluation_result: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    def get_next_actions(self, case_data: Dict[str, Any], evaluation_result: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """Returns prioritized next best actions for criminal litigation."""
         rules = CriminalRulesEngine.evaluate_rules(case_data)
         actions = []
@@ -96,13 +96,12 @@ class CriminalEngine(BaseDomainEngine):
         return actions
 
     @classmethod
-    def analyze(cls, case_data: Dict[str, Any], concepts: List[Dict[str, Any]] = None) -> Dict[str, Any]:
-        if concepts is None:
-            concepts = case_data.get("concepts", [])
-        contradictions = CriminalAdversarialEngine.detect_contradictions(case_data, concepts)
-        scoring_data = CriminalScoringEngine.calculate_score(case_data, concepts, contradictions)
+    def analyze(cls, case_data: Dict[str, Any], concepts: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+        resolved_concepts: List[Dict[str, Any]] = concepts if concepts is not None else (case_data.get("concepts") or [])
+        contradictions = CriminalAdversarialEngine.detect_contradictions(case_data, resolved_concepts)
+        scoring_data = CriminalScoringEngine.calculate_score(case_data, resolved_concepts, contradictions)
         # Pass pre-computed results to avoid redundant re-computation inside generate_strategy
-        strategy = cls.generate_strategy(case_data, concepts, scoring_data["score"], 0.5, _precomputed_contradictions=contradictions, _precomputed_scoring=scoring_data)
+        strategy = cls.generate_strategy(case_data, resolved_concepts, scoring_data["score"], 0.5, _precomputed_contradictions=contradictions, _precomputed_scoring=scoring_data)
 
         # 4 Institutional Criminal Modules Invocations:
         from criminal.electronic_evidence_validator import ElectronicEvidenceValidator

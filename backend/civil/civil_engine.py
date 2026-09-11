@@ -4,7 +4,7 @@ Orchestrates institutional-grade evaluation of Civil, Commercial, Order 37,
 Specific Performance, and Property disputes under CPC, CCA, SRA, and Limitation Act.
 """
 
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from core.base_domain_engine import BaseDomainEngine
 from adversarial_engine import AdversarialEngine
 from civil.civil_scoring_engine import CivilScoringEngine
@@ -28,7 +28,7 @@ class CivilEngine(BaseDomainEngine):
         """Returns dynamic stateful graph of civil suit litigation milestones."""
         return CivilSuitClassifier.build_procedural_graph(case_data)
 
-    def get_next_actions(self, case_data: Dict[str, Any], evaluation_result: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    def get_next_actions(self, case_data: Dict[str, Any], evaluation_result: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """Returns prioritized next best actions for Civil & Commercial litigation."""
         actions = []
         posture = str(case_data.get("party_posture") or case_data.get("perspective") or "plaintiff").lower()
@@ -96,12 +96,11 @@ class CivilEngine(BaseDomainEngine):
         return actions
 
     @classmethod
-    def analyze(cls, case_data: Dict[str, Any], concepts: List[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def analyze(cls, case_data: Dict[str, Any], concepts: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
         case_data["case_type"] = "civil"
-        if concepts is None:
-            concepts = case_data.get("concepts", [])
-        contradictions = AdversarialEngine.detect_contradictions(case_data, concepts)
-        scoring = CivilScoringEngine.calculate_score(case_data, concepts, contradictions)
+        resolved_concepts: List[Dict[str, Any]] = concepts if concepts is not None else (case_data.get("concepts") or [])
+        contradictions = AdversarialEngine.detect_contradictions(case_data, resolved_concepts)
+        scoring = CivilScoringEngine.calculate_score(case_data, resolved_concepts, contradictions)
         
         instance = cls()
         procedural_graph = instance.build_procedural_graph(case_data)

@@ -163,11 +163,11 @@ class CriminalAdversarialEngine(AdversarialEngine):
     }
 
     @classmethod
-    def calculate_stage_survivability(cls, severity_score: int, adversarial_risk: float) -> List[Dict[str, Any]]:
+    def calculate_stage_survivability(cls, score: int, adversarial_risk: float, has_condonation: bool = False) -> List[Dict[str, Any]]:
         roadmap = []
         current_risk_multiplier = 1.0 - (adversarial_risk * 0.4)
         for stage in cls.PROCEDURAL_STAGES:
-            prob = stage["baseline_prob"] * (severity_score / 100.0) * current_risk_multiplier
+            prob = float(stage["baseline_prob"]) * (score / 100.0) * current_risk_multiplier
             if stage["id"] == "cross":
                 prob *= 0.65
             roadmap.append({
@@ -311,6 +311,8 @@ class CriminalAdversarialEngine(AdversarialEngine):
             matched_model = cls.VULNERABILITY_MODELS.get("CORRUPTION_PMLA")
 
         if matched_model:
+            raw_collapse = matched_model.get("probability_collapse", 0.5)
+            prob_collapse = float(raw_collapse) if isinstance(raw_collapse, (int, float, str)) else 0.5
             analysis_nodes.append({
                 "adversarial_vector": matched_model["name"],
                 "risk": matched_model["risk"],
@@ -321,8 +323,8 @@ class CriminalAdversarialEngine(AdversarialEngine):
                 "cross_exam_questions": matched_model["cross_exam_questions"],
                 "quashing_ground": matched_model["quashing_ground"],
                 "discharge_quashing_strategy": f"File S.482 CrPC / S.528 BNSS Quashing Petition. Precedent: {matched_model['quashing_ground']}",
-                "survival_probability": f"{int((1.0 - matched_model['probability_collapse']) * 100)}%",
-                "collapse_risk": f"{int(matched_model['probability_collapse'] * 100)}%"
+                "survival_probability": f"{int((1.0 - prob_collapse) * 100)}%",
+                "collapse_risk": f"{int(prob_collapse * 100)}%"
             })
 
         # Bhajan Lal grounds
