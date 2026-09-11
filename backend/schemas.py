@@ -88,7 +88,7 @@ class CaseInput(BaseModel):
         causes the first to be silently overridden. This merged validator fixes that.
         """
         html_tag_re = re.compile(r'<[^>]+>')
-        sanitized = {}
+        sanitized: Dict[str, Any] = {}
         for k, v in values.items():
             if isinstance(v, str):
                 cleaned_str = html_tag_re.sub('', v).strip()
