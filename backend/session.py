@@ -21,7 +21,7 @@ class DatabaseManager:
     def _get_pg_pool(cls):
         if cls._pg_pool is None and DATABASE_URL and ("postgres" in DATABASE_URL or "postgresql" in DATABASE_URL):
             try:
-                import psycopg2.pool
+                import psycopg2.pool  # type: ignore[import-untyped]
                 cls._pg_pool = psycopg2.pool.ThreadedConnectionPool(
                     minconn=2,
                     maxconn=20,
@@ -60,7 +60,7 @@ class DatabaseManager:
         # Priority 1: Production PostgreSQL Database (if DATABASE_URL is configured)
         if DATABASE_URL and ("postgres" in DATABASE_URL or "postgresql" in DATABASE_URL):
             try:
-                import psycopg2
+                import psycopg2  # type: ignore[import-untyped]
                 pool = DatabaseManager._get_pg_pool()
                 if pool:
                     conn = pool.getconn()
@@ -529,7 +529,7 @@ class DatabaseManager:
                     (case_id, draft_type)
                 )
                 row = cursor.fetchone()
-                next_version = (row[0] or 0) + 1
+                next_version = (row[0] or 0) + 1 if row else 1
                 cursor.execute(
                     f"SELECT content FROM saved_drafts WHERE case_id = {p} AND draft_type = {p} AND version = {p}",
                     (case_id, draft_type, next_version - 1)
@@ -580,8 +580,8 @@ class DatabaseManager:
         analysis_result: dict,
         score: float,
         verdict: str,
-        version_title: str = None,
-        version_note: str = None
+        version_title: Optional[str] = None,
+        version_note: Optional[str] = None
     ) -> dict:
         """
         Archives a versioned snapshot of a case and its analysis report.
@@ -704,7 +704,7 @@ class DatabaseManager:
                 DatabaseManager.release_connection(conn)
 
     @staticmethod
-    def get_case_version(case_id: str, version_num: int) -> dict:
+    def get_case_version(case_id: str, version_num: int) -> Optional[dict]:
         """
         Fetches the complete case data and analysis snapshot for a specific version number.
         """
@@ -717,13 +717,13 @@ class DatabaseManager:
                 SELECT case_id, user_id, version_num, version_title, version_note, case_data, analysis_result, score, verdict, delta_score, created_at
                 FROM case_versions
                 WHERE case_id = {p} AND version_num = {p}
-            """, (case_id, int(version_num)))
+            """, (case_id, version_num))
             r = cursor.fetchone()
             if not r:
                 # Fallback to Firebase
                 try:
                     from firebase_manager import FirebaseManager
-                    fb_v = FirebaseManager.get_case_version(case_id, int(version_num))
+                    fb_v = FirebaseManager.get_case_version(case_id, version_num)
                     if fb_v:
                         return fb_v
                 except Exception:
@@ -1361,10 +1361,10 @@ class DatabaseManager:
         email: str,
         role: str = "law_firm",
         monthly_limit: int = 25,
-        selected_modules: list = None,
+        selected_modules: Optional[list] = None,
         monthly_price_inr: float = 500.0,
         plan_status: str = "APPROVED",
-        approved_by: str = None
+        approved_by: Optional[str] = None
     ) -> dict:
         """
         Creates or updates a litigator account with full subscription parameters.
@@ -1525,7 +1525,7 @@ class DatabaseManager:
                 DatabaseManager.release_connection(conn)
 
     @staticmethod
-    def update_user_quota_allocation(user_id: str, monthly_limit: int = None, is_active: bool = None, role: str = None, email: str = None) -> bool:
+    def update_user_quota_allocation(user_id: str, monthly_limit: Optional[int] = None, is_active: Optional[bool] = None, role: Optional[str] = None, email: Optional[str] = None) -> bool:
         conn = None
         try:
             # Ensure user exists first
@@ -1536,20 +1536,20 @@ class DatabaseManager:
             now_iso = datetime.now().isoformat()
 
             updates = ["updated_at = " + p]
-            params = [now_iso]
+            params: List[Any] = [now_iso]
 
             if monthly_limit is not None:
                 updates.append("monthly_report_limit = " + p)
-                params.append(int(monthly_limit))
+                params.append(monthly_limit)
             if is_active is not None:
                 updates.append("is_active = " + p)
                 params.append(1 if is_active else 0)
             if role is not None:
                 updates.append("role = " + p)
-                params.append(str(role))
+                params.append(role)
             if email is not None and email.strip():
                 updates.append("email = " + p)
-                params.append(str(email).strip())
+                params.append(email.strip())
 
             params.append(user_id)
             query = f"UPDATE user_quotas SET {', '.join(updates)} WHERE user_id = {p}"
@@ -1594,24 +1594,28 @@ class DatabaseManager:
             p = DatabaseManager.get_dialect_placeholder()
             current_month = datetime.now().strftime("%Y-%m")
 
+            def _scalar(cur, default=0):
+                r = cur.fetchone()
+                return r[0] if (r and r[0] is not None) else default
+
             cursor.execute("SELECT COUNT(*) FROM user_quotas")
-            total_users = cursor.fetchone()[0]
+            total_users = _scalar(cursor)
 
             cursor.execute("SELECT COUNT(*) FROM user_quotas WHERE is_active = 1")
-            active_users = cursor.fetchone()[0]
+            active_users = _scalar(cursor)
 
             cursor.execute(f"SELECT SUM(reports_used_this_month) FROM user_quotas WHERE current_month_period = {p}", (current_month,))
-            res = cursor.fetchone()[0]
+            res = _scalar(cursor)
             total_reports_this_month = int(res) if res is not None else 0
 
             cursor.execute("SELECT COUNT(*) FROM saved_cases")
-            total_saved_cases = cursor.fetchone()[0]
+            total_saved_cases = _scalar(cursor)
 
             cursor.execute("SELECT COUNT(*) FROM audit_logs")
-            total_audit_events = cursor.fetchone()[0]
+            total_audit_events = _scalar(cursor)
 
             cursor.execute("SELECT COUNT(*) FROM user_quotas WHERE plan_status = 'PENDING_APPROVAL'")
-            pending_plans = cursor.fetchone()[0]
+            pending_plans = _scalar(cursor)
 
             return {
                 "total_users": total_users,
@@ -1801,7 +1805,7 @@ class DatabaseManager:
                 DatabaseManager.release_connection(conn)
 
     @staticmethod
-    def update_bank_officer_allocation(officer_id: str, monthly_limit: int = None, is_active: bool = None, role: str = None, name: str = None, bank_name: str = None, branch_name: str = None, email: str = None) -> bool:
+    def update_bank_officer_allocation(officer_id: str, monthly_limit: Optional[int] = None, is_active: Optional[bool] = None, role: Optional[str] = None, name: Optional[str] = None, bank_name: Optional[str] = None, branch_name: Optional[str] = None, email: Optional[str] = None) -> bool:
         conn = None
         try:
             conn = DatabaseManager.get_connection()
@@ -1810,29 +1814,29 @@ class DatabaseManager:
             now_iso = datetime.now().isoformat()
 
             updates = [f"updated_at = {p}"]
-            params = [now_iso]
+            params: List[Any] = [now_iso]
 
             if monthly_limit is not None:
                 updates.append(f"monthly_audit_limit = {p}")
-                params.append(int(monthly_limit))
+                params.append(monthly_limit)
             if is_active is not None:
                 updates.append(f"is_active = {p}")
                 params.append(1 if is_active else 0)
             if role is not None:
                 updates.append(f"role = {p}")
-                params.append(str(role))
+                params.append(role)
             if name is not None and name.strip():
                 updates.append(f"name = {p}")
-                params.append(str(name).strip())
+                params.append(name.strip())
             if bank_name is not None and bank_name.strip():
                 updates.append(f"bank_name = {p}")
-                params.append(str(bank_name).strip())
+                params.append(bank_name.strip())
             if branch_name is not None and branch_name.strip():
                 updates.append(f"branch_name = {p}")
-                params.append(str(branch_name).strip())
+                params.append(branch_name.strip())
             if email is not None and email.strip():
                 updates.append(f"email = {p}")
-                params.append(str(email).strip())
+                params.append(email.strip())
 
             params.append(officer_id)
             query = f"UPDATE bank_officers SET {', '.join(updates)} WHERE officer_id = {p}"
@@ -1989,7 +1993,7 @@ class DatabaseManager:
                 DatabaseManager.release_connection(conn)
 
     @staticmethod
-    def log_bank_audit(officer_id: str, bank_name: str, branch_name: str, case_type: str, borrower_name: str, loan_account_no: str, default_amount: float, viability_score: float, verdict: str, defect_count: int, details_json: dict = None) -> str:
+    def log_bank_audit(officer_id: str, bank_name: str, branch_name: str, case_type: str, borrower_name: str, loan_account_no: str, default_amount: float, viability_score: float, verdict: str, defect_count: int, details_json: Optional[dict] = None) -> str:
         conn = None
         try:
             conn = DatabaseManager.get_connection()
@@ -2069,24 +2073,28 @@ class DatabaseManager:
             cursor = conn.cursor()
             current_month = datetime.now().strftime("%Y-%m")
 
+            def _scalar(cur, default=0):
+                r = cur.fetchone()
+                return r[0] if (r and r[0] is not None) else default
+
             cursor.execute("SELECT COUNT(*) FROM bank_officers")
-            total_officers = cursor.fetchone()[0]
+            total_officers = _scalar(cursor)
 
             cursor.execute("SELECT COUNT(*) FROM bank_officers WHERE is_active = 1")
-            active_officers = cursor.fetchone()[0]
+            active_officers = _scalar(cursor)
 
             cursor.execute("SELECT COUNT(DISTINCT bank_name) FROM bank_officers")
-            total_banks = cursor.fetchone()[0]
+            total_banks = _scalar(cursor)
 
             cursor.execute("SELECT COUNT(*) FROM bank_recovery_audits")
-            total_audits = cursor.fetchone()[0]
+            total_audits = _scalar(cursor)
 
             cursor.execute("SELECT SUM(default_amount) FROM bank_recovery_audits")
-            res_amt = cursor.fetchone()[0]
+            res_amt = _scalar(cursor)
             total_recovery_volume = float(res_amt) if res_amt is not None else 0.0
 
             cursor.execute("SELECT SUM(audits_used_this_month) FROM bank_officers WHERE current_month_period = ?", (current_month,))
-            res_aud = cursor.fetchone()[0]
+            res_aud = _scalar(cursor)
             audits_this_month = int(res_aud) if res_aud is not None else 0
 
             return {
@@ -2254,7 +2262,8 @@ class DatabaseManager:
                     "created_at": r[8], "updated_at": r[9]
                 })
             cursor.execute(f"SELECT COUNT(*) FROM cases_v2 WHERE {where} AND case_status != 'archived'", tuple(params))
-            total = cursor.fetchone()[0]
+            row = cursor.fetchone()
+            total = row[0] if row else 0
             return {"cases": cases, "total": total, "page": page, "limit": limit}
         except Exception as e:
             logger.error(f"CMS list cases failed: {e}")
@@ -2274,7 +2283,7 @@ class DatabaseManager:
             r = cursor.fetchone()
             if not r:
                 return None
-            cols = [desc[0] for desc in cursor.description]
+            cols = [desc[0] for desc in cursor.description] if cursor.description else []
             case = dict(zip(cols, r))
             for k in ['tags', 'creditor_data', 'debtor_data', 'company_data',
                        'financial_data', 'collateral_data', 'court_data',
@@ -2296,9 +2305,11 @@ class DatabaseManager:
                 for cr in cursor.fetchall()
             ]
             cursor.execute(f"SELECT COUNT(*) FROM case_documents WHERE case_id = {p}", (case_id,))
-            case["document_count"] = cursor.fetchone()[0]
+            doc_row = cursor.fetchone()
+            case["document_count"] = doc_row[0] if doc_row else 0
             cursor.execute(f"SELECT COUNT(*) FROM case_deadlines WHERE case_id = {p} AND status = 'pending'", (case_id,))
-            case["pending_deadlines"] = cursor.fetchone()[0]
+            dl_row = cursor.fetchone()
+            case["pending_deadlines"] = dl_row[0] if dl_row else 0
             return case
         except Exception as e:
             logger.error(f"CMS get case failed: {e}")
@@ -2418,7 +2429,8 @@ class DatabaseManager:
                 for r in cursor.fetchall()
             ]
             cursor.execute(f"SELECT COUNT(*) FROM clients WHERE {where}", tuple(params))
-            total = cursor.fetchone()[0]
+            count_row = cursor.fetchone()
+            total = count_row[0] if count_row else 0
             return {"clients": clients, "total": total, "page": page}
         except Exception as e:
             logger.error(f"CMS list clients failed: {e}")
@@ -2438,7 +2450,7 @@ class DatabaseManager:
             r = cursor.fetchone()
             if not r:
                 return None
-            cols = [desc[0] for desc in cursor.description]
+            cols = [desc[0] for desc in cursor.description] if cursor.description else []
             client = dict(zip(cols, r))
             for k in ['company_info', 'address_data', 'tax_info', 'banking_info', 'comm_prefs']:
                 if client.get(k):
@@ -2619,7 +2631,7 @@ class DatabaseManager:
             r = cursor.fetchone()
             if not r:
                 return None
-            cols = [desc[0] for desc in cursor.description]
+            cols = [desc[0] for desc in cursor.description] if cursor.description else []
             doc = dict(zip(cols, r))
             for k in ['extracted_data', 'tags', 's65b_cert_data']:
                 if doc.get(k):
@@ -2776,7 +2788,7 @@ class DatabaseManager:
             r = cursor.fetchone()
             if not r:
                 return None
-            cols = [desc[0] for desc in cursor.description]
+            cols = [desc[0] for desc in cursor.description] if cursor.description else []
             wf = dict(zip(cols, r))
             if wf.get('reviewer_comments'):
                 try:
@@ -3065,12 +3077,16 @@ class DatabaseManager:
             p = DatabaseManager.get_dialect_placeholder()
             base_cond = f"user_id = {p}" if user_id else "1=1"
             params = (user_id,) if user_id else ()
+            def _scalar(cur, default=0):
+                r = cur.fetchone()
+                return r[0] if (r and r[0] is not None) else default
+
             cursor.execute(f"SELECT COUNT(*) FROM cases_v2 WHERE {base_cond}", params)
-            total = cursor.fetchone()[0]
+            total = _scalar(cursor)
             cursor.execute(f"SELECT COUNT(*) FROM cases_v2 WHERE {base_cond} AND case_status = 'ongoing'", params)
-            ongoing = cursor.fetchone()[0]
+            ongoing = _scalar(cursor)
             cursor.execute(f"SELECT COUNT(*) FROM cases_v2 WHERE {base_cond} AND case_status = 'resolved'", params)
-            resolved = cursor.fetchone()[0]
+            resolved = _scalar(cursor)
             cursor.execute(f"SELECT AVG(compliance_score) FROM cases_v2 WHERE {base_cond} AND compliance_score IS NOT NULL", params)
             avg_row = cursor.fetchone()
             avg_score = round(avg_row[0], 1) if avg_row and avg_row[0] else 0.0
