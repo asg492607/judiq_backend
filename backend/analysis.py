@@ -183,7 +183,7 @@ async def analyze(request_data: Dict[str, Any], request: Request):
     except Exception as e:
         logger.warning(f"[{request_id}] DB/Caseroom persistence failed (non-fatal): {e}")
 
-    response_body = {"success": True, "request_id": request_id}
+    response_body: Dict[str, Any] = {"success": True, "request_id": request_id}
     response_body.update(result)
     case_data = result.get("case_data", {})
     cid = case_data.get("case_id", "")
@@ -291,7 +291,7 @@ from banking.multi_track_orchestrator import MultiTrackOrchestrator, MultiTrackE
 
 @router.post("/section138", response_model=ComplianceReport, tags=["Compliance Audit"])
 @limiter.limit("60/minute")
-def audit_section_138_endpoint(request: Request, case_facts: CaseFactsSchema = None):
+def audit_section_138_endpoint(request: Request, case_facts: Optional[CaseFactsSchema] = None):
     """
     Systematically audits Section 138 NI Act case compliance against 10+ statutory dimensions.
     Returns a structured gap report with citations, remedies, and action priorities.
@@ -303,7 +303,7 @@ def audit_section_138_endpoint(request: Request, case_facts: CaseFactsSchema = N
 
 @router.post("/multi-track", response_model=MultiTrackStrategyReport, tags=["Multi-Track Orchestration"])
 @limiter.limit("60/minute")
-def orchestrate_multi_track_endpoint(request: Request, debtor_facts: MultiTrackEvaluationRequest = None):
+def orchestrate_multi_track_endpoint(request: Request, debtor_facts: Optional[MultiTrackEvaluationRequest] = None):
     """
     Evaluates recovery viability across 5 statutory tracks, flags conflicts,
     and returns prioritized recovery sequences.

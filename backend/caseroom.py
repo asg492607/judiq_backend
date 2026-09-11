@@ -86,7 +86,7 @@ async def send_caseroom_message(room_id: str, request: Request):
             vuln_str = ", ".join(vulnerabilities) if vulnerabilities else "none"
             prompt = f"You are an adversarial opposing counsel in an Indian courtroom. The case currently has the following lingering vulnerabilities: {vuln_str}. Target these specific gaps. The defense lawyer just said: '{content}'. Cross-examine them aggressively but professionally to find logical gaps based on these vulnerabilities. Keep it to 2-3 sentences."
             try:
-                llm_response = await asyncio.to_thread(_invoke_llm, prompt, 200, None)
+                llm_response = await asyncio.to_thread(_invoke_llm, prompt, 200, 0.2)
                 ai_text = llm_response if llm_response else "Objection, your honor. The statement lacks merit."
             except Exception as e:
                 logger.error(f"Simulator LLM Error: {e}")
@@ -126,7 +126,7 @@ async def upload_caseroom_document(
         raise HTTPException(status_code=400, detail="Invalid file type. Only PDF, JPEG, and PNG are allowed.")
     upload_dir = os.path.join(os.getcwd(), "uploads", room_id)
     os.makedirs(upload_dir, exist_ok=True)
-    safe_filename = os.path.basename(file.filename)
+    safe_filename = os.path.basename(file.filename or "uploaded_document")
     file_path = os.path.join(upload_dir, safe_filename)
     content = await file.read()
     header = content[:4]

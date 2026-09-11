@@ -395,7 +395,7 @@ def get_system_health(admin: dict = Depends(require_admin)):
     Returns platform runtime health, memory, active database status, and statutory engine status.
     """
     from datetime import datetime
-    import psutil
+    import psutil  # type: ignore[import-untyped]
     try:
         mem = psutil.virtual_memory()
         mem_pct = round(mem.percent, 1)
