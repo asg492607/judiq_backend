@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 class BaseDomainEngine(ABC):
     """
@@ -15,7 +15,7 @@ class BaseDomainEngine(ABC):
         pass
 
     @abstractmethod
-    def analyze(self, case_data: Dict[str, Any], concepts: List[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def analyze(self, case_data: Dict[str, Any], concepts: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
         """Core evaluation method returning score, defects, verdict, strategy, and reasoning trace."""
         pass
 
@@ -25,6 +25,6 @@ class BaseDomainEngine(ABC):
         pass
 
     @abstractmethod
-    def get_next_actions(self, case_data: Dict[str, Any], evaluation_result: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def get_next_actions(self, case_data: Dict[str, Any], evaluation_result: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """Returns prioritized, legally permissible next-best-actions for the user."""
         pass

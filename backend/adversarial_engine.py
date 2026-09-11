@@ -106,7 +106,7 @@ class AdversarialEngine:
         roadmap = []
         current_risk_multiplier = 1.0 - (adversarial_risk * 0.7)                            
         for stage in cls.PROCEDURAL_STAGES:
-            prob = stage["baseline_prob"] * (score / 100.0) * current_risk_multiplier
+            prob = float(stage["baseline_prob"]) * (score / 100.0) * current_risk_multiplier
             if stage["id"] == "cross_exam":
                 prob *= 0.75                          
             if stage["id"] == "limitation" and has_condonation:
@@ -212,7 +212,7 @@ class AdversarialEngine:
         }
     @classmethod
     def detect_contradictions(cls, case_data: Dict, concepts: List[Dict]) -> List[Dict]:
-        contradictions = []
+        contradictions: List[Dict[str, Any]] = []
         concept_names = [c.get("concept") if isinstance(c, dict) else str(c) for c in concepts]
         notice_received_raw = str(case_data.get("notice_received", "")).lower()
         reply_received_raw = str(case_data.get("reply_received", "")).lower()
