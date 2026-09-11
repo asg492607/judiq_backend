@@ -411,5 +411,4 @@ class MultiTrackOrchestrator:
 def evaluate_multi_track_recovery(req: MultiTrackEvaluationRequest) -> MultiTrackStrategyReport:
     """Legacy helper wrapper for evaluate_multi_track_recovery"""
     orchestrator = MultiTrackOrchestrator()
-    data = req.model_dump() if hasattr(req, "model_dump") else req.dict()
-    return orchestrator.orchestrate_recovery_strategy(data)
+    return orchestrator.orchestrate_recovery_strategy(req.model_dump())
