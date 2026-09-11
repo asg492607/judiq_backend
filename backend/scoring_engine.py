@@ -1,6 +1,6 @@
 from datetime import datetime
 import logging
-from typing import List, Dict
+from typing import List, Dict, Optional
 from base_scoring_engine import (
     BaseScoringEngine,
     PENALTY_COMPANY_DIRECTOR_NOT_NAMED,
@@ -53,7 +53,7 @@ class ScoringEngineV12(BaseScoringEngine):
         concepts: List[Dict],
         contradictions: List[Dict],
         limitation: Dict,
-        evidence_assessment: Dict = None,
+        evidence_assessment: Optional[Dict] = None,
     ) -> Dict:
         concepts = cls.resolve_conflicts(ensure_list(concepts))
         concept_names = {c["concept"] for c in concepts}
@@ -220,13 +220,13 @@ class ScoringEngineV12(BaseScoringEngine):
         if low_reliability_evidence:
             uncertainty_messages.append(f"Confidence reduced because evidence reliability is weak for: {', '.join(low_reliability_evidence)}.")
         return {
-            "score": int(calibrated_score),
-            "final_score": int(calibrated_score),
+            "score": calibrated_score,
+            "final_score": calibrated_score,
             "execution_timestamp": datetime.now().isoformat(),
             "concepts": concepts,
-            "raw_heuristic_score": int(final_score),
+            "raw_heuristic_score": final_score,
             "calibration_metadata": {
-                "confidence_interval": [max(0, int(calibrated_score - confidence_variance)), min(100, int(calibrated_score + confidence_variance))],
+                "confidence_interval": [max(0, calibrated_score - confidence_variance), min(100, calibrated_score + confidence_variance)],
                 "judicial_sentiment": "POSITIVE" if final_score > 70 else ("NEGATIVE" if final_score < 40 else "NEUTRAL"),
                 "calibration_notes": calibration_notes,
             },
@@ -243,14 +243,14 @@ class ScoringEngineV12(BaseScoringEngine):
             "uncertainty_intelligence": uncertainty_messages,
             "judicial_mode": judicial_mode,
             "compliance_pct": int(compliance_pct),
-            "cri_score": int(cri_final),
+            "cri_score": cri_final,
             "remediation_roadmap": remediation_sim,
             "top_penalties": sorted(causality_delta, key=lambda x: x["impact"])[:3],
             "breakdown": {
                 "procedural": int(max(0, min(100, (sum([1 for p in [cheque, memo, notice] if p]) / 3.0) * 100))),
-                "evidentiary": int(max(0, min(100, score))),
-                "strategic": int(max(0, min(100, final_score))),
-                "readiness": int(cri_final),
+                "evidentiary": max(0, min(100, score)),
+                "strategic": max(0, min(100, final_score)),
+                "readiness": cri_final,
             },
             "reasoning_trace": trace,
             "score_breakdown": trace,

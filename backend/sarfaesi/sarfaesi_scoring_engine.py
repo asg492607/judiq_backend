@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from sarfaesi_timeline_engine import SarfaesiTimelineEngine
 
 logger = logging.getLogger(__name__)
@@ -14,10 +14,10 @@ class SarfaesiScoringEngine:
     def calculate_score(
         cls,
         case_data: Dict[str, Any],
-        concepts: List[Dict[str, Any]] = None,
-        contradictions: List[Dict[str, Any]] = None,
-        limitation: Dict[str, Any] = None,
-        extra: Dict[str, Any] = None
+        concepts: Optional[List[Dict[str, Any]]] = None,
+        contradictions: Optional[List[Dict[str, Any]]] = None,
+        limitation: Optional[Dict[str, Any]] = None,
+        extra: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         if concepts is None:
             concepts = []
@@ -187,7 +187,7 @@ class SarfaesiScoringEngine:
             verdict = "STRONG STAY PROBABILITY"
 
         return {
-            "score": int(final_score),
+            "score": final_score,
             "final_score": float(final_score),
             "verdict": verdict,
             "fatal_defect": fatal_defect,

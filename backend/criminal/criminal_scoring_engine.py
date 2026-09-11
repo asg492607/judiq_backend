@@ -1,4 +1,4 @@
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 import logging
 import json
 import os
@@ -14,7 +14,7 @@ class CriminalScoringEngine(BaseScoringEngine):
     """
 
     @classmethod
-    def calculate_score(cls, case_data: Dict[str, Any], concepts: List[Dict[str, Any]], contradictions: List[Dict[str, Any]], limitation: Dict[str, Any] = None) -> Dict[str, Any]:
+    def calculate_score(cls, case_data: Dict[str, Any], concepts: List[Dict[str, Any]], contradictions: List[Dict[str, Any]], limitation: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         if limitation is None:
             try:
                 from criminal.criminal_timeline_engine import CriminalTimelineEngine
