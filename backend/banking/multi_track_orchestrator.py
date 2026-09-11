@@ -330,7 +330,7 @@ class MultiTrackOrchestrator:
 
         # Calculate optimal primary and concurrent tracks
         scores = {k: v.viability_score for k, v in tracks.items()}
-        optimal_track = max(scores, key=scores.get)
+        optimal_track = max(scores, key=lambda k: scores[k])
         recommended_concurrent = [k for k, v in tracks.items() if v.viability_score >= 70 and k != optimal_track]
 
         # Construct Recommended Action Sequence
@@ -411,4 +411,5 @@ class MultiTrackOrchestrator:
 def evaluate_multi_track_recovery(req: MultiTrackEvaluationRequest) -> MultiTrackStrategyReport:
     """Legacy helper wrapper for evaluate_multi_track_recovery"""
     orchestrator = MultiTrackOrchestrator()
-    return orchestrator.orchestrate_recovery_strategy(req.dict())
+    data = req.model_dump() if hasattr(req, "model_dump") else req.dict()
+    return orchestrator.orchestrate_recovery_strategy(data)

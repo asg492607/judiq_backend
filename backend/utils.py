@@ -1,5 +1,5 @@
 from datetime import datetime
-import dateutil.parser
+import dateutil.parser  # type: ignore
 def parse_date(date_str):
     if not date_str:
         return None
