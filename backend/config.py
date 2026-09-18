@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     )
 
     PROJECT_NAME: str = "JudiQ Legal AI"
+    COMPANY_NAME: str = "AIXYNZ Technologies Pvt Ltd"
     VERSION: str = "12.5.0-ENTERPRISE"
     API_V1_STR: str = "/api/v1"
     # SECURITY: Never fall back to a weak default in production.

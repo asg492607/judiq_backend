@@ -7,7 +7,7 @@
 [![Docker](https://img.shields.io/badge/Container-Non--Root%20Hardened-blue.svg)](file:///Dockerfile)
 ![License](https://img.shields.io/badge/License-Enterprise%20Proprietary-gold.svg)
 
-> **JudiQ AI** is a deterministic legal intelligence platform purpose-built for Section 138 of the Negotiable Instruments Act (Cheque Bounce) litigation. It automates fatal defect analysis, limitation audits, statutory notice validation, courtroom probability scoring, verified precedent matching, and legal document drafting.
+> **JudiQ AI**, developed by **AIXYNZ Technologies Pvt Ltd**, is an enterprise-grade deterministic legal intelligence platform purpose-built for Section 138 of the Negotiable Instruments Act (Cheque Bounce) litigation. It automates fatal defect analysis, limitation audits, statutory notice validation, courtroom probability scoring, verified precedent matching, and legal document drafting.
 
 ---
 

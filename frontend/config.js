@@ -6,6 +6,13 @@ export const API_BASE_URL = window.__JUDIQ_ENV__?.API_BASE_URL || (
             : "https://cheque-bounce-ragbased.onrender.com")
 );
 
+export const COMPANY_NAME = "AIXYNZ Technologies Pvt Ltd";
+export const COMPANY_CONFIG = {
+    name: "AIXYNZ Technologies Pvt Ltd",
+    shortName: "AIXYNZ",
+    website: "https://aixynz.com"
+};
+
 // Firebase Client Configuration
 // SECURITY NOTICE: In the Firebase Web SDK, these values are client-side project coordinates.
 // Database and storage security MUST be strictly governed by Firebase Security Rules on Firestore.
