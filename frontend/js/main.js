@@ -201,6 +201,7 @@ export function loginLocally(email, domain = 'ni_act', role = 'law_firm') {
         window.ui.toast(`Signed in as ${cleanEmail}`, 'success');
     }
 }
+window.loginLocally = loginLocally;
 
 window.loginAsGuest = (domain = 'ni_act') => {
     loginLocally('advocate@judiq.ai', domain, 'law_firm');
@@ -788,6 +789,7 @@ function renderDashboard() {
         window.loadRecentCases();
     }
 }
+window.renderDashboard = renderDashboard;
 
 // Recent Cases / Activity History Management
 function formatDate(dateStr) {
@@ -1994,12 +1996,17 @@ window.toggleTheme = () => {
 };
 
 function updateThemeIcons(theme) {
-    const icons = document.querySelectorAll('.theme-toggle-btn i');
-    icons.forEach(icon => {
+    const btns = document.querySelectorAll('.theme-toggle-btn');
+    btns.forEach(btn => {
+        const icon = btn.querySelector('i');
         if (theme === 'light') {
-            icon.className = 'fas fa-sun';
+            if (icon) icon.className = 'fas fa-moon';
+            btn.setAttribute('title', 'Switch to Dark Mode');
+            btn.setAttribute('aria-label', 'Switch to Dark Mode');
         } else {
-            icon.className = 'fas fa-moon';
+            if (icon) icon.className = 'fas fa-sun';
+            btn.setAttribute('title', 'Switch to Light Mode');
+            btn.setAttribute('aria-label', 'Switch to Light Mode');
         }
     });
 }
