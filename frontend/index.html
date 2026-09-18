@@ -12,8 +12,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <!-- Stylesheet loaded first to prevent Flash of Unstyled Content (FOUC) -->
-    <link rel="stylesheet" href="styles.css?v=25">
+    <link rel="stylesheet" href="styles.css?v=26">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Error handler and i18n loaded with defer to avoid blocking HTML parsing -->
@@ -62,7 +63,8 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <div id="landingScreen" class="landing-screen">
             <header class="landing-header">
-                <div class="landing-logo u-is-1">
+                <div class="landing-logo u-is-1" onclick="switchScreen('landingScreen')" style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    <img src="favicon.svg" alt="JudiQ Emblem" width="32" height="32" class="brand-emblem-svg">
                     <span data-i18n="brand_name" class="brand-name-serif u-is-2">JUDIQ AI</span>
                 </div>
                 <div class="landing-nav-links">
@@ -136,9 +138,9 @@
                     <h1>Find the Weakness<br><span class="highlight">Before the Courtroom Does.</span></h1>
                     <p>Adversarial litigation simulation, automated statutory defect detection, and institutional courtroom strategy for top-tier law firms and in-house counsel.</p>
                     <div class="hero-actions">
-                        <button id="heroGetStartedBtn" class="btn btn-primary btn-large"><i class="fas fa-rocket"></i> Start Case Analysis</button>
-                        <button id="heroLoginBtn" class="btn btn-outline btn-large"><i class="fas fa-arrow-right-to-bracket"></i> Sign In to Dashboard</button>
-                        <a href="#strategySimulatorSection" class="btn btn-secondary btn-large hero-sim-btn"><i class="fas fa-sliders"></i> Test Live Simulator</a>
+                        <button id="heroGetStartedBtn" class="btn btn-primary btn-large"><i class="fas fa-scale-balanced"></i> Start Case Analysis</button>
+                        <a href="#strategySimulatorSection" class="btn btn-outline btn-large hero-sim-btn"><i class="fas fa-sliders"></i> Test Live Simulator</a>
+                        <button id="heroLoginBtn" class="btn btn-text btn-large"><i class="fas fa-arrow-right-to-bracket"></i> Sign In</button>
                     </div>
                     <div class="hero-badges-row">
                         <span class="hero-mini-badge"><i class="fas fa-check-circle"></i> Section 138 NI Act Engine</span>
@@ -1120,7 +1122,8 @@
         <div id="dashboardScreen" class="main-screen hidden">
             <!-- Top Navigation -->
             <nav class="top-nav">
-                <div class="nav-brand">
+                <div class="nav-brand" style="cursor: pointer; display: flex; align-items: center; gap: 8px;" onclick="switchScreen('landingScreen')">
+                    <img src="favicon.svg" alt="JudiQ Emblem" width="28" height="28" class="brand-emblem-svg">
                     <span class="brand-title">JUDIQ AI</span>
                 </div>
                 <div class="nav-user">
@@ -1168,11 +1171,24 @@
                     </div>
                 </div>
 
-                <!-- Domain / Legal Area Quick Switcher -->
-                <div class="domain-quick-switch-bar u-is-55" style="border: none; background: transparent; padding: 0.25rem 0;">
-                    <button class="btn btn-sm domain-switch-tab active u-is-56" id="tab_domain_ni" onclick="window.switchUserDomain('ni_act', this)">
-                        <i class="fas fa-file-invoice-dollar u-is-57"></i> Section 138 NI Act Litigation Intelligence
-                    </button>
+                <!-- Institutional Engine Status Bar -->
+                <div class="institutional-engine-toolbar">
+                    <div class="engine-status-left">
+                        <span class="engine-badge"><i class="fas fa-scale-balanced"></i> Section 138 Negotiable Instruments Act</span>
+                        <span class="engine-status-tag"><i class="fas fa-circle-check"></i> Statutory Engine Active</span>
+                        <span class="engine-statutory-clock"><i class="fas fa-database"></i> 1,307 Precedents Synchronized</span>
+                    </div>
+                    <div class="engine-status-actions">
+                        <button class="btn btn-sm btn-primary" onclick="window.switchScreen('caseWizardScreen')">
+                            <i class="fas fa-plus"></i> New S.138 Case
+                        </button>
+                        <button class="btn btn-sm btn-outline" onclick="window.switchScreen('draftStudioScreen')">
+                            <i class="fas fa-file-contract"></i> Draft Studio
+                        </button>
+                        <button class="btn btn-sm btn-outline" onclick="window.loadSampleCaseData()">
+                            <i class="fas fa-magic"></i> Load Demo
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Action Cards Grid -->
