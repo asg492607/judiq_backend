@@ -146,18 +146,33 @@ export function switchScreen(targetScreenId) {
     // Reset scroll
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Update bank UI if switching to bank screen
-    if (targetScreenId === 'bankRecoveryScreen' && typeof window.updateBankOfficerUI === 'function') {
+    // Reactive Destination Screen Initializers
+    if (targetScreenId === 'caseWizardScreen' && typeof window.renderWizardStep === 'function') {
+        window.renderWizardStep();
+    } else if (targetScreenId === 'dashboardScreen' && typeof window.renderDashboard === 'function') {
+        window.renderDashboard();
+    } else if (targetScreenId === 'caseListScreen' && typeof window.loadCasesList === 'function') {
+        window.loadCasesList();
+    } else if (targetScreenId === 'bankRecoveryScreen' && typeof window.updateBankOfficerUI === 'function') {
         window.updateBankOfficerUI();
     }
 
-    // First-time visit guided tour check
+    // Dismiss tour overlay if switching away from dashboard
+    const tourOverlay = document.getElementById('guidedTourOverlay');
+    if (tourOverlay && targetScreenId !== 'dashboardScreen') {
+        tourOverlay.classList.remove('open');
+    }
+
+    // First-time visit guided tour check (only if user stays on dashboard)
     if (targetScreenId === 'dashboardScreen') {
         const tourCompleted = localStorage.getItem('judiq_tour_completed') === 'true';
         if (!tourCompleted && typeof window.startGuidedTour === 'function') {
             setTimeout(() => {
-                window.startGuidedTour();
-            }, 800);
+                const activeScreen = document.querySelector('.main-screen:not(.hidden)');
+                if (activeScreen && activeScreen.id === 'dashboardScreen') {
+                    window.startGuidedTour();
+                }
+            }, 1000);
         }
     }
 }

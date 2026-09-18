@@ -201,6 +201,7 @@ export function renderWizardStep() {
     updateNavigationButtons();
     updateConditionalFields();
 }
+window.renderWizardStep = renderWizardStep;
 
 function updateConditionalFields() {
     // Helper to toggle visibility and required attribute
