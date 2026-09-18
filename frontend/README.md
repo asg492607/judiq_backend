@@ -28,11 +28,13 @@ Because ES6 modules use native HTTP CORS protocol, `index.html` cannot be opened
 
 **Prerequisites:** Python (or any local static file server)
 
-### Windows PowerShell:
+### Windows PowerShell
+
 ```powershell
 # From the frontend directory
 python -m http.server 8080
 ```
+
 *(Or execute `.\start.ps1` if available)*
 
 Access the frontend application at `http://localhost:8080`.
@@ -42,9 +44,11 @@ Access the frontend application at `http://localhost:8080`.
 ## 🎨 Core Feature Highlights
 
 ### 1. Interactive SARFAESI & NI Act Wizard
+
 Step-by-step case ingestion supporting NPA dates, Section 13(2) demand notices, 13(4) possession notices, DM/CMM orders, and Section 17 DRT challenge grounds.
 
 ### 2. Courtroom Strategy & Threat Meter
+
 Real-time scoring visualizer displaying procedural defects, limitation status, and simulated opposing counsel arguments using `Chart.js` via a leak-safe `ChartRegistry`.
 
 ![Courtroom Strategy](./multimedia/judiq_courtroom_strategy.png)
@@ -52,6 +56,7 @@ Real-time scoring visualizer displaying procedural defects, limitation status, a
 ---
 
 ## 📁 Directory Structure
+
 - `index.html`: Main layout and structural container.
 - `styles.css`: CSS styling containing dynamic design tokens, theme variables, and glassmorphic utilities.
 - `config.js`: API environment configuration and endpoint registry.

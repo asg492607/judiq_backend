@@ -1,5 +1,7 @@
 # JUDIQ AI — Enterprise Litigation & Institutional Banking Intelligence Platform
+
 ## Complete Master Architecture, Engineering, Statutory Rules & Operational Specification
+
 **Document ID:** `ASG-MASTER-SPEC-2026`  
 **Version:** `12.6.0-ENTERPRISE`  
 **Last Updated:** August 2026  
@@ -7,7 +9,8 @@
 
 ---
 
-# Table of Contents
+## Table of Contents
+
 1. [Executive Summary & Core Philosophy](#1-executive-summary--core-philosophy)
    - [1.1 The Judicial Landscape & Problem Statement](#11-the-judicial-landscape--problem-statement)
    - [1.2 The JudiQ Solution](#12-the-judiq-solution)
@@ -46,10 +49,12 @@
 
 ---
 
-# 1. Executive Summary & Core Philosophy
+## 1. Executive Summary & Core Philosophy
 
 ### 1.1 The Judicial Landscape & Problem Statement
+
 In the Indian judicial landscape, over **40 lakh Section 138 NI Act (Cheque Bounce) cases** and hundreds of thousands of **SARFAESI, DRT, and commercial civil matters** clog the court system. A staggering **68% of commercial claims suffer delay or dismissal** not because of the underlying financial debt, but due to **fatal procedural, statutory, or evidentiary defects** committed before the initial plaint is ever filed:
+
 - Sending a statutory notice on Day 31 instead of within the mandatory 30-day window (*Section 138(b)*).
 - Filing a complaint on Day 12 before the mandatory 15-day borrower cure window expires (*Yogendra Pratap Singh v. Savitri Pandey trap*).
 - Failing to aver specific day-to-day managerial control against company directors (*S.M.S. Pharmaceuticals Ltd. v. Neeta Bhalla standard*).
@@ -58,9 +63,10 @@ In the Indian judicial landscape, over **40 lakh Section 138 NI Act (Cheque Boun
 - Submitting digital bank account statements or WhatsApp communications without mandatory Section 65B Indian Evidence Act / Section 63 Bharatiya Sakshya Adhiniyam (BSA 2023) certification (*Arjun Panditrao Khotkar standard*).
 
 ### 1.2 The JudiQ Solution
+
 **JudiQ AI** is an institutional-grade **Litigation Intelligence Operating System (OS)** and **Stressed Asset Recovery Analytics Platform**. It bridges the gap between raw document ingestion, strict statutory procedural adherence, adversarial courtroom simulation, and court-admissible legal drafting.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                             JUDIQ AI PLATFORM                               │
 ├──────────────────────┬──────────────────────┬───────────────────────────────┤
@@ -73,23 +79,26 @@ In the Indian judicial landscape, over **40 lakh Section 138 NI Act (Cheque Boun
 ```
 
 ### 1.3 Key Architectural Principles
+
 1. **Deterministic Rule Engines Over Probabilistic Hallucinations:** Statutory deadlines (limitation periods, notice windows, statutory bars) are computed using 100% deterministic mathematical rule engines. AI is never permitted to "hallucinate" limitation dates or statutory provisions.
 2. **Adversarial Opponent Modeling:** The system evaluates every case through the hostile lens of opposing counsel, pre-emptively exposing legal weaknesses, contradictory averments, and cross-examination traps.
 3. **Single-Port Unified Architecture:** Seamlessly bundles high-performance FastAPI backends and modern ES6 Glassmorphism frontends on a single localhost/production port with zero-configuration reverse proxies.
 4. **Zero-Training Confidentiality:** Strict DPDP Act 2023 compliance ensures client legal files are encrypted with AES-256 and never used to train public foundation models.
 
 ### 1.4 Analytical Decision-Support vs Adjudicative Systems
+
 > [!IMPORTANT]
 > **Strict Operational Boundary**: JudiQ AI is an **analytical legal intelligence and decision-support platform** designed exclusively for licensed advocates, judges, in-house legal departments, and bank recovery officers. It is **not** an adjudicative system:
+>
 > - JudiQ **does not deliver judicial verdicts**, pronounce criminal guilt/acquittal, or issue binding court decrees.
 > - All platform metrics (e.g. *Case Readiness Score*, *Statutory Viability*, *Recovery NPV*) represent structured **evidentiary and procedural merit assessments** based on historical statutory jurisprudence and mathematical time-discounting models.
 > - The final evaluation, legal strategy, and procedural decision-making remain exclusively in the hands of the presiding advocate and judicial authority.
 
 ---
 
-# 2. End-to-End System Architecture
+## 2. End-to-End System Architecture
 
-```
+```text
                                   USER INTERFACE LAYER
   ┌──────────────────────────────────────────────────────────────────────────────────┐
   │  HTML5 + Vanilla ES6 Modules + Glassmorphism 2.0 Design System + Chart.js        │
@@ -134,9 +143,9 @@ In the Indian judicial landscape, over **40 lakh Section 138 NI Act (Cheque Boun
 
 ---
 
-# 3. Comprehensive Data Flow & Lifecycle
+## 3. Comprehensive Data Flow & Lifecycle
 
-```
+```text
 [1. User / Officer Ingestion]
         │
         ├─► Option A: Case Intake Wizard (Parties, Dates, Cheque/Loan Data, Collateral)
@@ -181,7 +190,7 @@ In the Indian judicial landscape, over **40 lakh Section 138 NI Act (Cheque Boun
 
 ---
 
-# 4. Statutory Engine Deep-Dives
+## 4. Statutory Engine Deep-Dives
 
 ---
 
@@ -190,7 +199,8 @@ In the Indian judicial landscape, over **40 lakh Section 138 NI Act (Cheque Boun
 The Section 138 Engine models every statutory milestone defined under the **Negotiable Instruments Act, 1881** (amended up to 2018).
 
 ### Statutory Rules & Limitation Windows
-```
+
+```text
 Cheque Issue Date
        │
        ▼ (Max 3 Months / Validity Period — RBI Master Circular)
@@ -210,8 +220,9 @@ Complaint Filing Deadline in Court of Metropolitan / Judicial Magistrate
 ```
 
 ### Statutory Defect Classification Matrix
+
 | Defect Type | Severity | Statutory Provision | Authoritative Precedent | Remedy / Legal Effect |
-|---|---|---|---|---|
+| :--- | :--- | :--- | :--- | :--- |
 | **Stale Cheque Presentation** | `FATAL` | RBI DBOD Circular 2011 / S.138 | *Shri Ishar Alloy Steels Ltd. v. Jayaswals Neco Ltd.* (2001) | Claim barred u/s 138. Civil suit / Order 37 only remedy. |
 | **Notice Delayed (> 30 Days)** | `FATAL` | Section 138(b) NI Act | *Kamlesh Kumar v. State of Bihar* (2014) | Fatal defect. Criminal complaint cannot be instituted. |
 | **Premature Complaint Filing** | `FATAL` | Section 138(c) NI Act | *Yogendra Pratap Singh v. Savitri Pandey* (2014) 10 SCC 709 | Complaint filed before Day 16 is non-est. Must file fresh complaint with S.142(1)(b) condonation. |
@@ -228,7 +239,7 @@ Complaint Filing Deadline in Court of Metropolitan / Judicial Magistrate
 
 The SARFAESI Engine governs extra-judicial enforcement of security interests by Banks and Financial Institutions under the **Securitisation and Reconstruction of Financial Assets and Enforcement of Security Interest Act, 2002**.
 
-```
+```text
                            SARFAESI ENFORCEMENT WORKFLOW
   ┌────────────────────────────────────────────────────────────────────────┐
   │ 1. NPA Classification (90 Days Overdue as per RBI Guidelines)          │
@@ -267,6 +278,7 @@ The SARFAESI Engine governs extra-judicial enforcement of security interests by 
 ```
 
 ### Statutory Bars Checked by Engine
+
 1. **Section 26D CERSAI Registration Bar:** Security interest must be registered with CERSAI. Under Section 26D (effective Jan 2020), no secured creditor can exercise Chapter III enforcement rights without mandatory CERSAI registration.
 2. **Section 31(i) Agricultural Land Bar:** Security enforcement under SARFAESI is strictly prohibited against any parcel classified as agricultural land (*K. Sreedhar v. Raus Construction Pvt Ltd (2023)*).
 3. **Section 31(h) De Minimis Debt Bar:** Claims where the remaining principal plus interest is less than 20% of the original principal debt are barred from SARFAESI.
@@ -279,6 +291,7 @@ The SARFAESI Engine governs extra-judicial enforcement of security interests by 
 JudiQ’s Criminal Engine supports Indian criminal jurisprudence spanning both the historic Code of Criminal Procedure (CrPC) and Indian Penal Code (IPC), as well as the modern **Bharatiya Nagarik Suraksha Sanhita (BNSS, 2023)** and **Bharatiya Nyaya Sanhita (BNS, 2023)**.
 
 ### Core Modules
+
 1. **Anticipatory Bail Calculator (CrPC S.438 / BNSS S.482):** Evaluates custodial necessity, gravity of offense, likelihood of flight, and prior antecedents under the landmark *Sushila Aggarwal v. State (NCT of Delhi) (2020)* Constitution Bench ruling.
 2. **Regular Bail Evaluation (CrPC S.437/439 / BNSS S.480/483):** Applies the Supreme Court "Triple Test" (*P. Chidambaram v. Directorate of Enforcement (2019)*):
    - Flight risk / Likelihood of absconding.
@@ -294,6 +307,7 @@ JudiQ’s Criminal Engine supports Indian criminal jurisprudence spanning both t
 The Civil Engine provides procedural roadmap optimization under the **Code of Civil Procedure, 1908** and the **Commercial Courts Act, 2015**.
 
 ### Key Provisions
+
 1. **Summary Suits (Order XXXVII CPC):** Rapid debt recovery based on written contracts, bills of exchange, and cheques. Computes leave to defend viability using the *IDBI Trusteeship Services v. Hubtown Ltd (2017)* 5-tier test.
 2. **Rejection of Plaint (Order VII Rule 11 CPC):** Scans plaints for lack of cause of action, undervaluation, non-payment of court fees, or claims barred by limitation (*Dahiben v. Arvindbhai Kalyanji Bhanusali (2020)*).
 3. **Mandatory Pre-Institution Mediation (Section 12A Commercial Courts Act):** Checks if urgent interim relief is pled. If not, Section 12A pre-institution mediation is mandatory; plaints filed without exhausting S.12A are rejected outright (*Patil Automation Pvt Ltd v. Rakheja Engineers (2022)*).
@@ -305,7 +319,7 @@ The Civil Engine provides procedural roadmap optimization under the **Code of Ci
 
 The Institutional Banking Suite is engineered specifically for Stressed Asset Recovery Branches (SARB), Large Corporate Recovery (LCR) teams, and General Counsel of Indian Scheduled Commercial Banks.
 
-```
+```text
                        5-TAB INSTITUTIONAL BANKING OS
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ 1. STATUTORY INTAKE & FORENSIC AUDIT                                        │
@@ -331,6 +345,7 @@ The Institutional Banking Suite is engineered specifically for Stressed Asset Re
 ```
 
 ### The 5 Statutory Recovery Tracks
+
 1. **Track 1: Section 138 NI Act (Director Liability & S.143A Interim Relief):** Criminal leverage against signatory directors with up to 20% interim deposit order.
 2. **Track 2: SARFAESI Act 2002 (Secured Collateral Extra-Judicial Enforcement):** Fast-track physical attachment of commercial/residential properties via Section 14 CMM orders.
 3. **Track 3: DRT Recovery of Debts and Bankruptcy (RDB) Act 1993:** Section 19 Original Applications for unsecured debts or residual deficits > ₹20 Lakhs.
@@ -342,19 +357,21 @@ The Institutional Banking Suite is engineered specifically for Stressed Asset Re
 ## 4.6 Opposing Counsel Intelligence & Tactical Matchup Profiler
 
 JudiQ incorporates an Opposing Counsel Intelligence Engine that analyzes defense strategies, judge-specific win rates, and tactical counter-pleadings:
+
 - **Matchup Analysis (`POST /api/v1/intel/counsel/analyze-matchup`):** Evaluates case facts against defense counsel's historical patterns (e.g. signature defense attacks like security cheque claims, notice delivery ghosting, or board resolution authorization challenges).
 - **Prosecution Counter-Pleadings:** Auto-generates protective averments and rebuttal citations (*Sampelly Satyanarayana Rao*, *Sunil Todi*, *Laxmi Dyechem*).
 
 ---
 
-# 5. Adversarial Simulation & Scoring Mechanics
+## 5. Adversarial Simulation & Scoring Mechanics
 
 ### 5.1 The 10-Pillar Structural Viability Scoring Algorithm
+
 The readiness of any case is evaluated across 10 statutory dimensions, starting from a base score of 100 points:
 
 $$\text{Viability Score} = \max\left(0, \min\left(100, 100 - \sum \text{Penalties} + \sum \text{Credits}\right)\right)$$
 
-```
+```text
 ┌────────────────────────────────────────────────────────┬─────────────┐
 │ STATUTORY EVALUATION PILLAR                            │ MAX PENALTY │
 ├────────────────────────────────────────────────────────┼─────────────┤
@@ -372,6 +389,7 @@ $$\text{Viability Score} = \max\left(0, \min\left(100, 100 - \sum \text{Penaltie
 ```
 
 ### 5.2 Courtroom Survivability Curve & Stage-by-Stage Decay
+
 JudiQ calculates stage-by-stage progression survival probabilities across 4 court tiers:
 
 $$\text{JMFC (Magistrate Trial)} \longrightarrow \text{Sessions Court Appeal} \longrightarrow \text{High Court Revision} \longrightarrow \text{Supreme Court SLP}$$
@@ -382,22 +400,28 @@ $$\text{JMFC (Magistrate Trial)} \longrightarrow \text{Sessions Court Appeal} \l
 - **Supreme Court Survivability:** Governed by settled constitutional bench precedents.
 
 ### 5.3 Explainable AI (XAI) Reasoning & Causality Map
+
 Every analysis output includes a fully transparent, step-by-step logic trail:
+
 - **Causality Map:** Explicitly enumerates every positive credit and negative penalty applied to the baseline score with legal rationale.
 - **Critical Vulnerability Scanner:** Pins the exact statutory clause or evidence gap where the case would break in adversarial proceedings.
 
 ---
 
-# 6. Caseroom, Forensic OCR & Evidence Certification (S.65B / BSA S.63)
+## 6. Caseroom, Forensic OCR & Evidence Certification (S.65B / BSA S.63)
 
 ### 6.1 Digital Evidence Vault
+
 The Caseroom functions as a secure digital evidence repository. Each piece of uploaded evidence (cheque, bank memo, legal notice, postal certificate, account statement) is processed with:
+
 1. **Cryptographic SHA-256 Hash Chaining:** Creates an immutable tamper-evident fingerprint upon upload.
 2. **Forensic Optical Character Recognition (OCR):** Extracts text, monetary figures, IFSC codes, account numbers, and dispatch timestamps.
 3. **Contradiction Detection:** Cross-references the cheque amount written in words vs figures, the date on the return memo vs the notice date, and the names of authorized signatories against MCA corporate records.
 
 ### 6.2 BSA Section 63 / Section 65B Electronic Evidence Certificate
+
 To render computerized account ledgers, CBS printouts, WhatsApp correspondence, and digital notices admissible in Indian courts without oral evidence, JudiQ generates a court-admissible certificate complying with **Section 63(4) of the Bharatiya Sakshya Adhiniyam, 2023** and the Supreme Court mandate in *Arjun Panditrao Khotkar v. Kailash Kushanrao Gorantyal (2020)*:
+
 - Identifies the electronic device, system hardware, and software environment.
 - Avers regular lawful operation and production during ordinary course of business.
 - Certifies integrity, electronic chain of custody, and absence of electronic tampering.
@@ -405,11 +429,12 @@ To render computerized account ledgers, CBS printouts, WhatsApp correspondence, 
 
 ---
 
-# 7. Automated Legal Pleadings & Drafting Engine
+## 7. Automated Legal Pleadings & Drafting Engine
 
 JudiQ’s Draft Engine transforms structured case data into court-ready pleadings formatted to Indian High Court and Supreme Court practice rules.
 
 ### Supported Document Templates
+
 1. **Formal Statutory Demand Notice u/s 138(b) NI Act:** Incorporates Section 141 corporate director liability clauses, details cheque dishonour reasons, and sets a 15-day cure deadline.
 2. **Criminal Complaint u/s 138 NI Act:** Ready for presentation before the Chief Judicial Magistrate / Metropolitan Magistrate, complete with verification clause, list of witnesses, and list of relied-upon documents.
 3. **SARFAESI Section 13(2) Demand Notice:** Includes formal schedule of mortgaged immovable/movable assets, loan sanction details, NPA date, and 60-day enforcement notice.
@@ -421,25 +446,29 @@ JudiQ’s Draft Engine transforms structured case data into court-ready pleading
 
 ---
 
-# 8. Multi-Lingual Localization & Translation Architecture
+## 8. Multi-Lingual Localization & Translation Architecture
 
 To empower legal practitioners across state high courts and district bars, JudiQ implements an automated multi-lingual localization pipeline:
+
 - **Languages Supported:** English, Hindi (हिंदी), Marathi (मराठी), and Gujarati (ગુજરાતી).
 - **Localized Fields:** Case Merit Ratings, Senior Advocate Briefs, Core Legal Findings (`tldr`), Next Best Procedural Actions, and Statutory Presumption Overviews.
 - **Analytical Terminology Fidelity:** Preserves strict legal nuances in Indian state languages (e.g., *"भक्कम कायदेशीर गुणवत्ता (सकारात्मक विश्लेषणात्मक स्थिती)"*, *"मजबूत कानूनी मेरिट (सकारात्मक विश्लेषणात्मक स्थिति)"*).
 
 ---
 
-# 9. Frontend Architecture & UI/UX Design System
+## 9. Frontend Architecture & UI/UX Design System
 
 ### 9.1 Technology Stack & Rendering Performance
+
 - **Zero Framework Bloat:** Built with Vanilla ES6 JavaScript modules and Native Web Components to guarantee lightning-fast sub-50ms screen transitions on any hardware.
 - **Glassmorphism 2.0 Aesthetic:** Blue-and-white theme featuring subtle backdrop blur filters (`backdrop-filter: blur(12px)`), refined border strokes, and curated typography (`Cinzel`, `Outfit`, `Inter`).
 - **Dynamic Dark / Light Mode:** Native CSS custom properties seamlessly toggle between dark glassmorphism and executive institutional light mode.
 - **Memory-Safe Chart Registry:** Custom `ChartRegistry` manages Chart.js instances, automatically destroying previous canvas contexts to eliminate memory leaks during rapid adversarial state recalculations.
 
 ### 9.2 Screen Navigation & Security Gate Architecture
+
 The frontend is controlled by a centralized `switchScreen(targetScreenId)` router in [`frontend/ui.js`](file:///c:/Users/Atharva/OneDrive/Desktop/judiq-ai/frontend/ui.js):
+
 ```javascript
 // Screen State Routing
 'landingScreen'          ──► Main Public Portal & Product Overview
@@ -452,11 +481,11 @@ The frontend is controlled by a centralized `switchScreen(targetScreenId)` route
 
 ---
 
-# 10. Master Admin, Governance & Telemetry Control Center
+## 10. Master Admin, Governance & Telemetry Control Center
 
 The Master Admin Portal (`adminPortalScreen`) provides managing partners, bank institutional heads, and compliance administrators with full governance, resource allocation, and live audit stream inspection:
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                        MASTER ADMIN CONTROL CENTER (3 TABS)                            │
 ├──────────────────────────┬─────────────────────────────┬───────────────────────────────┤
@@ -469,6 +498,7 @@ The Master Admin Portal (`adminPortalScreen`) provides managing partners, bank i
 ```
 
 ### 10.1 Multi-Tab Governance Control Strip
+
 1. **Tab 1: Litigator Resource Allocation & Access Controls**
    - Direct inspection of all litigator accounts, role designations (`law_firm`, `enterprise`, `citizen`, `admin`), active monthly quotas, real-time consumption metrics, and account status.
 2. **Tab 2: Pending Modular Plan Approvals**
@@ -477,7 +507,9 @@ The Master Admin Portal (`adminPortalScreen`) provides managing partners, bank i
    - Complete directory of bank recovery officers, SARB branch units, IFSC registries, and immutable compliance audit streams.
 
 ### 10.2 Litigator Resource Allocation & Subscribed Engines Matrix
+
 The Litigator Accounts Table features a 7-column real-time telemetry grid:
+
 - **Litigator Identity:** Avatar bubble with role-based color gradients (Admin, Law Firm, Enterprise, Independent Litigator), email, User ID chip, copy-to-clipboard actions, and joined timestamps.
 - **Role & Plan Tier:** Role selection dropdown and plan approval status chip (`APPROVED`, `PENDING_APPROVAL`, `REJECTED`).
 - **Subscribed Engines & Pricing:** Badges showing active modular engines (⚖️ *S.138 NI Act*, 🏦 *SARFAESI & DRT*, 🏛️ *BNSS Criminal*, 📜 *Civil CPC*, 💼 *Banking OS*, 🧠 *Counsel Intel*) + Monthly fee rate in INR (`₹1,500/mo`, `₹3,000/mo`).
@@ -487,6 +519,7 @@ The Litigator Accounts Table features a 7-column real-time telemetry grid:
 - **Actions:** *Save Allocation*, *Inspect Dossier*, *Reset Monthly Usage*, *Suspend/Activate Account*.
 
 ### 10.3 In-Depth Litigator & Bank Officer Dossier Inspection Modals
+
 1. **Litigator Account Dossier Modal (`adminAccountDetailsModal`):**
    - 6 KPI metric tiles: *Monthly Quota Limit*, *Reports Consumed*, *Remaining Balance*, *Monthly Fee (INR)*, *Role Tier*, *Usage Percentage*.
    - Subscribed AI Engines Container: Full statutory breakdown and capabilities of each enabled engine.
@@ -496,7 +529,9 @@ The Litigator Accounts Table features a 7-column real-time telemetry grid:
    - Institutional profile: Officer Name, Unique ID, Bank Partner, Division/Branch, IFSC Code, Department, Monthly Audit Allowance, and Audits Performed.
 
 ### 10.4 1-Click Multi-Criteria Quick Filtering & Live Counters
+
 The admin toolbar includes real-time search across emails, User IDs, roles, and module names, plus a dedicated Quick Filter strip with live counts:
+
 - `All Accounts` (`pillCountAll`)
 - `🏛️ Law Firms` (`pillCountLawFirm`)
 - `🏢 Enterprise` (`pillCountEnterprise`)
@@ -505,40 +540,45 @@ The admin toolbar includes real-time search across emails, User IDs, roles, and 
 - `🚫 Suspended` (`pillCountSuspended`)
 
 ### 10.5 Litigator Account Provisioning & Modular Subscription Approval Gate
+
 - **Onboarding Modal (`createLitigatorModal`):**
   - Allows direct provisioning with custom email, role tier, monthly quota limit, custom price rate (INR), initial status (`APPROVED` / `PENDING_APPROVAL`), and engine subscription checkboxes.
 - **Plan Approval Gate:**
   - When users submit subscription plans, their account remains in `PENDING_APPROVAL` status. Analysis and drafting endpoints enforce a strict lock until an administrator explicitly approves the plan via `/api/v1/admin/plans/approve`.
 
 ### 10.6 Cryptographic Audit Trails & Bulk Operations
+
 - **Bulk Bonus Credits:** 1-click allocation of bonus case credits (`/api/v1/admin/users/bulk-bonus`) across all active litigators.
 - **JSON Data Export:** 1-click export of the entire litigator database directly from the toolbar.
 - **Security Audit Logs:** Cryptographic audit trail ledger (`/api/v1/admin/security/logs`) recording all admin allocations, resets, and status toggles.
 
 ---
 
-# 11. Security, Encryption & DPDP Act Compliance
+## 11. Security, Encryption & DPDP Act Compliance
 
 ### 11.1 Encryption Architecture
+
 - **In-Transit:** Mandatory TLS 1.3 encryption across all client-server communications.
 - **At-Rest:** Confidential case dossiers and evidence payloads are encrypted using **AES-256 Fernet** encryption (`cryptography.fernet`) before being written to disk.
 - **Key Derivation:** Cryptographic keys are managed via environment variables (`ENCRYPTION_KEY`, `SECRET_KEY`) with fallback validation against weak development keys.
 - **Admin Password Verification:** Secure PBKDF2 / SHA-256 credential hashing in [`backend/security.py`](file:///c:/Users/Atharva/OneDrive/Desktop/judiq-ai/backend/security.py) with timing-attack resistant comparisons.
 
 ### 11.2 Digital Personal Data Protection (DPDP) Act 2023 Compliance
+
 - **Data Fiduciary Standard:** Case facts are processed strictly for the user-authorized purpose of legal strategy formulation.
 - **Strict Model Isolation:** Customer confidential evidence, pleadings, and debtor particulars are **strictly isolated** and **never used** to train or fine-tune public foundation models.
 - **Right to Erasure:** Users can irreversibly purge caserooms and associated cryptographic hashes with 1-click deletion.
 
 ---
 
-# 12. Complete REST API Reference & Schema Catalog
+## 12. Complete REST API Reference & Schema Catalog
 
 All platform routes are versioned and served under the `/api/v1` prefix (with direct backward-compatible aliases on root paths).
 
 ### 12.1 Authentication & Session
+
 | Method | Endpoint | Description | Auth Required |
-|---|---|---|---|
+| :--- | :--- | :--- | :--- |
 | `POST` | `/api/v1/auth/anonymous` | Creates an anonymous trial session token | No |
 | `POST` | `/api/v1/bank/auth/register` | Registers a bank officer with institutional email verification | No |
 | `POST` | `/api/v1/bank/auth/login` | Authenticates bank officer and issues JWT | No |
@@ -546,8 +586,9 @@ All platform routes are versioned and served under the `/api/v1` prefix (with di
 | `GET` | `/api/v1/bank/auth/validate-domain` | Validates if an email domain meets institutional banking rules | No |
 
 ### 12.2 Core Litigation Analysis & Intelligence
+
 | Method | Endpoint | Description | Auth Required |
-|---|---|---|---|
+| :--- | :--- | :--- | :--- |
 | `POST` | `/api/v1/analyze` | Executes full deterministic audit, scoring, and adversarial simulation | Yes |
 | `POST` | `/api/v1/sarfaesi/analyze` | Evaluates SARFAESI Section 13/14/17 enforcement compliance | Yes |
 | `POST` | `/api/v1/criminal/analyze` | Evaluates CrPC/BNSS criminal offenses and bail viability | Yes |
@@ -559,8 +600,9 @@ All platform routes are versioned and served under the `/api/v1` prefix (with di
 | `DELETE`| `/api/v1/cases/delete` | Irreversibly deletes a case file and its evidence payload | Yes |
 
 ### 12.3 Enterprise Banking & Stressed Asset Recovery
+
 | Method | Endpoint | Description | Auth Required |
-|---|---|---|---|
+| :--- | :--- | :--- | :--- |
 | `POST` | `/api/v1/bank/recovery-audit` | Executes statutory recovery audit and logs entry to DB ledger | Yes |
 | `POST` | `/api/v1/bank/compliance-audit` | Performs 12-pillar statutory compliance audit u/s 138 / SARFAESI | Yes |
 | `POST` | `/api/v1/bank/multi-track-strategy`| Evaluates concurrent viability across 5 statutory recovery tracks | Yes |
@@ -573,8 +615,9 @@ All platform routes are versioned and served under the `/api/v1` prefix (with di
 | `GET` | `/api/v1/bank/rules` | Returns the complete Statutory Legal-Rule Registry with citations | No |
 
 ### 12.4 Platform Governance, User Quotas & Subscription Plans
+
 | Method | Endpoint | Description | Auth Required |
-|---|---|---|---|
+| :--- | :--- | :--- | :--- |
 | `POST` | `/api/v1/admin/auth/verify` | Authenticates administrator credentials and returns admin JWT | No |
 | `GET` | `/api/v1/admin/stats` | Retrieves system-wide usage, active users, and pending plans count | Yes (Admin) |
 | `GET` | `/api/v1/admin/users` | Lists all registered litigators, engine subscriptions, and quotas | Yes (Admin) |
@@ -599,12 +642,14 @@ All platform routes are versioned and served under the `/api/v1` prefix (with di
 
 ---
 
-# 13. Deployment, Cloud Hosting, Localhost & Automated Test Benchmarks
+## 13. Deployment, Cloud Hosting, Localhost & Automated Test Benchmarks
 
 ### 13.1 Production Cloud Architecture (Render / Docker / Kubernetes)
+
 - **Live Production URL:** [`https://cheque-bounce-ragbased.onrender.com`](https://cheque-bounce-ragbased.onrender.com/)
 - **Build Specification ([`render.yaml`](file:///c:/Users/Atharva/OneDrive/Desktop/judiq-ai/render.yaml)):**
-  ```yaml
+
+```yaml
   services:
     - type: web
       name: judiq-api
@@ -616,10 +661,12 @@ All platform routes are versioned and served under the `/api/v1` prefix (with di
       envVars:
         - key: PYTHON_VERSION
           value: 3.11.9
-  ```
+```
+
 - **Root Entrypoint ([`main.py`](file:///c:/Users/Atharva/OneDrive/Desktop/judiq-ai/main.py)):** Exposes the unified ASGI `app` instance with dynamic path resolution for `backend/` and `frontend/` static assets.
 
 ### 13.2 Localhost 1-Click Operations
+
 - **Windows PowerShell:** `.\start_localhost.ps1`
 - **Windows Batch:** `start_localhost.bat`
 - **Direct Terminal:** `python main.py` or `uvicorn main:app --host 127.0.0.1 --port 8000 --reload`
@@ -627,6 +674,7 @@ All platform routes are versioned and served under the `/api/v1` prefix (with di
 - **Interactive Swagger Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ### 13.3 Automated Benchmark Verification (3,429 Tests / 100% Pass)
+
 The platform undergoes continuous regression and adversarial benchmark testing. The automated test suite executes **3,429 tests in 5.3 seconds with a 100% pass rate**:
 
 ```bash
@@ -634,9 +682,10 @@ The platform undergoes continuous regression and adversarial benchmark testing. 
 python -m pytest backend/tests/
 ```
 
-#### Benchmark Domain Test Breakdown:
+#### Benchmark Domain Test Breakdown
+
 | Test Module | Test Focus & Jurisprudential Standards | Test Count | Status |
-|---|---|---|---|
+| :--- | :--- | :--- | :--- |
 | `test_cheque_bounce_hard_cases.py` | S.138 30-day notice, 15-day cure window, cheque return reasons, post-dated cheques | 600+ | PASS (100%) |
 | `test_s141_s142_ultra_hard_cases.py` | S.141 director vicarious liability, S.142 cognizance limitation, company arraignment | 600+ | PASS (100%) |
 | `test_sarfaesi_hard_cases.py` | S.13(2) 60-day demand, S.13(4) possession, S.31(i) agricultural bar, CERSAI priority | 600+ | PASS (100%) |
@@ -652,4 +701,3 @@ python -m pytest backend/tests/
 ---
 
 *JUDIQ AI — Built for the Indian Courtroom. Engineered for Institutional Stressed Asset Recovery.*
-

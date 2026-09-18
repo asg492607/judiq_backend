@@ -76,6 +76,7 @@ build_exe.bat
 ```
 
 The compiled standalone application package is generated in:
+
 ```text
 dist/JudiQ_AI/
 ├── JudiQ_AI.exe           # Standalone executable launcher
@@ -86,6 +87,7 @@ dist/JudiQ_AI/
 ### 2. Launch the Application
 
 Double-click `dist/JudiQ_AI/JudiQ_AI.exe` or execute from command line:
+
 ```bash
 # Default launch (automatically opens default browser at http://127.0.0.1:8000)
 dist\JudiQ_AI\JudiQ_AI.exe
