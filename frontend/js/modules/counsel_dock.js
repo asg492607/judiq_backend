@@ -240,6 +240,76 @@ export class JudiQCoCounselDock {
                     padding: 0.28rem 0.55rem;
                 }
             }
+
+            /* ── Light Mode High-Contrast Overrides ── */
+            [data-theme="light"] .co-counsel-drawer {
+                background: #ffffff !important;
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: 0 20px 45px rgba(15, 23, 42, 0.16), 0 0 20px rgba(99, 102, 241, 0.08) !important;
+            }
+            [data-theme="light"] .co-counsel-header {
+                background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%) !important;
+                border-bottom: 1px solid #e2e8f0 !important;
+            }
+            [data-theme="light"] .co-counsel-header-title {
+                color: #0f172a !important;
+            }
+            [data-theme="light"] .co-counsel-header-title i {
+                color: #0284c7 !important;
+            }
+            [data-theme="light"] #closeCoCounselBtn {
+                color: #475569 !important;
+            }
+            [data-theme="light"] #closeCoCounselBtn:hover {
+                color: #0f172a !important;
+            }
+            [data-theme="light"] .co-counsel-welcome {
+                background: #f0fdf4 !important;
+                border: 1px solid #bbf7d0 !important;
+                color: #1e293b !important;
+            }
+            [data-theme="light"] .co-counsel-welcome strong {
+                color: #166534 !important;
+            }
+            [data-theme="light"] .co-counsel-welcome p {
+                color: #334155 !important;
+            }
+            [data-theme="light"] .co-counsel-pill {
+                background: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+                color: #0369a1 !important;
+                font-weight: 500 !important;
+            }
+            [data-theme="light"] .co-counsel-pill:hover {
+                background: #e0f2fe !important;
+                border-color: #38bdf8 !important;
+                color: #0284c7 !important;
+            }
+            [data-theme="light"] .co-counsel-msg.ai {
+                background: #f1f5f9 !important;
+                border: 1px solid #e2e8f0 !important;
+                color: #0f172a !important;
+            }
+            [data-theme="light"] .co-counsel-msg.user {
+                background: #4f46e5 !important;
+                color: #ffffff !important;
+            }
+            [data-theme="light"] .co-counsel-footer {
+                background: #f8fafc !important;
+                border-top: 1px solid #e2e8f0 !important;
+            }
+            [data-theme="light"] .co-counsel-input {
+                background: #ffffff !important;
+                border: 1px solid #cbd5e1 !important;
+                color: #0f172a !important;
+            }
+            [data-theme="light"] .co-counsel-input::placeholder {
+                color: #94a3b8 !important;
+            }
+            [data-theme="light"] .co-counsel-input:focus {
+                border-color: #6366f1 !important;
+                box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15) !important;
+            }
         `;
         document.head.appendChild(style);
     }
