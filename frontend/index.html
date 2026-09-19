@@ -130,7 +130,7 @@
                 </div>
             </div>
             <div id="mobileNavBackdrop" class="mobile-nav-backdrop" onclick="toggleMobileNav(false)"></div>
-            
+
             <section class="hero-section">
                 <div class="hero-content">
                     <div class="legal-seal-badge u-is-14">
@@ -405,7 +405,7 @@
                             </label>
                             <label class="checklist-checkbox-label">
                                 <input type="checkbox" class="readiness-check" onchange="updateReadinessProgress()">
-                                <span>Bank Return / Dishour Memo (confirming reason for dishonour)</span>
+                                <span>Bank Return / Dishonour Memo (confirming reason for dishonour)</span>
                             </label>
                             <label class="checklist-checkbox-label">
                                 <input type="checkbox" class="readiness-check" onchange="updateReadinessProgress()">
@@ -633,8 +633,9 @@
                             </label>
 
                             <!-- Module 6: Opposing Counsel Intel -->
-                            <label class="module-choice-card" data-module="counsel_intel">
-                                <input type="checkbox" name="legal_module" value="counsel_intel" onchange="updateModularPricing()">
+                            <label class="module-choice-card module-coming-soon" data-module="counsel_intel"
+                                style="pointer-events: none; opacity: 0.6; cursor: not-allowed;">
+                                <input type="checkbox" name="legal_module" value="counsel_intel" disabled>
                                 <div class="module-card-body">
                                     <div class="module-card-icon"><i class="fas fa-user-secret"></i></div>
                                     <div class="module-card-info">
@@ -882,7 +883,7 @@
                                 <i class="fas fa-map-marker-alt"></i>
                                 <div>
                                     <h4>Headquarters</h4>
-                                    <p>Connaught Place, New Delhi, India</p>
+                                    <p style="min-height: 1.2rem;"></p>
                                 </div>
                             </div>
                         </div>
@@ -1107,12 +1108,9 @@
         <div id="dashboardScreen" class="main-screen hidden">
             <!-- Top Navigation -->
             <nav class="top-nav">
-                <div class="nav-brand" style="cursor: pointer; display: flex; align-items: center; gap: 8px;" onclick="switchScreen('landingScreen')">
-                    <img src="favicon.svg" alt="JudiQ Emblem" width="28" height="28" class="brand-emblem-svg">
-                    <span class="brand-title">JUDIQ AI</span>
-                </div>
-                <div class="nav-user">
-                    <button class="btn btn-outline btn-sm lang-toggle-btn" onclick="toggleLanguage()" title="Switch Language">
+                <div class="nav-user" style="margin-left: auto;">
+                    <button class="btn btn-outline btn-sm lang-toggle-btn" onclick="toggleLanguage()"
+                        title="Switch Language">
                         <i class="fas fa-globe"></i> <span>मराठी</span>
                     </button>
                     <button class="theme-toggle-btn" title="Toggle Light/Dark Mode" onclick="toggleTheme()">
@@ -1728,38 +1726,51 @@
 
                 <!-- Tab: Detailed Analysis -->
                 <div id="tabDetailed" class="tab-content hidden">
-                
-                <!-- Limitation Countdown (Expert Fix) -->
-                <div id="limitationCountdown" class="result-card limitation-clock-card hidden">
-                    <div class="limitation-clock-header">
-                        <div class="limitation-clock-info">
-                            <div class="limitation-clock-badge">
-                                <i class="fas fa-hourglass-half"></i> Statutory Limitation Clock
+
+                    <!-- Limitation Countdown (Expert Fix) -->
+                    <div id="limitationCountdown" class="result-card limitation-clock-card hidden">
+                        <div class="limitation-clock-header">
+                            <div class="limitation-clock-info">
+                                <div class="limitation-clock-badge">
+                                    <i class="fas fa-hourglass-half"></i> Statutory Limitation Clock
+                                </div>
+                                <p id="limitationMessage" class="limitation-clock-desc">Calculating remaining filing
+                                    window...</p>
                             </div>
-                            <p id="limitationMessage" class="limitation-clock-desc">Calculating remaining filing window...</p>
+                            <div class="limitation-clock-status">
+                                <div id="countdownDays" class="limitation-days-number">--</div>
+                                <div class="limitation-days-label">Days Remaining</div>
+                            </div>
                         </div>
-                        <div class="limitation-clock-status">
-                            <div id="countdownDays" class="limitation-days-number">--</div>
-                            <div class="limitation-days-label">Days Remaining</div>
+                        <div id="limitationStatusBar" class="limitation-progress-track">
+                            <div id="limitationStatusFill" class="limitation-progress-bar"></div>
                         </div>
                     </div>
-                    <div id="limitationStatusBar" class="limitation-progress-track">
-                        <div id="limitationStatusFill" class="limitation-progress-bar"></div>
+
+                    <!-- Corporate Liability Alert (Expert Fix) -->
+                    <div id="corporateAlert" class="result-card hidden u-is-90">
+                        <h3 class="u-is-91">
+                            <i class="fas fa-building"></i> Section 141 Corporate Warning
+                        </h3>
+                        <p class="u-is-92">
+                            Accused is a corporate entity. <strong>Failure to name Directors/Authorized
+                                Officers</strong> in charge of daily affairs will lead to dismissal of the complaint.
+                        </p>
                     </div>
-                </div>
 
-                <!-- Corporate Liability Alert (Expert Fix) -->
-                <div id="corporateAlert" class="result-card hidden u-is-90">
-                    <h3 class="u-is-91">
-                        <i class="fas fa-building"></i> Section 141 Corporate Warning
-                    </h3>
-                    <p class="u-is-92">
-                        Accused is a corporate entity. <strong>Failure to name Directors/Authorized Officers</strong> in charge of daily affairs will lead to dismissal of the complaint.
-                    </p>
-                </div>
+                    <!-- Issues & Strengths -->
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <h3><i class="fas fa-exclamation-circle"></i> Issues Detected</h3>
+                            <div id="issuesList" class="issues-list"></div>
+                        </div>
+                        <div class="result-card">
+                            <h3><i class="fas fa-check-circle"></i> Strengths</h3>
+                            <div id="strengthsList" class="strengths-list"></div>
+                        </div>
+                    </div>
 
-                <!-- Issues & Strengths -->
-                <div class="results-grid">
+                    <!-- Weaknesses Section (NEW) -->
                     <div class="result-card">
                         <h3><i class="fas fa-exclamation-circle"></i> Issues Detected</h3>
                         <div id="issuesList" class="issues-list"></div>
@@ -2306,7 +2317,7 @@
                 <div id="adminLitigatorsTabContent" class="admin-tab-content">
                     <!-- Admin Metrics Overview Cards -->
                     <div class="admin-stats-grid u-is-140">
-                        
+
                         <div class="admin-stat-card">
                             <div class="u-is-141">
                                 <span class="u-is-142">Total Litigators</span>
@@ -2710,7 +2721,8 @@
                                         <div class="u-is-209">30-day notice, 15-day cure, S.141 director vicarious
                                             liability</div>
                                     </div>
-                                    <span class="status-badge-active"><i class="fas fa-circle-check"></i> OPERATIONAL</span>
+                                    <span class="status-badge-active"><i class="fas fa-circle-check"></i>
+                                        OPERATIONAL</span>
                                 </div>
 
                                 <div class="u-is-207">
@@ -3062,7 +3074,7 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <div id="adminAccountDetailsModal" class="modal-overlay hidden u-is-259">
             <div class="modal-container u-is-260">
-                
+
                 <!-- Modal Header -->
                 <div class="modal-header u-is-261">
                     <div class="u-is-128">
@@ -3399,7 +3411,10 @@
                         upon it.</strong></p>
 
                 <h3>6. Governing Law & Dispute Resolution</h3>
-                <p>These Terms of Service shall be governed by and construed in accordance with the laws of India, without regard to its conflict of law principles. Any dispute arising out of or in connection with these Terms shall be subject to the exclusive jurisdiction of the courts located in New Delhi, India.</p>
+                <p>These Terms of Service shall be governed by and construed in accordance with the laws of India,
+                    without regard to its conflict of law principles. Any dispute arising out of or in connection with
+                    these Terms shall be subject to the exclusive jurisdiction of the courts located in New Delhi,
+                    India.</p>
 
                 <h3>7. Contact Us</h3>
                 <p>If you have any questions or feedback regarding these Terms, please contact us at <strong>legal@judiq.ai</strong>.</p>
@@ -3617,7 +3632,8 @@
                                 receipts.</p>
 
                             <h4>3. Step 3: Evidentiary Verification</h4>
-                            <p>Specify transaction histories and confirm that the statutory 15-day notice period was given before proceeding with case filing.</p>
+                            <p>Specify transaction histories and confirm that the statutory 15-day notice period was
+                                given before proceeding with case filing.</p>
                         </div>
 
                         <!-- Legal Drafting Pane -->
@@ -3949,7 +3965,10 @@
 
                 <h4 class="u-is-411">3. Case Versioning, Snapshot Archiving & Advocate Work-Product</h4>
                 <p>
-                    All case intake records, evidentiary attachments, versioned snapshots (`v1`, `v2`, `v3`...), and strategy memos saved by licensed practitioners remain the exclusive intellectual property and confidential work-product of the subscribing advocate/firm. Data is encrypted using AES-256 military-grade standards and replicated in private Firestore cloud vaults.
+                    All case intake records, evidentiary attachments, versioned snapshots (`v1`, `v2`, `v3`...), and
+                    strategy memos saved by licensed practitioners remain the exclusive intellectual property and
+                    confidential work-product of the subscribing advocate/firm. Data is encrypted using AES-256
+                    military-grade standards and replicated in private Firestore cloud vaults.
                 </p>
 
                 <h4 class="u-is-411">4. Professional Vetting Requirement</h4>
@@ -4298,7 +4317,8 @@
                         <h2>Register Client Profile</h2>
                         <p>Store corporate KYC, tax identifiers, and official communication channels.</p>
                     </div>
-                    <button class="btn btn-outline" onclick="showClientList()"><i class="fas fa-times"></i> Cancel</button>
+                    <button class="btn btn-outline" onclick="showClientList()"><i class="fas fa-times"></i>
+                        Cancel</button>
                 </div>
 
                 <form id="clientCreateForm" class="cms-form-card">
@@ -4582,10 +4602,12 @@
                     <i class="fas fa-shield-halved u-is-423"></i>
                     <div>
                         <h3 class="u-is-424">PRIVACY & DATA PROTECTION POLICY</h3>
-                        <span class="u-is-407">Compliant with the Digital Personal Data Protection Act (DPDP), 2023</span>
+                        <span class="u-is-407">Compliant with the Digital Personal Data Protection Act (DPDP),
+                            2023</span>
                     </div>
                 </div>
-                <button class="u-is-408" type="button" onclick="window.closeLegalModal('privacyPolicyModal')">&times;</button>
+                <button class="u-is-408" type="button"
+                    onclick="window.closeLegalModal('privacyPolicyModal')">&times;</button>
             </div>
             <div class="u-is-409">
                 <h4 class="u-is-425">1. Zero Data Reselling & Confidentiality</h4>
