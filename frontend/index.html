@@ -101,15 +101,24 @@
                     <button class="mobile-nav-close-btn" onclick="toggleMobileNav(false)">&times;</button>
                 </div>
                 <div class="mobile-nav-links">
-                    <a href="#featuresSection" onclick="toggleMobileNav(false)" data-i18n="nav_features"><i class="fas fa-microchip"></i> Features</a>
-                    <a href="#strategySimulatorSection" onclick="toggleMobileNav(false)" data-i18n="nav_simulator"><i class="fas fa-sliders"></i> Simulator</a>
-                    <a href="#readinessSection" onclick="toggleMobileNav(false)" data-i18n="nav_readiness"><i class="fas fa-list-check"></i> Readiness</a>
-                    <a href="#pricingSection" onclick="toggleMobileNav(false)" data-i18n="nav_pricing"><i class="fas fa-tags"></i> Pricing</a>
-                    <a href="#aboutUsSection" onclick="toggleMobileNav(false)" data-i18n="nav_about"><i class="fas fa-info-circle"></i> About</a>
-                    <a href="#testimonialsSection" onclick="toggleMobileNav(false)" data-i18n="nav_testimonials"><i class="fas fa-comments"></i> Testimonials</a>
-                    <a href="#faqSection" onclick="toggleMobileNav(false)" data-i18n="nav_faq"><i class="fas fa-circle-question"></i> FAQ</a>
-                    <a href="#contactSection" onclick="toggleMobileNav(false)" data-i18n="nav_contact"><i class="fas fa-envelope"></i> Contact</a>
-                    <a href="#" onclick="toggleMobileNav(false); openLegalModal('documentationModal', event)" data-i18n="nav_docs"><i class="fas fa-book"></i> Docs</a>
+                    <a href="#featuresSection" onclick="toggleMobileNav(false)" data-i18n="nav_features"><i
+                            class="fas fa-microchip"></i> Features</a>
+                    <a href="#strategySimulatorSection" onclick="toggleMobileNav(false)" data-i18n="nav_simulator"><i
+                            class="fas fa-sliders"></i> Simulator</a>
+                    <a href="#readinessSection" onclick="toggleMobileNav(false)" data-i18n="nav_readiness"><i
+                            class="fas fa-list-check"></i> Readiness</a>
+                    <a href="#pricingSection" onclick="toggleMobileNav(false)" data-i18n="nav_pricing"><i
+                            class="fas fa-tags"></i> Pricing</a>
+                    <a href="#aboutUsSection" onclick="toggleMobileNav(false)" data-i18n="nav_about"><i
+                            class="fas fa-info-circle"></i> About</a>
+                    <a href="#testimonialsSection" onclick="toggleMobileNav(false)" data-i18n="nav_testimonials"><i
+                            class="fas fa-comments"></i> Testimonials</a>
+                    <a href="#faqSection" onclick="toggleMobileNav(false)" data-i18n="nav_faq"><i
+                            class="fas fa-circle-question"></i> FAQ</a>
+                    <a href="#contactSection" onclick="toggleMobileNav(false)" data-i18n="nav_contact"><i
+                            class="fas fa-envelope"></i> Contact</a>
+                    <a href="#" onclick="toggleMobileNav(false); openLegalModal('documentationModal', event)"
+                        data-i18n="nav_docs"><i class="fas fa-book"></i> Docs</a>
                 </div>
                 <div class="mobile-nav-actions">
                     
@@ -379,7 +388,8 @@
             <section id="readinessSection" class="readiness-section reveal-on-scroll">
                 <div class="section-heading">
                     <h2>Litigation Readiness Suite</h2>
-                    <p>Prepare your filings with absolute certainty using our interactive court checklists and landmark precedent lookup.</p>
+                    <p>Prepare your filings with absolute certainty using our interactive court checklists and landmark
+                        precedent lookup.</p>
                 </div>
                 <div class="readiness-grid">
                     <!-- Column 1: Document Checklist -->
@@ -612,7 +622,8 @@
                                     <div class="module-card-icon"><i class="fas fa-vault"></i></div>
                                     <div class="module-card-info">
                                         <h4>Bank &amp; Commercial Debt Recovery (IBC / Order 37)</h4>
-                                        <p>Order 37 CPC summary suits, IBC Section 7/9 insolvency triggers, balance confirmations &amp; limitation extension tracking.</p>
+                                        <p>Order 37 CPC summary suits, IBC Section 7/9 insolvency triggers, balance
+                                            confirmations &amp; limitation extension tracking.</p>
                                     </div>
                                     <div class="module-quota-pill">10 Cases / mo</div>
                                 </div>
@@ -854,7 +865,7 @@
                                 <i class="fas fa-envelope"></i>
                                 <div>
                                     <h4>Email Support</h4>
-                                    <p>support@judiq.ai</p>
+                                    <p style="min-height: 1.2rem;"></p>
                                 </div>
                             </div>
                             <div class="contact-card">
@@ -1081,75 +1092,6 @@
 
                     <div class="auth-footer">
                         <p>Already have an account? <a href="#" id="showLogin">Sign in</a></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Role Selection Screen -->
-        <div id="roleScreen" class="auth-screen hidden">
-            <div class="role-container">
-                <div class="role-header">
-                    <h2>Choose Your Role</h2>
-                    <p>Select how you'll be using JUDIQ AI</p>
-                </div>
-                
-                <div class="role-grid">
-                    <div class="role-card role-card-featured" data-role="law_firm">
-                        <div class="role-badge">Popular</div>
-                        <div class="role-icon">
-                            <i class="fas fa-balance-scale-right"></i>
-                        </div>
-                        <h3>Law Firm Partner</h3>
-                        <p>Adversarial simulation, attack graphs, and cross-exam vectors</p>
-                        <ul class="role-features">
-                            <li><i class="fas fa-check"></i> Opponent Attack Simulation</li>
-                            <li><i class="fas fa-check"></i> Judge Challenge Prediction</li>
-                            <li><i class="fas fa-check"></i> Survivability Graph</li>
-                        </ul>
-                        <button class="btn btn-primary" onclick="selectRole('law_firm')">Select</button>
-                    </div>
-                    
-                    <div class="role-card" data-role="in_house">
-                        <div class="role-icon">
-                            <i class="fas fa-building"></i>
-                        </div>
-                        <h3>In-House Counsel</h3>
-                        <p>Evaluate litigation risk and trial economics before proceeding</p>
-                        <ul class="role-features">
-                            <li><i class="fas fa-check"></i> Settlement Probability</li>
-                            <li><i class="fas fa-check"></i> Trial Economics</li>
-                            <li><i class="fas fa-check"></i> Strategic Audit</li>
-                        </ul>
-                        <button class="btn btn-outline" onclick="selectRole('in_house')">Select</button>
-                    </div>
-                    
-                    <div class="role-card" data-role="corporate_legal">
-                        <div class="role-icon">
-                            <i class="fas fa-users-cog"></i>
-                        </div>
-                        <h3>Corporate Legal Team</h3>
-                        <p>Scale weakness detection and standardize litigation strategy</p>
-                        <ul class="role-features">
-                            <li><i class="fas fa-check"></i> Batch Risk Assessment</li>
-                            <li><i class="fas fa-check"></i> Legal Triage</li>
-                            <li><i class="fas fa-check"></i> Document Review</li>
-                        </ul>
-                        <button class="btn btn-outline" onclick="selectRole('corporate_legal')">Select</button>
-                    </div>
-                    
-                    <div class="role-card" data-role="research">
-                        <div class="role-icon">
-                            <i class="fas fa-search"></i>
-                        </div>
-                        <h3>Legal Research Team</h3>
-                        <p>Access semantic and precedential analysis of case facts</p>
-                        <ul class="role-features">
-                            <li><i class="fas fa-check"></i> Precedent Alignment</li>
-                            <li><i class="fas fa-check"></i> Statutory Interpretation</li>
-                            <li><i class="fas fa-check"></i> Case Summarization</li>
-                        </ul>
-                        <button class="btn btn-outline" onclick="selectRole('research')">Select</button>
                     </div>
                 </div>
             </div>
@@ -1727,7 +1669,7 @@
                         <!-- Row 3: Matched Precedents -->
                         <div class="result-card rl-card u-is-77">
                             <div class="rl-card-header">
-                                <div class="rl-icon-wrap rl-purple"><i class="fas fa-chart-pie"></i></div>
+                                <div class="rl-icon-wrap rl-teal"><i class="fas fa-landmark"></i></div>
                                 <div>
                                     <h4>Outcome Prediction</h4>
                                     <p class="card-subtitle">AI-assessed probability</p>
@@ -2349,7 +2291,7 @@
                         </p>
                     </div>
                     <div class="u-is-135">
-                        
+
                         <button class="btn btn-outline u-is-137" onclick="openBulkBonusModal()">
                             <i class="fas fa-gift"></i> <span>Grant Bonus Credits</span>
                         </button>
@@ -2760,7 +2702,8 @@
                                         <input class="u-is-198" type="radio" name="adminLlmModel" value="deterministic">
                                         <div>
                                             <div class="u-is-199">Pure Deterministic Rule Engine</div>
-                                            <div class="u-is-200">Zero-hallucination fallback using strict statutory graph matrices</div>
+                                            <div class="u-is-200">Zero-hallucination fallback using strict statutory
+                                                graph matrices</div>
                                         </div>
                                     </div>
                                     <span class="badge u-is-203">FAILSAFE</span>
@@ -3118,8 +3061,11 @@
                     <form id="bulkBonusForm" onsubmit="submitBulkBonus(event)">
                         <div class="u-is-14">
                             <label class="u-is-246">Bonus Report Credits to Add *</label>
-                            <input type="number" id="bulkBonusAmount" aria-label="Bonus Report Credits to Add" title="Bonus Report Credits to Add" placeholder="10" required value="10" min="1" max="1000" class="bank-input-text u-is-256">
-                            <p class="u-is-257">This will increase the monthly limit of every active account by this amount in 1 click.</p>
+                            <input type="number" id="bulkBonusAmount" aria-label="Bonus Report Credits to Add"
+                                title="Bonus Report Credits to Add" placeholder="10" required value="10" min="1"
+                                max="1000" class="bank-input-text u-is-256">
+                            <p class="u-is-257">This will increase the monthly limit of every active account by this
+                                amount in 1 click.</p>
                         </div>
 
                         <div class="u-is-217">
@@ -3467,7 +3413,8 @@
                     to loss of profits, data, legal standing, or adverse court outcomes resulting from:</p>
                 <ul>
                     <li>Your use or inability to use the platform.</li>
-                    <li>Any legal outcomes, judgments, default orders, or settlements resulting from strategies or drafts generated by the platform.</li>
+                    <li>Any legal outcomes, judgments, default orders, or settlements resulting from strategies or
+                        drafts generated by the platform.</li>
                     <li>Errors, omissions, or "hallucinations" present in the AI-generated analysis.</li>
                 </ul>
                 <p><strong>You are solely responsible for reviewing and verifying all AI-generated output before relying upon it.</strong></p>
@@ -3682,8 +3629,9 @@
                             </p>
 
                             <h4>1. Step 1: Core Litigation Facts</h4>
-                            <p>Select case classifications, fill in filing dates, court names, and basic details. Correct date indexing is crucial for calculating statute limitation periods.</p>
-                            
+                            <p>Select case classifications, fill in filing dates, court names, and basic details.
+                                Correct date indexing is crucial for calculating statute limitation periods.</p>
+
                             <h4>2. Step 2: Smart Document Upload</h4>
                             <p>Upload document scans. The built-in OCR scans for matching cheque amounts, bank dishonour reasons (e.g. signature mismatch, insufficient funds), and demand notice postal delivery receipts.</p>
                             
@@ -4001,7 +3949,11 @@
 
                 <h4 class="u-is-411">1. Nature of Platform & Non-Advocate Regulatory Classification</h4>
                 <p>
-                    JudiQ AI is an advanced algorithmic litigation intelligence, statutory audit, and decision-support software platform operated under Section 79 of the Information Technology Act, 2000. JudiQ AI is <strong>not a law firm</strong> and does not provide legal representation. Use of the software does not create an advocate-client relationship as governed by the <em>Advocates Act, 1961</em> or Bar Council of India regulations.
+                    JudiQ AI is an advanced algorithmic litigation intelligence, statutory audit, and decision-support
+                    software platform operated under Section 79 of the Information Technology Act, 2000. JudiQ AI is
+                    <strong>not a law firm</strong> and does not provide legal representation. Use of the software does
+                    not create an advocate-client relationship as governed by the <em>Advocates Act, 1961</em> or Bar
+                    Council of India regulations.
                 </p>
 
                 <h4 class="u-is-411">2. Automated Statutory Legal Analysis Engines</h4>
@@ -4330,7 +4282,10 @@
                 <div class="cms-filter-bar">
                     <div class="cms-search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="clientSearchInput" placeholder="Search clients by name, email, or client ID..." aria-label="Search Clients By Name, Email, Or Client  I D..." title="Search Clients By Name, Email, Or Client  I D...">
+                        <input type="text" id="clientSearchInput"
+                            placeholder="Search clients by name, email, or client ID..."
+                            aria-label="Search Clients By Name, Email, Or Client  I D..."
+                            title="Search Clients By Name, Email, Or Client  I D...">
                     </div>
                 </div>
 
@@ -4618,7 +4573,10 @@
                 </div>
                 <div class="form-group">
                     <label>Certificate Preview</label>
-                    <textarea id="s65bTemplatePreview" class="cms-textarea-large u-is-421" readonly aria-label="Section 65B Electronic Evidence Certificate Preview" title="Section 65B Electronic Evidence Certificate Preview" placeholder="Section 65B certificate template preview will appear here..."></textarea>
+                    <textarea id="s65bTemplatePreview" class="cms-textarea-large u-is-421" readonly
+                        aria-label="Section 65B Electronic Evidence Certificate Preview"
+                        title="Section 65B Electronic Evidence Certificate Preview"
+                        placeholder="Section 65B certificate template preview will appear here..."></textarea>
                 </div>
             </div>
             <div class="cms-modal-footer">
