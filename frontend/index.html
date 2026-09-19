@@ -55,7 +55,7 @@
 
     <!-- Main Container -->
     <div id="app" class="app-container">
-        
+
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- LANDING PAGE SECTION -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -339,7 +339,8 @@
                         <h3>Compliance Calculator</h3>
                         <div class="form-group">
                             <label for="sandboxMemoDate">Bank Dishonour Memo Date</label>
-                            <input type="date" id="sandboxMemoDate" value="2026-06-01" onchange="calculateSandboxTimelines()">
+                            <input type="date" id="sandboxMemoDate" value="2026-06-01"
+                                onchange="calculateSandboxTimelines()">
                         </div>
                         <div class="form-group">
                             <label for="sandboxNoticeDate">Demand Notice Delivery Date</label>
@@ -581,7 +582,9 @@
                                         <p>S.482 / BNSS 528 quashing analysis, Bhajan Lal guidelines compliance, charge
                                             discharge petitions &amp; cross-case defense strategies.</p>
                                     </div>
-                                    <div class="module-quota-pill">10 Cases / mo</div>
+                                    <div class="module-quota-pill"
+                                        style="background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.35); font-weight: 700;">
+                                        Coming Soon</div>
                                 </div>
                             </label>
 
@@ -800,7 +803,8 @@
                             </div>
                         </div>
                     </a>
-                    <a href="#" class="blog-card" onclick="event.preventDefault(); if (window.ui) { window.ui.toast('Resource opening soon!', 'info'); }">
+                    <a href="#" class="blog-card"
+                        onclick="event.preventDefault(); if (window.ui) { window.ui.toast('Resource opening soon!', 'info'); }">
                         <div class="blog-image">
                             <i class="fas fa-project-diagram"></i>
                             <span class="blog-badge">RAG Pipeline</span>
@@ -1031,10 +1035,14 @@
 
                         <!-- Domain Picker — Select primary legal specialization or full access -->
                         <div class="domain-picker-section">
-                            <div class="domain-picker-label">Select Your Legal Specialization or Full Access <span class="u-is-21">*</span></div>
-                            <div class="domain-picker u-is-42" id="domainPickerGrid" style="grid-template-columns: 1fr;">
-                                <div class="domain-card selected--ni" id="domainCard_ni" onclick="selectRegisterDomain('ni_act')">
-                                    <span class="dc-check" id="domainCheck_ni" style="display:inline-block;"><i class="fas fa-check"></i></span>
+                            <div class="domain-picker-label">Select Your Legal Specialization or Full Access <span
+                                    class="u-is-21">*</span></div>
+                            <div class="domain-picker u-is-42" id="domainPickerGrid"
+                                style="grid-template-columns: 1fr;">
+                                <div class="domain-card selected--ni" id="domainCard_ni"
+                                    onclick="selectRegisterDomain('ni_act')">
+                                    <span class="dc-check" id="domainCheck_ni" style="display:inline-block;"><i
+                                            class="fas fa-check"></i></span>
                                     <span class="dc-icon">⚖️</span>
                                     <span class="dc-title">NI Act — Section 138 Litigation Intelligence</span>
                                     <span class="dc-sub">Cheque Dishonour, Statutory Limitation, S.139 Presumptions, S.141 Vicarious Liability &amp; S.143A Interim Compensation</span>
@@ -1493,7 +1501,8 @@
                     <button class="tab-button" data-tab="strategy" onclick="switchResultTab('strategy')">
                         <i class="fas fa-chess"></i> Strategy
                     </button>
-                    <button class="tab-button tab-button--cta u-is-73" data-tab="draft" onclick="switchResultTab('draft')">
+                    <button class="tab-button tab-button--cta u-is-73" data-tab="draft"
+                        onclick="switchResultTab('draft')">
                         <i class="fas fa-file-contract"></i> Generate Draft
                     </button>
                 </div>
@@ -2181,7 +2190,7 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- REPORT VIEWER SECTION -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        
+
         <div id="reportScreen" class="main-screen hidden">
             <nav class="top-nav no-print">
                 <div class="nav-brand">
@@ -2547,7 +2556,8 @@
                         <div class="u-is-175">
                             <div>
                                 <h2 class="u-is-151">Institutional Bank Officers &amp; Branch Allocations</h2>
-                                <p class="u-is-152">Manage recovery cell branches, assign monthly statutory audit allowances, or suspend bank access.</p>
+                                <p class="u-is-152">Manage recovery cell branches, assign monthly statutory audit
+                                    allowances, or suspend bank access.</p>
                             </div>
                             <div class="u-is-1">
                                 <div class="search-input-wrapper u-is-155">
@@ -2970,7 +2980,8 @@
                             </div>
                             <div>
                                 <label class="u-is-246">Initial Plan Status</label>
-                                <select id="newLitigatorStatus" class="bank-input-select u-is-247" aria-label="Initial Plan Status" title="Initial Plan Status">
+                                <select id="newLitigatorStatus" class="bank-input-select u-is-247"
+                                    aria-label="Initial Plan Status" title="Initial Plan Status">
                                     <option value="APPROVED">APPROVED (Active &amp; Ready)</option>
                                     <option value="PENDING_APPROVAL">PENDING_APPROVAL (Locked)</option>
                                 </select>
@@ -3341,7 +3352,8 @@
                 <h3>2. User Accounts & Responsibilities</h3>
                 <p>To use our services, you must register a user account. You represent and warrant that:</p>
                 <ul>
-                    <li>You are a qualified legal professional, or are using the platform under the direct supervision of one.</li>
+                    <li>You are a qualified legal professional, or are using the platform under the direct supervision
+                        of one.</li>
                     <li>You are solely responsible for maintaining the confidentiality of your account credentials.</li>
                     <li>You possess all necessary rights, client consents under the DPDP Act (2023), and legal authority to upload the case data and documents you input into the system. You agree to indemnify JUDIQ AI against any DPDP or privacy claims arising from unauthorized data uploads.</li>
                 </ul>
@@ -3510,7 +3522,8 @@
 
                     <div class="form-group u-is-14">
                         <label class="u-is-346" for="changePassConfirm">Confirm New Password</label>
-                        <input class="u-is-347" type="password" id="changePassConfirm" required minlength="6" autocomplete="new-password">
+                        <input class="u-is-347" type="password" id="changePassConfirm" required minlength="6"
+                            autocomplete="new-password">
                     </div>
 
                     <button type="submit" class="btn btn-outline u-is-348">Update Password Immediately</button>
@@ -3837,7 +3850,7 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- MODAL: CASE VERSION HISTORY & TIMELINE -->
+    <!-- MODAL: SECURE PASSWORD CHALLENGE FOR PROTECTED REPORT          -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
     <div id="versionHistoryModal" class="modal-overlay hidden u-is-385">
         <div class="modal-card u-is-397">
@@ -4149,7 +4162,10 @@
                             <h4><i class="fas fa-align-left"></i> 4. Summary & Context</h4>
                             <div class="form-group">
                                 <label>Case Notes / Factual Background</label>
-                                <textarea id="ccDescription" class="form-control" rows="3" placeholder="Enter background facts, loan agreement numbers, collateral notes..." aria-label="Enter Background Facts, Loan Agreement Numbers, Collateral Notes..." title="Enter Background Facts, Loan Agreement Numbers, Collateral Notes..."></textarea>
+                                <textarea id="ccDescription" class="form-control" rows="3"
+                                    placeholder="Enter background facts, loan agreement numbers, collateral notes..."
+                                    aria-label="Enter Background Facts, Loan Agreement Numbers, Collateral Notes..."
+                                    title="Enter Background Facts, Loan Agreement Numbers, Collateral Notes..."></textarea>
                             </div>
                         </div>
                     </div>
@@ -4457,7 +4473,8 @@
                     onclick="this.closest('.cms-modal-overlay').classList.add('hidden')">&times;</button>
             </div>
             <div class="cms-modal-body">
-                <textarea id="draftModalEditor" class="cms-textarea-large" aria-label="Legal Draft Content Editor" title="Legal Draft Content Editor" placeholder="Edit legal draft text here..."></textarea>
+                <textarea id="draftModalEditor" class="cms-textarea-large" aria-label="Legal Draft Content Editor"
+                    title="Legal Draft Content Editor" placeholder="Edit legal draft text here..."></textarea>
                 <div class="u-is-32" id="draftModalComments"></div>
             </div>
             <div class="cms-modal-footer">
