@@ -7,7 +7,8 @@
         content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com https://*.googleapis.com https://*.firebaseio.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 ws://localhost:8000 wss://* https://*; frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://*.google.com;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>JudiQ – AI Litigation Strategist</title>
-    <meta name="description" content="JudiQ AI Litigation Strategist finds legal weaknesses before the courtroom does. Simulate opponent attacks and predict judge challenges.">
+    <meta name="description"
+        content="JudiQ AI Litigation Strategist finds legal weaknesses before the courtroom does. Simulate opponent attacks and predict judge challenges.">
     <meta property="og:title" content="JudiQ – AI Litigation Strategist">
     <meta property="og:description" content="Adversarial litigation simulation, weakness detection, and courtroom strategy for law firms and in-house counsel.">
     <!-- DNS prefetch & preconnect for performance -->
@@ -286,7 +287,8 @@
                                     <span>Cheque Issued as Security</span>
                                 </label>
                                 <label class="sim-toggle-item">
-                                    <input type="checkbox" id="sim65BCheck" checked onchange="recalculateSimulatorScore()">
+                                    <input type="checkbox" id="sim65BCheck" checked
+                                        onchange="recalculateSimulatorScore()">
                                     <span>Sec. 65B Electronic Proof Present</span>
                                 </label>
                             </div>
@@ -543,7 +545,9 @@
                                         <p>30-day notice audit, 15-day cure window clock, S.141 director liability,
                                             S.143A 20% interim deposit &amp; notice drafting.</p>
                                     </div>
-                                    <div class="module-quota-pill">10 Cases / mo</div>
+                                    <div class="module-quota-pill"
+                                        style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35); font-weight: 700; font-size: 0.95rem;">
+                                        Active • ∞</div>
                                 </div>
                             </label>
 
@@ -721,7 +725,8 @@
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
-                            <p>You can start analyzing cases immediately by clicking 'Get Started' or loading one of our pre-configured Section 138 demo cases. No installation or complex setup is required.</p>
+                            <p>You can start analyzing cases immediately by clicking 'Get Started' or loading one of our
+                                pre-configured Section 138 demo cases. No installation or complex setup is required.</p>
                         </div>
                     </div>
                     <div class="faq-item">
@@ -968,17 +973,6 @@
                         </button>
                     </form>
 
-                    <div class="u-is-36">
-                        <div class="u-is-37">
-                            <div class="u-is-38"></div>
-                            <span class="u-is-39">Or Instant Demo</span>
-                            <div class="u-is-38"></div>
-                        </div>
-                        <button type="button" class="btn btn-secondary btn-full u-is-40" onclick="window.loginAsGuest('all')">
-                            <i class="fas fa-bolt u-is-41"></i> Instant Advocate Access (One-Click)
-                        </button>
-                    </div>
-                    
                     <div class="auth-footer">
                         <p>Don't have an account? <a href="#" id="showRegister">Create one</a></p>
                     </div>
@@ -1398,10 +1392,8 @@
                 <div class="wizard-content">
                     <div class="wizard-header">
                         <div class="u-is-65">
-                            <div class="step-badge">Section <span id="stepBadgeNumber">1</span> of <span id="totalBadgeNumber">9</span></div>
-                            <button type="button" class="btn btn-outline btn-sm u-is-66" onclick="window.loadSampleCaseData()">
-                                <i class="fas fa-magic"></i> Auto-Fill Demo Case
-                            </button>
+                            <div class="step-badge">Section <span id="stepBadgeNumber">1</span> of <span
+                                    id="totalBadgeNumber">9</span></div>
                         </div>
                         <h2 id="wizardTitle">Case Information</h2>
                         <p id="wizardSubtitle">Provide case details for strategic profiling</p>
@@ -1974,7 +1966,7 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- DRAFT GENERATOR SECTION -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        
+
         <div id="draftScreen" class="main-screen hidden">
             <nav class="top-nav">
                 <div class="nav-brand u-is-8">
@@ -2437,7 +2429,8 @@
                                     Pending Modular Subscription Approvals
                                 </h2>
                                 <p class="u-is-152">
-                                    Review submitted modular plans. <strong>No case analysis or draft generation is permitted</strong> for these accounts until approved by an administrator.
+                                    Review submitted modular plans. <strong>No case analysis or draft generation is
+                                        permitted</strong> for these accounts until approved by an administrator.
                                 </p>
                             </div>
                             <button class="btn btn-outline btn-sm u-is-160" onclick="loadAdminPendingPlans()">
@@ -2860,7 +2853,8 @@
                         <div class="u-is-235">
                             <div>
                                 <h3 class="u-is-184">Cryptographic Audit Trail Stream</h3>
-                                <p class="u-is-185">Immutable, tamper-proof record of all analysis executions and administrative mutations.</p>
+                                <p class="u-is-185">Immutable, tamper-proof record of all analysis executions and
+                                    administrative mutations.</p>
                             </div>
                             <div class="u-is-236">
                                 <button class="btn btn-outline btn-sm u-is-160" onclick="exportAdminAuditLogs('json')">
@@ -3265,7 +3259,8 @@
                     litigation services:</p>
                 <ul>
                     <li>To generate courtroom strategy and auto-draft legal notices.</li>
-                    <li><strong>Strict AI Isolation:</strong> We <em>do not</em> use your confidential case data or personal data to train our global AI models. Your workspace data remains siloed.</li>
+                    <li><strong>Strict AI Isolation:</strong> We <em>do not</em> use your confidential case data or
+                        personal data to train our global AI models. Your workspace data remains siloed.</li>
                 </ul>
 
                 <h3>3. Data Principals' Rights (DPDP Act)</h3>
@@ -3438,7 +3433,7 @@
                 </form>
 
                 <h3 class="u-is-339">Security &amp; Credentials</h3>
-                
+
                 <div class="u-is-340">
                     <div class="u-is-341">
                         <div>
@@ -3664,7 +3659,8 @@
                         <div class="command-item-icon"><i class="fas fa-copy"></i></div>
                         <div>
                             <div class="command-item-title">Copy Strategy Audit to Clipboard</div>
-                            <div class="command-item-desc">Export formatted Markdown strategy memo for legal briefs</div>
+                            <div class="command-item-desc">Export formatted Markdown strategy memo for legal briefs
+                            </div>
                         </div>
                     </div>
                     <span class="command-shortcut-hint">Copy</span>
@@ -4019,7 +4015,9 @@
                             </div>
                             <div class="form-group">
                                 <label>Accused / Borrower Name</label>
-                                <input type="text" id="ccDebtorName" class="form-control" placeholder="e.g. Ramesh Sharma" aria-label="E.G.  Ramesh  Sharma" title="E.G.  Ramesh  Sharma">
+                                <input type="text" id="ccDebtorName" class="form-control"
+                                    placeholder="e.g. Ramesh Sharma" aria-label="E.G.  Ramesh  Sharma"
+                                    title="E.G.  Ramesh  Sharma">
                             </div>
                             <div class="form-group">
                                 <label>Designated Court / Forum</label>
@@ -4302,7 +4300,10 @@
                             </tr>
                         </thead>
                         <tbody id="auditTrailTableBody">
-                            <tr><td colspan="6" class="cms-table-loading"><i class="fas fa-spinner fa-spin"></i> Loading audit logs...</td></tr>
+                            <tr>
+                                <td colspan="6" class="cms-table-loading"><i class="fas fa-spinner fa-spin"></i> Loading
+                                    audit logs...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -4495,6 +4496,5 @@
     <!-- Main Application Script (ES6 Module) -->
     <script type="module" src="js/main.js?v=28"></script>
 </body>
+
 </html>
-
-
