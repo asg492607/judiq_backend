@@ -61,10 +61,6 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <div id="landingScreen" class="landing-screen">
             <header class="landing-header">
-                <div class="landing-logo u-is-1" onclick="switchScreen('landingScreen')" style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                    <img src="favicon.svg" alt="JudiQ Emblem" width="32" height="32" class="brand-emblem-svg">
-                    <span data-i18n="brand_name" class="brand-name-serif u-is-2">JUDIQ AI</span>
-                </div>
                 <div class="landing-nav-links">
                     <a href="#featuresSection" data-i18n="nav_features">Features</a>
                     <a href="#strategySimulatorSection" data-i18n="nav_simulator">Simulator</a>
@@ -344,7 +340,8 @@
                         </div>
                         <div class="form-group">
                             <label for="sandboxNoticeDate">Demand Notice Delivery Date</label>
-                            <input type="date" id="sandboxNoticeDate" value="2026-06-15" onchange="calculateSandboxTimelines()">
+                            <input type="date" id="sandboxNoticeDate" value="2026-06-15"
+                                onchange="calculateSandboxTimelines()">
                         </div>
                     </div>
                     <div class="sandbox-results-panel">
@@ -589,8 +586,9 @@
                             </label>
 
                             <!-- Module 4: Civil & Specific Relief -->
-                            <label class="module-choice-card" data-module="civil">
-                                <input type="checkbox" name="legal_module" value="civil" onchange="updateModularPricing()">
+                            <label class="module-choice-card module-coming-soon" data-module="civil"
+                                style="pointer-events: none; opacity: 0.6; cursor: not-allowed;">
+                                <input type="checkbox" name="legal_module" value="civil" disabled>
                                 <div class="module-card-body">
                                     <div class="module-card-icon"><i class="fas fa-scale-balanced"></i></div>
                                     <div class="module-card-info">
@@ -811,7 +809,8 @@
                         </div>
                         <div class="blog-content">
                             <h3>Securing Case Confidentiality with RAG Architectures</h3>
-                            <p>An in-depth look at retrieval-augmented generation models and how they protect sensitive litigation documents from training leaks.</p>
+                            <p>An in-depth look at retrieval-augmented generation models and how they protect sensitive
+                                litigation documents from training leaks.</p>
                             <div class="blog-footer">
                                 <div><i class="far fa-calendar-alt"></i> June 10, 2026</div>
                                 <div><i class="far fa-clock"></i> 8 min read</div>
@@ -1045,10 +1044,12 @@
                                             class="fas fa-check"></i></span>
                                     <span class="dc-icon">⚖️</span>
                                     <span class="dc-title">NI Act — Section 138 Litigation Intelligence</span>
-                                    <span class="dc-sub">Cheque Dishonour, Statutory Limitation, S.139 Presumptions, S.141 Vicarious Liability &amp; S.143A Interim Compensation</span>
+                                    <span class="dc-sub">Cheque Dishonour, Statutory Limitation, S.139 Presumptions,
+                                        S.141 Vicarious Liability &amp; S.143A Interim Compensation</span>
                                 </div>
                             </div>
-                            <div class="domain-picker-error" id="domainPickerError">Please select your legal domain to continue.</div>
+                            <div class="domain-picker-error" id="domainPickerError">Please select your legal domain to
+                                continue.</div>
                             <input type="hidden" id="registerDomain" value="ni_act">
                         </div>
 
@@ -1506,10 +1507,10 @@
                         <i class="fas fa-file-contract"></i> Generate Draft
                     </button>
                 </div>
-                
-                
-                
-                
+
+
+
+
 
 
                 <!-- ADVOCATE-GRADE FATAL ALERTS -->
@@ -2231,6 +2232,34 @@
         </div>
 
         <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- SCREEN: FORMAL SHARED REPORT (EXECUTIVE READ-ONLY VIEWER)       -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div id="sharedReportScreen" class="main-screen hidden" style="background:#f8fafc; min-height:100vh; padding-bottom:4rem;">
+            <nav class="top-nav no-print" style="background:#ffffff; border-bottom:1px solid #e2e8f0; position:sticky; top:0; z-index:1000; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1.5rem;">
+                <div class="nav-brand" style="display:flex; align-items:center; gap:0.75rem;">
+                    <span class="brand-title" style="font-weight:900; font-size:1.2rem; color:#0f172a; letter-spacing:0.05em; font-family:'Cinzel',serif;">JUDIQ AI</span>
+                    <span style="background:rgba(16,185,129,0.1); color:#059669; border:1px solid rgba(16,185,129,0.3); font-size:0.7rem; font-weight:700; padding:0.2rem 0.6rem; border-radius:9999px; text-transform:uppercase; letter-spacing:0.05em;">
+                        <i class="fas fa-shield-alt"></i> Verified Counsel Report (Read-Only)
+                    </span>
+                </div>
+                <div class="nav-actions" style="display:flex; align-items:center; gap:0.6rem;">
+                    <button class="btn btn-outline btn-sm" onclick="window.print()" style="font-weight:600;">
+                        <i class="fas fa-print"></i> Print Memo
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="window.downloadSharedPDF()" id="sharedPdfDownloadBtn" style="font-weight:700;">
+                        <i class="fas fa-download"></i> Download PDF
+                    </button>
+                </div>
+            </nav>
+
+            <div style="max-width:980px; margin:2rem auto; padding:0 1.25rem;">
+                <div id="sharedReportContainer" class="formal-report-paper" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:0.75rem; box-shadow:0 10px 30px -5px rgba(0,0,0,0.07); padding:2.5rem 3rem;">
+                    <!-- Rendered dynamically by window.renderSharedReportView -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- ADMIN CONTROL CENTER & USER QUOTA MANAGEMENT SCREEN -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
         
@@ -2562,7 +2591,11 @@
                             <div class="u-is-1">
                                 <div class="search-input-wrapper u-is-155">
                                     <i class="fas fa-search u-is-156"></i>
-                                    <input class="u-is-180" type="text" id="adminBankSearchInput" placeholder="Filter bank or officer code..." oninput="filterAdminBankOfficersTable()" aria-label="Filter Bank Or Officer Code..." title="Filter Bank Or Officer Code...">
+                                    <input class="u-is-180" type="text" id="adminBankSearchInput"
+                                        placeholder="Filter bank or officer code..."
+                                        oninput="filterAdminBankOfficersTable()"
+                                        aria-label="Filter Bank Or Officer Code..."
+                                        title="Filter Bank Or Officer Code...">
                                 </div>
                                 <button class="btn btn-sm btn-primary u-is-181" onclick="openCreateBankOfficerModal()">
                                     <i class="fas fa-plus"></i> <span>Add Bank Officer</span>
@@ -2992,7 +3025,8 @@
                             <label class="u-is-249">Subscribed Modular AI Engines</label>
                             <div class="u-is-250">
                                 <label class="u-is-251">
-                                    <input type="checkbox" name="newLitigatorEngines" value="s138" checked> ⚖️ S.138 NI Act
+                                    <input type="checkbox" name="newLitigatorEngines" value="s138" checked> ⚖️ S.138 NI
+                                    Act
                                 </label>
                                 <label class="u-is-251">
                                     <input type="checkbox" name="newLitigatorEngines" value="counsel_intel"> 🧠 Counsel Intel
@@ -3355,7 +3389,9 @@
                     <li>You are a qualified legal professional, or are using the platform under the direct supervision
                         of one.</li>
                     <li>You are solely responsible for maintaining the confidentiality of your account credentials.</li>
-                    <li>You possess all necessary rights, client consents under the DPDP Act (2023), and legal authority to upload the case data and documents you input into the system. You agree to indemnify JUDIQ AI against any DPDP or privacy claims arising from unauthorized data uploads.</li>
+                    <li>You possess all necessary rights, client consents under the DPDP Act (2023), and legal authority
+                        to upload the case data and documents you input into the system. You agree to indemnify JUDIQ AI
+                        against any DPDP or privacy claims arising from unauthorized data uploads.</li>
                 </ul>
 
                 <h3>3. Pricing, Billing, and Subscriptions</h3>
@@ -3560,8 +3596,9 @@
                         <!-- Getting Started Pane -->
                         <div id="docs-quickstart" class="docs-content-pane active">
                             <h3>Getting Started with JudiQ</h3>
-                            <p>JudiQ is an adversarial legal intelligence platform designed to stress-test case files, find procedural loopholes, and map court survivability.</p>
-                            
+                            <p>JudiQ is an adversarial legal intelligence platform designed to stress-test case files,
+                                find procedural loopholes, and map court survivability.</p>
+
                             <h4>Litigation Workflow Overview</h4>
                             <p>Traditional legal prep revolves around finding matching precedents. JudiQ reverses this process by actively attempting to dismantle your case using standard opposing counsel defense strategies, allowing you to patch weaknesses before the courtroom trial.</p>
                             
@@ -3852,26 +3889,23 @@
     <!-- ═══════════════════════════════════════════════════════════════ -->
     <!-- MODAL: SECURE PASSWORD CHALLENGE FOR PROTECTED REPORT          -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div id="versionHistoryModal" class="modal-overlay hidden u-is-385">
-        <div class="modal-card u-is-397">
-            <div class="u-is-387">
-                <div class="u-is-8">
-                    <i class="fas fa-history u-is-388"></i>
-                    <div>
-                        <h3 class="u-is-389">Case Version History & Timeline</h3>
-                        <p class="u-is-398" id="versionModalCaseTitle">Matter: Loading...</p>
-                    </div>
-                </div>
-                <button class="u-is-390" type="button" onclick="window.closeVersionHistoryModal()">&times;</button>
+    <div id="sharedPasswordChallengeModal" class="modal-overlay hidden" style="position:fixed; inset:0; background:rgba(15,23,42,0.92); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); z-index:9999999; display:flex; align-items:center; justify-content:center; padding:1.5rem;">
+        <div class="modal-card" style="background:var(--bg-card, #ffffff); border-radius:1rem; max-width:440px; width:100%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); overflow:hidden; text-align:center; padding:2rem 1.75rem;">
+            <div style="width:64px; height:64px; border-radius:50%; background:rgba(59,130,246,0.1); color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:1.8rem; margin:0 auto 1.25rem auto; border:1px solid rgba(59,130,246,0.25);">
+                <i class="fas fa-lock"></i>
             </div>
-            <div class="u-is-399" id="versionHistoryTimelineContainer">
-                <div class="u-is-400">
-                    <i class="fas fa-spinner fa-spin"></i> Loading version timeline...
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.25rem; font-weight:800; color:#0f172a; font-family:'Outfit',sans-serif;">Protected Legal Report</h3>
+            <p id="sharedChallengeReportTitle" style="font-size:0.85rem; color:var(--gray-600); margin:0 0 1.25rem 0; line-height:1.4;">
+                This formal litigation audit report has been encrypted and password-protected by instructing counsel.
+            </p>
+            <form onsubmit="window.submitSharedPassword(event)">
+                <div style="margin-bottom:1.25rem; text-align:left;">
+                    <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--gray-700); margin-bottom:0.35rem;">Enter Access Password</label>
+                    <input type="password" id="sharedReportPasswordAttempt" required placeholder="Enter password provided by counsel..." class="bank-input-text" style="width:100%; padding:0.65rem 0.85rem; border-radius:0.5rem; font-size:0.9rem; border:1px solid var(--gray-300);">
+                    <p id="sharedPasswordErrorMsg" style="color:#ef4444; font-size:0.75rem; margin:0.35rem 0 0 0; display:none; font-weight:600;"></p>
                 </div>
-            </div>
-            <div class="u-is-401">
-                <button class="btn btn-outline btn-sm" onclick="window.showSaveVersionModal()">
-                    <i class="fas fa-plus"></i> Save New Snapshot
+                <button type="submit" id="unlockReportBtn" class="btn btn-primary btn-full" style="padding:0.7rem; font-weight:700; font-size:0.9rem;">
+                    <i class="fas fa-lock-open"></i> Unlock Case Report
                 </button>
                 <button class="btn btn-outline btn-sm" onclick="window.closeVersionHistoryModal()">Close</button>
             </div>
@@ -4172,7 +4206,8 @@
 
                     <div class="u-is-418">
                         <button type="button" class="btn btn-outline" onclick="showCaseList()">Cancel</button>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Create Case Dossier</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Create Case
+                            Dossier</button>
                     </div>
                 </form>
             </main>
@@ -4478,10 +4513,14 @@
                 <div class="u-is-32" id="draftModalComments"></div>
             </div>
             <div class="cms-modal-footer">
-                <button class="btn btn-outline" onclick="submitSaveDraftContent()"><i class="fas fa-save"></i> Save Changes</button>
-                <button class="btn btn-outline" onclick="submitDraftForReviewAction()"><i class="fas fa-paper-plane"></i> Submit for Review</button>
-                <button class="btn btn-primary" onclick="approveDraftAction()"><i class="fas fa-check-double"></i> Approve Draft</button>
-                <button class="btn btn-outline" onclick="markDraftFiledAction()"><i class="fas fa-gavel"></i> Mark Filed</button>
+                <button class="btn btn-outline" onclick="submitSaveDraftContent()"><i class="fas fa-save"></i> Save
+                    Changes</button>
+                <button class="btn btn-outline" onclick="submitDraftForReviewAction()"><i
+                        class="fas fa-paper-plane"></i> Submit for Review</button>
+                <button class="btn btn-primary" onclick="approveDraftAction()"><i class="fas fa-check-double"></i>
+                    Approve Draft</button>
+                <button class="btn btn-outline" onclick="markDraftFiledAction()"><i class="fas fa-gavel"></i> Mark
+                    Filed</button>
             </div>
         </div>
     </div>
