@@ -1,4 +1,4 @@
-import { firebaseConfig, roleActions, wizardSteps } from '../config.js?v=14';
+import { supabaseConfig, roleActions, wizardSteps } from '../config.js?v=14';
 import { api } from '../api.js?v=15';
 import { ui, switchScreen } from '../ui.js?v=15';
 import { renderWizardStep } from '../wizard.js?v=14';
@@ -25,11 +25,13 @@ import { initCmsAnalytics } from './analytics_charts.js?v=16';
 
 import { store } from './modules/store.js?v=14';
 
-// Initialize Firebase
-if (typeof firebase !== 'undefined') {
-    firebase.initializeApp(firebaseConfig);
-}
-const auth = typeof firebase !== 'undefined' ? firebase.auth() : null;
+// Initialize Supabase Client
+const supabase = (typeof window.supabase !== 'undefined' && window.supabase.createClient)
+    ? window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey)
+    : null;
+window.supabaseClient = supabase;
+const auth = supabase ? supabase.auth : null;
+
 
 // Enterprise Reactive State Initialization
 store.attachGlobalProxy();
@@ -117,7 +119,7 @@ function setupAuthListeners() {
     if (mobileNavRegisterBtn) mobileNavRegisterBtn.addEventListener('click', () => { window.toggleMobileNav(false); window.showRegister(); });
 
     if (!auth) {
-        console.info('Firebase auth service initialized in direct mode.');
+        console.info('Supabase auth service running in local session mode.');
         const savedEmail = localStorage.getItem('judiq_active_user_email');
         if (savedEmail) {
             loginLocally(savedEmail);
@@ -129,46 +131,53 @@ function setupAuthListeners() {
         return;
     }
 
-    auth.onAuthStateChanged(user => {
-        window.state.currentUser = user;
-        if (user) {
+    const handleUserSession = (sessionUser) => {
+        if (sessionUser) {
+            const user = {
+                ...sessionUser,
+                uid: sessionUser.id,
+                email: sessionUser.email || '',
+                displayName: sessionUser.user_metadata?.displayName || sessionUser.user_metadata?.full_name || sessionUser.email?.split('@')[0] || 'Advocate'
+            };
+            window.state.currentUser = user;
             const userEmailEl = document.getElementById('userEmail');
             if (userEmailEl) ui.setText('userEmail', user.email);
 
-            // Real-Time Cloud Sync: Firebase Firestore user profile
-            if (typeof firebase !== 'undefined' && firebase.firestore) {
-                try {
-                    const db = firebase.firestore();
-                    db.collection('users').doc(user.uid).set({
-                        user_id: user.uid,
-                        email: user.email || '',
-                        displayName: user.displayName || user.email || 'Advocate',
-                        last_login: new Date().toISOString()
-                    }, { merge: true });
-                } catch (fbErr) {
-                    console.warn('[Firestore] User login sync notice:', fbErr);
-                }
-            }
-
-            // Read permanently locked domain (defaults to ni_act for legacy accounts)
-            const savedDomain = localStorage.getItem(`judiq_domain_${user.uid}`) || 'ni_act';
+            const savedDomain = sessionUser.user_metadata?.domain || localStorage.getItem(`judiq_domain_${user.uid}`) || 'ni_act';
             window.state.userDomain = savedDomain;
 
             const savedRole = localStorage.getItem(`judiq_role_${user.uid}`) || 'law_firm';
             window.state.currentRole = savedRole;
 
-            // Skip dashboard redirect if viewing a shared report
             const hasShareParam = new URLSearchParams(window.location.search).has('share');
             if (!hasShareParam) {
                 renderDashboard();
                 switchScreen('dashboardScreen');
             }
         } else {
-            // Skip landing redirect if viewing a shared report
-            const hasShareParam = new URLSearchParams(window.location.search).has('share');
-            if (!hasShareParam) switchScreen('landingScreen');
+            window.state.currentUser = null;
+            const savedEmail = localStorage.getItem('judiq_active_user_email');
+            if (savedEmail) {
+                loginLocally(savedEmail);
+            } else {
+                const hasShareParam = new URLSearchParams(window.location.search).has('share');
+                if (!hasShareParam) switchScreen('landingScreen');
+            }
         }
+    };
+
+    auth.onAuthStateChange((_event, session) => {
+        handleUserSession(session?.user || null);
     });
+
+    // Check initial session
+    if (typeof auth.getSession === 'function') {
+        auth.getSession().then(({ data }) => {
+            if (data?.session?.user) {
+                handleUserSession(data.session.user);
+            }
+        }).catch(() => {});
+    }
 }
 
 export function loginLocally(email, domain = 'ni_act', role = 'law_firm') {
@@ -223,63 +232,58 @@ function setupFormListeners() {
             if (btn) btn.classList.add('loading');
             
             try {
-                if (auth && typeof auth.signInWithEmailAndPassword === 'function') {
-                    try {
-                        await auth.signInWithEmailAndPassword(email, pass);
-                    } catch (signInErr) {
-                        const code = (signInErr?.code || '').toLowerCase();
-                        const msg = (signInErr?.message || '').toLowerCase();
-                        
-                        // If Firebase Auth provider is not enabled in Firebase Console (e.g. OPERATION_NOT_ALLOWED, API_KEY_INVALID, etc.)
-                        if (code.includes('operation-not-allowed') || code.includes('api-key') || code.includes('project-not-found') || code.includes('configuration-not-found') || code.includes('unauthorized-domain') || msg.includes('operation_not_allowed')) {
-                            console.info('Firebase Auth project provider disabled, seamlessly activating local advocate session:', signInErr?.message || signInErr);
-                            loginLocally(email);
-                        } else if (code.includes('invalid-login-credentials') || code.includes('user-not-found')) {
-                            try {
-                                const cred = await auth.createUserWithEmailAndPassword(email, pass);
-                                const defaultDomain = 'all';
-                                localStorage.setItem(`judiq_domain_${cred.user.uid}`, defaultDomain);
-                                window.state.userDomain = defaultDomain;
+                if (auth && typeof auth.signInWithPassword === 'function') {
+                    const { data, error } = await auth.signInWithPassword({
+                        email: email,
+                        password: pass
+                    });
+                    if (!error && data?.user) {
+                        handleUserSession(data.user);
+                        renderDashboard();
+                        switchScreen('dashboardScreen');
+                        if (window.ui && typeof window.ui.toast === 'function') {
+                            window.ui.toast("Signed in successfully!", "success");
+                        }
+                    } else if (error) {
+                        const msg = (error.message || '').toLowerCase();
+                        if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
+                            // Try auto-registration if account does not exist
+                            const { data: signUpData, error: signUpErr } = await auth.signUp({
+                                email: email,
+                                password: pass,
+                                options: { data: { domain: 'all' } }
+                            });
+                            if (signUpErr) {
+                                if (loginError) {
+                                    loginError.textContent = "Invalid email or password.";
+                                    loginError.classList.add('show');
+                                }
+                            } else if (signUpData?.user) {
+                                const { data: autoSignIn } = await auth.signInWithPassword({ email, password: pass });
+                                handleUserSession(autoSignIn?.user || signUpData.user);
+                                renderDashboard();
+                                switchScreen('dashboardScreen');
                                 if (window.ui && typeof window.ui.toast === 'function') {
                                     window.ui.toast(`Account created for ${email}`, 'success');
                                 }
-                            } catch (createErr) {
-                                const createCode = (createErr?.code || '').toLowerCase();
-                                if (createCode.includes('email-already-in-use') || createCode.includes('wrong-password')) {
-                                    if (loginError) {
-                                        loginError.textContent = "Incorrect password for this existing account.";
-                                        loginError.classList.add('show');
-                                    }
-                                } else if (createCode.includes('weak-password')) {
-                                    if (loginError) {
-                                        loginError.textContent = "Password should be at least 6 characters.";
-                                        loginError.classList.add('show');
-                                    }
-                                } else {
-                                    // Seamless local fallback
-                                    loginLocally(email);
-                                }
-                            }
-                        } else if (code.includes('wrong-password')) {
-                            if (loginError) {
-                                loginError.textContent = "Incorrect password. Please try again.";
-                                loginError.classList.add('show');
-                            }
-                        } else if (code.includes('invalid-email')) {
-                            if (loginError) {
-                                loginError.textContent = "Please enter a valid email address.";
-                                loginError.classList.add('show');
                             }
                         } else {
-                            loginLocally(email);
+                            if (loginError) {
+                                loginError.textContent = error.message || "Failed to sign in.";
+                                loginError.classList.add('show');
+                            }
                         }
                     }
                 } else {
                     loginLocally(email);
+                    renderDashboard();
+                    switchScreen('dashboardScreen');
                 }
             } catch (err) {
                 console.info('Activating local user session:', err?.message || err);
                 loginLocally(email);
+                renderDashboard();
+                switchScreen('dashboardScreen');
             } finally {
                 if (btn) btn.classList.remove('loading');
             }
@@ -320,34 +324,69 @@ function setupFormListeners() {
             if (btn) btn.classList.add('loading');
 
             try {
-                if (auth && typeof auth.createUserWithEmailAndPassword === 'function') {
-                    const cred = await auth.createUserWithEmailAndPassword(email, pass);
-                    localStorage.setItem(`judiq_domain_${cred.user.uid}`, domain);
-                    window.state.userDomain = domain;
+                if (auth && typeof auth.signUp === 'function') {
+                    const { data, error } = await auth.signUp({
+                        email: email,
+                        password: pass,
+                        options: {
+                            data: { domain: domain }
+                        }
+                    });
+                    if (error) {
+                        const msg = (error.message || '').toLowerCase();
+                        if (msg.includes('already registered') || msg.includes('user already exists')) {
+                            // Already registered — attempt automatic sign-in
+                            const { data: signInData, error: signInErr } = await auth.signInWithPassword({
+                                email: email,
+                                password: pass
+                            });
+                            if (!signInErr && signInData?.user) {
+                                handleUserSession(signInData.user);
+                                renderDashboard();
+                                switchScreen('dashboardScreen');
+                                return;
+                            }
+                            if (registerError) {
+                                registerError.textContent = "An account with this email already exists. Please sign in instead.";
+                                registerError.classList.add('show');
+                            }
+                        } else if (msg.includes('weak') || msg.includes('at least')) {
+                            if (registerError) {
+                                registerError.textContent = "Password should be at least 6 characters.";
+                                registerError.classList.add('show');
+                            }
+                        } else {
+                            if (registerError) {
+                                registerError.textContent = error.message || "Registration failed.";
+                                registerError.classList.add('show');
+                            }
+                        }
+                    } else if (data?.user) {
+                        // Immediately sign in to establish persistent active session
+                        const { data: signInData } = await auth.signInWithPassword({
+                            email: email,
+                            password: pass
+                        });
+                        const sessionUser = signInData?.user || data.user;
+                        localStorage.setItem(`judiq_domain_${sessionUser.id}`, domain);
+                        window.state.userDomain = domain;
+                        handleUserSession(sessionUser);
+                        renderDashboard();
+                        switchScreen('dashboardScreen');
+                        if (window.ui && typeof window.ui.toast === 'function') {
+                            window.ui.toast("Registration successful! Welcome to JudiQ.", "success");
+                        }
+                    }
                 } else {
                     loginLocally(email, domain);
+                    renderDashboard();
+                    switchScreen('dashboardScreen');
                 }
             } catch (err) {
-                const code = err?.code || '';
-                if (code.includes('email-already-in-use')) {
-                    if (registerError) {
-                        registerError.textContent = "An account with this email already exists. Please sign in instead.";
-                        registerError.classList.add('show');
-                    }
-                } else if (code.includes('weak-password')) {
-                    if (registerError) {
-                        registerError.textContent = "Password is too weak. Please use at least 6 characters.";
-                        registerError.classList.add('show');
-                    }
-                } else if (code.includes('invalid-email')) {
-                    if (registerError) {
-                        registerError.textContent = "Please enter a valid email address.";
-                        registerError.classList.add('show');
-                    }
-                } else {
-                    console.info('Firebase registration unavailable, creating local user session:', err?.message || err);
-                    loginLocally(email, domain);
-                }
+                console.info('Supabase registration notice, activating session:', err?.message || err);
+                loginLocally(email, domain);
+                renderDashboard();
+                switchScreen('dashboardScreen');
             } finally {
                 if (btn) btn.classList.remove('loading');
             }
@@ -403,16 +442,22 @@ window.switchUserDomain = (domain, tabEl) => {
     renderDashboard();
 };
 
-window.logout = () => {
+window.logout = async () => {
     if (auth && typeof auth.signOut === 'function') {
-        auth.signOut().catch(() => {});
+        try {
+            await auth.signOut();
+        } catch (_) {}
     }
     window.state.currentUser = null;
+    localStorage.removeItem('judiq_active_user_email');
+    localStorage.removeItem('judiq_token');
+    localStorage.removeItem('judiq_jwt');
     switchScreen('landingScreen');
     if (window.ui && typeof window.ui.toast === 'function') {
         window.ui.toast('Logged out successfully', 'info');
     }
 };
+
 
 window.selectRole = (role) => {
     window.state.currentRole = role;
@@ -842,51 +887,6 @@ window.saveCaseToHistory = async (caseData, analysisResult) => {
 
         localStorage.setItem('judiq_recent_cases_v1', JSON.stringify(localCases));
 
-        // 🔥 Real-Time Cloud Sync: Firebase Firestore
-        if (typeof firebase !== 'undefined' && firebase.firestore) {
-            try {
-                const db = firebase.firestore();
-                const now = new Date().toISOString();
-                const globalDoc = {
-                    case_id: caseId,
-                    user_id: userId,
-                    case_title: newCaseObj.title,
-                    complainant_name: caseData.complainant_name || '',
-                    accused_name: caseData.accused_name || '',
-                    case_type: caseData.case_type || 'Cheque Bounce',
-                    score: score,
-                    verdict: verdict,
-                    case_data: caseData,
-                    analysis_result: analysisResult,
-                    created_at: now,
-                    updated_at: now
-                };
-
-                // 1. Write to global 'cases' collection
-                await db.collection('cases').doc(caseId).set(globalDoc, { merge: true });
-
-                // 2. Write to user's personal case sub-collection
-                if (userId && userId !== 'ANONYMOUS') {
-                    await db.collection('users').doc(userId).collection('cases').doc(caseId).set({
-                        case_id: caseId,
-                        case_title: newCaseObj.title,
-                        score: score,
-                        verdict: verdict,
-                        case_type: caseData.case_type || 'Cheque Bounce',
-                        updated_at: now
-                    }, { merge: true });
-
-                    await db.collection('users').doc(userId).set({
-                        user_id: userId,
-                        email: (window.state.currentUser && window.state.currentUser.email) || '',
-                        last_active: now
-                    }, { merge: true });
-                }
-                console.log('🔥 [Firestore] Successfully stored case and analysis to Firebase:', caseId);
-            } catch (fbErr) {
-                console.warn('⚠️ [Firestore] Notice while syncing case to Firebase:', fbErr);
-            }
-        }
         
         // Refresh dashboard view if it's currently rendered
         const recentCasesContainer = document.getElementById('recentCases');
@@ -925,29 +925,6 @@ window.loadRecentCases = async () => {
                 console.warn('Failed to fetch recent cases from backend:', err);
             }
 
-            // Cloud Firestore Fallback
-            if (backendCases.length === 0 && typeof firebase !== 'undefined' && firebase.firestore) {
-                try {
-                    const db = firebase.firestore();
-                    const snap = await db.collection('cases').where('user_id', '==', userId).limit(20).get();
-                    snap.forEach(doc => {
-                        const d = doc.data();
-                        backendCases.push({
-                            id: d.case_id || doc.id,
-                            user_id: d.user_id,
-                            title: d.case_title || 'Untitled Case',
-                            date: d.updated_at || d.created_at || new Date().toISOString(),
-                            score: d.score || 0,
-                            risk_level: (d.analysis_result && (d.analysis_result.risk_level || d.analysis_result.defence_risk)) || 'Standard',
-                            verdict: d.verdict || 'ANALYZED',
-                            case_data: d.case_data || {},
-                            analysis_result: d.analysis_result || {}
-                        });
-                    });
-                } catch (fbErr) {
-                    console.warn('[Firestore] Direct case fetch notice:', fbErr);
-                }
-            }
         }
 
         // Merge and de-duplicate by case ID
@@ -2463,10 +2440,11 @@ window.saveUserProfile = (event) => {
     
     window.state.currentRole = role;
     
-    // Attempt updating user profile in Firebase Auth as well
-    if (user.updateProfile) {
-        user.updateProfile({ displayName: name }).catch(console.error);
+    // Update user profile in Supabase Auth
+    if (window.supabaseClient?.auth?.updateUser) {
+        window.supabaseClient.auth.updateUser({ data: { displayName: name, role: role } }).catch(console.error);
     }
+
     
     // Refresh dashboard view and welcome greeting
     renderDashboard();
