@@ -1048,7 +1048,7 @@ button.primary:hover:not(:disabled),
     font-size: var(--text-sm);
 }
 
-.form-group input,
+.form-group input:not([type="checkbox"]):not([type="radio"]),
 .form-group textarea,
 .form-group select {
     width: 100%;
@@ -10625,7 +10625,7 @@ body.dark-theme .dac-icon--sarfaesi {
 .plan-summary-header p {
     font-size: 0.85rem;
     color: var(--text-secondary);
-    margin: 0;
+    margin: 0 0 1rem 0;
     line-height: 1.45;
 }
 
@@ -12127,7 +12127,8 @@ html, body {
         min-height: 44px !important;
     }
 
-    .sim-controls-card, .sim-output-card {
+    .sim-controls-card,
+    .sim-output-card {
         padding: 1.25rem 1rem !important;
         border-radius: var(--radius-lg, 12px) !important;
     }
