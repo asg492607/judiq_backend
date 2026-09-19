@@ -7837,11 +7837,6 @@ body.dark-theme .dac-icon--sarfaesi {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    /* Role grid */
-    .role-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
     /* Co-counsel drawer */
     .co-counsel-floating-btn {
         bottom: 1.5rem;
@@ -12110,6 +12105,7 @@ body {
    MEDIA QUERY: SMARTPHONES (<= 768px)
    ══════════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
+
     /* Hide desktop controls */
     .hide-on-mobile {
         display: none !important;

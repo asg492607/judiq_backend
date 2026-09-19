@@ -129,10 +129,10 @@ export function switchScreen(targetScreenId) {
 
     const screens = [
         'landingScreen', 'loginScreen', 'registerScreen', 
-        'roleScreen', 'dashboardScreen', 'caseWizardScreen', 
+        'dashboardScreen', 'caseWizardScreen', 
         'resultsScreen', 'termsScreen', 'privacyScreen', 'refundScreen',
         'draftGeneratorScreen', 'draftStudioScreen', 'quickAnalysisScreen',
-        'reportScreen', 'bankRecoveryScreen', 'adminPortalScreen',
+        'reportScreen', 'sharedReportScreen', 'bankRecoveryScreen', 'adminPortalScreen',
         // ── CMS Screens ───────────────────────────────────────
         'cmsHomeScreen', 'caseListScreen', 'caseCreateScreen', 'caseDetailScreen',
         'clientListScreen', 'clientCreateScreen', 'clientDetailScreen',

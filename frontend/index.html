@@ -230,7 +230,8 @@
                             onclick="selectSimulatorPreset('s138_notice_delay')">
                             <i class="fas fa-clock"></i> S.138 Notice Delay (>30 Days)
                         </button>
-                        <button class="sim-preset-btn" data-preset="s138_security_cheque" onclick="selectSimulatorPreset('s138_security_cheque')">
+                        <button class="sim-preset-btn" data-preset="s138_security_cheque"
+                            onclick="selectSimulatorPreset('s138_security_cheque')">
                             <i class="fas fa-shield-halved"></i> S.138 Security Cheque
                         </button>
                         <button class="sim-preset-btn" data-preset="s138_electronic_records" onclick="selectSimulatorPreset('s138_electronic_records')">
@@ -505,7 +506,8 @@
                         <i class="fas fa-tags"></i> Transparent Modular Subscriptions
                     </div>
                     <h2>Pay Only For What You Practice</h2>
-                    <p>Build your custom litigation intelligence subscription. <strong>₹500 / month per legal module</strong> with <strong>10 full case analyses per month</strong> (30-day billing cycle).</p>
+                    <p>Build your specialized litigation intelligence subscription. <strong>₹499 / month</strong> for
+                        Section 138 NI Act (<strong>∞</strong>).</p>
                 </div>
 
                 <div class="pricing-configurator-grid">
@@ -694,16 +696,10 @@
                             </div>
                         </div>
 
-                        <!-- Presets shortcut bar -->
-                        <div class="plan-preset-buttons">
-                            <button type="button" class="preset-pill active" onclick="applyModularPreset(1)">1 Module (₹500)</button>
-                            <button type="button" class="preset-pill" onclick="applyModularPreset(2)">2 Modules (₹1,000)</button>
-                            <button type="button" class="preset-pill" onclick="applyModularPreset(4)">4 Modules (₹2,000)</button>
-                            <button type="button" class="preset-pill" onclick="applyModularPreset(6)">All 6 (₹2,500)</button>
-                        </div>
-
-                        <button id="subscribeModularPlanBtn" class="btn btn-primary btn-full subscribe-plan-btn" onclick="subscribeToSelectedModularPlan()">
-                            <i class="fas fa-lock"></i> <span id="subscribeBtnLabel">Get Started with 1 Module (₹500 / mo)</span>
+                        <button id="subscribeModularPlanBtn" class="btn btn-primary btn-full subscribe-plan-btn"
+                            onclick="subscribeToSelectedModularPlan()">
+                            <i class="fas fa-lock"></i> <span id="subscribeBtnLabel">Get Started with Section 138 (₹499
+                                / mo)</span>
                         </button>
                         <div class="plan-guarantee-note">
                             <i class="fas fa-shield-check"></i> Instant activation • Upgrade or add modules anytime • No lock-in
@@ -1000,7 +996,7 @@
                     <h1>JUDIQ AI</h1>
                     <p class="brand-tagline">AI Litigation Strategist</p>
                 </div>
-                
+
                 <div class="auth-box">
                     <h2>Welcome Back</h2>
                     <p class="auth-subtitle">Sign in to access your legal dashboard</p>
@@ -1314,8 +1310,12 @@
                                         aria-label="Cheque Date" title="Cheque Date" required></div>
                             </div>
                             <div class="quick-form-grid">
-                                <div class="form-group"><label for="qNoticeDate">Notice Date <span class="required">*</span></label><input type="date" id="qNoticeDate" aria-label="Notice Date" title="Notice Date" required></div>
-                                <div class="form-group"><label for="qFilingDate">Filing Date <span class="required">*</span></label><input type="date" id="qFilingDate" aria-label="Filing Date" title="Filing Date" required></div>
+                                <div class="form-group"><label for="qNoticeDate">Notice Date <span
+                                            class="required">*</span></label><input type="date" id="qNoticeDate"
+                                        aria-label="Notice Date" title="Notice Date" required></div>
+                                <div class="form-group"><label for="qFilingDate">Filing Date <span
+                                            class="required">*</span></label><input type="date" id="qFilingDate"
+                                        aria-label="Filing Date" title="Filing Date" required></div>
                             </div>
                             <div class="quick-form-grid">
                                 <div class="form-group"><label for="qComplainant">Complainant Name <span class="required">*</span></label><input type="text" id="qComplainant" aria-label="Complainant Name" title="Complainant Name" placeholder="Your Name or Entity" required></div>
@@ -1936,9 +1936,12 @@
                         </div>
 
                         <div class="draft-preview-container u-is-109">
-                            <textarea id="draftPreviewContent" class="draft-preview-textarea u-is-110" placeholder="Draft will appear here after analysis..." aria-label="Draft Will Appear Here After Analysis..." title="Draft Will Appear Here After Analysis..."></textarea>
+                            <textarea id="draftPreviewContent" class="draft-preview-textarea u-is-110"
+                                placeholder="Draft will appear here after analysis..."
+                                aria-label="Draft Will Appear Here After Analysis..."
+                                title="Draft Will Appear Here After Analysis..."></textarea>
                         </div>
-                        
+
                         <div class="draft-actions u-is-111">
                             <button class="btn btn-outline" onclick="window.copyDraftFromPreview()">
                                 <i class="fas fa-copy"></i> Copy Text
@@ -2444,8 +2447,10 @@
                                 <i class="fas fa-user u-is-162"></i> Independent <span class="pill-count"
                                     id="pillCountCitizen">0</span>
                             </button>
-                            <button class="admin-filter-pill" id="filterPillPending" onclick="window.setQuickFilter('status_pending')">
-                                <i class="fas fa-hourglass-half u-is-163"></i> Pending Approvals <span class="pill-count" id="pillCountPending">0</span>
+                            <button class="admin-filter-pill" id="filterPillPending"
+                                onclick="window.setQuickFilter('status_pending')">
+                                <i class="fas fa-hourglass-half u-is-163"></i> Pending Approvals <span
+                                    class="pill-count" id="pillCountPending">0</span>
                             </button>
                             <button class="admin-filter-pill" id="filterPillSuspended" onclick="window.setQuickFilter('status_suspended')">
                                 <i class="fas fa-ban u-is-164"></i> Suspended <span class="pill-count" id="pillCountSuspended">0</span>
@@ -2922,7 +2927,8 @@
                     <div class="admin-users-panel u-is-63">
                         <div class="u-is-229">
                             <h2 class="u-is-151">System Security Telemetry &amp; Threat Defences</h2>
-                            <p class="u-is-152">Multi-layered defense telemetry: SQL injection detection, rate limiting, and access authorization.</p>
+                            <p class="u-is-152">Multi-layered defense telemetry: SQL injection detection, rate limiting,
+                                and access authorization.</p>
                         </div>
                         <div class="u-is-230">
                             <div class="u-is-231">
@@ -3347,7 +3353,7 @@
     <!-- ═══════════════════════════════════════════════════════════════ -->
     <!-- LEGAL MODALS -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
-    
+
     <!-- Privacy Policy Modal -->
     <div id="privacyPolicyModal" class="legal-modal hidden">
         <div class="legal-modal-content">
@@ -3558,7 +3564,8 @@
                     within 5 to 7 working days, subject to payment gateway policies.</p>
 
                 <h3>4. Contact Us</h3>
-                <p>For all billing, payment, and refund queries, please reach out to our billing team at <strong>billing@judiq.ai</strong>.</p>
+                <p>For all billing, payment, and refund queries, please reach out to our billing team at
+                    <strong>billing@judiq.ai</strong>.</p>
             </div>
         </div>
     </div>
@@ -3822,7 +3829,7 @@
                     </div>
                     <span class="command-shortcut-hint">Demo</span>
                 </div>
-                
+
                 <div class="command-item" onclick="executeCommand('demo_s141')">
                     <div class="command-item-left">
                         <div class="command-item-icon"><i class="fas fa-users-gear"></i></div>
@@ -4258,7 +4265,10 @@
                             <h4><i class="fas fa-info-circle"></i> 1. Basic Matter Identity</h4>
                             <div class="form-group">
                                 <label>Case Title / Caption *</label>
-                                <input type="text" id="ccCaseName" class="form-control" placeholder="e.g. ABC Bank v. Rajesh Kumar" required aria-label="E.G.  A B C  Bank V.  Rajesh  Kumar" title="E.G.  A B C  Bank V.  Rajesh  Kumar">
+                                <input type="text" id="ccCaseName" class="form-control"
+                                    placeholder="e.g. ABC Bank v. Rajesh Kumar" required
+                                    aria-label="E.G.  A B C  Bank V.  Rajesh  Kumar"
+                                    title="E.G.  A B C  Bank V.  Rajesh  Kumar">
                             </div>
                             <div class="form-group">
                                 <label>Case Type *</label>
@@ -4533,7 +4543,8 @@
                     Analytics</a>
                 <a class="cms-nav-item" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
                 <div class="u-is-413">
-                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Suite</a>
+                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to
+                        Suite</a>
                 </div>
             </aside>
             <main class="cms-main-content">
@@ -4822,6 +4833,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
