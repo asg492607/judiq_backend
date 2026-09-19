@@ -597,7 +597,7 @@ All platform routes are versioned and served under the `/api/v1` prefix (with di
 | `POST` | `/api/v1/caseroom/forensic-audit` | Performs multi-document forensic OCR and contradiction scan | Yes |
 | `GET` | `/api/v1/cases` | Lists saved case files for the authenticated user | Yes |
 | `GET` | `/api/v1/cases/detail` | Retrieves complete analysis results for a specific case ID | Yes |
-| `DELETE`| `/api/v1/cases/delete` | Irreversibly deletes a case file and its evidence payload | Yes |
+| `DELETE` | `/api/v1/cases/delete` | Irreversibly deletes a case file and its evidence payload | Yes |
 
 ### 12.3 Enterprise Banking & Stressed Asset Recovery
 
@@ -605,13 +605,13 @@ All platform routes are versioned and served under the `/api/v1` prefix (with di
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/v1/bank/recovery-audit` | Executes statutory recovery audit and logs entry to DB ledger | Yes |
 | `POST` | `/api/v1/bank/compliance-audit` | Performs 12-pillar statutory compliance audit u/s 138 / SARFAESI | Yes |
-| `POST` | `/api/v1/bank/multi-track-strategy`| Evaluates concurrent viability across 5 statutory recovery tracks | Yes |
-| `POST` | `/api/v1/bank/generate-statutory-notice`| Generates court-admissible legal notices, delay petitions, 65B/63 | Yes |
+| `POST` | `/api/v1/bank/multi-track-strategy` | Evaluates concurrent viability across 5 statutory recovery tracks | Yes |
+| `POST` | `/api/v1/bank/generate-statutory-notice` | Generates court-admissible legal notices, delay petitions, 65B/63 | Yes |
 | `POST` | `/api/v1/bank/ots-npv-calculator` | Calculates OTS vs litigation NPV, time decay, RBI write-backs | Yes |
 | `GET` | `/api/v1/bank/advocates` | Retrieves directory of empaneled advocates with win rates & SLAs | Yes |
-| `POST` | `/api/v1/bank/advocates/dispatch`| Dispatches brief to counsel and records 48h court filing SLA | Yes |
+| `POST` | `/api/v1/bank/advocates/dispatch` | Dispatches brief to counsel and records 48h court filing SLA | Yes |
 | `GET` | `/api/v1/bank/branches` | Retrieves pre-configured partner bank branches | No |
-| `GET` | `/api/v1/bank/portfolio-templates`| Returns 5 production reference recovery case portfolios | No |
+| `GET` | `/api/v1/bank/portfolio-templates` | Returns 5 production reference recovery case portfolios | No |
 | `GET` | `/api/v1/bank/rules` | Returns the complete Statutory Legal-Rule Registry with citations | No |
 
 ### 12.4 Platform Governance, User Quotas & Subscription Plans
@@ -631,8 +631,8 @@ All platform routes are versioned and served under the `/api/v1` prefix (with di
 | `POST` | `/api/v1/admin/plans/reject` | Rejects pending modular plan, maintaining locked status | Yes (Admin) |
 | `GET` | `/api/v1/admin/bank/stats` | Retrieves aggregate institutional banking metrics and volume | Yes (Admin) |
 | `GET` | `/api/v1/admin/bank/officers` | Lists registered bank recovery officers with IFSC & departments | Yes (Admin) |
-| `POST` | `/api/v1/admin/bank/officers/create`| Registers a bank officer from the admin console | Yes (Admin) |
-| `POST` | `/api/v1/admin/bank/officers/allocate`| Allocates monthly recovery audit allowance to officer | Yes (Admin) |
+| `POST` | `/api/v1/admin/bank/officers/create` | Registers a bank officer from the admin console | Yes (Admin) |
+| `POST` | `/api/v1/admin/bank/officers/allocate` | Allocates monthly recovery audit allowance to officer | Yes (Admin) |
 | `POST` | `/api/v1/admin/bank/officers/toggle` | Suspends or activates a bank officer account | Yes (Admin) |
 | `GET` | `/api/v1/admin/bank/audits` | Retrieves live statutory recovery audit ledger across branches | Yes (Admin) |
 | `GET` | `/api/v1/admin/security/logs` | Fetches live cryptographic audit trail logs | Yes (Admin) |
