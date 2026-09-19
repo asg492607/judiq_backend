@@ -194,8 +194,12 @@ export function loginLocally(email, domain = 'ni_act', role = 'law_firm') {
     const userEmailEl = document.getElementById('userEmail');
     if (userEmailEl) ui.setText('userEmail', mockUser.email);
     
-    renderDashboard();
-    switchScreen('dashboardScreen');
+    // Skip dashboard redirect if viewing a shared report
+    const hasShareParam = new URLSearchParams(window.location.search).has('share');
+    if (!hasShareParam) {
+        renderDashboard();
+        switchScreen('dashboardScreen');
+    }
     if (window.ui && typeof window.ui.toast === 'function') {
         window.ui.toast(`Signed in as ${cleanEmail}`, 'success');
     }
@@ -4757,14 +4761,7 @@ window.updateModularPricing = function() {
         }
     };
 
-    const descs = {
-        1: 'Tailored for specialized advocates handling 10 cases / month in a single statutory area.',
-        2: 'Perfect for litigators handling concurrent civil and Section 138 cheque bounce matters (20 cases/mo).',
-        3: 'Comprehensive coverage for active commercial litigators (30 cases / 30-day billing cycle).',
-        4: 'Designed for boutique litigation firms managing multi-court caseloads (40 cases/mo).',
-        5: 'Extensive multi-track recovery and defense strategy coverage (50 cases/mo).',
-        6: 'All-inclusive institutional intelligence suite across all 6 statutory engines (60 cases/mo).'
-    };
+    const cfg = durationConfigs[duration] || durationConfigs[1];
 
     const priceEl = document.getElementById('planTotalPrice');
     const casesEl = document.getElementById('planTotalCases');
