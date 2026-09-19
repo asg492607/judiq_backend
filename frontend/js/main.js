@@ -2862,6 +2862,7 @@ window.updateReadinessProgress = () => {
     // Update status text
     const statusTextEl = document.getElementById('readinessStatusText');
     if (statusTextEl) {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
         if (percentage === 0) {
             statusTextEl.textContent = "No documents checked.";
             statusTextEl.style.color = "var(--gray-400)";
@@ -4761,19 +4762,12 @@ window.updateModularPricing = function() {
     const costPerAnalysisEl = document.getElementById('planCostPerAnalysis');
     const btnLabelEl = document.getElementById('subscribeBtnLabel');
 
-    if (priceEl) priceEl.textContent = price.toLocaleString('en-IN');
-    if (casesEl) casesEl.textContent = `${cases} Cases`;
-    if (modulesEl) modulesEl.textContent = `${count} ${count > 1 ? 'Engines' : 'Engine'}`;
-    if (titleEl) titleEl.textContent = titles[count] || `${count} Modules Plan`;
-    if (descEl) descEl.textContent = descs[count] || `Custom plan with ${count} active legal engines.`;
-    if (btnLabelEl) btnLabelEl.textContent = `Get Started with ${count} ${count > 1 ? 'Modules' : 'Module'} (₹${price.toLocaleString('en-IN')} / mo)`;
-
-    // Update preset pills active state
-    document.querySelectorAll('.preset-pill').forEach(pill => {
-        pill.classList.remove('active');
-    });
-    const matchingPill = document.querySelector(`.preset-pill[onclick*="${count}"]`);
-    if (matchingPill) matchingPill.classList.add('active');
+    if (priceEl) priceEl.textContent = cfg.totalPrice.toLocaleString('en-IN');
+    if (priceCycleEl) priceCycleEl.textContent = cfg.cycleLabel;
+    if (rateDetailEl) rateDetailEl.textContent = cfg.rateDetail;
+    if (casesEl) casesEl.textContent = cfg.cases;
+    if (costPerAnalysisEl) costPerAnalysisEl.textContent = cfg.costPerCase;
+    if (btnLabelEl) btnLabelEl.textContent = cfg.btnLabel;
 };
 
 window.applyModularPreset = function(count) {
