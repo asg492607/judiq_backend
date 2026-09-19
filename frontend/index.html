@@ -209,34 +209,6 @@
                     </div>
                 </div>
 
-                <!-- Feature Explorer Widget -->
-                <div class="feature-explorer">
-                    <div class="explorer-tabs">
-                        <div class="explorer-tab active" onclick="switchExplorerTab('adversarial', this)">
-                            <i class="fas fa-bolt"></i>
-                            <span>Adversarial Sim</span>
-                        </div>
-                        <div class="explorer-tab" onclick="switchExplorerTab('contradiction', this)">
-                            <i class="fas fa-search"></i>
-                            <span>Evidence Check</span>
-                        </div>
-                        <div class="explorer-tab" onclick="switchExplorerTab('strategy', this)">
-                            <i class="fas fa-gavel"></i>
-                            <span>Courtroom Strategy</span>
-                        </div>
-                    </div>
-                    <div class="explorer-display">
-                        <div class="explorer-title" id="explorerTitle">Adversarial Opponent Simulation</div>
-                        <div class="explorer-desc" id="explorerDesc">Simulate critical opposing counsel cross-examination routes and see how the AI evaluates and flags vulnerabilities in real-time.</div>
-                        <div class="explorer-preview-box" id="explorerPreview">
-                            <p class="u-is-15">// Running Adversarial Opponent Simulation...</p>
-                            <p class="u-is-16">[INFO] Parsing complainant statement &amp; matching against Indian Evidence Act Sec 45...</p>
-                            <p class="u-is-17">[WARNING] Found high risk vulnerability in Sec 138 demand notice delivery timeline.</p>
-                            <p class="u-is-18">[VULNERABILITY] Delivery occurred on day 32 (Statutory limit: 30 days).</p>
-                            <p class="u-is-19">[RECOMMENDED COUNTER] Invoke General Clauses Act Sec 10 to plead court holiday exemption.</p>
-                        </div>
-                    </div>
-                </div>
             </section>
 
             <!-- Interactive Cross-Examination Risk Simulator Workbench -->
@@ -478,7 +450,7 @@
                     </div>
                 </div>
             </section>
-            
+
             <section id="aboutUsSection" class="about-section reveal-on-scroll">
                 <div class="section-heading">
                     <h2>About JudiQ AI</h2>
@@ -707,8 +679,9 @@
                                     <span id="planTotalModules" class="metric-value">Section 138</span>
                                 </div>
                                 <div class="plan-metric-col">
-                                    <span class="metric-label">Cost / Analysis</span>
-                                    <span class="metric-value">₹50</span>
+                                    <span class="metric-label">Analysis Limit</span>
+                                    <span id="planCostPerAnalysis" class="metric-value"
+                                        style="font-size: 1.4rem;">∞</span>
                                 </div>
                             </div>
                         </div>
@@ -983,7 +956,8 @@
                     </div>
                     <div class="footer-col">
                         <h4>Platform</h4>
-                        <a href="#" onclick="document.getElementById('navLoginBtn').click(); return false;">Dashboard</a>
+                        <a href="#"
+                            onclick="document.getElementById('navLoginBtn').click(); return false;">Dashboard</a>
                         <a href="#featuresSection">Attack Simulation</a>
                         <a href="#featuresSection">Survivability Mapping</a>
                         <a href="#featuresSection">Draft Generation</a>
@@ -1301,7 +1275,9 @@
                         </button>
                     </div>
                     <div class="u-is-32">
-                        <textarea id="studioDraftContent" class="draft-output-textarea u-is-62" spellcheck="false" aria-label="Studio Legal Draft Content" title="Studio Legal Draft Content" placeholder="Generated legal draft content will appear here..."></textarea>
+                        <textarea id="studioDraftContent" class="draft-output-textarea u-is-62" spellcheck="false"
+                            aria-label="Studio Legal Draft Content" title="Studio Legal Draft Content"
+                            placeholder="Generated legal draft content will appear here..."></textarea>
                     </div>
                     <div class="draft-legal-note u-is-32">
                         <i class="fas fa-info-circle"></i>
@@ -1934,7 +1910,8 @@
                                         <option value="COMPLAINT_S138">⚖️ Section 138 Criminal Complaint Petition
                                         </option>
                                         <option value="DEFENCE_REPLY">🛡️ Reply to Statutory Demand Notice</option>
-                                        <option value="CONDONATION_DELAY">⏳ Application for Condonation of Delay</option>
+                                        <option value="CONDONATION_DELAY">⏳ Application for Condonation of Delay
+                                        </option>
                                     </optgroup>
                                     
                                 </select>
@@ -2446,7 +2423,8 @@
                         <!-- 1-Click Quick Filter Pills Strip -->
                         <div class="admin-filter-pills-strip">
                             <span class="u-is-161">Quick Filter:</span>
-                            <button class="admin-filter-pill active" id="filterPillAll" onclick="window.setQuickFilter('')">
+                            <button class="admin-filter-pill active" id="filterPillAll"
+                                onclick="window.setQuickFilter('')">
                                 All Accounts <span class="pill-count" id="pillCountAll">0</span>
                             </button>
                             <button class="admin-filter-pill" id="filterPillLawFirm" onclick="window.setQuickFilter('law_firm')">
@@ -2834,7 +2812,10 @@
                             <div class="u-is-216">
                                 <div>
                                     <label class="u-is-214">Binding Legal Proposition (Summary) *</label>
-                                    <textarea class="u-is-215" id="adminPrecProposition" required rows="3" placeholder="e.g. Part-payment endorsement under Section 56 is mandatory before presenting cheque for original amount." aria-label="E.G.  Part Payment Endorsement Under  Section 56 Is Mandatory Before Presenting Cheque For Original Amount." title="E.G.  Part Payment Endorsement Under  Section 56 Is Mandatory Before Presenting Cheque For Original Amount."></textarea>
+                                    <textarea class="u-is-215" id="adminPrecProposition" required rows="3"
+                                        placeholder="e.g. Part-payment endorsement under Section 56 is mandatory before presenting cheque for original amount."
+                                        aria-label="E.G.  Part Payment Endorsement Under  Section 56 Is Mandatory Before Presenting Cheque For Original Amount."
+                                        title="E.G.  Part Payment Endorsement Under  Section 56 Is Mandatory Before Presenting Cheque For Original Amount."></textarea>
                                 </div>
                                 <div>
                                     <label class="u-is-214">Ratio Decidendi / Exact Quotation *</label>
@@ -3275,7 +3256,7 @@
                 </div>
 
                 <div class="modal-body u-is-245">
-                    
+
                     <!-- 4-Metric Quota & Audit Telemetry Grid -->
                     <div class="u-is-295">
                         
@@ -3537,8 +3518,10 @@
                 <p>You can cancel your subscription at any time. To cancel:</p>
                 <ul>
                     <li>Navigate to your billing dashboard, click "Cancel Subscription", and confirm.</li>
-                    <li>Alternatively, send an email request to <strong>billing@judiq.ai</strong> at least 48 hours prior to your next renewal date.</li>
-                    <li>Upon cancellation, your subscription will remain active until the end of the current billing cycle. You will not be charged again.</li>
+                    <li>Alternatively, send an email request to <strong>billing@judiq.ai</strong> at least 48 hours
+                        prior to your next renewal date.</li>
+                    <li>Upon cancellation, your subscription will remain active until the end of the current billing
+                        cycle. You will not be charged again.</li>
                 </ul>
 
                 <h3>2. Refund Policy</h3>
@@ -3776,7 +3759,11 @@
         <div class="command-palette">
             <div class="command-input-wrapper">
                 <i class="fas fa-search"></i>
-                <input type="text" id="commandPaletteInput" class="command-input" placeholder="Type a command or search feature... (e.g. s138, demo, notice, draft, theme)" oninput="filterCommandPalette(this.value)" aria-label="Type A Command Or Search Feature... (E.G. S138, Demo, Notice, Draft, Theme)" title="Type A Command Or Search Feature... (E.G. S138, Demo, Notice, Draft, Theme)">
+                <input type="text" id="commandPaletteInput" class="command-input"
+                    placeholder="Type a command or search feature... (e.g. s138, demo, notice, draft, theme)"
+                    oninput="filterCommandPalette(this.value)"
+                    aria-label="Type A Command Or Search Feature... (E.G. S138, Demo, Notice, Draft, Theme)"
+                    title="Type A Command Or Search Feature... (E.G. S138, Demo, Notice, Draft, Theme)">
                 <span class="command-shortcut-hint">ESC to close</span>
             </div>
             <div id="commandListContainer" class="command-list">
@@ -4172,7 +4159,10 @@
                 <div class="cms-filter-bar">
                     <div class="cms-search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="caseSearchInput" placeholder="Search by case title, ID, or description..." aria-label="Search By Case Title,  I D, Or Description..." title="Search By Case Title,  I D, Or Description...">
+                        <input type="text" id="caseSearchInput"
+                            placeholder="Search by case title, ID, or description..."
+                            aria-label="Search By Case Title,  I D, Or Description..."
+                            title="Search By Case Title,  I D, Or Description...">
                     </div>
                     <div class="cms-filter-pills">
                         <span class="cms-filter-pill active" onclick="filterCasesByStatus('all')">All</span>
@@ -4464,7 +4454,8 @@
                             </div>
                             <div class="form-group">
                                 <label>GSTIN</label>
-                                <input type="text" id="clGstin" class="form-control" placeholder="27AAAAA0000A1Z5" aria-label="27 A A A A A0000 A1 Z5" title="27 A A A A A0000 A1 Z5">
+                                <input type="text" id="clGstin" class="form-control" placeholder="27AAAAA0000A1Z5"
+                                    aria-label="27 A A A A A0000 A1 Z5" title="27 A A A A A0000 A1 Z5">
                             </div>
                         </div>
                     </div>
@@ -4777,7 +4768,8 @@
                     <i class="fas fa-book-open u-is-405"></i>
                     <h3 class="u-is-424">JUDIQ AI — PLATFORM DOCUMENTATION</h3>
                 </div>
-                <button class="u-is-408" type="button" onclick="window.closeLegalModal('documentationModal')">&times;</button>
+                <button class="u-is-408" type="button"
+                    onclick="window.closeLegalModal('documentationModal')">&times;</button>
             </div>
             <div class="u-is-409">
                 <h4 class="u-is-430">1. Analytical Engine Architecture</h4>

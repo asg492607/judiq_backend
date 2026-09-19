@@ -7597,7 +7597,7 @@ body.dark-theme .dac-icon--sarfaesi {
     }
 
     .landing-nav-links a {
-        color: var(--gray-300);
+        color: rgba(248, 250, 252, 0.85);
         font-weight: 500;
         font-size: var(--text-sm);
         transition: color var(--tx-normal);
@@ -11916,7 +11916,8 @@ body {
     font-size: 1rem;
 }
 
-.mobile-nav-links a:hover, .mobile-nav-links a:active {
+.mobile-nav-links a:hover,
+.mobile-nav-links a:active {
     background: rgba(56, 189, 248, 0.12);
     border-color: rgba(56, 189, 248, 0.3);
     color: #38bdf8;
