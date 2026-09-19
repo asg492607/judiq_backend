@@ -3138,3 +3138,86 @@ class DatabaseManager:
         finally:
             if conn:
                 DatabaseManager.release_connection(conn)
+
+    # ────────────────────────────────────────────────────────────────
+    # Public & Password-Protected Shared Reports
+    # ────────────────────────────────────────────────────────────────
+    @staticmethod
+    def create_shared_report(share_id: str, case_id: Optional[str], user_id: Optional[str], title: Optional[str], domain: Optional[str], password_hash: Optional[str], case_data: Any, analysis_result: Any):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now(timezone.utc).isoformat()
+            cursor.execute(f"""
+                INSERT INTO shared_reports
+                (share_id, case_id, user_id, title, domain, password_hash, case_data, analysis_result, views, created_at, updated_at)
+                VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, 0, {p}, {p})
+            """, (
+                share_id,
+                case_id or "",
+                user_id or "ANONYMOUS",
+                title or "Litigation Analysis Report",
+                domain or "ni_act",
+                password_hash or None,
+                json.dumps(case_data) if isinstance(case_data, dict) else (case_data or "{}"),
+                json.dumps(analysis_result) if isinstance(analysis_result, dict) else (analysis_result or "{}"),
+                now,
+                now
+            ))
+            conn.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Failed to create shared report {share_id}: {e}")
+            if conn:
+                conn.rollback()
+            return False
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    @staticmethod
+    def get_shared_report(share_id: str):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"SELECT share_id, case_id, user_id, title, domain, password_hash, case_data, analysis_result, views, created_at FROM shared_reports WHERE share_id = {p}", (share_id,))
+            row = cursor.fetchone()
+            if not row:
+                return None
+            return {
+                "share_id": row[0],
+                "case_id": row[1],
+                "user_id": row[2],
+                "title": row[3],
+                "domain": row[4],
+                "password_hash": row[5],
+                "case_data": json.loads(row[6]) if isinstance(row[6], str) else row[6],
+                "analysis_result": json.loads(row[7]) if isinstance(row[7], str) else row[7],
+                "views": row[8],
+                "created_at": row[9]
+            }
+        except Exception as e:
+            logger.error(f"Failed to get shared report {share_id}: {e}")
+            return None
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    @staticmethod
+    def increment_shared_report_views(share_id: str):
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"UPDATE shared_reports SET views = views + 1 WHERE share_id = {p}", (share_id,))
+            conn.commit()
+        except Exception as e:
+            logger.error(f"Failed to increment views for {share_id}: {e}")
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
