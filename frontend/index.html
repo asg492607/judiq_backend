@@ -19,8 +19,10 @@
     <!-- Favicon removed until official logo is finalized -->
     <link rel="icon" href="data:,">
     <!-- Stylesheet loaded first to prevent Flash of Unstyled Content (FOUC) -->
-    <link rel="stylesheet" href="styles.css?v=26">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=45">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Error handler and i18n loaded with defer to avoid blocking HTML parsing -->
     <script src="js/modules/error_handler.js" defer></script>
@@ -318,8 +320,10 @@
                             </div>
 
                             <div class="sim-vector-box success">
-                                <h4><i class="fas fa-shield-halved u-is-22"></i> Recommended Defense Counter-Strategy</h4>
-                                <p id="simCounterStrategy">File application for comparison of signatures by State Forensic Science Laboratory; establish lack of authorization register.</p>
+                                <h4><i class="fas fa-shield-halved u-is-22"></i> Recommended Defense Counter-Strategy
+                                </h4>
+                                <p id="simCounterStrategy">File application for comparison of signatures by State
+                                    Forensic Science Laboratory; establish lack of authorization register.</p>
                             </div>
 
                             <div class="sim-ratio-box">
@@ -567,7 +571,9 @@
                                         <p>S.13(2) 60-day demand notice audit, S.13(4) symbolic/physical possession,
                                             S.14 CMM applications &amp; DRT Securitization Applications.</p>
                                     </div>
-                                    <div class="module-quota-pill">10 Cases / mo</div>
+                                    <div class="module-quota-pill"
+                                        style="background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.35); font-weight: 700;">
+                                        Coming Soon</div>
                                 </div>
                             </label>
 
@@ -767,7 +773,10 @@
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
-                            <p>Yes. Every judicial ratio decidendi cited in adversarial simulations and the Litigation Readiness Suite is anchored to landmark Supreme Court of India rulings (such as Kusum Ingots, Meters and Instruments, Bir Singh, and Dashrath Rupsingh Rathod). The platform provides direct 1-click links to official law reports and Indian Kanoon authorities.</p>
+                            <p>Yes. Every judicial ratio decidendi cited in adversarial simulations and the Litigation
+                                Readiness Suite is anchored to landmark Supreme Court of India rulings (such as Kusum
+                                Ingots, Meters and Instruments, Bir Singh, and Dashrath Rupsingh Rathod). The platform
+                                provides direct 1-click links to official law reports and Indian Kanoon authorities.</p>
                         </div>
                     </div>
                 </div>
@@ -1009,7 +1018,8 @@
                     <form id="registerForm" class="auth-form">
                         <div class="form-group">
                             <label for="registerEmail">Email Address</label>
-                            <input type="email" id="registerEmail" required placeholder="your@email.com" autocomplete="username">
+                            <input type="email" id="registerEmail" required placeholder="your@email.com"
+                                autocomplete="username">
                         </div>
                         <div class="form-group">
                             <label for="registerPassword">Password</label>
@@ -1454,17 +1464,6 @@
                     <span id="resultsDomainBadge" class="domain-badge domain-badge--ni u-is-68"></span>
                 </div>
                 <div class="nav-actions u-is-69">
-                    <div class="version-control-pill u-is-70" id="caseVersionPill" onclick="window.showVersionHistoryModal()" title="View Version Evolution">
-                        <i class="fas fa-code-branch"></i>
-                        <span id="activeVersionBadge">Version 1</span>
-                        <span class="u-is-71" id="activeVersionDeltaBadge">+0</span>
-                    </div>
-                    <button class="btn btn-outline btn-sm" onclick="window.showSaveVersionModal()" title="Archive Current State as a New Version Snapshot">
-                        <i class="fas fa-save"></i> Save Snapshot
-                    </button>
-                    <button class="btn btn-outline btn-sm" onclick="window.showVersionHistoryModal()" title="Browse All Historical Versions & Snapshots">
-                        <i class="fas fa-history"></i> Versions
-                    </button>
                     <button class="btn btn-outline btn-sm" onclick="editAndReanalyze()">
                         <i class="fas fa-edit"></i> Edit Case
                     </button>
@@ -2048,50 +2047,53 @@
                     </button>
                 </div>
             </nav>
-        <!-- Smart Upload Modal -->
-        <div id="uploadModal" class="modal hidden">
-            <div class="modal-overlay" onclick="closeUploadModal()"></div>
-            <div class="modal-container">
-                <div class="modal-header">
-                    <h2><i class="fas fa-file-upload"></i> Smart Document Ingestion</h2>
-                    <button class="modal-close" onclick="closeUploadModal()">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <p class="modal-subtitle">Upload PDFs, Bank Memos, or WhatsApp exports for AI analysis.</p>
-                    
-                    <div class="upload-zone" id="uploadZone">
-                        <input type="file" id="fileInput" class="hidden" accept=".pdf,.txt" aria-label="Upload Legal Document File" title="Upload Legal Document File">
-                        <div class="upload-content" onclick="document.getElementById('fileInput').click()">
-                            <div class="upload-icon">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                            </div>
-                            <h3>Drag & Drop Files Here</h3>
-                            <p>or click to browse from your computer</p>
-                            <span class="file-limit">Supported: PDF, TXT (Max 10MB)</span>
-                        </div>
+            <!-- Smart Upload Modal -->
+            <div id="uploadModal" class="modal hidden">
+                <div class="modal-overlay" onclick="closeUploadModal()"></div>
+                <div class="modal-container">
+                    <div class="modal-header">
+                        <h2><i class="fas fa-file-upload"></i> Smart Document Ingestion</h2>
+                        <button class="modal-close" onclick="closeUploadModal()">&times;</button>
                     </div>
-                    
-                    <div id="uploadProgress" class="upload-progress hidden">
-                        <div class="progress-bar">
-                            <div id="uploadProgressFill" class="progress-fill"></div>
-                        </div>
-                        <p id="uploadStatus">Uploading and analyzing...</p>
-                    </div>
+                    <div class="modal-body">
+                        <p class="modal-subtitle">Upload PDFs, Bank Memos, or WhatsApp exports for AI analysis.</p>
 
-                    <div id="extractionResults" class="extraction-results hidden">
-                        <h3><i class="fas fa-check-circle"></i> Extracted Legal Data</h3>
-                        <div class="results-preview">
-                            <textarea id="extractedTextPreview" readonly aria-label="Extracted Legal Data Preview" title="Extracted Legal Data Preview" placeholder="Extracted legal text will appear here..."></textarea>
+                        <div class="upload-zone" id="uploadZone">
+                            <input type="file" id="fileInput" class="hidden" accept=".pdf,.txt"
+                                aria-label="Upload Legal Document File" title="Upload Legal Document File">
+                            <div class="upload-content" onclick="document.getElementById('fileInput').click()">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <h3>Drag & Drop Files Here</h3>
+                                <p>or click to browse from your computer</p>
+                                <span class="file-limit">Supported: PDF, TXT (Max 10MB)</span>
+                            </div>
                         </div>
-                        <div class="results-actions">
-                            <button class="btn btn-primary" onclick="proceedWithExtractedText()">
-                                <i class="fas fa-brain"></i> Analyze This Content
-                            </button>
+
+                        <div id="uploadProgress" class="upload-progress hidden">
+                            <div class="progress-bar">
+                                <div id="uploadProgressFill" class="progress-fill"></div>
+                            </div>
+                            <p id="uploadStatus">Uploading and analyzing...</p>
+                        </div>
+
+                        <div id="extractionResults" class="extraction-results hidden">
+                            <h3><i class="fas fa-check-circle"></i> Extracted Legal Data</h3>
+                            <div class="results-preview">
+                                <textarea id="extractedTextPreview" readonly aria-label="Extracted Legal Data Preview"
+                                    title="Extracted Legal Data Preview"
+                                    placeholder="Extracted legal text will appear here..."></textarea>
+                            </div>
+                            <div class="results-actions">
+                                <button class="btn btn-primary" onclick="proceedWithExtractedText()">
+                                    <i class="fas fa-brain"></i> Analyze This Content
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
             <div class="draft-gen-container">
 
@@ -2496,7 +2498,8 @@
                                 </div>
                             </div>
                             <div class="u-is-144" id="statBankOfficers">--</div>
-                            <div class="u-is-145">Active Officers: <strong class="u-is-22" id="statActiveBankOfficers">--</strong></div>
+                            <div class="u-is-145">Active Officers: <strong class="u-is-22"
+                                    id="statActiveBankOfficers">--</strong></div>
                         </div>
 
                         <div class="admin-stat-card">
@@ -2939,7 +2942,8 @@
                         <div class="u-is-248">
                             <div>
                                 <label class="u-is-246">Role / Plan Designation</label>
-                                <select id="newLitigatorRole" class="bank-input-select u-is-247" aria-label="Role / Plan Designation" title="Role / Plan Designation">
+                                <select id="newLitigatorRole" class="bank-input-select u-is-247"
+                                    aria-label="Role / Plan Designation" title="Role / Plan Designation">
                                     <option value="law_firm">Law Firm / Chamber</option>
                                     <option value="enterprise">Enterprise Legal Cell</option>
                                     <option value="citizen">Independent Litigator</option>
@@ -3301,7 +3305,9 @@
                     is irreversibly deleted.</p>
 
                 <h3>5. Consent Manager & Grievance Officer</h3>
-                <p>You may manage, review, or withdraw your consent at any time via your dashboard. For any data protection inquiries, please contact our designated Data Protection Officer / Grievance Officer at <strong>privacy@judiq.ai</strong>.</p>
+                <p>You may manage, review, or withdraw your consent at any time via your dashboard. For any data
+                    protection inquiries, please contact our designated Data Protection Officer / Grievance Officer at
+                    <strong>privacy@judiq.ai</strong>.</p>
             </div>
         </div>
     </div>
@@ -3480,7 +3486,8 @@
                 </div>
 
                 <form id="changePasswordForm" onsubmit="changeUserPasswordDirect(event)">
-                    <input class="u-is-68" type="text" name="username" autocomplete="username" tabindex="-1" aria-hidden="true" aria-label="Username" title="Username">
+                    <input class="u-is-68" type="text" name="username" autocomplete="username" tabindex="-1"
+                        aria-hidden="true" aria-label="Username" title="Username">
                     <h4 class="u-is-345">Direct Password Update</h4>
                     
                     <div class="form-group u-is-112">
@@ -3740,18 +3747,21 @@
     <!-- ═══════════════════════════════════════════════════════════════ -->
     <!-- MODAL: SHARE FORMAL LITIGATION REPORT                          -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div id="saveVersionModal" class="modal-overlay hidden u-is-385">
-        <div class="modal-card u-is-386">
-            <div class="u-is-387">
-                <div class="u-is-8">
-                    <i class="fas fa-save u-is-388"></i>
-                    <h3 class="u-is-389">Save Version Snapshot</h3>
+    <div id="shareReportModal" class="modal-overlay hidden" style="position:fixed; inset:0; background:rgba(15,23,42,0.8); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); z-index:999999; display:flex; align-items:center; justify-content:center; padding:1.5rem;">
+        <div class="modal-card" style="background:var(--bg-card, #ffffff); border-radius:1rem; max-width:540px; width:100%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.35); border:1px solid var(--border-color, #e2e8f0); overflow:hidden;">
+            <div style="padding:1.25rem 1.5rem; background:linear-gradient(135deg, #0f172a, #1e293b); color:white; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:0.6rem;">
+                    <i class="fas fa-share-alt" style="color:#38bdf8; font-size:1.2rem;"></i>
+                    <div>
+                        <h3 style="margin:0; font-size:1.1rem; font-weight:800; font-family:'Outfit',sans-serif;">Share Formal Case Report</h3>
+                        <span style="font-size:0.75rem; color:#94a3b8;">Client-Ready Read-Only Report via Sub-URL</span>
+                    </div>
                 </div>
-                <button class="u-is-390" type="button" onclick="window.closeSaveVersionModal()">&times;</button>
+                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:1.4rem; cursor:pointer;" onclick="window.closeShareReportModal()">&times;</button>
             </div>
-            <div class="u-is-391">
-                <p class="u-is-392">
-                    Archive the current case facts, exhibits, strategy recommendations, and viability score into a permanent historical version.
+            <div style="padding:1.5rem;">
+                <p style="font-size:0.85rem; color:var(--gray-600); margin:0 0 1.25rem 0; line-height:1.5;">
+                    Generate a formal litigation report link for your client, instructing counsel, or co-advocates. Recipients can review all findings and print the advisory memo in <strong>read-only</strong> mode.
                 </p>
                 <form id="saveVersionForm" onsubmit="window.handleSaveVersionSubmit(event)">
                     <div class="u-is-112">
@@ -4066,7 +4076,8 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Transaction / Cheque Date</label>
-                                    <input type="date" id="ccTransactionDate" class="form-control" aria-label="Primary Transaction Date" title="Primary Transaction Date">
+                                    <input type="date" id="ccTransactionDate" class="form-control"
+                                        aria-label="Primary Transaction Date" title="Primary Transaction Date">
                                 </div>
                                 <div class="form-group">
                                     <label>Dishonour Memo Date</label>
@@ -4363,7 +4374,8 @@
                 </div>
                 <div class="form-group">
                     <label>Party Role</label>
-                    <select id="linkClientRoleSelect" class="form-control" aria-label="Select Client Role in Matter" title="Select Client Role in Matter">
+                    <select id="linkClientRoleSelect" class="form-control" aria-label="Select Client Role in Matter"
+                        title="Select Client Role in Matter">
                         <option value="creditor">Creditor / Complainant</option>
                         <option value="debtor">Debtor / Accused</option>
                         <option value="guarantor">Guarantor / Mortgagor</option>
