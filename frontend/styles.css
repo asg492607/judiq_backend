@@ -1276,7 +1276,7 @@ button.primary:hover:not(:disabled),
 }
 
 .landing-nav-links a:hover {
-    color: var(--primary-600);
+    color: #ffffff;
 }
 
 .landing-nav {
@@ -11790,7 +11790,8 @@ body {
     outline: none;
 }
 
-.mobile-nav-toggle:hover, .mobile-nav-toggle:active {
+.mobile-nav-toggle:hover,
+.mobile-nav-toggle:active {
     background: rgba(56, 189, 248, 0.18);
     border-color: rgba(56, 189, 248, 0.5);
     color: #38bdf8;
