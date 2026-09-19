@@ -121,7 +121,7 @@
                         data-i18n="nav_docs"><i class="fas fa-book"></i> Docs</a>
                 </div>
                 <div class="mobile-nav-actions">
-                    
+
                     <button class="btn btn-outline btn-sm lang-toggle-btn u-is-11" onclick="toggleLanguage();">
                         <i class="fas fa-globe"></i> <span>मराठी / English</span>
                     </button>
@@ -395,8 +395,9 @@
                     <!-- Column 1: Document Checklist -->
                     <div class="checklist-card">
                         <h3>Courtroom Filing Checklist</h3>
-                        <p class="u-is-23">Check off elements you have ready to calculate your case filing viability score:</p>
-                        
+                        <p class="u-is-23">Check off elements you have ready to calculate your case filing viability
+                            score:</p>
+
                         <div class="checklist-item-list">
                             <label class="checklist-checkbox-label">
                                 <input type="checkbox" class="readiness-check" onchange="updateReadinessProgress()">
@@ -625,7 +626,9 @@
                                         <p>Order 37 CPC summary suits, IBC Section 7/9 insolvency triggers, balance
                                             confirmations &amp; limitation extension tracking.</p>
                                     </div>
-                                    <div class="module-quota-pill">10 Cases / mo</div>
+                                    <div class="module-quota-pill"
+                                        style="background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.35); font-weight: 700;">
+                                        Coming Soon</div>
                                 </div>
                             </label>
 
@@ -872,7 +875,7 @@
                                 <i class="fas fa-phone-alt"></i>
                                 <div>
                                     <h4>Phone / Hotline</h4>
-                                    <p>+1 (800) 555-JUDI (5834)</p>
+                                    <p style="min-height: 1.2rem;"></p>
                                 </div>
                             </div>
                             <div class="contact-card">
@@ -1100,7 +1103,7 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- DASHBOARD SECTION -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        
+
         <div id="dashboardScreen" class="main-screen hidden">
             <!-- Top Navigation -->
             <nav class="top-nav">
@@ -1671,81 +1674,53 @@
                             <div class="rl-card-header">
                                 <div class="rl-icon-wrap rl-teal"><i class="fas fa-landmark"></i></div>
                                 <div>
-                                    <h4>Outcome Prediction</h4>
-                                    <p class="card-subtitle">AI-assessed probability</p>
+                                    <h4>Landmark Precedents &amp; Citations</h4>
+                                    <p class="card-subtitle">Relevant Supreme Court &amp; High Court judgments</p>
                                 </div>
                             </div>
-                            <div id="aiOutcomePrediction" class="rl-outcome-box"></div>
+                            <div id="aiMatchedPrecedents" class="rl-precedents-grid"></div>
                         </div>
-                    </div>
 
-                    <!-- Row 2: Statutory Interpretation (full width) -->
-                    <div class="result-card rl-card u-is-77">
-                        <div class="rl-card-header">
-                            <div class="rl-icon-wrap rl-amber"><i class="fas fa-gavel"></i></div>
-                            <div>
-                                <h4>Statutory Interpretation</h4>
-                                <p class="card-subtitle">Section-by-section analysis against relevant Statutes (IPC/BNS/CrPC/NI Act)</p>
+                        <!-- Row 4: Risks & Rebuttals -->
+                        <div class="result-card rl-card u-is-77">
+                            <div class="rl-card-header">
+                                <div class="rl-icon-wrap rl-red"><i class="fas fa-shield-virus"></i></div>
+                                <div>
+                                    <h4>Risk Analysis &amp; AI-Suggested Rebuttals</h4>
+                                    <p class="card-subtitle">Identified vulnerabilities with case-law-backed
+                                        counter-strategies</p>
+                                </div>
                             </div>
+                            <div id="aiRisksRebuttals" class="rl-risks-list"></div>
                         </div>
-                        <div id="aiStatutoryInterpretation" class="rl-statutes-grid"></div>
-                    </div>
 
-                    <!-- Row 3: Matched Precedents -->
-                    <div class="result-card rl-card u-is-77">
-                        <div class="rl-card-header">
-                            <div class="rl-icon-wrap rl-teal"><i class="fas fa-landmark"></i></div>
-                            <div>
-                                <h4>Landmark Precedents &amp; Citations</h4>
-                                <p class="card-subtitle">Relevant Supreme Court &amp; High Court judgments</p>
+                        <!-- Row 5: Evidence Gaps -->
+                        <div class="result-card rl-card u-is-77">
+                            <div class="rl-card-header">
+                                <div class="rl-icon-wrap rl-orange"><i class="fas fa-search-plus"></i></div>
+                                <div>
+                                    <h4>Evidence Gaps &amp; Suggestions</h4>
+                                    <p class="card-subtitle">Documents you should gather to strengthen your case</p>
+                                </div>
                             </div>
+                            <div id="aiEvidenceSuggestions" class="rl-evidence-list"></div>
                         </div>
-                        <div id="aiMatchedPrecedents" class="rl-precedents-grid"></div>
-                    </div>
 
-                    <!-- Row 4: Risks & Rebuttals -->
-                    <div class="result-card rl-card u-is-77">
-                        <div class="rl-card-header">
-                            <div class="rl-icon-wrap rl-red"><i class="fas fa-shield-virus"></i></div>
-                            <div>
-                                <h4>Risk Analysis &amp; AI-Suggested Rebuttals</h4>
-                                <p class="card-subtitle">Identified vulnerabilities with case-law-backed counter-strategies</p>
+                        <!-- Row 6: Reasoning Trail -->
+                        <div class="result-card rl-card u-is-77">
+                            <div class="rl-card-header">
+                                <div class="rl-icon-wrap rl-green"><i class="fas fa-route"></i></div>
+                                <div>
+                                    <h4>AI Reasoning Trail <span class="rl-xai-badge">Explainable AI</span></h4>
+                                    <p class="card-subtitle">Step-by-step logic path from case facts to analytical
+                                        assessment — transparent & explainable</p>
+                                </div>
                             </div>
+                            <div id="aiReasoningTrail" class="rl-trail-list"></div>
                         </div>
-                        <div id="aiRisksRebuttals" class="rl-risks-list"></div>
+
                     </div>
-
-                    <!-- Row 5: Evidence Gaps -->
-                    <div class="result-card rl-card u-is-77">
-                        <div class="rl-card-header">
-                            <div class="rl-icon-wrap rl-orange"><i class="fas fa-search-plus"></i></div>
-                            <div>
-                                <h4>Evidence Gaps &amp; Suggestions</h4>
-                                <p class="card-subtitle">Documents you should gather to strengthen your case</p>
-                            </div>
-                        </div>
-                        <div id="aiEvidenceSuggestions" class="rl-evidence-list"></div>
-                    </div>
-
-                    <!-- Row 6: Reasoning Trail -->
-                    <div class="result-card rl-card u-is-77">
-                        <div class="rl-card-header">
-                            <div class="rl-icon-wrap rl-green"><i class="fas fa-route"></i></div>
-                            <div>
-                                <h4>AI Reasoning Trail <span class="rl-xai-badge">Explainable AI</span></h4>
-                                <p class="card-subtitle">Step-by-step logic path from case facts to analytical assessment — transparent & explainable</p>
-                            </div>
-                        </div>
-                        <div id="aiReasoningTrail" class="rl-trail-list"></div>
-                    </div>
-
-                </div>
-                <!-- END: AI Reasoning Layer -->
-
-                <!-- Improvement Suggestions (existing) -->
-                <div id="improvementSuggestions"></div>
-                <div id="scoreExplanation"></div>
-                <div id="confidenceIndicator"></div>
+                    <!-- END: AI Reasoning Layer -->
 
                 </div>
                 <!-- End Tab: Overview -->
@@ -2303,7 +2278,8 @@
 
                 <!-- Admin Tab Navigation Strip (6 Functional Tabs) -->
                 <div class="admin-tab-nav">
-                    <button class="admin-tab-btn active" id="adminTabBtnLitigators" onclick="switchAdminTab('litigators')">
+                    <button class="admin-tab-btn active" id="adminTabBtnLitigators"
+                        onclick="switchAdminTab('litigators')">
                         <i class="fas fa-users-gear"></i> Litigator Accounts &amp; Quotas
                     </button>
                     <button class="admin-tab-btn" id="adminTabBtnPlans" onclick="switchAdminTab('plans')">
@@ -2731,7 +2707,8 @@
                                 <div class="u-is-207">
                                     <div>
                                         <div class="u-is-208">Section 138 NI Act Engine</div>
-                                        <div class="u-is-209">30-day notice, 15-day cure, S.141 director vicarious liability</div>
+                                        <div class="u-is-209">30-day notice, 15-day cure, S.141 director vicarious
+                                            liability</div>
                                     </div>
                                     <span class="status-badge-active"><i class="fas fa-circle-check"></i> OPERATIONAL</span>
                                 </div>
@@ -3069,7 +3046,8 @@
                         </div>
 
                         <div class="u-is-217">
-                            <button type="button" class="btn btn-outline" onclick="closeBulkBonusModal()">Cancel</button>
+                            <button type="button" class="btn btn-outline"
+                                onclick="closeBulkBonusModal()">Cancel</button>
                             <button type="submit" class="btn btn-primary u-is-258">
                                 <i class="fas fa-sparkles"></i> Grant Bonus Credits
                             </button>
@@ -3417,7 +3395,8 @@
                         drafts generated by the platform.</li>
                     <li>Errors, omissions, or "hallucinations" present in the AI-generated analysis.</li>
                 </ul>
-                <p><strong>You are solely responsible for reviewing and verifying all AI-generated output before relying upon it.</strong></p>
+                <p><strong>You are solely responsible for reviewing and verifying all AI-generated output before relying
+                        upon it.</strong></p>
 
                 <h3>6. Governing Law & Dispute Resolution</h3>
                 <p>These Terms of Service shall be governed by and construed in accordance with the laws of India, without regard to its conflict of law principles. Any dispute arising out of or in connection with these Terms shall be subject to the exclusive jurisdiction of the courts located in New Delhi, India.</p>
@@ -3633,8 +3612,10 @@
                                 Correct date indexing is crucial for calculating statute limitation periods.</p>
 
                             <h4>2. Step 2: Smart Document Upload</h4>
-                            <p>Upload document scans. The built-in OCR scans for matching cheque amounts, bank dishonour reasons (e.g. signature mismatch, insufficient funds), and demand notice postal delivery receipts.</p>
-                            
+                            <p>Upload document scans. The built-in OCR scans for matching cheque amounts, bank dishonour
+                                reasons (e.g. signature mismatch, insufficient funds), and demand notice postal delivery
+                                receipts.</p>
+
                             <h4>3. Step 3: Evidentiary Verification</h4>
                             <p>Specify transaction histories and confirm that the statutory 15-day notice period was given before proceeding with case filing.</p>
                         </div>
@@ -3959,9 +3940,11 @@
                 <h4 class="u-is-411">2. Automated Statutory Legal Analysis Engines</h4>
                 <p>
                     The platform provides analytical evaluation across specialized Indian statutory domains including:
-                    <ul>
-                        <li><strong>Section 138/141/142 Negotiable Instruments Act, 1881:</strong> Limitation computing, cheque dishonour tracking, statutory notice verification, director vicarious liability, and Section 143A interim compensation modeling.</li>
-                    </ul>
+                <ul>
+                    <li><strong>Section 138/141/142 Negotiable Instruments Act, 1881:</strong> Limitation computing,
+                        cheque dishonour tracking, statutory notice verification, director vicarious liability, and
+                        Section 143A interim compensation modeling.</li>
+                </ul>
                 </p>
 
                 <h4 class="u-is-411">3. Case Versioning, Snapshot Archiving & Advocate Work-Product</h4>
@@ -4305,7 +4288,8 @@
                 <a class="cms-nav-item" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i> Analytics</a>
                 <a class="cms-nav-item" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
                 <div class="u-is-413">
-                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Suite</a>
+                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to
+                        Suite</a>
                 </div>
             </aside>
             <main class="cms-main-content">
@@ -4580,8 +4564,10 @@
                 </div>
             </div>
             <div class="cms-modal-footer">
-                <button class="btn btn-outline" onclick="this.closest('.cms-modal-overlay').classList.add('hidden')">Cancel</button>
-                <button class="btn btn-primary" onclick="submitS65BCertification()"><i class="fas fa-certificate"></i> Certify &amp; Sign</button>
+                <button class="btn btn-outline"
+                    onclick="this.closest('.cms-modal-overlay').classList.add('hidden')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitS65BCertification()"><i class="fas fa-certificate"></i>
+                    Certify &amp; Sign</button>
             </div>
         </div>
     </div>
