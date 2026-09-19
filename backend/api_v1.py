@@ -31,6 +31,8 @@ api_router.include_router(documents.router, prefix="/documents", tags=["Document
 api_router.include_router(cases.router, prefix="/cases", tags=["Cases"])
 api_router.include_router(telemetry.router, prefix="/telemetry", tags=["Telemetry"])
 api_router.include_router(admin_control_router, prefix="/admin", tags=["Admin Control"])
+from reports_router import router as reports_router
+api_router.include_router(reports_router, prefix="/reports", tags=["Share Reports"])
 api_router.include_router(user_quota_router, prefix="/user", tags=["User Quota"])
 
 # ── CMS Routers ──────────────────────────────────────────────
