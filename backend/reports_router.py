@@ -108,3 +108,26 @@ def verify_shared_report_password(share_id: str, req: VerifyReportPasswordReques
             "case_id": report["case_id"],
             "title": report["title"],
             "domain": report["domain"],
+            "created_at": report["created_at"],
+            "case_data": report["case_data"],
+            "analysis_result": report["analysis_result"]
+        }
+        
+    provided_hash = hash_report_password(req.password.strip())
+    if provided_hash != stored_hash:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect password. Access to this litigation report is restricted."
+        )
+        
+    DatabaseManager.increment_shared_report_views(share_id)
+    return {
+        "success": True,
+        "share_id": report["share_id"],
+        "case_id": report["case_id"],
+        "title": report["title"],
+        "domain": report["domain"],
+        "created_at": report["created_at"],
+        "case_data": report["case_data"],
+        "analysis_result": report["analysis_result"]
+    }
