@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com https://*.googleapis.com https://*.firebaseio.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 ws://localhost:8000 wss://* https://*; frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://*.google.com;">
@@ -267,7 +268,8 @@
                             <div class="sim-form-group">
                                 <label for="simNoticeDelayInput">Demand Notice Dispatch Delay (Days)</label>
                                 <div class="sim-range-wrapper">
-                                    <input type="range" id="simNoticeDelayInput" min="1" max="60" value="12" oninput="document.getElementById('simDelayVal').textContent = this.value; recalculateSimulatorScore();">
+                                    <input type="range" id="simNoticeDelayInput" min="1" max="60" value="12"
+                                        oninput="document.getElementById('simDelayVal').textContent = this.value; recalculateSimulatorScore();">
                                     <span id="simDelayVal" class="sim-range-val">12</span> days
                                 </div>
                             </div>
@@ -529,8 +531,9 @@
 
                         <div class="modules-checkbox-grid">
                             <!-- Module 1: S.138 -->
-                            <label class="module-choice-card active" data-module="s138">
-                                <input type="checkbox" name="legal_module" value="s138" checked onchange="updateModularPricing()">
+                            <label class="module-choice-card active" data-module="s138" style="cursor: default;">
+                                <input type="checkbox" name="legal_module" value="s138" checked disabled
+                                    style="accent-color: #6366f1;">
                                 <div class="module-card-body">
                                     <div class="module-card-icon"><i class="fas fa-money-check"></i></div>
                                     <div class="module-card-info">
@@ -693,7 +696,9 @@
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
-                            <p>Yes, security is our core priority. All uploaded case documents, facts, and drafts are fully encrypted using AES-256 at rest and TLS 1.3 in transit. We enforce strict data isolation; your client data is never used to train or fine-tune public models.</p>
+                            <p>Yes, security is our core priority. All uploaded case documents, facts, and drafts are
+                                fully encrypted using AES-256 at rest and TLS 1.3 in transit. We enforce strict data
+                                isolation; your client data is never used to train or fine-tune public models.</p>
                         </div>
                     </div>
                     <div class="faq-item">
@@ -943,7 +948,8 @@
                     <form id="loginForm" class="auth-form">
                         <div class="form-group">
                             <label for="loginEmail">Email Address</label>
-                            <input type="email" id="loginEmail" required placeholder="your@email.com" autocomplete="username">
+                            <input type="email" id="loginEmail" required placeholder="your@email.com"
+                                autocomplete="username">
                         </div>
                         <div class="form-group">
                             <label for="loginPassword">Password</label>
@@ -1329,10 +1335,14 @@
                         <div class="u-is-63">
                             <h3 class="u-is-64"><i class="fas fa-check-double"></i> Proof Check</h3>
                             <div class="quick-proof-grid">
-                                <label class="quick-checkbox-label"><input type="checkbox" id="qChequePresent"><span>Original Cheque Available</span></label>
-                                <label class="quick-checkbox-label"><input type="checkbox" id="qDishonourMemo"><span>Bank Dishonour Memo Available</span></label>
-                                <label class="quick-checkbox-label"><input type="checkbox" id="qNoticeSent"><span>Legal Demand Notice Sent</span></label>
-                                <label class="quick-checkbox-label"><input type="checkbox" id="qDebtProof"><span>Debt Proof Documents Available</span></label>
+                                <label class="quick-checkbox-label"><input type="checkbox"
+                                        id="qChequePresent"><span>Original Cheque Available</span></label>
+                                <label class="quick-checkbox-label"><input type="checkbox"
+                                        id="qDishonourMemo"><span>Bank Dishonour Memo Available</span></label>
+                                <label class="quick-checkbox-label"><input type="checkbox" id="qNoticeSent"><span>Legal
+                                        Demand Notice Sent</span></label>
+                                <label class="quick-checkbox-label"><input type="checkbox" id="qDebtProof"><span>Debt
+                                        Proof Documents Available</span></label>
                             </div>
                         </div>
                         <div class="quick-actions-row">
@@ -1942,8 +1952,8 @@
 
                 <!-- Action Buttons -->
                 <div class="results-actions">
-                    <button class="btn btn-primary" onclick="showDraftGenerator()">
-                        <i class="fas fa-file-alt"></i> Generate Legal Draft
+                    <button class="btn btn-primary" onclick="downloadPDF()">
+                        <i class="fas fa-download"></i> Download PDF Report
                     </button>
                     <button class="btn btn-primary" onclick="viewFullReport()">
                         <i class="fas fa-file-invoice"></i> View Full Report
@@ -2399,7 +2409,8 @@
                                 <tbody id="adminUsersTableBody">
                                     <tr>
                                         <td class="u-is-173" colspan="7">
-                                            <i class="fas fa-spinner fa-spin u-is-174"></i> Loading litigator accounts...
+                                            <i class="fas fa-spinner fa-spin u-is-174"></i> Loading litigator
+                                            accounts...
                                         </td>
                                     </tr>
                                 </tbody>
@@ -2829,7 +2840,8 @@
                             </div>
                             <div class="u-is-231">
                                 <div class="u-is-232"><i class="fas fa-filter u-is-234"></i> Input Sanitization</div>
-                                <div class="u-is-233">Deterministic payload threat inspection for SQLi, XSS, and path traversal signatures.</div>
+                                <div class="u-is-233">Deterministic payload threat inspection for SQLi, XSS, and path
+                                    traversal signatures.</div>
                             </div>
                             <div class="u-is-231">
                                 <div class="u-is-232"><i class="fas fa-gauge-high u-is-41"></i> Distributed Rate Limiting</div>
@@ -3237,8 +3249,10 @@
                 <h3>1. Personal Data We Collect</h3>
                 <p>Under the DPDP Act, we only collect personal data necessary for providing our service:</p>
                 <ul>
-                    <li><strong>Account Data:</strong> Name, email address, password hash, phone number, and professional credentials.</li>
-                    <li><strong>Case & Document Data:</strong> Confidential case facts, evidence files, and court files which may contain sensitive personal data of your clients or opposing parties.</li>
+                    <li><strong>Account Data:</strong> Name, email address, password hash, phone number, and
+                        professional credentials.</li>
+                    <li><strong>Case & Document Data:</strong> Confidential case facts, evidence files, and court files
+                        which may contain sensitive personal data of your clients or opposing parties.</li>
                 </ul>
 
                 <h3>2. Purpose & Grounds of Processing</h3>
@@ -3396,9 +3410,10 @@
                     
                     <div class="form-group u-is-14">
                         <label class="u-is-336" for="profileDisplayName">Display Name / Counsel Title</label>
-                        <input class="u-is-337" type="text" id="profileDisplayName" placeholder="Counsel Rajesh Sharma" required>
+                        <input class="u-is-337" type="text" id="profileDisplayName" placeholder="Counsel Rajesh Sharma"
+                            required>
                     </div>
-                    
+
                     <div class="form-group u-is-14">
                         <label class="u-is-336" for="profileFirmName">Law Firm / Organization Name</label>
                         <input class="u-is-337" type="text" id="profileFirmName" placeholder="BuildTech Partners">
@@ -3626,7 +3641,7 @@
                     </div>
                     <span class="command-shortcut-hint">Wizard</span>
                 </div>
-                
+
                 <div class="command-item" onclick="executeCommand('print_memo')">
                     <div class="command-item-left">
                         <div class="command-item-icon"><i class="fas fa-print"></i></div>
@@ -3978,7 +3993,8 @@
                             </div>
                             <div class="form-group">
                                 <label>Priority Level</label>
-                                <select id="ccPriority" class="form-control" aria-label="Case Urgency Priority" title="Case Urgency Priority">
+                                <select id="ccPriority" class="form-control" aria-label="Case Urgency Priority"
+                                    title="Case Urgency Priority">
                                     <option value="high">High Priority</option>
                                     <option value="medium" selected>Medium Priority</option>
                                     <option value="low">Low Priority</option>
@@ -4250,7 +4266,8 @@
                 <a class="cms-nav-item" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i> Analytics</a>
                 <a class="cms-nav-item active" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
                 <div class="u-is-413">
-                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Suite</a>
+                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to
+                        Suite</a>
                 </div>
             </aside>
             <main class="cms-main-content">
@@ -4462,8 +4479,9 @@
     <!-- DOMPurify for XSS Protection -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 
-    <!-- Chart.js for Visualizations --><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+    <!-- Chart.js for Visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Main Application Script (ES6 Module) -->
     <script type="module" src="js/main.js?v=17"></script>
 </body>
