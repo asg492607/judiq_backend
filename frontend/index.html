@@ -75,7 +75,7 @@
                         <i class="fas fa-globe"></i> <span>मराठी</span>
                     </button>
                 </div>
-                <div class="landing-nav">
+                <div class="landing-nav" style="margin-left: auto;">
                     <!-- <button class="btn btn-outline hide-on-mobile cms-nav-btn u-is-4" onclick="switchScreen('caseListScreen')">
                         <i class="fas fa-briefcase"></i> Case Management
                     </button> -->
@@ -353,7 +353,8 @@
                             <div class="timeline-step-item success" id="step1Item">
                                 <div class="timeline-step-icon"></div>
                                 <div class="timeline-step-title">1. Notice Serving Window</div>
-                                <div class="timeline-step-desc" id="step1Desc">Demand notice must be sent within 30 days of the Bank Return Memo.</div>
+                                <div class="timeline-step-desc" id="step1Desc">Demand notice must be sent within 30 days
+                                    of the Bank Return Memo.</div>
                                 <div class="timeline-step-date" id="step1Date">Interval: 14 days (Compliant)</div>
                             </div>
                             <div class="timeline-step-item success" id="step2Item">
@@ -593,7 +594,8 @@
                                     <div class="module-card-icon"><i class="fas fa-scale-balanced"></i></div>
                                     <div class="module-card-info">
                                         <h4>Civil &amp; Specific Relief Strategy</h4>
-                                        <p>Limitation Act Sec 5 delay condonation, Order 39 prima facie injunction tests, specific performance &amp; commercial arbitration claims.</p>
+                                        <p>Limitation Act Sec 5 delay condonation, Order 39 prima facie injunction
+                                            tests, specific performance &amp; commercial arbitration claims.</p>
                                     </div>
                                     <div class="module-quota-pill">10 Cases / mo</div>
                                 </div>
@@ -817,7 +819,8 @@
                             </div>
                         </div>
                     </a>
-                    <a href="#" class="blog-card" onclick="event.preventDefault(); if (window.ui) { window.ui.toast('Resource opening soon!', 'info'); }">
+                    <a href="#" class="blog-card"
+                        onclick="event.preventDefault(); if (window.ui) { window.ui.toast('Resource opening soon!', 'info'); }">
                         <div class="blog-image">
                             <i class="fas fa-gavel"></i>
                             <span class="blog-badge">Statutory Law</span>
@@ -1053,7 +1056,7 @@
                             <input type="hidden" id="registerDomain" value="ni_act">
                         </div>
 
-                        <div class="form-group checkbox-group u-is-43">
+                        <div class="terms-agreement-group u-is-43">
                             <input class="u-is-44" type="checkbox" id="termsCheckbox" required>
                             <label class="u-is-45" for="termsCheckbox">
                                 I agree to the <a class="u-is-46" href="#" onclick="openLegalModal('termsConditionsModal'); return false;">Terms & Conditions</a> and <a class="u-is-46" href="#" onclick="openLegalModal('privacyPolicyModal'); return false;">Privacy Policy</a>.
@@ -1518,157 +1521,200 @@
 
                 <!-- Tab: Overview -->
                 <div id="tabOverview" class="tab-content active">
-                
-                <!-- RULES ENGINE (STATUTORY BARS) -->
-                <div id="statutoryRulesContainer"></div>
 
-                <!-- Executive Summary Card -->
-                <div class="result-card result-card-hero">
-                    <div class="result-verdict" id="resultVerdict">
-                        <div class="verdict-icon" id="verdictIcon"></div>
-                        <div class="verdict-content">
-                            <div id="cynicalModeBadge" class="cynical-badge hidden">
-                                <i class="fas fa-user-tie"></i> CYNICAL ADVOCATE MODE ACTIVE
+                    <!-- RULES ENGINE (STATUTORY BARS) -->
+                    <div id="statutoryRulesContainer"></div>
+
+                    <!-- Executive Summary Card -->
+                    <div class="result-card result-card-hero">
+                        <div class="result-verdict" id="resultVerdict">
+                            <div class="verdict-icon" id="verdictIcon"></div>
+                            <div class="verdict-content">
+                                <div id="cynicalModeBadge" class="cynical-badge hidden">
+                                    <i class="fas fa-user-tie"></i> CYNICAL ADVOCATE MODE ACTIVE
+                                </div>
+                                <h1 id="verdictTitle">Strong Legal Merit</h1>
+                                <p id="verdictDescription">Analytical evaluation indicates strong documentary trail and
+                                    statutory merit</p>
+                                <div id="failurePointContainer" class="failure-point-container hidden u-is-74">
+                                    <strong class="u-is-75"><i class="fas fa-bolt"></i> CASE WILL BREAK HERE:</strong>
+                                    <p class="u-is-76" id="failurePointText"></p>
+                                </div>
                             </div>
-                            <h1 id="verdictTitle">Strong Legal Merit</h1>
-                            <p id="verdictDescription">Analytical evaluation indicates strong documentary trail and statutory merit</p>
-                            <div id="failurePointContainer" class="failure-point-container hidden u-is-74">
-                                <strong class="u-is-75"><i class="fas fa-bolt"></i> CASE WILL BREAK HERE:</strong>
-                                <p class="u-is-76" id="failurePointText"></p>
-                            </div>
-                        </div>
-                        <div class="verdict-score">
-                            <div class="score-circle" id="scoreCircle">
-                                <svg viewBox="0 0 200 200">
-                                    <circle cx="100" cy="100" r="90" fill="none" stroke="#e5e7eb" stroke-width="12"/>
-                                    <circle id="scoreProgress" cx="100" cy="100" r="90" fill="none" stroke="#10b981" stroke-width="12" stroke-dasharray="565.48" stroke-dashoffset="565.48" transform="rotate(-90 100 100)"/>
-                                </svg>
-                                <div class="score-value">
-                                    <span id="scoreNumber">0</span>
-                                    <span class="score-unit">/100</span>
+                            <div class="verdict-score">
+                                <div class="score-circle" id="scoreCircle">
+                                    <svg viewBox="0 0 200 200">
+                                        <circle cx="100" cy="100" r="90" fill="none" stroke="#e5e7eb"
+                                            stroke-width="12" />
+                                        <circle id="scoreProgress" cx="100" cy="100" r="90" fill="none" stroke="#10b981"
+                                            stroke-width="12" stroke-dasharray="565.48" stroke-dashoffset="565.48"
+                                            transform="rotate(-90 100 100)" />
+                                    </svg>
+                                    <div class="score-value">
+                                        <span id="scoreNumber">0</span>
+                                        <span class="score-unit">/100</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Key Metrics Grid -->
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            <i class="fas fa-shield-alt"></i>
+                    <!-- Key Metrics Grid -->
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="metric-content">
+                                <h4>Defence Risk</h4>
+                                <p id="defenceRisk">Medium</p>
+                            </div>
                         </div>
-                        <div class="metric-content">
-                            <h4>Defence Risk</h4>
-                            <p id="defenceRisk">Medium</p>
+                        <div class="metric-card">
+                            <div class="metric-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="metric-content">
+                                <h4>Critical Issues</h4>
+                                <p id="criticalIssues">0</p>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="metric-content">
+                                <h4>Strong Points</h4>
+                                <p id="strongPoints">0</p>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <div class="metric-content">
+                                <h4>Concepts Detected</h4>
+                                <p id="conceptsDetected">0</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                        <div class="metric-content">
-                            <h4>Critical Issues</h4>
-                            <p id="criticalIssues">0</p>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="metric-content">
-                            <h4>Strong Points</h4>
-                            <p id="strongPoints">0</p>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-icon">
-                            <i class="fas fa-brain"></i>
-                        </div>
-                        <div class="metric-content">
-                            <h4>Concepts Detected</h4>
-                            <p id="conceptsDetected">0</p>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- ═══════════════════════════════════════════════════ -->
-                <!-- WHAT-IF DASHBOARD (SCENARIO MODELING)               -->
-                <!-- ═══════════════════════════════════════════════════ -->
-                <div class="result-card u-is-77">
-                    <div class="u-is-78">
-                        <div>
-                            <h3 class="u-is-79"><i class="fas fa-sliders-h u-is-80"></i> "What-If" Scenario Modeler</h3>
-                            <p class="card-subtitle u-is-81">Toggle parameters below to instantly re-analyze the case without navigating the wizard.</p>
+                    <!-- ═══════════════════════════════════════════════════ -->
+                    <!-- WHAT-IF DASHBOARD (SCENARIO MODELING)               -->
+                    <!-- ═══════════════════════════════════════════════════ -->
+                    <div class="result-card u-is-77">
+                        <div class="u-is-78">
+                            <div>
+                                <h3 class="u-is-79"><i class="fas fa-sliders-h u-is-80"></i> "What-If" Scenario Modeler
+                                </h3>
+                                <p class="card-subtitle u-is-81">Toggle parameters below to instantly re-analyze the
+                                    case without navigating the wizard.</p>
+                            </div>
+                            <button onclick="window.runAnalysis()" class="btn btn-primary u-is-82"><i
+                                    class="fas fa-sync-alt"></i> Re-Calculate</button>
                         </div>
-                        <button onclick="window.runAnalysis()" class="btn btn-primary u-is-82"><i class="fas fa-sync-alt"></i> Re-Calculate</button>
+                        <div class="u-is-83">
+                            <!-- Condonation Toggle -->
+                            <div class="u-is-84">
+                                <label class="u-is-85" for="whatif_condonation">Condonation Attached (S.142)</label>
+                                <label class="switch u-is-86">
+                                    <input type="checkbox" id="whatif_condonation"
+                                        aria-label="Condonation Attached (S.142)" title="Condonation Attached (S.142)"
+                                        onchange="window.updateWhatIf('condonation_attached', this.checked)">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            <!-- BSA Certificate Toggle -->
+                            <div class="u-is-84">
+                                <label class="u-is-85" for="whatif_bsa">BSA S.63(4) Included</label>
+                                <label class="switch u-is-86">
+                                    <input type="checkbox" id="whatif_bsa" aria-label="BSA S.63(4) Included"
+                                        title="BSA S.63(4) Included"
+                                        onchange="window.updateWhatIf('bsa_certificate', this.checked ? 'Yes' : 'No')">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            <!-- Directors Named Toggle -->
+                            <div class="u-is-84">
+                                <label class="u-is-85" for="whatif_directors">Specific Directors Averred (S.141)</label>
+                                <label class="switch u-is-86">
+                                    <input type="checkbox" id="whatif_directors"
+                                        aria-label="Specific Directors Averred (S.141)"
+                                        title="Specific Directors Averred (S.141)"
+                                        onchange="window.updateWhatIf('directors_named', this.checked ? 'Yes' : 'No')">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            <!-- Transaction Type Dropdown -->
+                            <div class="u-is-84">
+                                <label class="u-is-85" for="whatif_transaction">Transaction Type</label>
+                                <select class="u-is-87" id="whatif_transaction" aria-label="Transaction Type"
+                                    title="Transaction Type"
+                                    onchange="window.updateWhatIf('agreement_type', this.value)">
+                                    <option value="Personal Loan">Personal Loan</option>
+                                    <option value="Commercial Invoice">Commercial Invoice</option>
+                                    <option value="Investment/Business">Investment/Business</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    <div class="u-is-83">
-                        <!-- Condonation Toggle -->
-                        <div class="u-is-84">
-                            <label class="u-is-85">Condonation Attached (S.142)</label>
-                            <label class="switch u-is-86">
-                                <input type="checkbox" id="whatif_condonation" aria-label="Condonation Attached (S.142)" title="Condonation Attached (S.142)" onchange="window.updateWhatIf('condonation_attached', this.checked)">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <!-- BSA Certificate Toggle -->
-                        <div class="u-is-84">
-                            <label class="u-is-85">BSA S.63(4) Included</label>
-                            <label class="switch u-is-86">
-                                <input type="checkbox" id="whatif_bsa" aria-label="BSA S.63(4) Included" title="BSA S.63(4) Included" onchange="window.updateWhatIf('bsa_certificate', this.checked ? 'Yes' : 'No')">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <!-- Directors Named Toggle -->
-                        <div class="u-is-84">
-                            <label class="u-is-85">Specific Directors Averred (S.141)</label>
-                            <label class="switch u-is-86">
-                                <input type="checkbox" id="whatif_directors" aria-label="Specific Directors Averred (S.141)" title="Specific Directors Averred (S.141)" onchange="window.updateWhatIf('directors_named', this.checked ? 'Yes' : 'No')">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <!-- Transaction Type Dropdown -->
-                        <div class="u-is-84">
-                            <label class="u-is-85">Transaction Type</label>
-                            <select class="u-is-87" id="whatif_transaction" aria-label="Transaction Type" title="Transaction Type" onchange="window.updateWhatIf('agreement_type', this.value)">
-                                <option value="Personal Loan">Personal Loan</option>
-                                <option value="Commercial Invoice">Commercial Invoice</option>
-                                <option value="Investment/Business">Investment/Business</option>
-                            </select>
+
+                    <!-- Explainable Score Breakdown (Trust Layer) -->
+                    <div class="result-card u-is-77">
+                        <h3><i class="fas fa-calculator"></i> Score Breakdown <span class="u-is-88">Explainable
+                                AI</span></h3>
+                        <p class="card-subtitle">Why your score is what it is — every point attributed to a legal factor
+                        </p>
+                        <div class="u-is-32" id="explainableScorePanel">
+                            <p class="u-is-89">Run an analysis to see the detailed score breakdown.</p>
                         </div>
                     </div>
-                </div>
 
-                <!-- Explainable Score Breakdown (Trust Layer) -->
-                <div class="result-card u-is-77">
-                    <h3><i class="fas fa-calculator"></i> Score Breakdown <span class="u-is-88">Explainable AI</span></h3>
-                    <p class="card-subtitle">Why your score is what it is — every point attributed to a legal factor</p>
-                    <div class="u-is-32" id="explainableScorePanel">
-                        <p class="u-is-89">Run an analysis to see the detailed score breakdown.</p>
+                    <!-- Evidence Sufficiency Meter -->
+                    <div class="result-card u-is-77">
+                        <h3><i class="fas fa-tachometer-alt"></i> Evidence Sufficiency Meter</h3>
+                        <p class="card-subtitle">How ready is your evidence across all critical pillars?</p>
+                        <div class="u-is-32" id="evidenceSufficiencyMeter">
+                            <p class="u-is-89">Run an analysis to see evidence readiness.</p>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Evidence Sufficiency Meter -->
-                <div class="result-card u-is-77">
-                    <h3><i class="fas fa-tachometer-alt"></i> Evidence Sufficiency Meter</h3>
-                    <p class="card-subtitle">How ready is your evidence across all critical pillars?</p>
-                    <div class="u-is-32" id="evidenceSufficiencyMeter">
-                        <p class="u-is-89">Run an analysis to see evidence readiness.</p>
-                    </div>
-                </div>
+                    <!-- Error banner (shown on API/network failures) -->
+                    <div id="analysisErrorBanner" class="hidden"></div>
 
-                <!-- Error banner (shown on API/network failures) -->
-                <div id="analysisErrorBanner" class="hidden"></div>
+                    <!-- ═══════════════════════════════════════════════════ -->
+                    <!-- AI REASONING LAYER — Explainability & Intelligence  -->
+                    <!-- ═══════════════════════════════════════════════════ -->
+                    <div id="aiReasoningLayer" class="ai-reasoning-layer">
 
-                <!-- ═══════════════════════════════════════════════════ -->
-                <!-- AI REASONING LAYER — Explainability & Intelligence  -->
-                <!-- ═══════════════════════════════════════════════════ -->
-                <div id="aiReasoningLayer" class="ai-reasoning-layer">
+                        <!-- Row 1: Case Summary + Outcome Prediction -->
+                        <div class="rl-row-2">
+                            <div class="result-card rl-card">
+                                <div class="rl-card-header">
+                                    <div class="rl-icon-wrap rl-blue"><i class="fas fa-file-contract"></i></div>
+                                    <div>
+                                        <h4>AI Case Summary</h4>
+                                        <p class="card-subtitle">Auto-generated from case facts</p>
+                                    </div>
+                                    <div id="translatedVerdictBadge" class="rl-lang-badge"></div>
+                                </div>
+                                <div id="aiCaseSummary" class="rl-content-box"></div>
+                            </div>
 
-                    <!-- Row 1: Case Summary + Outcome Prediction -->
-                    <div class="rl-row-2">
-                        <div class="result-card rl-card">
+                            <div class="result-card rl-card">
+                                <div class="rl-card-header">
+                                    <div class="rl-icon-wrap rl-purple"><i class="fas fa-chart-pie"></i></div>
+                                    <div>
+                                        <h4>Outcome Prediction</h4>
+                                        <p class="card-subtitle">AI-assessed probability</p>
+                                    </div>
+                                </div>
+                                <div id="aiOutcomePrediction" class="rl-outcome-box"></div>
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Statutory Interpretation (full width) -->
+                        <div class="result-card rl-card u-is-77">
                             <div class="rl-card-header">
                                 <div class="rl-icon-wrap rl-blue"><i class="fas fa-file-contract"></i></div>
                                 <div>
@@ -2262,7 +2308,7 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- ADMIN CONTROL CENTER & USER QUOTA MANAGEMENT SCREEN -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        
+
         <div id="adminPortalScreen" class="main-screen hidden">
             <!-- Admin Top Navigation -->
             <nav class="top-nav admin-top-nav u-is-124">
@@ -2670,7 +2716,7 @@
                 <!-- ═══════════════════════════════════════════════════════════ -->
                 <div id="adminEnginesTabContent" class="admin-tab-content u-is-68">
                     <div class="u-is-192">
-                        
+
                         <!-- AI Model & Copilot Control Panel -->
                         <div class="admin-users-panel">
                             <div class="u-is-193">
@@ -3029,7 +3075,8 @@
                                     Act
                                 </label>
                                 <label class="u-is-251">
-                                    <input type="checkbox" name="newLitigatorEngines" value="counsel_intel"> 🧠 Counsel Intel
+                                    <input type="checkbox" name="newLitigatorEngines" value="counsel_intel"> 🧠 Counsel
+                                    Intel
                                 </label>
                             </div>
                         </div>
@@ -3397,9 +3444,12 @@
                 <h3>3. Pricing, Billing, and Subscriptions</h3>
                 <p>Access to certain features requires a paid subscription or pay-as-you-go analysis tokens:</p>
                 <ul>
-                    <li><strong>Payments:</strong> All payments are processed securely through our authorized payment processors (Stripe/Razorpay).</li>
-                    <li><strong>Billing Cycle:</strong> Subscriptions are billed on a recurring monthly or annual basis, automatic renewal applies unless cancelled by the user prior to the billing date.</li>
-                    <li><strong>Taxes:</strong> Prices are subject to applicable GST/Sales taxes depending on user location.</li>
+                    <li><strong>Payments:</strong> All payments are processed securely through our authorized payment
+                        processors (Stripe/Razorpay).</li>
+                    <li><strong>Billing Cycle:</strong> Subscriptions are billed on a recurring monthly or annual basis,
+                        automatic renewal applies unless cancelled by the user prior to the billing date.</li>
+                    <li><strong>Taxes:</strong> Prices are subject to applicable GST/Sales taxes depending on user
+                        location.</li>
                 </ul>
 
                 <h3>4. Intellectual Property</h3>
@@ -3600,8 +3650,10 @@
                                 find procedural loopholes, and map court survivability.</p>
 
                             <h4>Litigation Workflow Overview</h4>
-                            <p>Traditional legal prep revolves around finding matching precedents. JudiQ reverses this process by actively attempting to dismantle your case using standard opposing counsel defense strategies, allowing you to patch weaknesses before the courtroom trial.</p>
-                            
+                            <p>Traditional legal prep revolves around finding matching precedents. JudiQ reverses this
+                                process by actively attempting to dismantle your case using standard opposing counsel
+                                defense strategies, allowing you to patch weaknesses before the courtroom trial.</p>
+
                             <h4>Navigating Your Dashboard</h4>
                             <ul>
                                 <li><strong>Start New Case:</strong> Launches the interactive case wizard to input facts, timelines, and evidence files.</li>
@@ -3907,8 +3959,7 @@
                 <button type="submit" id="unlockReportBtn" class="btn btn-primary btn-full" style="padding:0.7rem; font-weight:700; font-size:0.9rem;">
                     <i class="fas fa-lock-open"></i> Unlock Case Report
                 </button>
-                <button class="btn btn-outline btn-sm" onclick="window.closeVersionHistoryModal()">Close</button>
-            </div>
+            </form>
         </div>
     </div>
 
@@ -4225,7 +4276,8 @@
                 <a class="cms-nav-item" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i> Analytics</a>
                 <a class="cms-nav-item" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
                 <div class="u-is-413">
-                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Suite</a>
+                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to
+                        Suite</a>
                 </div>
             </aside>
             <main class="cms-main-content">
@@ -4530,7 +4582,8 @@
         <div class="cms-modal-dialog">
             <div class="cms-modal-header">
                 <h3>Generate Section 65B BSA Evidence Certificate</h3>
-                <button class="btn btn-icon" onclick="this.closest('.cms-modal-overlay').classList.add('hidden')">&times;</button>
+                <button class="btn btn-icon"
+                    onclick="this.closest('.cms-modal-overlay').classList.add('hidden')">&times;</button>
             </div>
             <div class="cms-modal-body">
                 <div class="form-group">
