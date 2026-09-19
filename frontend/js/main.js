@@ -154,9 +154,12 @@ function setupAuthListeners() {
             const savedDomain = localStorage.getItem(`judiq_domain_${user.uid}`) || 'ni_act';
             window.state.userDomain = savedDomain;
 
-            const savedRole = localStorage.getItem(`judiq_role_${user.uid}`);
-            if (savedRole) {
-                window.state.currentRole = savedRole;
+            const savedRole = localStorage.getItem(`judiq_role_${user.uid}`) || 'law_firm';
+            window.state.currentRole = savedRole;
+
+            // Skip dashboard redirect if viewing a shared report
+            const hasShareParam = new URLSearchParams(window.location.search).has('share');
+            if (!hasShareParam) {
                 renderDashboard();
                 switchScreen('dashboardScreen');
             } else {
@@ -3017,6 +3020,12 @@ function renderStudioDraftTypeGrid() {
             </div>
         </div>
     `).join('');
+}
+window.renderStudioDraftTypeGrid = renderStudioDraftTypeGrid;
+try {
+    renderStudioDraftTypeGrid();
+} catch (e) {
+    console.warn('[DraftStudio] Initial grid render deferred:', e);
 }
 
 window.selectStudioDraftType = (id) => {
