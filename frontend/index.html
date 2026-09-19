@@ -148,7 +148,8 @@
                                 class="fas fa-arrow-right-to-bracket"></i> Sign In</button>
                     </div>
                     <div class="hero-badges-row">
-                        <span class="hero-mini-badge"><i class="fas fa-check-circle"></i> Section 138 NI Act Engine</span>
+                        <span class="hero-mini-badge"><i class="fas fa-check-circle"></i> Section 138 NI Act
+                            Engine</span>
                         <span class="hero-mini-badge"><i class="fas fa-shield-check"></i> 1,307 Benchmark Suites</span>
                         <span class="hero-mini-badge"><i class="fas fa-brain"></i> Zero Hallucination Guarantee</span>
                         <span class="hero-mini-badge"><i class="fas fa-lock"></i> AES-256 Vault</span>
@@ -444,8 +445,10 @@
                     <!-- Column 2: Precedent Finder -->
                     <div class="precedent-card">
                         <h3>Landmark Precedent & Authority Explorer</h3>
-                        <p class="u-is-23">Search verified landmark Supreme Court judgments across Section 138 Negotiable Instruments Act (Cheque Bounce), Statutory Limitation, Notice Service, and Director Vicarious Liability with direct Indian Kanoon &amp; Official Law Report links:</p>
-                        
+                        <p class="u-is-23">Search verified landmark Supreme Court judgments across Section 138
+                            Negotiable Instruments Act (Cheque Bounce), Statutory Limitation, Notice Service, and
+                            Director Vicarious Liability with direct Indian Kanoon &amp; Official Law Report links:</p>
+
                         <div class="search-wrapper">
                             <i class="fas fa-search"></i>
                             <input type="text" id="precedentSearchInput" class="precedent-search-bar" aria-label="Search Supreme Court Precedents" title="Search Precedents" placeholder="Search by case, citation, section, or keyword (e.g. Satender Antil, Bhajan Lal, Mardia, 138, Bail, Injunction)..." oninput="filterPrecedentsList()">
@@ -680,10 +683,10 @@
                         <div class="plan-calculation-box">
                             <div class="plan-price-display">
                                 <span class="currency-symbol">₹</span>
-                                <span id="planTotalPrice" class="price-number">500</span>
-                                <span class="price-cycle">/ month</span>
+                                <span id="planTotalPrice" class="price-number">499</span>
+                                <span id="planPriceCycle" class="price-cycle">/ month</span>
                             </div>
-                            <div class="plan-rate-detail">30-Day Billing Cycle • Renews Monthly</div>
+                            <div id="planRateDetail" class="plan-rate-detail">30-Day Billing Cycle • ∞</div>
 
                             <div class="plan-metrics-row">
                                 <div class="plan-metric-col">
@@ -935,7 +938,8 @@
                             </div>
                             <div class="form-group">
                                 <label for="contactMessage">Message</label>
-                                <textarea id="contactMessage" required placeholder="Tell us about your litigation case load and API requirements..." rows="5" minlength="10"></textarea>
+                                <textarea id="contactMessage" required placeholder="" rows="5"
+                                    minlength="10"></textarea>
                             </div>
                             <button type="submit" class="btn btn-primary btn-full u-is-29">
                                 <span class="btn-text">Send Message</span>
@@ -1193,7 +1197,7 @@
                         <button class="btn btn-sm btn-primary" onclick="window.switchScreen('caseWizardScreen')">
                             <i class="fas fa-plus"></i> New S.138 Case
                         </button>
-                        <button class="btn btn-sm btn-outline" onclick="window.switchScreen('draftStudioScreen')">
+                        <button class="btn btn-sm btn-outline" onclick="window.showDraftStudio()">
                             <i class="fas fa-file-contract"></i> Draft Studio
                         </button>
                         <button class="btn btn-sm btn-outline" onclick="window.loadSampleCaseData()">
@@ -1904,8 +1908,10 @@
                     <div class="result-card">
                         <div class="u-is-96">
                             <div>
-                                <h3 class="u-is-97"><i class="fas fa-file-contract u-is-98"></i> Interactive Legal Draft Generator</h3>
-                                <p class="card-subtitle u-is-99">Select court pleadings and notice templates auto-populated with case metadata</p>
+                                <h3 class="u-is-97"><i class="fas fa-file-contract u-is-98"></i> Interactive Legal Draft
+                                    Generator</h3>
+                                <p class="card-subtitle u-is-99">Select court pleadings and notice templates
+                                    auto-populated with case metadata</p>
                             </div>
                             <div class="u-is-100">
                                 <label class="u-is-101" for="draftTemplateSelector">Template:</label>
@@ -2390,7 +2396,9 @@
                         <div class="u-is-150">
                             <div>
                                 <h2 class="u-is-151">Litigator Resource Allocation &amp; Access Controls</h2>
-                                <p class="u-is-152">Configure monthly report allocations (enter <code class="u-is-153">-1</code> for Unlimited), reset monthly counters, or suspend accounts.</p>
+                                <p class="u-is-152">Configure monthly report allocations (enter <code
+                                        class="u-is-153">-1</code> for Unlimited), reset monthly counters, or suspend
+                                    accounts.</p>
                             </div>
                             <div class="u-is-154">
                                 <div class="search-input-wrapper u-is-155">
@@ -2780,7 +2788,10 @@
                             <div class="u-is-213">
                                 <div>
                                     <label class="u-is-214">Case Title / Parties *</label>
-                                    <input class="u-is-215" type="text" id="adminPrecTitle" required placeholder="e.g. Dashrathbhai Trikambhai Patel v. Hitesh Mahendrabhai Patel" aria-label="E.G.  Dashrathbhai  Trikambhai  Patel V.  Hitesh  Mahendrabhai  Patel" title="E.G.  Dashrathbhai  Trikambhai  Patel V.  Hitesh  Mahendrabhai  Patel">
+                                    <input class="u-is-215" type="text" id="adminPrecTitle" required
+                                        placeholder="e.g. Dashrathbhai Trikambhai Patel v. Hitesh Mahendrabhai Patel"
+                                        aria-label="E.G.  Dashrathbhai  Trikambhai  Patel V.  Hitesh  Mahendrabhai  Patel"
+                                        title="E.G.  Dashrathbhai  Trikambhai  Patel V.  Hitesh  Mahendrabhai  Patel">
                                 </div>
                                 <div>
                                     <label class="u-is-214">Neutral Citation *</label>
@@ -3208,7 +3219,8 @@
                             </button>
                         </div>
                         <div class="u-is-106">
-                            <button type="button" class="btn btn-outline btn-sm" onclick="window.closeUserDetailsModal()">Close Dossier</button>
+                            <button type="button" class="btn btn-outline btn-sm"
+                                onclick="window.closeUserDetailsModal()">Close Dossier</button>
                         </div>
                     </div>
 
@@ -3467,7 +3479,11 @@
                     attorney-client relationship between you and JUDIQ AI or any of its employees.</p>
 
                 <h3>2. Independent Verification Required</h3>
-                <p>Artificial Intelligence models are subject to errors, omission of local procedural nuances, and reliance on historical data that may have been superceded by recent statutory amendments or Supreme Court rulings. All outputs—including contradiction lists, timeline mapping, and drafted notices—must be independently verified, vetted, and signed by a licensed advocate before being served or filed in court.</p>
+                <p>Artificial Intelligence models are subject to errors, omission of local procedural nuances, and
+                    reliance on historical data that may have been superceded by recent statutory amendments or Supreme
+                    Court rulings. All outputs—including contradiction lists, timeline mapping, and drafted notices—must
+                    be independently verified, vetted, and signed by a licensed advocate before being served or filed in
+                    court.</p>
 
                 <h3>3. Predictive Limitations</h3>
                 <p>The "Survivability Scores" and "Courtroom Strategies" generated by the platform are probabilistic models based on statistical patterns in historical case law. They are <strong>not</strong> guarantees or warranties of actual courtroom outcomes. The ultimate decision rests with the presiding judge and the specific, unquantifiable dynamics of a live trial.</p>
@@ -3684,8 +3700,9 @@
                         <!-- Confidentiality Pane -->
                         <div id="docs-confidentiality" class="docs-content-pane">
                             <h3>Confidentiality &amp; Data Security</h3>
-                            <p>Legal data demands bank-grade protection. We isolate user workspaces and keep confidential case files secure.</p>
-                            
+                            <p>Legal data demands bank-grade protection. We isolate user workspaces and keep
+                                confidential case files secure.</p>
+
                             <h4>Data Protection Standards</h4>
                             <ul>
                                 <li><strong>Full Encryption:</strong> All uploaded files, memos, and case logs are encrypted using symmetric AES-256 before saving to disk.</li>
@@ -4028,7 +4045,9 @@
 
                 <h4 class="u-is-411">7. Governing Law & Jurisdiction</h4>
                 <p>
-                    These Terms are governed by and construed under the laws of the Republic of India. Any disputes arising hereunder shall be subject to the exclusive jurisdiction of the competent Courts in New Delhi, India.
+                    These Terms are governed by and construed under the laws of the Republic of India. Any disputes
+                    arising hereunder shall be subject to the exclusive jurisdiction of the competent Courts in New
+                    Delhi, India.
                 </p>
             </div>
             <div class="u-is-412">
@@ -4395,7 +4414,9 @@
                             <h4><i class="fas fa-envelope"></i> 2. Contact & Tax Identifiers</h4>
                             <div class="form-group">
                                 <label>Official Email</label>
-                                <input type="email" id="clEmail" class="form-control" placeholder="legal@institution.com" aria-label="Legal@Institution.Com" title="Legal@Institution.Com">
+                                <input type="email" id="clEmail" class="form-control"
+                                    placeholder="legal@institution.com" aria-label="Legal@Institution.Com"
+                                    title="Legal@Institution.Com">
                             </div>
                             <div class="form-group">
                                 <label>Phone / Landline</label>
@@ -4688,7 +4709,8 @@
                     <i class="fas fa-gavel u-is-429"></i>
                     <h3 class="u-is-424">STATUTORY LEGAL & JUDICIAL DISCLAIMER</h3>
                 </div>
-                <button class="u-is-408" type="button" onclick="window.closeLegalModal('disclaimerModal')">&times;</button>
+                <button class="u-is-408" type="button"
+                    onclick="window.closeLegalModal('disclaimerModal')">&times;</button>
             </div>
             <div class="u-is-409">
                 <p>
