@@ -2865,7 +2865,7 @@ window.updateReadinessProgress = () => {
         const isLight = document.documentElement.getAttribute('data-theme') === 'light';
         if (percentage === 0) {
             statusTextEl.textContent = "No documents checked.";
-            statusTextEl.style.color = "var(--gray-400)";
+            statusTextEl.style.color = isLight ? "#475569" : "var(--gray-400)";
         } else if (percentage < 40) {
             statusTextEl.textContent = "High Risk. Key evidence missing.";
             statusTextEl.style.color = "var(--danger-400)";
@@ -4771,9 +4771,12 @@ window.updateModularPricing = function() {
 };
 
 window.applyModularPreset = function(count) {
-    const modulesOrder = ['s138', 'sarfaesi', 'criminal', 'civil', 'bank_recovery', 'counsel_intel'];
-    const targetModules = modulesOrder.slice(0, count);
-
+    if (count > 1) {
+        if (window.showToast) {
+            window.showToast('Additional statutory modules are coming soon! Section 138 is available now.', 'info');
+        }
+        count = 1;
+    }
     document.querySelectorAll('input[name="legal_module"]').forEach(cb => {
         cb.checked = targetModules.includes(cb.value);
     });
