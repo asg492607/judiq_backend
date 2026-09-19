@@ -10,7 +10,8 @@
     <meta name="description"
         content="JudiQ AI Litigation Strategist finds legal weaknesses before the courtroom does. Simulate opponent attacks and predict judge challenges.">
     <meta property="og:title" content="JudiQ – AI Litigation Strategist">
-    <meta property="og:description" content="Adversarial litigation simulation, weakness detection, and courtroom strategy for law firms and in-house counsel.">
+    <meta property="og:description"
+        content="Adversarial litigation simulation, weakness detection, and courtroom strategy for law firms and in-house counsel.">
     <!-- DNS prefetch & preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -298,7 +299,8 @@
                             <div class="sim-score-header">
                                 <div>
                                     <div class="sim-score-title">Courtroom Survivability Score</div>
-                                    <div id="simScoreStatus" class="sim-score-badge safe">High Courtroom Survivability</div>
+                                    <div id="simScoreStatus" class="sim-score-badge safe">High Courtroom Survivability
+                                    </div>
                                 </div>
                                 <div id="simScoreValue" class="sim-score-num">68%</div>
                             </div>
@@ -552,8 +554,9 @@
                             </label>
 
                             <!-- Module 2: SARFAESI -->
-                            <label class="module-choice-card" data-module="sarfaesi">
-                                <input type="checkbox" name="legal_module" value="sarfaesi" onchange="updateModularPricing()">
+                            <label class="module-choice-card module-coming-soon" data-module="sarfaesi"
+                                style="pointer-events: none; opacity: 0.6; cursor: not-allowed;">
+                                <input type="checkbox" name="legal_module" value="sarfaesi" disabled>
                                 <div class="module-card-body">
                                     <div class="module-card-icon"><i class="fas fa-building-columns"></i></div>
                                     <div class="module-card-info">
@@ -735,7 +738,10 @@
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
-                            <p>JudiQ is optimized for Indian Courts and common law tribunals, with deep statutory rule modeling of the Negotiable Instruments Act (Section 138/141/142/143A/148), Bharatiya Sakshya Adhiniyam 2023 (BSA / S.65B), Limitation Act 1963, SARFAESI Act, and Commercial Courts Act 2015.</p>
+                            <p>JudiQ is optimized for Indian Courts and common law tribunals, with deep statutory rule
+                                modeling of the Negotiable Instruments Act (Section 138/141/142/143A/148), Bharatiya
+                                Sakshya Adhiniyam 2023 (BSA / S.65B), Limitation Act 1963, SARFAESI Act, and Commercial
+                                Courts Act 2015.</p>
                         </div>
                     </div>
                     <div class="faq-item">
@@ -987,7 +993,7 @@
                     <h1>JUDIQ AI</h1>
                     <p class="brand-tagline">AI Litigation Strategist</p>
                 </div>
-                
+
                 <div class="auth-box">
                     <h2>Create Account</h2>
                     <p class="auth-subtitle">Start your legal intelligence journey</p>
@@ -1413,7 +1419,8 @@
                         <div class="wizard-step-indicator">
                             Section <span id="currentStepDisplay">1</span> of <span id="totalStepsDisplay">10</span>
                         </div>
-                        <button id="analyseNowBtn" class="btn btn-outline u-is-67" onclick="submitCase()" title="Skip wizard and run analysis immediately with current data">
+                        <button id="analyseNowBtn" class="btn btn-outline u-is-67" onclick="submitCase()"
+                            title="Skip wizard and run analysis immediately with current data">
                             <i class="fas fa-search"></i> Analyse Now
                         </button>
                         <button id="nextBtn" class="btn btn-primary" onclick="nextStep()">
@@ -2001,7 +2008,8 @@
                 </div>
 
                 <div class="draft-editor">
-                    <textarea id="draftContent" class="draft-textarea" placeholder="Draft will appear here..." aria-label="Draft Will Appear Here..." title="Draft Will Appear Here..."></textarea>
+                    <textarea id="draftContent" class="draft-textarea" placeholder="Draft will appear here..."
+                        aria-label="Draft Will Appear Here..." title="Draft Will Appear Here..."></textarea>
                 </div>
 
                 <div class="draft-info">
@@ -2454,7 +2462,8 @@
                                 <tbody id="adminPendingPlansTableBody">
                                     <tr>
                                         <td class="u-is-173" colspan="6">
-                                            <i class="fas fa-spinner fa-spin u-is-174"></i> Loading pending plan requests...
+                                            <i class="fas fa-spinner fa-spin u-is-174"></i> Loading pending plan
+                                            requests...
                                         </td>
                                     </tr>
                                 </tbody>
@@ -2909,7 +2918,7 @@
                     </div>
                     <button class="u-is-244" onclick="closeCreateLitigatorModal()">&times;</button>
                 </div>
-                
+
                 <div class="modal-body u-is-245">
                     <form id="createLitigatorForm" onsubmit="submitCreateLitigator(event)">
                         <div class="u-is-112">
@@ -3266,10 +3275,14 @@
                 <h3>3. Data Principals' Rights (DPDP Act)</h3>
                 <p>As a Data Principal, you have the following rights under the DPDP Act:</p>
                 <ul>
-                    <li><strong>Right to Information:</strong> You may request a summary of the personal data processed by us.</li>
-                    <li><strong>Right to Correction & Erasure:</strong> You can correct inaccurate data or request erasure of your data when it is no longer necessary for the purpose it was collected.</li>
-                    <li><strong>Right to Grievance Redressal:</strong> You have the right to readily available means of grievance redressal provided by us.</li>
-                    <li><strong>Right to Nominate:</strong> You may nominate an individual to exercise your rights in the event of your death or incapacity.</li>
+                    <li><strong>Right to Information:</strong> You may request a summary of the personal data processed
+                        by us.</li>
+                    <li><strong>Right to Correction & Erasure:</strong> You can correct inaccurate data or request
+                        erasure of your data when it is no longer necessary for the purpose it was collected.</li>
+                    <li><strong>Right to Grievance Redressal:</strong> You have the right to readily available means of
+                        grievance redressal provided by us.</li>
+                    <li><strong>Right to Nominate:</strong> You may nominate an individual to exercise your rights in
+                        the event of your death or incapacity.</li>
                 </ul>
 
                 <h3>4. Data Security & Retention</h3>
@@ -3440,9 +3453,10 @@
                             <div class="u-is-342">Email Verification</div>
                             <div class="u-is-343">Resend confirmation link to your registered email.</div>
                         </div>
-                        <button class="btn btn-outline btn-sm u-is-344" onclick="resendVerificationEmail(event)">Resend Email</button>
+                        <button class="btn btn-outline btn-sm u-is-344" onclick="resendVerificationEmail(event)">Resend
+                            Email</button>
                     </div>
-                    
+
                     <div class="u-is-341">
                         <div>
                             <div class="u-is-342">Send Reset Link</div>
@@ -3680,7 +3694,8 @@
                         <div class="command-item-icon"><i class="fas fa-home"></i></div>
                         <div>
                             <div class="command-item-title">Go to Dashboard</div>
-                            <div class="command-item-desc">View recent case history, analytics, and active domain settings</div>
+                            <div class="command-item-desc">View recent case history, analytics, and active domain
+                                settings</div>
                         </div>
                     </div>
                     <span class="command-shortcut-hint">Nav</span>
@@ -4021,7 +4036,10 @@
                             </div>
                             <div class="form-group">
                                 <label>Designated Court / Forum</label>
-                                <input type="text" id="ccCourtName" class="form-control" placeholder="e.g. Metropolitan Magistrate, Mumbai" aria-label="E.G.  Metropolitan  Magistrate,  Mumbai" title="E.G.  Metropolitan  Magistrate,  Mumbai">
+                                <input type="text" id="ccCourtName" class="form-control"
+                                    placeholder="e.g. Metropolitan Magistrate, Mumbai"
+                                    aria-label="E.G.  Metropolitan  Magistrate,  Mumbai"
+                                    title="E.G.  Metropolitan  Magistrate,  Mumbai">
                             </div>
                         </div>
 
@@ -4320,7 +4338,8 @@
         <div class="cms-modal-dialog">
             <div class="cms-modal-header">
                 <h3>Link Client to Matter</h3>
-                <button class="btn btn-icon" onclick="this.closest('.cms-modal-overlay').classList.add('hidden')">&times;</button>
+                <button class="btn btn-icon"
+                    onclick="this.closest('.cms-modal-overlay').classList.add('hidden')">&times;</button>
             </div>
             <div class="cms-modal-body">
                 <div class="form-group">
