@@ -164,7 +164,9 @@ function setupAuthListeners() {
                 switchScreen('dashboardScreen');
             }
         } else {
-            switchScreen('landingScreen');
+            // Skip landing redirect if viewing a shared report
+            const hasShareParam = new URLSearchParams(window.location.search).has('share');
+            if (!hasShareParam) switchScreen('landingScreen');
         }
     });
 }
@@ -4713,44 +4715,46 @@ window.setBillingDuration = function(months, btnEl) {
 };
 
 window.updateModularPricing = function() {
-    const checkboxes = document.querySelectorAll('input[name="legal_module"]');
-    const checkedModules = [];
+    const duration = window.selectedBillingDuration || 1;
     
-    checkboxes.forEach(cb => {
-        const card = cb.closest('.module-choice-card');
-        if (cb.checked) {
-            checkedModules.push(cb.value);
-            if (card) card.classList.add('active');
-        } else {
-            if (card) card.classList.remove('active');
+    // Pricing configurations for Section 138 (∞ Case Analyses, direct pricing)
+    const durationConfigs = {
+        1: {
+            totalPrice: 499,
+            monthlyRate: 499,
+            cycleLabel: '/ month',
+            rateDetail: '30-Day Billing Cycle • ∞',
+            cases: '∞',
+            costPerCase: '∞',
+            btnLabel: 'Get Started with Section 138 (₹499 / mo)'
+        },
+        3: {
+            totalPrice: 1499,
+            monthlyRate: 499,
+            cycleLabel: 'for 3 months',
+            rateDetail: 'Quarterly Billing Cycle • ∞',
+            cases: '∞',
+            costPerCase: '∞',
+            btnLabel: 'Get Started (₹1,499 for 3 Months)'
+        },
+        6: {
+            totalPrice: 2999,
+            monthlyRate: 499,
+            cycleLabel: 'for 6 months',
+            rateDetail: 'Half-Yearly Billing Cycle • ∞',
+            cases: '∞',
+            costPerCase: '∞',
+            btnLabel: 'Get Started (₹2,999 for 6 Months)'
+        },
+        12: {
+            totalPrice: 5999,
+            monthlyRate: 499,
+            cycleLabel: 'for 12 months',
+            rateDetail: 'Annual Billing Cycle • ∞',
+            cases: '∞',
+            costPerCase: '∞',
+            btnLabel: 'Get Started (₹5,999 for 12 Months)'
         }
-    });
-
-    // Guard: Keep at least 1 module selected
-    if (checkedModules.length === 0) {
-        const firstCb = document.querySelector('input[name="legal_module"][value="s138"]');
-        if (firstCb) {
-            firstCb.checked = true;
-            const card = firstCb.closest('.module-choice-card');
-            if (card) card.classList.add('active');
-            checkedModules.push('s138');
-        }
-    }
-
-    const count = checkedModules.length;
-    let price = count * 500;
-    if (count === 6) {
-        price = 2500; // Special bundle price for all 6
-    }
-    const cases = count * 10;
-
-    const titles = {
-        1: 'Solo Practice Plan (1 Module)',
-        2: 'Dual Practice Plan (2 Modules)',
-        3: 'Commercial Law Practice (3 Modules)',
-        4: 'Litigation Firm Plan (4 Modules)',
-        5: 'Advanced Chambers Suite (5 Modules)',
-        6: 'Enterprise Full-Access Suite (All 6 Engines)'
     };
 
     const descs = {
