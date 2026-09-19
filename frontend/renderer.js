@@ -2157,10 +2157,6 @@ export function renderResults(data) {
         renderRulesEngine(data.statutory_rules);
     }
 
-    // renderScoreExplanation(data); // Disabled: Redundant with AI Case Summary
-    renderImprovementSuggestions(data);
-    renderConfidenceIndicator(data);
-    renderCaseSummaryCard(data);
     renderAIReasoningLayer(data);
     renderVerifiedAuthorityCard(data);
 
