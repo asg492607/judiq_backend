@@ -73,3 +73,38 @@ def get_shared_report_endpoint(share_id: str):
             "success": True,
             "share_id": report["share_id"],
             "case_id": report["case_id"],
+            "title": report["title"],
+            "domain": report["domain"],
+            "is_protected": False,
+            "created_at": report["created_at"],
+            "views": report["views"] + 1,
+            "case_data": report["case_data"],
+            "analysis_result": report["analysis_result"]
+        }
+        
+    # If password-protected, return metadata only (requires password unlock)
+    return {
+        "success": True,
+        "share_id": report["share_id"],
+        "case_id": report["case_id"],
+        "title": report["title"],
+        "domain": report["domain"],
+        "is_protected": True,
+        "created_at": report["created_at"],
+        "views": report["views"]
+    }
+
+@router.post("/shared/{share_id}/verify", tags=["Share Reports"])
+def verify_shared_report_password(share_id: str, req: VerifyReportPasswordRequest):
+    report = DatabaseManager.get_shared_report(share_id)
+    if not report:
+        raise HTTPException(status_code=404, detail="Shared report not found.")
+        
+    stored_hash = report.get("password_hash")
+    if not stored_hash:
+        return {
+            "success": True,
+            "share_id": report["share_id"],
+            "case_id": report["case_id"],
+            "title": report["title"],
+            "domain": report["domain"],
