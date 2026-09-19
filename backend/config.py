@@ -42,6 +42,8 @@ class Settings(BaseSettings):
     ENCRYPTION_KEY: str = "c2VjcmV0X2tleV90aGF0X2lzX2V4YWN0bHlfMzJfYnk="
     DEBUG: bool = False
     GROQ_API_KEY: str = ""
+    SUPABASE_URL: str = ""
+    SUPABASE_ANON_KEY: str = ""
 
     # Administrator Authentication Configuration (from .env)
     ADMIN_EMAIL: str = "admin@judiq.ai"

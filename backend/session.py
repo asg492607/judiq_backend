@@ -9,8 +9,14 @@ from typing import Optional, Dict, Any, List, Union
 logger = logging.getLogger(__name__)
 DB_PATH = os.environ.get("SQLITE_DB_PATH", "analytics.db")
 # SECURITY: DATABASE_URL must be set via environment variable.
-# No credentials are hardcoded. Falls back to SQLite if not provided.
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
+if not DATABASE_URL:
+    try:
+        from config import settings
+        DATABASE_URL = settings.DATABASE_URL
+    except Exception:
+        pass
+
 
 
 class DatabaseManager:
@@ -559,12 +565,6 @@ class DatabaseManager:
                     """, (case_id, draft_type, draft_content, next_version, now))
             conn.commit()
 
-            # Real-Time Cloud Sync: Firebase Firestore
-            try:
-                from firebase_manager import FirebaseManager
-                FirebaseManager.save_case_analysis(case_id, user_id, case_data, analysis_result, score, verdict, tags)
-            except Exception as fb_err:
-                logger.debug(f"Firebase case sync notice: {fb_err}")
 
             # Automatically record version snapshot
             try:
@@ -636,23 +636,6 @@ class DatabaseManager:
             ))
             conn.commit()
 
-            # Real-Time Cloud Sync: Firebase Firestore
-            try:
-                from firebase_manager import FirebaseManager
-                FirebaseManager.save_case_version(
-                    case_id=case_id,
-                    user_id=user_id,
-                    version_num=next_version,
-                    version_title=v_title,
-                    version_note=v_note,
-                    case_data=case_data,
-                    analysis_result=analysis_result,
-                    score=float(score),
-                    verdict=verdict,
-                    delta_score=delta_score
-                )
-            except Exception as fb_err:
-                logger.debug(f"Firebase case version sync notice: {fb_err}")
 
             return {
                 "success": True,
@@ -702,15 +685,6 @@ class DatabaseManager:
                     "user_id": r[7]
                 })
 
-            if not versions:
-                # Fallback to Firebase Firestore
-                try:
-                    from firebase_manager import FirebaseManager
-                    fb_versions = FirebaseManager.get_case_versions(case_id)
-                    if fb_versions:
-                        return fb_versions
-                except Exception:
-                    pass
 
             return versions
         except Exception as e:
@@ -737,14 +711,7 @@ class DatabaseManager:
             """, (case_id, version_num))
             r = cursor.fetchone()
             if not r:
-                # Fallback to Firebase
-                try:
-                    from firebase_manager import FirebaseManager
-                    fb_v = FirebaseManager.get_case_version(case_id, version_num)
-                    if fb_v:
-                        return fb_v
-                except Exception:
-                    pass
+
                 return None
 
             try:
@@ -1310,18 +1277,6 @@ class DatabaseManager:
             """, (req_quota, admin_email, now_iso, now_iso, user_id))
             conn.commit()
 
-            # Real-Time Cloud Sync: Firebase Firestore
-            try:
-                from firebase_manager import FirebaseManager
-                FirebaseManager.save_user_profile(
-                    user_id=user_id,
-                    email="",
-                    plan_status="APPROVED",
-                    monthly_report_limit=req_quota,
-                    is_active=True
-                )
-            except Exception as fb_err:
-                logger.debug(f"Firebase approval sync notice: {fb_err}")
 
             return DatabaseManager.get_or_create_user_quota(user_id)
         except Exception as e:
@@ -1351,18 +1306,6 @@ class DatabaseManager:
             """, (f"{admin_email} (REJECTED: {reason})", now_iso, user_id))
             conn.commit()
 
-            # Real-Time Cloud Sync: Firebase Firestore
-            try:
-                from firebase_manager import FirebaseManager
-                FirebaseManager.save_user_profile(
-                    user_id=user_id,
-                    email="",
-                    plan_status="REJECTED",
-                    monthly_report_limit=0,
-                    is_active=False
-                )
-            except Exception as fb_err:
-                logger.debug(f"Firebase rejection sync notice: {fb_err}")
 
             return DatabaseManager.get_or_create_user_quota(user_id)
         except Exception as e:
@@ -1424,21 +1367,6 @@ class DatabaseManager:
                 ))
             conn.commit()
 
-            # Real-Time Cloud Sync: Firebase Firestore
-            try:
-                from firebase_manager import FirebaseManager
-                FirebaseManager.save_user_profile(
-                    user_id=user_id,
-                    email=email,
-                    role=role,
-                    monthly_report_limit=monthly_limit,
-                    plan_status=plan_status,
-                    selected_modules=mods,
-                    monthly_price_inr=monthly_price_inr,
-                    is_active=(plan_status == "APPROVED")
-                )
-            except Exception as fb_err:
-                logger.debug(f"Firebase user sync notice: {fb_err}")
 
             return DatabaseManager.get_or_create_user_quota(user_id, email)
         except Exception as e:
