@@ -85,7 +85,8 @@
                     </button>
                     <button id="navLoginBtn" class="btn btn-outline hide-on-mobile">Sign In</button>
                     <button id="navRegisterBtn" class="btn btn-primary hide-on-mobile">Get Started</button>
-                    <button class="mobile-nav-toggle" id="mobileNavToggleBtn" aria-label="Toggle navigation menu" onclick="toggleMobileNav()">
+                    <button class="mobile-nav-toggle" id="mobileNavToggleBtn" aria-label="Toggle navigation menu"
+                        onclick="toggleMobileNav()">
                         <i class="fas fa-bars"></i>
                     </button>
                 </div>
@@ -365,7 +366,8 @@
                             <div class="timeline-step-item success" id="step3Item">
                                 <div class="timeline-step-icon"></div>
                                 <div class="timeline-step-title">3. Statutory Filing Window</div>
-                                <div class="timeline-step-desc" id="step3Desc">If the opponent fails to pay, the case must be filed in court within 30 days.</div>
+                                <div class="timeline-step-desc" id="step3Desc">If the opponent fails to pay, the case
+                                    must be filed in court within 30 days.</div>
                                 <div class="timeline-step-date" id="step3Date">Filing deadline: July 31, 2026</div>
                             </div>
                         </div>
@@ -603,8 +605,9 @@
                             </label>
 
                             <!-- Module 5: Bank Recovery & IBC -->
-                            <label class="module-choice-card" data-module="bank_recovery">
-                                <input type="checkbox" name="legal_module" value="bank_recovery" onchange="updateModularPricing()">
+                            <label class="module-choice-card module-coming-soon" data-module="bank_recovery"
+                                style="pointer-events: none; opacity: 0.6; cursor: not-allowed;">
+                                <input type="checkbox" name="legal_module" value="bank_recovery" disabled>
                                 <div class="module-card-body">
                                     <div class="module-card-icon"><i class="fas fa-vault"></i></div>
                                     <div class="module-card-info">
@@ -844,7 +847,8 @@
                 <div class="contact-grid">
                     <div class="contact-info">
                         <h2>Contact Our Legal Tech Experts</h2>
-                        <p class="contact-subtitle">Have questions about our adversarial engine, API integration, or enterprise plans? Get in touch with us.</p>
+                        <p class="contact-subtitle">Have questions about our adversarial engine, API integration, or
+                            enterprise plans? Get in touch with us.</p>
                         <div class="contact-details">
                             <div class="contact-card">
                                 <i class="fas fa-envelope"></i>
@@ -1075,17 +1079,6 @@
                         </button>
                     </form>
 
-                    <div class="u-is-36">
-                        <div class="u-is-37">
-                            <div class="u-is-38"></div>
-                            <span class="u-is-39">Or Instant Demo</span>
-                            <div class="u-is-38"></div>
-                        </div>
-                        <button type="button" class="btn btn-secondary btn-full u-is-40" onclick="window.loginAsGuest('all')">
-                            <i class="fas fa-bolt u-is-41"></i> Instant Advocate Access (One-Click)
-                        </button>
-                    </div>
-                    
                     <div class="auth-footer">
                         <p>Already have an account? <a href="#" id="showLogin">Sign in</a></p>
                     </div>
@@ -1723,15 +1716,16 @@
                             <div class="rl-card-header">
                                 <div class="rl-icon-wrap rl-amber"><i class="fas fa-gavel"></i></div>
                                 <div>
-                                    <h4>AI Case Summary</h4>
-                                    <p class="card-subtitle">Auto-generated from case facts</p>
+                                    <h4>Statutory Interpretation</h4>
+                                    <p class="card-subtitle">Section-by-section analysis against relevant Statutes
+                                        (IPC/BNS/CrPC/NI Act)</p>
                                 </div>
-                                <div id="translatedVerdictBadge" class="rl-lang-badge"></div>
                             </div>
-                            <div id="aiCaseSummary" class="rl-content-box"></div>
+                            <div id="aiStatutoryInterpretation" class="rl-statutes-grid"></div>
                         </div>
 
-                        <div class="result-card rl-card">
+                        <!-- Row 3: Matched Precedents -->
+                        <div class="result-card rl-card u-is-77">
                             <div class="rl-card-header">
                                 <div class="rl-icon-wrap rl-purple"><i class="fas fa-chart-pie"></i></div>
                                 <div>
@@ -2349,7 +2343,9 @@
                         </div>
                         <h1 class="u-is-133">Universal Platform Administration OS</h1>
                         <p class="u-is-134">
-                            Complete centralized control across Litigator Quota Allocations, Modular Subscription Approvals, Institutional SARB Bank Cells, AI Rules Engines, and Cryptographic Security Audits.
+                            Complete centralized control across Litigator Quota Allocations, Modular Subscription
+                            Approvals, Institutional SARB Bank Cells, AI Rules Engines, and Cryptographic Security
+                            Audits.
                         </p>
                     </div>
                     <div class="u-is-135">
@@ -2741,7 +2737,8 @@
                                         <input class="u-is-198" type="radio" name="adminLlmModel" value="groq" checked>
                                         <div>
                                             <div class="u-is-199">Groq Llama-3.3 70B Versatile</div>
-                                            <div class="u-is-200">Ultra-low latency (~280 tokens/sec), supreme drafting quality</div>
+                                            <div class="u-is-200">Ultra-low latency (~280 tokens/sec), supreme drafting
+                                                quality</div>
                                         </div>
                                     </div>
                                     <span class="badge u-is-201">DEFAULT</span>
@@ -3116,7 +3113,7 @@
                     </div>
                     <button class="u-is-244" onclick="closeBulkBonusModal()">&times;</button>
                 </div>
-                
+
                 <div class="modal-body u-is-245">
                     <form id="bulkBonusForm" onsubmit="submitBulkBonus(event)">
                         <div class="u-is-14">
@@ -3465,7 +3462,9 @@
                     you input and the final legal drafts generated for your clients.</p>
 
                 <h3>5. Limitation of Liability</h3>
-                <p>To the maximum extent permitted by law, JUDIQ AI and its affiliates shall not be liable for any direct, indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, legal standing, or adverse court outcomes resulting from:</p>
+                <p>To the maximum extent permitted by law, JUDIQ AI and its affiliates shall not be liable for any
+                    direct, indirect, incidental, special, consequential, or punitive damages, including but not limited
+                    to loss of profits, data, legal standing, or adverse court outcomes resulting from:</p>
                 <ul>
                     <li>Your use or inability to use the platform.</li>
                     <li>Any legal outcomes, judgments, default orders, or settlements resulting from strategies or drafts generated by the platform.</li>
@@ -3679,8 +3678,9 @@
                         <!-- Analysis Wizard Pane -->
                         <div id="docs-analysis" class="docs-content-pane">
                             <h3>Case Analysis Wizard</h3>
-                            <p>Our step-by-step wizard is explicitly optimized for Section 138 Cheque Bounce matters.</p>
-                            
+                            <p>Our step-by-step wizard is explicitly optimized for Section 138 Cheque Bounce matters.
+                            </p>
+
                             <h4>1. Step 1: Core Litigation Facts</h4>
                             <p>Select case classifications, fill in filing dates, court names, and basic details. Correct date indexing is crucial for calculating statute limitation periods.</p>
                             
@@ -3995,7 +3995,8 @@
             </div>
             <div class="u-is-409">
                 <div class="u-is-410">
-                    IMPORTANT: By creating an account, running legal analysis, or generating court drafts on JudiQ AI, you agree to be bound by these Terms of Service.
+                    IMPORTANT: By creating an account, running legal analysis, or generating court drafts on JudiQ AI,
+                    you agree to be bound by these Terms of Service.
                 </div>
 
                 <h4 class="u-is-411">1. Nature of Platform & Non-Advocate Regulatory Classification</h4>
@@ -4322,7 +4323,8 @@
                         <h2>Client & Institutional Directory</h2>
                         <p>Manage banks, NBFCs, corporate litigants, and individuals.</p>
                     </div>
-                    <button class="btn btn-primary" onclick="showClientCreate()"><i class="fas fa-user-plus"></i> Add Client</button>
+                    <button class="btn btn-primary" onclick="showClientCreate()"><i class="fas fa-user-plus"></i> Add
+                        Client</button>
                 </div>
 
                 <div class="cms-filter-bar">
@@ -4610,7 +4612,9 @@
                 </div>
                 <div class="form-group">
                     <label>Official Designation *</label>
-                    <input type="text" id="s65bCertifierDesig" class="form-control" placeholder="Chief Manager / Legal Officer" aria-label="Chief  Manager /  Legal  Officer" title="Chief  Manager /  Legal  Officer">
+                    <input type="text" id="s65bCertifierDesig" class="form-control"
+                        placeholder="Chief Manager / Legal Officer" aria-label="Chief  Manager /  Legal  Officer"
+                        title="Chief  Manager /  Legal  Officer">
                 </div>
                 <div class="form-group">
                     <label>Certificate Preview</label>
