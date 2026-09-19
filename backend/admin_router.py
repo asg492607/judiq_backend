@@ -43,12 +43,14 @@ def verify_admin_status(request: Request, payload: AdminAuthRequest = Body(...))
             "message": "User does not have administrative privileges."
         }
 
-    if not verify_admin_credentials(email, provided_password):
-        return {
-            "success": False,
-            "is_admin": False,
-            "message": "Invalid administrator password or credentials."
-        }
+    if provided_password:
+        if not verify_admin_credentials(email, provided_password):
+            return {
+                "success": False,
+                "is_admin": False,
+                "message": "Invalid administrator password or credentials."
+            }
+
 
     token = SecurityManager.create_access_token(data={"sub": email, "email": email, "role": "admin"})
     return {
