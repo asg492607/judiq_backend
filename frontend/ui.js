@@ -96,7 +96,7 @@ export function switchScreen(targetScreenId) {
     if (targetScreenId === 'bankRecoveryScreen') {
         const bankUserStr = localStorage.getItem('judiq_bank_user');
         const hasBankJwt = !!localStorage.getItem('judiq_bank_jwt');
-        const currentUser = (window.state && window.state.currentUser) || (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser);
+        const currentUser = (window.state && window.state.currentUser) || (typeof window.supabaseClient !== 'undefined' && window.supabaseClient.auth);
         const hasGeneralAuth = !!currentUser || !!localStorage.getItem('judiq_token');
 
         if (!bankUserStr && !hasBankJwt && !hasGeneralAuth) {
@@ -116,7 +116,7 @@ export function switchScreen(targetScreenId) {
                         targetScreenId.startsWith('draft') || targetScreenId.startsWith('team') ||
                         targetScreenId.startsWith('audit');
     if (isCmsScreen && targetScreenId !== 'caseWizardScreen') {
-        const currentUser = (window.state && window.state.currentUser) || (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser);
+        const currentUser = (window.state && window.state.currentUser) || (typeof window.supabaseClient !== 'undefined' && window.supabaseClient.auth);
         const hasGeneralAuth = !!currentUser || !!localStorage.getItem('judiq_token') || !!localStorage.getItem('judiq_jwt');
         if (!hasGeneralAuth) {
             if (ui && typeof ui.toast === 'function') {

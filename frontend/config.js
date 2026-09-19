@@ -13,19 +13,12 @@ export const COMPANY_CONFIG = {
     website: "https://aixynz.com"
 };
 
-// Firebase Client Configuration
-// SECURITY NOTICE: In the Firebase Web SDK, these values are client-side project coordinates.
-// Database and storage security MUST be strictly governed by Firebase Security Rules on Firestore.
-// Production Firestore rules should ensure that users can only read/write their own case records.
-export const firebaseConfig = window.__JUDIQ_ENV__?.firebaseConfig || {
-    apiKey: "AIzaSyBdqc1C8LPVj4zqvWJWJWMrXhPad20MZCw",
-    authDomain: "idcourt-cb58f.firebaseapp.com",
-    projectId: "idcourt-cb58f",
-    storageBucket: "idcourt-cb58f.firebasestorage.app",
-    messagingSenderId: "941086914513",
-    appId: "1:941086914513:web:8edad96b7e9f0dd4be12f0",
-    measurementId: "G-YQMJ6KXGBR"
+// Supabase Client Configuration
+export const supabaseConfig = window.__JUDIQ_ENV__?.supabaseConfig || {
+    url: "https://eccqzpffofrvbzuadexk.supabase.co",
+    anonKey: "sb_publishable_431lKcoHrDo-4IKtcKJICA_Ht3f2p42"
 };
+
 
 export const wizardSteps = [
     {
