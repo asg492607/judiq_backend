@@ -226,7 +226,8 @@
                             onclick="selectSimulatorPreset('s138_signature')">
                             <i class="fas fa-signature"></i> S.138 Disputed Signature
                         </button>
-                        <button class="sim-preset-btn" data-preset="s138_notice_delay" onclick="selectSimulatorPreset('s138_notice_delay')">
+                        <button class="sim-preset-btn" data-preset="s138_notice_delay"
+                            onclick="selectSimulatorPreset('s138_notice_delay')">
                             <i class="fas fa-clock"></i> S.138 Notice Delay (>30 Days)
                         </button>
                         <button class="sim-preset-btn" data-preset="s138_security_cheque" onclick="selectSimulatorPreset('s138_security_cheque')">
@@ -489,36 +490,9 @@
                     <p>Discover how top-tier litigators are securing advantages with JudiQ.</p>
                 </div>
                 <div class="testimonials-grid">
-                    <div class="testimonial-card">
-                        <p class="testimonial-content">"JudiQ identified a critical limitation period mismatch in a contract breach filing that could have cost us the case. It's an indispensable part of our pre-filing workflow."</p>
-                        <div class="testimonial-author">
-                            <div class="author-avatar">SJ</div>
-                            <div class="author-info">
-                                <h4>Sarah Jenkins, Esq.</h4>
-                                <p>Senior Litigation Partner, Nexus Legal Group</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="testimonial-card">
-                        <p class="testimonial-content">"The adversarial opponent simulation is remarkably accurate. It prepares our team for the exact challenges judges raise during oral arguments."</p>
-                        <div class="testimonial-author">
-                            <div class="author-avatar">DV</div>
-                            <div class="author-info">
-                                <h4>David Vance</h4>
-                                <p>In-House General Counsel, Apex Tech Corp</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="testimonial-card">
-                        <p class="testimonial-content">"For complex cheque bounce matters, the evidentiary contradiction scan catches discrepancies in witness accounts with outstanding speed. Highly recommend."</p>
-                        <div class="testimonial-author">
-                            <div class="author-avatar">MT</div>
-                            <div class="author-info">
-                                <h4>Marcus Thorne, Esq.</h4>
-                                <p>Managing Partner, Thorne &amp; Associates</p>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="testimonial-card" style="min-height: 200px;"></div>
+                    <div class="testimonial-card" style="min-height: 200px;"></div>
+                    <div class="testimonial-card" style="min-height: 200px;"></div>
                 </div>
             </section>
 
@@ -708,7 +682,7 @@
                             </div>
                             <div class="plan-feature-item">
                                 <i class="fas fa-check-circle"></i>
-                                <span>BSA 2023 / S.65B Evidence Certificate &amp; Pleadings Drafter</span>
+                                <span>BSA 2023 / S.65B Evidence Certificate &amp; Legal Notice Drafter</span>
                             </div>
                             <div class="plan-feature-item">
                                 <i class="fas fa-check-circle"></i>
@@ -1018,7 +992,7 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- AUTHENTICATION SECTION -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        
+
         <!-- Login Screen -->
         <div id="loginScreen" class="auth-screen hidden">
             <div class="auth-container">
@@ -1331,8 +1305,13 @@
                         <div class="u-is-63">
                             <h3 class="u-is-64"><i class="fas fa-file-invoice"></i> Basic Details</h3>
                             <div class="quick-form-grid">
-                                <div class="form-group"><label for="qAmount">Cheque Amount (₹) <span class="required">*</span></label><input type="number" id="qAmount" aria-label="Cheque Amount (₹)" title="Cheque Amount" placeholder="50000" required></div>
-                                <div class="form-group"><label for="qChequeDate">Cheque Date <span class="required">*</span></label><input type="date" id="qChequeDate" aria-label="Cheque Date" title="Cheque Date" required></div>
+                                <div class="form-group"><label for="qAmount">Cheque Amount (₹) <span
+                                            class="required">*</span></label><input type="number" id="qAmount"
+                                        aria-label="Cheque Amount (₹)" title="Cheque Amount" placeholder="50000"
+                                        required></div>
+                                <div class="form-group"><label for="qChequeDate">Cheque Date <span
+                                            class="required">*</span></label><input type="date" id="qChequeDate"
+                                        aria-label="Cheque Date" title="Cheque Date" required></div>
                             </div>
                             <div class="quick-form-grid">
                                 <div class="form-group"><label for="qNoticeDate">Notice Date <span class="required">*</span></label><input type="date" id="qNoticeDate" aria-label="Notice Date" title="Notice Date" required></div>
@@ -1940,9 +1919,15 @@
                             <div class="u-is-104">
                                 <span class="u-is-105"><i class="fas fa-sliders-h"></i> Argument Tone:</span>
                                 <div class="tone-selector u-is-106">
-                                    <button class="btn-tone active" id="toneBtnStandard" onclick="window.setDraftTone('standard', this)" title="Balanced & Formal Courtroom Language">Standard Formal</button>
-                                    <button class="btn-tone" id="toneBtnAggressive" onclick="window.setDraftTone('aggressive', this)" title="Firm & Assertive Litigation Warning">Assertive</button>
-                                    <button class="btn-tone" id="toneBtnConciliatory" onclick="window.setDraftTone('conciliatory', this)" title="Polite & Negotiable Pre-Trial Settlement">Conciliatory</button>
+                                    <button class="btn-tone active" id="toneBtnStandard"
+                                        onclick="window.setDraftTone('standard', this)"
+                                        title="Balanced & Formal Courtroom Language">Standard Formal</button>
+                                    <button class="btn-tone" id="toneBtnAggressive"
+                                        onclick="window.setDraftTone('aggressive', this)"
+                                        title="Firm & Assertive Litigation Warning">Assertive</button>
+                                    <button class="btn-tone" id="toneBtnConciliatory"
+                                        onclick="window.setDraftTone('conciliatory', this)"
+                                        title="Polite & Negotiable Pre-Trial Settlement">Conciliatory</button>
                                 </div>
                             </div>
                             <div class="draft-live-badge u-is-107">
@@ -2454,8 +2439,10 @@
                                 <i class="fas fa-building u-is-162"></i> Enterprise <span class="pill-count"
                                     id="pillCountEnterprise">0</span>
                             </button>
-                            <button class="admin-filter-pill" id="filterPillCitizen" onclick="window.setQuickFilter('citizen')">
-                                <i class="fas fa-user u-is-162"></i> Independent <span class="pill-count" id="pillCountCitizen">0</span>
+                            <button class="admin-filter-pill" id="filterPillCitizen"
+                                onclick="window.setQuickFilter('citizen')">
+                                <i class="fas fa-user u-is-162"></i> Independent <span class="pill-count"
+                                    id="pillCountCitizen">0</span>
                             </button>
                             <button class="admin-filter-pill" id="filterPillPending" onclick="window.setQuickFilter('status_pending')">
                                 <i class="fas fa-hourglass-half u-is-163"></i> Pending Approvals <span class="pill-count" id="pillCountPending">0</span>
@@ -2913,7 +2900,8 @@
                         <div class="u-is-183">
                             <div>
                                 <h3 class="u-is-184">System Maintenance &amp; Memory Buffer Tools</h3>
-                                <p class="u-is-185">Perform zero-downtime maintenance operations and flush memory cache</p>
+                                <p class="u-is-185">Perform zero-downtime maintenance operations and flush memory cache
+                                </p>
                             </div>
                         </div>
                         <div class="u-is-226">
@@ -3354,7 +3342,7 @@
 
 
 
-        </div>
+    </div>
 
     <!-- ═══════════════════════════════════════════════════════════════ -->
     <!-- LEGAL MODALS -->
@@ -3566,7 +3554,8 @@
                 </ul>
 
                 <h3>3. Refund Processing</h3>
-                <p>Approved refunds are processed back to the original payment source (credit card, net banking, UPI) within 5 to 7 working days, subject to payment gateway policies.</p>
+                <p>Approved refunds are processed back to the original payment source (credit card, net banking, UPI)
+                    within 5 to 7 working days, subject to payment gateway policies.</p>
 
                 <h3>4. Contact Us</h3>
                 <p>For all billing, payment, and refund queries, please reach out to our billing team at <strong>billing@judiq.ai</strong>.</p>
@@ -3827,7 +3816,8 @@
                         <div class="command-item-icon"><i class="fas fa-bolt"></i></div>
                         <div>
                             <div class="command-item-title">Load Section 138 Cheque Bounce Demo Case</div>
-                            <div class="command-item-desc">Instantly populate a complete S.138 case audit with demand notice & dishonour memo</div>
+                            <div class="command-item-desc">Instantly populate a complete S.138 case audit with demand
+                                notice & dishonour memo</div>
                         </div>
                     </div>
                     <span class="command-shortcut-hint">Demo</span>
@@ -4258,7 +4248,8 @@
                         <h2>Create New Case Dossier</h2>
                         <p>Enter matter details to initialize automated compliance tracking.</p>
                     </div>
-                    <button class="btn btn-outline" onclick="showCaseList()"><i class="fas fa-times"></i> Cancel</button>
+                    <button class="btn btn-outline" onclick="showCaseList()"><i class="fas fa-times"></i>
+                        Cancel</button>
                 </div>
 
                 <form id="caseCreateForm" class="cms-form-card">
@@ -4538,7 +4529,8 @@
                 <a class="cms-nav-item" onclick="showCmsHome()"><i class="fas fa-home"></i> Home</a>
                 <a class="cms-nav-item" onclick="showCaseList()"><i class="fas fa-briefcase"></i> Cases</a>
                 <a class="cms-nav-item" onclick="showClientList()"><i class="fas fa-users"></i> Clients</a>
-                <a class="cms-nav-item active" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i> Analytics</a>
+                <a class="cms-nav-item active" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i>
+                    Analytics</a>
                 <a class="cms-nav-item" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
                 <div class="u-is-413">
                     <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Suite</a>
@@ -4825,7 +4817,8 @@
                     Electronic Evidence Certificates, and Affidavits.</p>
             </div>
             <div class="u-is-427">
-                <button class="btn btn-primary" onclick="window.closeLegalModal('documentationModal')">Close Manual</button>
+                <button class="btn btn-primary" onclick="window.closeLegalModal('documentationModal')">Close
+                    Manual</button>
             </div>
         </div>
     </div>

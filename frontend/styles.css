@@ -7604,7 +7604,7 @@ body.dark-theme .dac-icon--sarfaesi {
     }
 
     .landing-nav-links a:hover {
-        color: var(--gray-900);
+        color: #ffffff;
     }
 
     .mobile-nav-toggle {
@@ -11931,6 +11931,57 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+}
+
+/* Light Mode Mobile Slidebar & Drawer Overrides */
+[data-theme="light"] .mobile-nav-drawer {
+    background: #ffffff !important;
+    border-left: 1px solid #e2e8f0 !important;
+    box-shadow: -12px 0 40px rgba(15, 23, 42, 0.15) !important;
+}
+
+[data-theme="light"] .mobile-nav-drawer-header {
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .mobile-nav-drawer-header .brand-name-serif {
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .mobile-nav-close-btn {
+    background: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #334155 !important;
+}
+
+[data-theme="light"] .mobile-nav-close-btn:hover,
+[data-theme="light"] .mobile-nav-close-btn:active {
+    background: #fee2e2 !important;
+    border-color: #fca5a5 !important;
+    color: #dc2626 !important;
+}
+
+[data-theme="light"] .mobile-nav-links a {
+    color: #1e293b !important;
+}
+
+[data-theme="light"] .mobile-nav-links a i {
+    color: #0284c7 !important;
+}
+
+[data-theme="light"] .mobile-nav-links a:hover,
+[data-theme="light"] .mobile-nav-links a:active {
+    background: #f0f9ff !important;
+    border-color: #bae6fd !important;
+    color: #0284c7 !important;
+}
+
+[data-theme="light"] .mobile-nav-actions {
+    border-top: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .mobile-nav-backdrop {
+    background: rgba(15, 23, 42, 0.45) !important;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
