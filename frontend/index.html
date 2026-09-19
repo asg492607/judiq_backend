@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com https://*.googleapis.com https://*.firebaseio.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 ws://localhost:8000 wss://* https://*; frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://*.google.com;">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com https://*.googleapis.com https://*.firebaseio.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 ws://localhost:8000 wss://* https://*; frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://*.google.com;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>JudiQ – AI Litigation Strategist</title>
     <meta name="description" content="JudiQ AI Litigation Strategist finds legal weaknesses before the courtroom does. Simulate opponent attacks and predict judge challenges.">
@@ -276,7 +277,8 @@
 
                             <div class="sim-toggles-grid">
                                 <label class="sim-toggle-item">
-                                    <input type="checkbox" id="simSignatureCheck" onchange="recalculateSimulatorScore()">
+                                    <input type="checkbox" id="simSignatureCheck"
+                                        onchange="recalculateSimulatorScore()">
                                     <span>Signature Discrepancy Raised</span>
                                 </label>
                                 <label class="sim-toggle-item">
@@ -538,7 +540,8 @@
                                     <div class="module-card-icon"><i class="fas fa-money-check"></i></div>
                                     <div class="module-card-info">
                                         <h4>Section 138 NI Act (Cheque Bounce)</h4>
-                                        <p>30-day notice audit, 15-day cure window clock, S.141 director liability, S.143A 20% interim deposit &amp; notice drafting.</p>
+                                        <p>30-day notice audit, 15-day cure window clock, S.141 director liability,
+                                            S.143A 20% interim deposit &amp; notice drafting.</p>
                                     </div>
                                     <div class="module-quota-pill">10 Cases / mo</div>
                                 </div>
@@ -707,7 +710,9 @@
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
-                            <p>Absolutely not. JudiQ is designed as an advanced decision-support tool to assist licensed advocates and in-house legal departments. All AI-generated analyses, strategies, and draft notices must be reviewed and verified by a qualified attorney.</p>
+                            <p>Absolutely not. JudiQ is designed as an advanced decision-support tool to assist licensed
+                                advocates and in-house legal departments. All AI-generated analyses, strategies, and
+                                draft notices must be reviewed and verified by a qualified attorney.</p>
                         </div>
                     </div>
                     <div class="faq-item">
@@ -953,7 +958,8 @@
                         </div>
                         <div class="form-group">
                             <label for="loginPassword">Password</label>
-                            <input type="password" id="loginPassword" required placeholder="••••••••" autocomplete="current-password">
+                            <input type="password" id="loginPassword" required placeholder="••••••••"
+                                autocomplete="current-password">
                         </div>
                         <div id="loginError" class="error-message"></div>
                         <button type="submit" class="btn btn-primary btn-full">
@@ -1361,7 +1367,7 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- CASE WIZARD SECTION -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        
+
         <div id="caseWizardScreen" class="main-screen hidden">
             <nav class="top-nav">
                 <div class="nav-brand u-is-8">
@@ -1955,11 +1961,8 @@
                     <button class="btn btn-primary" onclick="downloadPDF()">
                         <i class="fas fa-download"></i> Download PDF Report
                     </button>
-                    <button class="btn btn-primary" onclick="viewFullReport()">
-                        <i class="fas fa-file-invoice"></i> View Full Report
-                    </button>
-                    <button class="btn btn-outline" onclick="downloadPDF()">
-                        <i class="fas fa-download"></i> Download PDF
+                    <button class="btn btn-outline" onclick="window.openShareReportModal()">
+                        <i class="fas fa-share-alt"></i> Share Report
                     </button>
                     <button class="btn btn-outline" onclick="startNewCase()">
                         <i class="fas fa-plus"></i> New Case
@@ -2425,7 +2428,7 @@
                 <!-- ═══════════════════════════════════════════════════════════ -->
                 <div id="adminPlansTabContent" class="admin-tab-content u-is-68">
                     <div class="admin-users-panel">
-                        
+
                         <!-- Table Toolbar -->
                         <div class="u-is-175">
                             <div>
@@ -2844,8 +2847,10 @@
                                     traversal signatures.</div>
                             </div>
                             <div class="u-is-231">
-                                <div class="u-is-232"><i class="fas fa-gauge-high u-is-41"></i> Distributed Rate Limiting</div>
-                                <div class="u-is-233">SlowAPI in-memory limiter guarding against DDoS and abusive automated analysis loops.</div>
+                                <div class="u-is-232"><i class="fas fa-gauge-high u-is-41"></i> Distributed Rate
+                                    Limiting</div>
+                                <div class="u-is-233">SlowAPI in-memory limiter guarding against DDoS and abusive
+                                    automated analysis loops.</div>
                             </div>
                         </div>
                     </div>
@@ -3256,7 +3261,8 @@
                 </ul>
 
                 <h3>2. Purpose & Grounds of Processing</h3>
-                <p>We process your data exclusively based on your explicit consent and to deliver our adversarial litigation services:</p>
+                <p>We process your data exclusively based on your explicit consent and to deliver our adversarial
+                    litigation services:</p>
                 <ul>
                     <li>To generate courtroom strategy and auto-draft legal notices.</li>
                     <li><strong>Strict AI Isolation:</strong> We <em>do not</em> use your confidential case data or personal data to train our global AI models. Your workspace data remains siloed.</li>
@@ -3418,7 +3424,7 @@
                         <label class="u-is-336" for="profileFirmName">Law Firm / Organization Name</label>
                         <input class="u-is-337" type="text" id="profileFirmName" placeholder="BuildTech Partners">
                     </div>
-                    
+
                     <div class="form-group u-is-14">
                         <label class="u-is-336" for="profileRole">Practice Classification</label>
                         <select class="u-is-337" id="profileRole" onchange="window.state.currentRole = this.value;">
@@ -3647,7 +3653,8 @@
                         <div class="command-item-icon"><i class="fas fa-print"></i></div>
                         <div>
                             <div class="command-item-title">Print Formal Strategy Memorandum</div>
-                            <div class="command-item-desc">Open pristine court-ready printable document view with official header</div>
+                            <div class="command-item-desc">Open pristine court-ready printable document view with
+                                official header</div>
                         </div>
                     </div>
                     <span class="command-shortcut-hint">Print</span>
@@ -4006,7 +4013,9 @@
                             <h4><i class="fas fa-users"></i> 2. Primary Parties</h4>
                             <div class="form-group">
                                 <label>Complainant / Creditor Name</label>
-                                <input type="text" id="ccCreditorName" class="form-control" placeholder="e.g. State Bank of India" aria-label="E.G.  State  Bank Of  India" title="E.G.  State  Bank Of  India">
+                                <input type="text" id="ccCreditorName" class="form-control"
+                                    placeholder="e.g. State Bank of India" aria-label="E.G.  State  Bank Of  India"
+                                    title="E.G.  State  Bank Of  India">
                             </div>
                             <div class="form-group">
                                 <label>Accused / Borrower Name</label>
@@ -4276,7 +4285,8 @@
                         <h2>Immutable Security & Compliance Audit Log</h2>
                         <p>Complete traceability of all case creations, document views, edits, and exports.</p>
                     </div>
-                    <button class="btn btn-outline" onclick="window.handleExportAuditCsv()"><i class="fas fa-file-csv"></i> Export CSV</button>
+                    <button class="btn btn-outline" onclick="window.handleExportAuditCsv()"><i
+                            class="fas fa-file-csv"></i> Export CSV</button>
                 </div>
 
                 <div class="cms-table-wrapper">
@@ -4483,7 +4493,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Main Application Script (ES6 Module) -->
-    <script type="module" src="js/main.js?v=17"></script>
+    <script type="module" src="js/main.js?v=28"></script>
 </body>
 </html>
 
