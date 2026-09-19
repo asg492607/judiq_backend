@@ -206,10 +206,6 @@ export function loginLocally(email, domain = 'ni_act', role = 'law_firm') {
 }
 window.loginLocally = loginLocally;
 
-window.loginAsGuest = (domain = 'ni_act') => {
-    loginLocally('advocate@judiq.ai', domain, 'law_firm');
-};
-
 function setupFormListeners() {
     const loginForm = document.getElementById('loginForm');
     const loginError = document.getElementById('loginError');
@@ -4764,6 +4760,8 @@ window.updateModularPricing = function() {
     const cfg = durationConfigs[duration] || durationConfigs[1];
 
     const priceEl = document.getElementById('planTotalPrice');
+    const priceCycleEl = document.getElementById('planPriceCycle');
+    const rateDetailEl = document.getElementById('planRateDetail');
     const casesEl = document.getElementById('planTotalCases');
     const modulesEl = document.getElementById('planTotalModules');
     const titleEl = document.getElementById('planTierTitle');
