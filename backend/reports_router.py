@@ -38,3 +38,38 @@ def create_shared_report_endpoint(req: CreateShareReportRequest):
     
     success = DatabaseManager.create_shared_report(
         share_id=share_id,
+        case_id=case_id,
+        user_id=req.user_id or "ANONYMOUS",
+        title=title,
+        domain=req.domain or "ni_act",
+        password_hash=password_hash,
+        case_data=req.case_data,
+        analysis_result=req.analysis_result
+    )
+    
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to generate secure shared report.")
+        
+    return {
+        "success": True,
+        "share_id": share_id,
+        "is_protected": bool(password_hash),
+        "title": title,
+        "domain": req.domain or "ni_act"
+    }
+
+@router.get("/shared/{share_id}", tags=["Share Reports"])
+def get_shared_report_endpoint(share_id: str):
+    report = DatabaseManager.get_shared_report(share_id)
+    if not report:
+        raise HTTPException(status_code=404, detail="Shared report not found or has been revoked.")
+        
+    is_protected = bool(report.get("password_hash"))
+    
+    # If not password-protected, return full case and analysis data
+    if not is_protected:
+        DatabaseManager.increment_shared_report_views(share_id)
+        return {
+            "success": True,
+            "share_id": report["share_id"],
+            "case_id": report["case_id"],
