@@ -185,7 +185,7 @@
                     <h2>Advanced Legal Intelligence</h2>
                     <p>Stop guessing. Start calculating your courtroom survivability.</p>
                 </div>
-                
+
                 <div class="feature-grid">
                     <div class="feature-card">
                         <img src="multimedia/judiq_attack_simulation.png" alt="Attack Simulation">
@@ -458,14 +458,20 @@
                         </div>
 
                         <div class="precedent-tag-pills u-is-27">
-                            <button class="precedent-tag-pill sim-preset-btn active" onclick="filterPrecedentByTag('', this)">#All_S138</button>
-                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('cheque', this)">#NI_Act_138</button>
-                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('notice', this)">#Notice_Defect</button>
-                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('director', this)">#Director_141</button>
-                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('security', this)">#Security_Cheque</button>
-                            <button class="precedent-tag-pill sim-preset-btn" onclick="filterPrecedentByTag('interim', this)">#Interim_143A</button>
+                            <button class="precedent-tag-pill sim-preset-btn active"
+                                onclick="filterPrecedentByTag('', this)">#All_S138</button>
+                            <button class="precedent-tag-pill sim-preset-btn"
+                                onclick="filterPrecedentByTag('cheque', this)">#NI_Act_138</button>
+                            <button class="precedent-tag-pill sim-preset-btn"
+                                onclick="filterPrecedentByTag('notice', this)">#Notice_Defect</button>
+                            <button class="precedent-tag-pill sim-preset-btn"
+                                onclick="filterPrecedentByTag('director', this)">#Director_141</button>
+                            <button class="precedent-tag-pill sim-preset-btn"
+                                onclick="filterPrecedentByTag('security', this)">#Security_Cheque</button>
+                            <button class="precedent-tag-pill sim-preset-btn"
+                                onclick="filterPrecedentByTag('interim', this)">#Interim_143A</button>
                         </div>
-                        
+
                         <div id="precedentsListContainer" class="citations-list-container">
                             <!-- Populated dynamically via JS -->
                         </div>
@@ -697,8 +703,8 @@
                                     <span id="planTotalCases" class="metric-value" style="font-size: 1.4rem;">∞</span>
                                 </div>
                                 <div class="plan-metric-col">
-                                    <span class="metric-label">Active Modules</span>
-                                    <span id="planTotalModules" class="metric-value">1 Engine</span>
+                                    <span class="metric-label">Engine Access</span>
+                                    <span id="planTotalModules" class="metric-value">Section 138</span>
                                 </div>
                                 <div class="plan-metric-col">
                                     <span class="metric-label">Cost / Analysis</span>
@@ -958,8 +964,11 @@
                         <div class="footer-brand u-is-8">
                             <span class="brand-name-serif u-is-30">JUDIQ AI</span>
                         </div>
-                        <p style="font-size: 0.78rem; font-weight: 600; color: #a5b4fc; margin-top: -6px; margin-bottom: 10px; letter-spacing: 0.5px;">By AIXYNZ Technologies Pvt Ltd</p>
-                        <p class="footer-desc">Institutional-grade adversarial litigation simulation, statutory weakness detection, and strategy formulation for top-tier law firms and in-house counsel.</p>
+                        <p
+                            style="font-size: 0.78rem; font-weight: 600; color: #a5b4fc; margin-top: -6px; margin-bottom: 10px; letter-spacing: 0.5px;">
+                            By AIXYNZ Technologies Pvt Ltd</p>
+                        <p class="footer-desc">Institutional-grade adversarial litigation simulation, statutory weakness
+                            detection, and strategy formulation for top-tier law firms and in-house counsel.</p>
                         <div class="legal-seal-badge u-is-31">
                             <i class="fas fa-shield-halved"></i> AES-256 Encrypted Vault • ISO-27001
                         </div>
@@ -1240,7 +1249,8 @@
                     <div class="draft-gen-header">
                         <div class="draft-gen-badge"><i class="fas fa-file-contract"></i> Draft Studio</div>
                         <h2>Select Document Type</h2>
-                        <p>Choose from court-ready Section 138 legal documents — statutory demand notices, complaints, section 143A applications, affidavits &amp; more</p>
+                        <p>Choose from court-ready Section 138 legal documents — statutory demand notices, complaints,
+                            section 143A applications, affidavits &amp; more</p>
                     </div>
                     <div class="draft-type-grid" id="studioDraftTypeGrid"></div>
                 </div>
@@ -1919,8 +1929,10 @@
                                     onchange="window.onSelectDraftTemplate(this.value)">
                                     <optgroup label="Section 138 (NI Act)">
                                         <option value="demand_notice">📋 Legal Demand Notice (S.138 NI Act)</option>
-                                        <option value="CERTIFICATE_BSA">🔐 S.63(4) BSA Digital Evidence Certificate</option>
-                                        <option value="COMPLAINT_S138">⚖️ Section 138 Criminal Complaint Petition</option>
+                                        <option value="CERTIFICATE_BSA">🔐 S.63(4) BSA Digital Evidence Certificate
+                                        </option>
+                                        <option value="COMPLAINT_S138">⚖️ Section 138 Criminal Complaint Petition
+                                        </option>
                                         <option value="DEFENCE_REPLY">🛡️ Reply to Statutory Demand Notice</option>
                                         <option value="CONDONATION_DELAY">⏳ Application for Condonation of Delay</option>
                                     </optgroup>
@@ -2421,7 +2433,8 @@
                                     <option value="status_suspended">Status: Suspended Only</option>
                                     <option value="status_pending">Status: Pending Plan Approval</option>
                                 </select>
-                                <button class="btn btn-sm btn-outline u-is-159" onclick="window.exportAdminUsers('json')" title="Export Accounts JSON">
+                                <button class="btn btn-sm btn-outline u-is-159"
+                                    onclick="window.exportAdminUsers('json')" title="Export Accounts JSON">
                                     <i class="fas fa-file-export"></i> <span>Export</span>
                                 </button>
                                 <button class="btn btn-sm btn-primary u-is-160" onclick="openCreateLitigatorModal()">
@@ -2807,7 +2820,8 @@
                                 </div>
                                 <div>
                                     <label class="u-is-214">Court Jurisdiction</label>
-                                    <select class="u-is-215" id="adminPrecCourt" aria-label="Admin Prec Court" title="Admin Prec Court">
+                                    <select class="u-is-215" id="adminPrecCourt" aria-label="Admin Prec Court"
+                                        title="Admin Prec Court">
                                         <option value="Supreme Court of India">Supreme Court of India</option>
                                         <option value="Bombay High Court">Bombay High Court</option>
                                         <option value="Delhi High Court">Delhi High Court</option>
@@ -3251,7 +3265,8 @@
                         <div>
                             <div class="u-is-69">
                                 <h3 class="u-is-263" id="modalBankOfficerName">Rajesh Nambiar</h3>
-                                <span id="modalBankOfficerStatusBadge" class="status-badge-active"><i class="fas fa-circle-check"></i> Active</span>
+                                <span id="modalBankOfficerStatusBadge" class="status-badge-active"><i
+                                        class="fas fa-circle-check"></i> Active</span>
                             </div>
                             <p class="u-is-293" id="modalBankOfficerIdSubtitle">OFFICER_SARB_842</p>
                         </div>
@@ -3514,8 +3529,10 @@
                 <p class="effective-date">Last Updated: June 15, 2026</p>
             </div>
             <div class="legal-text">
-                <p>Thank you for choosing <strong>JUDIQ AI</strong>. We aim to provide top-tier legal intelligence tools. This Refund &amp; Cancellation Policy outlines user rights regarding subscription cancellations and payment refunds.</p>
-                
+                <p>Thank you for choosing <strong>JUDIQ AI</strong>. We aim to provide top-tier legal intelligence
+                    tools. This Refund &amp; Cancellation Policy outlines user rights regarding subscription
+                    cancellations and payment refunds.</p>
+
                 <h3>1. Cancellation Policy</h3>
                 <p>You can cancel your subscription at any time. To cancel:</p>
                 <ul>
@@ -3754,7 +3771,8 @@
 
 
     <!-- Command Palette Modal -->
-    <div id="commandPaletteModal" class="command-palette-backdrop" onclick="if(event.target === this) toggleCommandPalette(false)">
+    <div id="commandPaletteModal" class="command-palette-backdrop"
+        onclick="if(event.target === this) toggleCommandPalette(false)">
         <div class="command-palette">
             <div class="command-input-wrapper">
                 <i class="fas fa-search"></i>
@@ -4146,7 +4164,8 @@
                         <h2>All Cases & Matters</h2>
                         <p>Filter, search, and monitor your entire case registry.</p>
                     </div>
-                    <button class="btn btn-primary" onclick="showCaseCreate()"><i class="fas fa-plus"></i> New Case</button>
+                    <button class="btn btn-primary" onclick="showCaseCreate()"><i class="fas fa-plus"></i> New
+                        Case</button>
                 </div>
 
                 <!-- Filter & Search Controls -->
@@ -4440,7 +4459,8 @@
                             </div>
                             <div class="form-group">
                                 <label>PAN Number</label>
-                                <input type="text" id="clPan" class="form-control" placeholder="ABCDE1234F" aria-label="A B C D E1234 F" title="A B C D E1234 F">
+                                <input type="text" id="clPan" class="form-control" placeholder="ABCDE1234F"
+                                    aria-label="A B C D E1234 F" title="A B C D E1234 F">
                             </div>
                             <div class="form-group">
                                 <label>GSTIN</label>
@@ -4735,7 +4755,10 @@
                     judicial precedents.
                 </p>
                 <p>
-                    Judicial outcomes in Indian Courts and Tribunals depend on a wide array of oral testimony, judicial discretion, High Court coordinate bench precedents, and evidentiary cross-examination. JudiQ AI scores reflect analytical probability based strictly on inputted facts and do not guarantee any specific court ruling.
+                    Judicial outcomes in Indian Courts and Tribunals depend on a wide array of oral testimony, judicial
+                    discretion, High Court coordinate bench precedents, and evidentiary cross-examination. JudiQ AI
+                    scores reflect analytical probability based strictly on inputted facts and do not guarantee any
+                    specific court ruling.
                 </p>
             </div>
             <div class="u-is-427">
