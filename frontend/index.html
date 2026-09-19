@@ -140,9 +140,12 @@
                     <p>Adversarial litigation simulation, automated statutory defect detection, and institutional
                         courtroom strategy for top-tier law firms and in-house counsel.</p>
                     <div class="hero-actions">
-                        <button id="heroGetStartedBtn" class="btn btn-primary btn-large"><i class="fas fa-scale-balanced"></i> Start Case Analysis</button>
-                        <a href="#strategySimulatorSection" class="btn btn-outline btn-large hero-sim-btn"><i class="fas fa-sliders"></i> Test Live Simulator</a>
-                        <button id="heroLoginBtn" class="btn btn-text btn-large"><i class="fas fa-arrow-right-to-bracket"></i> Sign In</button>
+                        <button id="heroGetStartedBtn" class="btn btn-primary btn-large"><i
+                                class="fas fa-scale-balanced"></i> Start Case Analysis</button>
+                        <a href="#strategySimulatorSection" class="btn btn-outline btn-large hero-sim-btn"><i
+                                class="fas fa-sliders"></i> Test Live Simulator</a>
+                        <button id="heroLoginBtn" class="btn btn-text btn-large"><i
+                                class="fas fa-arrow-right-to-bracket"></i> Sign In</button>
                     </div>
                     <div class="hero-badges-row">
                         <span class="hero-mini-badge"><i class="fas fa-check-circle"></i> Section 138 NI Act Engine</span>
@@ -437,7 +440,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Column 2: Precedent Finder -->
                     <div class="precedent-card">
                         <h3>Landmark Precedent & Authority Explorer</h3>
@@ -656,9 +659,22 @@
                     <!-- Right: Live Plan Summary & Checkout Card -->
                     <div class="pricing-summary-card">
                         <div class="plan-summary-header">
-                            <div class="plan-type-badge"><i class="fas fa-bolt"></i> Customized Plan Summary</div>
-                            <h3 id="planTierTitle">Solo Practice Plan (1 Module)</h3>
-                            <p id="planTierDesc">Perfect for specialized practitioners analyzing Section 138 matters.</p>
+                            <div class="plan-type-badge"><i class="fas fa-infinity"></i> Section 138 Plan</div>
+                            <h3 id="planTierTitle">Section 138 NI Act Engine</h3>
+                            <p id="planTierDesc">Complete statutory defect audit, 15-day notice clock &amp; adversarial
+                                cross-exam preparation.</p>
+                        </div>
+
+                        <!-- Billing Cycle Selector (1, 3, 6, 12 Months) -->
+                        <div class="billing-cycle-selector">
+                            <button type="button" class="billing-cycle-tab active"
+                                onclick="setBillingDuration(1, this)">1 Month<span>₹499</span></button>
+                            <button type="button" class="billing-cycle-tab" onclick="setBillingDuration(3, this)">3
+                                Months<span>₹1,499</span></button>
+                            <button type="button" class="billing-cycle-tab" onclick="setBillingDuration(6, this)">6
+                                Months<span>₹2,999</span></button>
+                            <button type="button" class="billing-cycle-tab" onclick="setBillingDuration(12, this)">12
+                                Months<span>₹5,999</span></button>
                         </div>
 
                         <div class="plan-calculation-box">
@@ -914,7 +930,8 @@
                             </div>
                             <div class="form-group">
                                 <label for="contactSubject">Subject</label>
-                                <input type="text" id="contactSubject" required placeholder="Enterprise Pricing &amp; Custom RAG Setup" minlength="4" autocomplete="off">
+                                <input type="text" id="contactSubject" required placeholder="" minlength="4"
+                                    autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="contactMessage">Message</label>
@@ -1165,9 +1182,12 @@
                 <!-- Institutional Engine Status Bar -->
                 <div class="institutional-engine-toolbar">
                     <div class="engine-status-left">
-                        <span class="engine-badge"><i class="fas fa-scale-balanced"></i> Section 138 Negotiable Instruments Act</span>
-                        <span class="engine-status-tag"><i class="fas fa-circle-check"></i> Statutory Engine Active</span>
-                        <span class="engine-statutory-clock"><i class="fas fa-database"></i> 1,307 Precedents Synchronized</span>
+                        <span class="engine-badge"><i class="fas fa-scale-balanced"></i> Section 138 Negotiable
+                            Instruments Act</span>
+                        <span class="engine-status-tag"><i class="fas fa-circle-check"></i> Statutory Engine
+                            Active</span>
+                        <span class="engine-statutory-clock"><i class="fas fa-database"></i> 1,307 Precedents
+                            Synchronized</span>
                     </div>
                     <div class="engine-status-actions">
                         <button class="btn btn-sm btn-primary" onclick="window.switchScreen('caseWizardScreen')">
@@ -1805,77 +1825,77 @@
                 <!-- Tab: Strategy -->
                 <div id="tabStrategy" class="tab-content hidden">
 
-                <!-- Survivability Graph (NEW) -->
-                <div class="result-card">
-                    <h3><i class="fas fa-chart-line"></i> Litigation Survivability Graph</h3>
-                    <p class="card-subtitle">Probability of survival across procedural stages</p>
-                    <div class="u-is-94">
-                        <canvas id="survivabilityChart"></canvas>
+                    <!-- Survivability Graph (NEW) -->
+                    <div class="result-card">
+                        <h3><i class="fas fa-chart-line"></i> Litigation Survivability Graph</h3>
+                        <p class="card-subtitle">Probability of survival across procedural stages</p>
+                        <div class="u-is-94">
+                            <canvas id="survivabilityChart"></canvas>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Attack & Weakness Graphs (NEW) -->
-                <div class="result-card">
-                    <h3><i class="fas fa-project-diagram"></i> Opponent Attack Vectors & Weakness Graph</h3>
-                    <p class="card-subtitle">Simulated cross-examination vectors targeting your narrative flaws</p>
-                    <div class="u-is-94">
-                        <canvas id="attackChart"></canvas>
+                    <!-- Attack & Weakness Graphs (NEW) -->
+                    <div class="result-card">
+                        <h3><i class="fas fa-project-diagram"></i> Opponent Attack Vectors & Weakness Graph</h3>
+                        <p class="card-subtitle">Simulated cross-examination vectors targeting your narrative flaws</p>
+                        <div class="u-is-94">
+                            <canvas id="attackChart"></canvas>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Overall Strategy Section (NEW) -->
-                <div class="result-card">
-                    <h3><i class="fas fa-chess"></i> Legal Strategy</h3>
-                    <p class="card-subtitle">Recommended approach and tactical considerations</p>
-                    <div id="strategyContent" class="strategy-content"></div>
-                    <div id="strategyList" class="strategy-list"></div>
-                </div>
-                
-                <!-- Top Defences -->
-                <div class="result-card">
-                    <h3><i class="fas fa-shield-alt"></i> Predicted Defences</h3>
-                    <p class="card-subtitle">Opponent's likely strategies with success probability</p>
-                    <div id="defencesList" class="defences-list"></div>
-                </div>
-
-                <!-- Semantic Analysis -->
-                <div class="result-card">
-                    <h3><i class="fas fa-brain"></i> Semantic Analysis</h3>
-                    <p class="card-subtitle">Legal concepts detected in your case</p>
-                    <div id="semanticAnalysis" class="semantic-analysis"></div>
-                </div>
-
-                <!-- Next Actions -->
-                <div class="result-card">
-                    <h3><i class="fas fa-tasks"></i> Recommended Actions</h3>
-                    <div id="actionsList" class="actions-list"></div>
-                </div>
-
-                <!-- Reasoning Trace (Collapsible) -->
-                <div class="result-card">
-                    <div class="collapsible-header" onclick="toggleReasoning()">
-                        <h3><i class="fas fa-stream"></i> Reasoning Trace</h3>
-                        <i id="reasoningToggle" class="fas fa-chevron-down"></i>
+                    <!-- Overall Strategy Section (NEW) -->
+                    <div class="result-card">
+                        <h3><i class="fas fa-chess"></i> Legal Strategy</h3>
+                        <p class="card-subtitle">Recommended approach and tactical considerations</p>
+                        <div id="strategyContent" class="strategy-content"></div>
+                        <div id="strategyList" class="strategy-list"></div>
                     </div>
-                    <div id="reasoningTrace" class="reasoning-trace hidden">
-                        <div id="reasoningList"></div>
+
+                    <!-- Top Defences -->
+                    <div class="result-card">
+                        <h3><i class="fas fa-shield-alt"></i> Predicted Defences</h3>
+                        <p class="card-subtitle">Opponent's likely strategies with success probability</p>
+                        <div id="defencesList" class="defences-list"></div>
                     </div>
-                </div>
 
-                <!-- Contradictions Section (NEW) -->
-                <div class="result-card">
-                    <h3><i class="fas fa-exclamation-triangle"></i> Contradictions Detected</h3>
-                    <p class="card-subtitle">Internal inconsistencies or conflicts in the case</p>
-                    <div id="contradictionsList" class="contradictions-list"></div>
-                </div>
+                    <!-- Semantic Analysis -->
+                    <div class="result-card">
+                        <h3><i class="fas fa-brain"></i> Semantic Analysis</h3>
+                        <p class="card-subtitle">Legal concepts detected in your case</p>
+                        <div id="semanticAnalysis" class="semantic-analysis"></div>
+                    </div>
 
-                <!-- Legal Analysis Section (NEW) -->
-                <div class="result-card">
-                    <h3><i class="fas fa-gavel"></i> Legal Analysis</h3>
-                    <p class="card-subtitle">Detailed legal commentary and case assessment</p>
-                    <div id="legalAnalysis" class="legal-analysis u-is-95"></div>
-                </div>
-                
+                    <!-- Next Actions -->
+                    <div class="result-card">
+                        <h3><i class="fas fa-tasks"></i> Recommended Actions</h3>
+                        <div id="actionsList" class="actions-list"></div>
+                    </div>
+
+                    <!-- Reasoning Trace (Collapsible) -->
+                    <div class="result-card">
+                        <div class="collapsible-header" onclick="toggleReasoning()">
+                            <h3><i class="fas fa-stream"></i> Reasoning Trace</h3>
+                            <i id="reasoningToggle" class="fas fa-chevron-down"></i>
+                        </div>
+                        <div id="reasoningTrace" class="reasoning-trace hidden">
+                            <div id="reasoningList"></div>
+                        </div>
+                    </div>
+
+                    <!-- Contradictions Section (NEW) -->
+                    <div class="result-card">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Contradictions Detected</h3>
+                        <p class="card-subtitle">Internal inconsistencies or conflicts in the case</p>
+                        <div id="contradictionsList" class="contradictions-list"></div>
+                    </div>
+
+                    <!-- Legal Analysis Section (NEW) -->
+                    <div class="result-card">
+                        <h3><i class="fas fa-gavel"></i> Legal Analysis</h3>
+                        <p class="card-subtitle">Detailed legal commentary and case assessment</p>
+                        <div id="legalAnalysis" class="legal-analysis u-is-95"></div>
+                    </div>
+
                 </div>
                 <!-- End Tab: Strategy -->
 
@@ -2365,7 +2385,7 @@
 
                     <!-- User Management & Quota Table Section -->
                     <div class="admin-users-panel">
-                        
+
                         <!-- Table Toolbar -->
                         <div class="u-is-150">
                             <div>
@@ -2747,7 +2767,8 @@
                                     Judicial Precedent Direct Ingestion Pipeline
                                 </h3>
                                 <p class="u-is-152">
-                                    Ingest new Supreme Court / High Court precedent ratios directly into the vector database &amp; neural citation reranker.
+                                    Ingest new Supreme Court / High Court precedent ratios directly into the vector
+                                    database &amp; neural citation reranker.
                                 </p>
                             </div>
                             <span class="badge u-is-212">
@@ -3099,7 +3120,7 @@
 
                     <!-- 6-Metric Quota & Economic Telemetry Grid -->
                     <div class="u-is-267">
-                        
+
                         <div class="u-is-268">
                             <div class="u-is-269">Monthly Allocation</div>
                             <div class="u-is-270" id="modalUserLimitVal">50</div>
@@ -3441,7 +3462,9 @@
                 </div>
 
                 <h3>1. No Attorney-Client Relationship</h3>
-                <p>The use of JUDIQ AI, including the submission of case details, uploading of evidence documents, generation of notices, or review of litigation survivability scores, does not create an attorney-client relationship between you and JUDIQ AI or any of its employees.</p>
+                <p>The use of JUDIQ AI, including the submission of case details, uploading of evidence documents,
+                    generation of notices, or review of litigation survivability scores, does not create an
+                    attorney-client relationship between you and JUDIQ AI or any of its employees.</p>
 
                 <h3>2. Independent Verification Required</h3>
                 <p>Artificial Intelligence models are subject to errors, omission of local procedural nuances, and reliance on historical data that may have been superceded by recent statutory amendments or Supreme Court rulings. All outputs—including contradiction lists, timeline mapping, and drafted notices—must be independently verified, vetted, and signed by a licensed advocate before being served or filed in court.</p>
@@ -3653,9 +3676,11 @@
                                 citations.</p>
 
                             <h4>Custom Tone Adjustments</h4>
-                            <p>Toggle between different argument tones (e.g., Assertive, Professional, or Conciliatory) in the preview side-panel to match your firm's presentation style. You can copy the generated text or print directly to your firm's letterhead.</p>
+                            <p>Toggle between different argument tones (e.g., Assertive, Professional, or Conciliatory)
+                                in the preview side-panel to match your firm's presentation style. You can copy the
+                                generated text or print directly to your firm's letterhead.</p>
                         </div>
-                        
+
                         <!-- Confidentiality Pane -->
                         <div id="docs-confidentiality" class="docs-content-pane">
                             <h3>Confidentiality &amp; Data Security</h3>
@@ -3996,7 +4021,9 @@
 
                 <h4 class="u-is-411">6. Limitation of Liability</h4>
                 <p>
-                    In no event shall JudiQ AI, its developers, or affiliates be liable for any indirect, consequential, punitive, or incidental damages arising from judicial decisions, courtroom outcomes, or limitation bar consequences resulting from incorrect user evidentiary inputs.
+                    In no event shall JudiQ AI, its developers, or affiliates be liable for any indirect, consequential,
+                    punitive, or incidental damages arising from judicial decisions, courtroom outcomes, or limitation
+                    bar consequences resulting from incorrect user evidentiary inputs.
                 </p>
 
                 <h4 class="u-is-411">7. Governing Law & Jurisdiction</h4>
@@ -4355,7 +4382,8 @@
                             </div>
                             <div class="form-group">
                                 <label>Primary Legal Role</label>
-                                <select id="clRole" class="form-control" aria-label="Litigation Capacity Role" title="Litigation Capacity Role">
+                                <select id="clRole" class="form-control" aria-label="Litigation Capacity Role"
+                                    title="Litigation Capacity Role">
                                     <option value="creditor">Creditor / Complainant</option>
                                     <option value="debtor">Debtor / Accused</option>
                                     <option value="guarantor">Guarantor</option>
@@ -4639,7 +4667,9 @@
 
                 <h4 class="u-is-426">3. Data Retention & Right to Complete Deletion</h4>
                 <p>
-                    Users maintain full sovereignty over their case files. You can delete individual cases, version snapshots, or entire user accounts at any time via the dashboard. Upon deletion, data is purged from active databases and cloud replicas within 24 hours.
+                    Users maintain full sovereignty over their case files. You can delete individual cases, version
+                    snapshots, or entire user accounts at any time via the dashboard. Upon deletion, data is purged from
+                    active databases and cloud replicas within 24 hours.
                 </p>
             </div>
             <div class="u-is-427">
