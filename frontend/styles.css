@@ -1268,7 +1268,7 @@ button.primary:hover:not(:disabled),
 }
 
 .landing-nav-links a {
-    color: var(--text-secondary);
+    color: rgba(248, 250, 252, 0.85);
     font-size: var(--text-sm);
     font-weight: 600;
     text-decoration: none;
@@ -11690,7 +11690,8 @@ body.dark-theme .dac-icon--sarfaesi {
    ══════════════════════════════════════════════════════════════════════════════ */
 
 /* --- 1. Global Viewport & Overflow Shields --- */
-html, body {
+html,
+body {
     max-width: 100vw;
     overflow-x: hidden !important;
     position: relative;
@@ -12455,7 +12456,8 @@ html, body {
         gap: 1.75rem !important;
     }
 
-    .brand-col, .newsletter-col {
+    .brand-col,
+    .newsletter-col {
         grid-column: span 1 !important;
     }
 
