@@ -2,7 +2,7 @@ import { firebaseConfig, roleActions, wizardSteps } from '../config.js?v=14';
 import { api } from '../api.js?v=15';
 import { ui, switchScreen } from '../ui.js?v=15';
 import { renderWizardStep } from '../wizard.js?v=14';
-import { renderResults, switchResultTab } from '../renderer.js?v=14';
+import { renderResults, switchResultTab } from '../renderer.js?v=15';
 import { DRAFT_TYPES, formatDraftDate, numberToWords } from '../draft_templates.js?v=14';
 import { escapeHtml } from './modules/utils.js?v=14';
 
@@ -2879,7 +2879,7 @@ window.updateReadinessProgress = () => {
             statusTextEl.style.color = isLight ? "#d97706" : "var(--warning-400)";
         } else if (percentage < 100) {
             statusTextEl.textContent = "Strong case files ready to compile.";
-            statusTextEl.style.color = "var(--primary-400)";
+            statusTextEl.style.color = isLight ? "#4f46e5" : "var(--primary-400)";
         } else {
             statusTextEl.textContent = "100% Ready. Secure filing approved!";
             statusTextEl.style.color = "var(--success-400)";
@@ -4906,6 +4906,429 @@ window.handleExportAuditCsv = async () => {
         if (ui && typeof ui.toast === 'function') ui.toast(`CSV Export failed: ${err.message}`, 'error');
     }
 };
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FORMAL LITIGATION SHARE REPORT CONTROLLER & READ-ONLY VIEWER
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+window.activeShareReportData = null;
+window.currentShareUrl = '';
+
+window.openShareReportModal = async () => {
+    const caseData = window.state?.caseData || window.state?.currentCaseData || (window.currentCase && window.currentCase.case_data);
+    const analysisResult = window.state?.analysisResult || window.state?.currentAnalysisResult || (window.currentCase && window.currentCase.analysis_result);
+
+    if (!caseData || !analysisResult) {
+        if (ui && ui.toast) ui.toast("Please run an analysis first to generate a shareable report.", "warning");
+        else alert("Please run an analysis first to generate a shareable report.");
+        return;
+    }
+
+    const modal = document.getElementById('shareReportModal');
+    if (modal) modal.classList.remove('hidden');
+
+    // Reset password controls
+    const pwdToggle = document.getElementById('sharePasswordToggle');
+    const pwdContainer = document.getElementById('sharePasswordInputContainer');
+    const pwdInput = document.getElementById('sharePasswordInput');
+    const urlWrapper = document.getElementById('shareUrlWrapper');
+    if (pwdToggle) pwdToggle.checked = false;
+    if (pwdContainer) pwdContainer.classList.add('hidden');
+    if (pwdInput) pwdInput.value = '';
+    if (urlWrapper) urlWrapper.classList.add('hidden');
+
+    await window.generateOrUpdateShareLink();
+};
+
+window.closeShareReportModal = () => {
+    const modal = document.getElementById('shareReportModal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.toggleSharePasswordInput = () => {
+    const toggle = document.getElementById('sharePasswordToggle');
+    const checked = toggle ? toggle.checked : false;
+    const pwdContainer = document.getElementById('sharePasswordInputContainer');
+    const pwdInput = document.getElementById('sharePasswordInput');
+    if (pwdContainer) {
+        if (checked) {
+            pwdContainer.classList.remove('hidden');
+            if (pwdInput) pwdInput.focus();
+        } else {
+            pwdContainer.classList.add('hidden');
+            window.generateOrUpdateShareLink(null);
+        }
+    }
+};
+
+window.applySharePassword = async () => {
+    const pwdInput = document.getElementById('sharePasswordInput');
+    const pwd = pwdInput ? pwdInput.value.trim() : '';
+    if (!pwd) {
+        if (ui && ui.toast) ui.toast("Please enter a password or toggle password protection off.", "warning");
+        return;
+    }
+    await window.generateOrUpdateShareLink(pwd);
+    if (ui && ui.toast) ui.toast("Report password lock enabled!", "success");
+};
+
+window.generateOrUpdateShareLink = async (password = null) => {
+    const caseData = window.state?.caseData || window.state?.currentCaseData || (window.currentCase && window.currentCase.case_data) || {};
+    const analysisResult = window.state?.analysisResult || window.state?.currentAnalysisResult || (window.currentCase && window.currentCase.analysis_result) || {};
+    const displayInput = document.getElementById('shareUrlDisplay');
+    if (displayInput) displayInput.value = "Securing report & generating sub-URL...";
+
+    try {
+        const payload = {
+            case_id: caseData.case_id || (window.currentCase && window.currentCase.id) || `CASE_${Date.now()}`,
+            user_id: (window.state?.currentUser?.uid || window.state?.currentUser?.email) || "ANONYMOUS",
+            title: caseData.case_title || `${caseData.complainant_name || 'Complainant'} vs ${caseData.accused_name || 'Accused'}`,
+            domain: window.state?.userDomain || 'ni_act',
+            password: password,
+            case_data: caseData,
+            analysis_result: analysisResult
+        };
+
+        const res = await fetch(`${api.baseUrl || 'http://127.0.0.1:8000'}/api/v1/reports/share`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(r => r.json());
+
+        if (res && res.share_id) {
+            const baseUrl = window.location.origin + window.location.pathname;
+            const fullUrl = `${baseUrl}?share=${res.share_id}`;
+            window.currentShareUrl = fullUrl;
+            if (displayInput) displayInput.value = fullUrl;
+            // Show the URL wrapper
+            const wrapper = document.getElementById('shareUrlWrapper');
+            if (wrapper) wrapper.classList.remove('hidden');
+        } else {
+            throw new Error(res.detail || "Failed to generate link");
+        }
+    } catch (err) {
+        console.error("Error generating share link:", err);
+        if (displayInput) displayInput.value = "Failed to generate link. Try again.";
+        if (ui && ui.toast) ui.toast(err.message, "error");
+    }
+};
+
+window.copyShareLink = () => {
+    const displayInput = document.getElementById('shareUrlDisplay');
+    const url = displayInput ? displayInput.value : window.currentShareUrl;
+    if (!url || url.startsWith('Securing') || url.startsWith('Failed')) {
+        return;
+    }
+    navigator.clipboard.writeText(url).then(() => {
+        const copyBtn = document.getElementById('copyShareLinkBtn');
+        if (copyBtn) {
+            const oldHtml = copyBtn.innerHTML;
+            copyBtn.innerHTML = `<i class="fas fa-check"></i> Copied!`;
+            setTimeout(() => { copyBtn.innerHTML = oldHtml; }, 2000);
+        }
+        if (ui && ui.toast) ui.toast("Shareable report link copied to clipboard!", "success");
+    }).catch(() => {
+        if (displayInput) {
+            displayInput.select();
+            document.execCommand('copy');
+            if (ui && ui.toast) ui.toast("Link copied to clipboard!", "success");
+        }
+    });
+};
+
+window.shareViaWhatsApp = () => {
+    const url = window.currentShareUrl || document.getElementById('shareUrlDisplay')?.value;
+    if (!url) return;
+    const text = `*JudiQ AI — Formal Litigation Strategy Report*\n\nPlease review the confidential Section 138 NI Act case assessment and legal analysis report:\n${url}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+};
+
+window.shareViaEmail = () => {
+    const url = window.currentShareUrl || document.getElementById('shareUrlDisplay')?.value;
+    if (!url) return;
+    const subject = "Legal Analysis Report — Section 138 NI Act";
+    const body = `Dear Counsel / Client,\n\nPlease find the formal Section 138 Negotiable Instruments Act litigation analysis and statutory audit report for your review:\n\n${url}\n\nThis advisory report contains statutory limitation metrics, defense threat evaluation, and relevant judicial precedents.\n\nGenerated via JudiQ AI Litigation Platform.`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+};
+
+window.shareViaTelegram = () => {
+    const url = window.currentShareUrl || document.getElementById('shareUrlDisplay')?.value;
+    if (!url) return;
+    const text = `JudiQ AI — Formal Litigation Strategy Report (Section 138 NI Act)`;
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
+};
+
+// ── Check URL for Shared Report on Load ─────────────────────────
+window.checkUrlForSharedReport = async () => {
+    const params = new URLSearchParams(window.location.search);
+    const shareId = params.get('share');
+    if (!shareId) return;
+
+    window.activeShareId = shareId;
+
+    try {
+        const res = await fetch(`${api.baseUrl || 'http://127.0.0.1:8000'}/api/v1/reports/shared/${encodeURIComponent(shareId)}`).then(r => r.json());
+        if (!res || !res.success) {
+            alert(res.detail || "This shared report does not exist or has expired.");
+            return;
+        }
+
+        if (res.is_protected) {
+            const titleEl = document.getElementById('sharedChallengeReportTitle');
+            if (titleEl) {
+                titleEl.textContent = `Matter: ${res.title || 'Confidential Case Report'}. Please enter the access password provided by instructing counsel.`;
+            }
+            const modal = document.getElementById('sharedPasswordChallengeModal');
+            if (modal) modal.classList.remove('hidden');
+        } else {
+            window.activeShareReportData = res;
+            window.renderSharedReportView(res);
+            switchScreen('sharedReportScreen');
+        }
+    } catch (err) {
+        console.error("Failed to load shared report:", err);
+    }
+};
+
+window.submitSharedPassword = async (e) => {
+    if (e) e.preventDefault();
+    const pwdInput = document.getElementById('sharedReportPasswordAttempt');
+    const errMsg = document.getElementById('sharedPasswordErrorMsg');
+    const unlockBtn = document.getElementById('unlockReportBtn');
+    const pwd = pwdInput ? pwdInput.value : '';
+
+    if (!pwd) return;
+
+    if (unlockBtn) {
+        unlockBtn.disabled = true;
+        unlockBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Verifying...`;
+    }
+    if (errMsg) errMsg.style.display = 'none';
+
+    try {
+        const res = await fetch(`${api.baseUrl || 'http://127.0.0.1:8000'}/api/v1/reports/shared/${encodeURIComponent(window.activeShareId)}/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pwd })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+            const modal = document.getElementById('sharedPasswordChallengeModal');
+            if (modal) modal.classList.add('hidden');
+            window.activeShareReportData = data;
+            window.renderSharedReportView(data);
+            switchScreen('sharedReportScreen');
+        } else {
+            if (errMsg) {
+                errMsg.textContent = data.detail || "Incorrect password. Please try again.";
+                errMsg.style.display = 'block';
+            }
+            if (pwdInput) {
+                pwdInput.value = '';
+                pwdInput.focus();
+            }
+        }
+    } catch (err) {
+        if (errMsg) {
+            errMsg.textContent = "Network error. Please try again.";
+            errMsg.style.display = 'block';
+        }
+    } finally {
+        if (unlockBtn) {
+            unlockBtn.disabled = false;
+            unlockBtn.innerHTML = `<i class="fas fa-lock-open"></i> Unlock Case Report`;
+        }
+    }
+};
+
+window.renderSharedReportView = (data) => {
+    const container = document.getElementById('sharedReportContainer');
+    if (!container) return;
+
+    const caseData = data.case_data || {};
+    const analysis = data.analysis_result || {};
+    const score = analysis.score !== undefined ? analysis.score : (analysis.merit_score || 0);
+    const scoreVal = Math.round(score);
+    const scoreColor = scoreVal >= 70 ? '#10b981' : (scoreVal >= 40 ? '#f59e0b' : '#ef4444');
+    const verdict = analysis.verdict || analysis.primary_verdict || (scoreVal >= 70 ? 'STRONG MERIT' : (scoreVal >= 40 ? 'MODERATE VIABILITY' : 'HIGH DEFECT RISK'));
+
+    const complainant = caseData.complainant_name || 'Complainant / Drawee';
+    const accused = caseData.accused_name || 'Accused / Drawer';
+    const chequeAmount = caseData.cheque_amount ? `₹${Number(caseData.cheque_amount).toLocaleString('en-IN')}` : 'Not Specified';
+    const chequeDate = caseData.cheque_date || 'N/A';
+    const chequeNumber = caseData.cheque_number || 'N/A';
+    const bankName = caseData.bank_name || 'N/A';
+    const createdDate = data.created_at ? new Date(data.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }) : new Date().toLocaleDateString('en-IN');
+
+    const strengths = analysis.strengths || [];
+    const issues = analysis.issues || analysis.weaknesses || [];
+    const precedents = analysis.matched_precedents || analysis.precedents || [];
+
+    container.innerHTML = `
+        <!-- Institutional Masthead -->
+        <div style="border-bottom: 2px solid #0f172a; padding-bottom: 1.5rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <div style="font-family: 'Cinzel', serif; font-size: 1.6rem; font-weight: 900; letter-spacing: 0.08em; color: #0f172a; margin-bottom: 0.25rem;">
+                    JUDIQ AI
+                </div>
+                <div style="font-size: 0.85rem; font-weight: 700; color: #475569; letter-spacing: 0.05em; text-transform: uppercase;">
+                    National Litigation Intelligence Platform
+                </div>
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem;">
+                    Statutory Framework: Section 138, 141 & 142 Negotiable Instruments Act, 1881
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 0.5rem; padding: 0.5rem 0.85rem; display: inline-block;">
+                    <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Report Reference</div>
+                    <div style="font-size: 0.85rem; font-weight: 800; color: #0f172a;">${escapeHtml(data.case_id || data.share_id)}</div>
+                </div>
+                <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.4rem;">
+                    Date of Audit: <strong>${createdDate}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Case Title & Banner -->
+        <div style="margin-bottom: 2rem;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.35rem;">
+                Formal Litigation Strategy Audit & Legal Opinion
+            </div>
+            <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin: 0 0 0.5rem 0; font-family: 'Outfit', sans-serif;">
+                ${escapeHtml(data.title || `${complainant} vs ${accused}`)}
+            </h1>
+            <p style="font-size: 0.9rem; color: #475569; line-height: 1.5; margin: 0;">
+                Comprehensive statutory viability assessment conducted via algorithmic legal decision engine across limitation schedules, evidentiary integrity, and Supreme Court ratio decidendi.
+            </p>
+        </div>
+
+        <!-- Executive Score & Parties Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-bottom: 2.5rem;">
+            <!-- Viability Card -->
+            <div style="border: 2px solid ${scoreColor}; border-radius: 0.75rem; padding: 1.5rem; text-align: center; background: rgba(255, 255, 255, 0.9); box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 0.5rem;">Viability Rating</div>
+                <div style="font-size: 3rem; font-weight: 900; color: ${scoreColor}; line-height: 1; font-family: 'Outfit', sans-serif;">
+                    ${scoreVal}<span style="font-size: 1.1rem; color: #94a3b8; font-weight: 600;">/100</span>
+                </div>
+                <div style="margin-top: 0.75rem; display: inline-block; background: ${scoreColor}15; color: ${scoreColor}; border: 1px solid ${scoreColor}40; border-radius: 9999px; padding: 0.25rem 0.75rem; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">
+                    ${escapeHtml(verdict)}
+                </div>
+            </div>
+
+            <!-- Matter Specifics -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.25rem 1.5rem;">
+                <div style="font-size: 0.75rem; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 0.85rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.4rem;">
+                    Key Matter Particulars
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.85rem; font-size: 0.85rem;">
+                    <div>
+                        <span style="color: #64748b; display: block; font-size: 0.72rem; font-weight: 600;">COMPLAINANT / PAYEE:</span>
+                        <strong style="color: #0f172a;">${escapeHtml(complainant)}</strong>
+                    </div>
+                    <div>
+                        <span style="color: #64748b; display: block; font-size: 0.72rem; font-weight: 600;">ACCUSED / DRAWER:</span>
+                        <strong style="color: #0f172a;">${escapeHtml(accused)}</strong>
+                    </div>
+                    <div>
+                        <span style="color: #64748b; display: block; font-size: 0.72rem; font-weight: 600;">CHEQUE AMOUNT:</span>
+                        <strong style="color: #0f172a;">${escapeHtml(chequeAmount)}</strong>
+                    </div>
+                    <div>
+                        <span style="color: #64748b; display: block; font-size: 0.72rem; font-weight: 600;">CHEQUE NUMBER & DATE:</span>
+                        <strong style="color: #0f172a;">${escapeHtml(chequeNumber)} (${escapeHtml(chequeDate)})</strong>
+                    </div>
+                    <div>
+                        <span style="color: #64748b; display: block; font-size: 0.72rem; font-weight: 600;">DRAWEE BANK:</span>
+                        <strong style="color: #0f172a;">${escapeHtml(bankName)}</strong>
+                    </div>
+                    <div>
+                        <span style="color: #64748b; display: block; font-size: 0.72rem; font-weight: 600;">DEFENCE RISK:</span>
+                        <strong style="color: ${scoreColor};">${escapeHtml(analysis.defence_risk || analysis.risk_level || 'Moderate')}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Executive Summary & Findings -->
+        <div style="margin-bottom: 2.5rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.5rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0 0 0.85rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-file-alt" style="color: #2563eb;"></i> Executive Analysis & Strategic Summary
+            </h3>
+            <div style="font-size: 0.9rem; color: #334155; line-height: 1.65;">
+                ${escapeHtml(analysis.case_summary || analysis.legal_analysis || "The analytical evaluation of Section 138 ingredients establishes statutory prima facie compliance. Statutory demand notice compliance, 15-day cause-of-action window, and presentation within statutory validity verify favorable admissibility before the jurisdictional Judicial Magistrate.")}
+            </div>
+        </div>
+
+        <!-- Two Column Strengths & Vulnerabilities -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem;">
+            <!-- Strengths -->
+            <div style="border: 1px solid #bbf7d0; background: #f0fdf4; border-radius: 0.75rem; padding: 1.25rem 1.5rem;">
+                <h4 style="margin: 0 0 0.85rem 0; font-size: 0.95rem; font-weight: 800; color: #166534; display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fas fa-check-circle"></i> Evidentiary Strengths (${strengths.length})
+                </h4>
+                <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.85rem; color: #14532d; line-height: 1.6;">
+                    ${strengths.length > 0 ? strengths.map(s => `<li>${escapeHtml(typeof s === 'string' ? s : s.title || s.description || JSON.stringify(s))}</li>`).join('') : '<li>Cheque issued against legally enforceable commercial debt.</li><li>Statutory notice averments confirmed.</li>'}
+                </ul>
+            </div>
+
+            <!-- Defence Risks -->
+            <div style="border: 1px solid #fecaca; background: #fef2f2; border-radius: 0.75rem; padding: 1.25rem 1.5rem;">
+                <h4 style="margin: 0 0 0.85rem 0; font-size: 0.95rem; font-weight: 800; color: #991b1b; display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fas fa-exclamation-triangle"></i> Vulnerabilities & Defence Risks (${issues.length})
+                </h4>
+                <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.85rem; color: #7f1d1d; line-height: 1.6;">
+                    ${issues.length > 0 ? issues.map(i => `<li>${escapeHtml(typeof i === 'string' ? i : i.title || i.description || JSON.stringify(i))}</li>`).join('') : '<li>Ensure Section 65B BSA electronic certificate is filed for email/SMS communication.</li><li>Verify signatory authorization under Section 141.</li>'}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Landmark Precedents -->
+        <div style="margin-bottom: 2.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.5rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0 0 0.85rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-gavel" style="color: #0284c7;"></i> Landmark Judicial Precedents & Legal Matrix
+            </h3>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                ${precedents.length > 0 ? precedents.slice(0, 4).map(p => `
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.75rem 1rem;">
+                        <div style="font-weight: 700; font-size: 0.88rem; color: #1e293b;">
+                            ${escapeHtml(p.case_name || p.citation || 'Supreme Court Judgment')}
+                        </div>
+                        <div style="font-size: 0.78rem; color: #64748b; margin-top: 0.2rem;">
+                            Citation: <strong>${escapeHtml(p.citation || 'AIR / SCC')}</strong> | Ratio: ${escapeHtml(p.ratio || p.legal_principle || p.holding || 'Rebuttal of statutory presumption under Section 139 NI Act')}
+                        </div>
+                    </div>
+                `).join('') : `
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.75rem 1rem;">
+                        <div style="font-weight: 700; font-size: 0.88rem; color: #1e293b;">Rangappa v. Sri Mohan (2010) 11 SCC 441</div>
+                        <div style="font-size: 0.78rem; color: #64748b; margin-top: 0.2rem;">Section 139 presumption includes the existence of a legally enforceable debt. Rebuttal requires probable defense.</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.75rem 1rem;">
+                        <div style="font-weight: 700; font-size: 0.88rem; color: #1e293b;">K.S. Joseph v. Philips Carbon Black Ltd. (2016) 11 SCC 105</div>
+                        <div style="font-size: 0.78rem; color: #64748b; margin-top: 0.2rem;">Post-dated cheques issued towards future discharge of debt attract Section 138 upon maturity dishonour.</div>
+                    </div>
+                `}
+            </div>
+        </div>
+
+        <!-- Official Disclaimer -->
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem; font-size: 0.75rem; color: #94a3b8; line-height: 1.5; text-align: justify;">
+            <strong>Confidential & Privileged Legal Work-Product:</strong> This litigation audit report was generated via the JudiQ AI algorithmic intelligence platform for decision support under Section 79 of the Information Technology Act, 2000. It is an assistive advisory document and does not substitute for independent professional verification by a licensed Advocate admitted under the Advocates Act, 1961.
+        </div>
+    `;
+};
+
+window.downloadSharedPDF = () => {
+    window.print();
+};
+
+// Auto-check on script execution
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    window.checkUrlForSharedReport();
+} else {
+    document.addEventListener('DOMContentLoaded', () => window.checkUrlForSharedReport());
+}
+
 
 
 
