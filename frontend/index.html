@@ -28,6 +28,7 @@
     <script src="js/modules/error_handler.js" defer></script>
     <script src="js/modules/i18n.js" defer></script>
 </head>
+
 <body>
     <!-- Institutional Compliance Top Banner -->
     <div class="institutional-compliance-bar">
@@ -328,7 +329,8 @@
 
                             <div class="sim-ratio-box">
                                 <i class="fas fa-scale-balanced u-is-7"></i>
-                                <span id="simRatio">Linny D’Souza v. Vijay Kumar (2019) — Difference in signature requires strict proof of drawing under Sec. 138.</span>
+                                <span id="simRatio">Linny D’Souza v. Vijay Kumar (2019) — Difference in signature
+                                    requires strict proof of drawing under Sec. 138.</span>
                             </div>
                         </div>
                     </div>
@@ -578,8 +580,9 @@
                             </label>
 
                             <!-- Module 3: Criminal Quashing -->
-                            <label class="module-choice-card" data-module="criminal">
-                                <input type="checkbox" name="legal_module" value="criminal" onchange="updateModularPricing()">
+                            <label class="module-choice-card module-coming-soon" data-module="criminal"
+                                style="pointer-events: none; opacity: 0.6; cursor: not-allowed;">
+                                <input type="checkbox" name="legal_module" value="criminal" disabled>
                                 <div class="module-card-body">
                                     <div class="module-card-icon"><i class="fas fa-handcuffs"></i></div>
                                     <div class="module-card-info">
@@ -789,7 +792,8 @@
                     <p>Stay ahead with expert insights on litigation strategy, compliance, and legal AI.</p>
                 </div>
                 <div class="blog-grid">
-                    <a href="#" class="blog-card" onclick="event.preventDefault(); if (window.ui) { window.ui.toast('Resource opening soon!', 'info'); }">
+                    <a href="#" class="blog-card"
+                        onclick="event.preventDefault(); if (window.ui) { window.ui.toast('Resource opening soon!', 'info'); }">
                         <div class="blog-image">
                             <i class="fas fa-microchip"></i>
                             <span class="blog-badge">AI Prep</span>
@@ -1023,7 +1027,8 @@
                         </div>
                         <div class="form-group">
                             <label for="registerPassword">Password</label>
-                            <input type="password" id="registerPassword" required placeholder="••••••••" minlength="6" autocomplete="new-password">
+                            <input type="password" id="registerPassword" required placeholder="••••••••" minlength="6"
+                                autocomplete="new-password">
                         </div>
                         <div class="form-group">
                             <label for="registerConfirmPassword">Confirm Password</label>
@@ -1469,9 +1474,6 @@
                     </button>
                     <button class="btn btn-outline btn-sm" onclick="showDashboard()">
                         <i class="fas fa-home"></i> Dashboard
-                    </button>
-                    <button class="btn btn-outline btn-sm" onclick="copyStrategyMemoToClipboard()" title="Copy Strategy Memo as Markdown">
-                        <i class="fas fa-copy"></i> Copy Memo
                     </button>
                     <button class="btn btn-success btn-sm u-is-72" onclick="switchResultTab('draft')">
                         <i class="fas fa-file-contract"></i> Draft Studio
@@ -2146,20 +2148,22 @@
                             <i class="fas fa-print"></i> Print
                         </button>
                         <div class="dashboard-header-right u-is-117">
-                        <div class="kb-status-badge u-is-51">
-                            <div class="pulse-indicator u-is-52"></div>
-                            <div>
-                                <div class="u-is-53">Knowledge Base</div>
-                                <div class="u-is-54">Updated: 1 September 2026 (Live)</div>
+                            <div class="kb-status-badge u-is-51">
+                                <div class="pulse-indicator u-is-52"></div>
+                                <div>
+                                    <div class="u-is-53">Knowledge Base</div>
+                                    <div class="u-is-54">Updated: 1 September 2026 (Live)</div>
+                                </div>
                             </div>
+                            <button class="btn btn-primary" onclick="startNewAnalysis()">
+                                <i class="fas fa-plus"></i> New Analysis
+                            </button>
                         </div>
-                        <button class="btn btn-primary" onclick="startNewAnalysis()">
-                            <i class="fas fa-plus"></i> New Analysis
-                        </button>
                     </div>
-                </div>
-                <div class="draft-output-wrapper u-is-118">
-                        <textarea id="generatedDraftContent" class="draft-output-textarea u-is-119" spellcheck="false" aria-label="Generated Legal Draft Content" title="Generated Legal Draft Content" placeholder="Generated legal draft will appear here..."></textarea>
+                    <div class="draft-output-wrapper u-is-118">
+                        <textarea id="generatedDraftContent" class="draft-output-textarea u-is-119" spellcheck="false"
+                            aria-label="Generated Legal Draft Content" title="Generated Legal Draft Content"
+                            placeholder="Generated legal draft will appear here..."></textarea>
                         <div class="draft-history-panel u-is-120">
                             <h4 class="u-is-121"><i class="fas fa-history"></i> Version History</h4>
                             <div class="u-is-122" id="draftHistoryList">
@@ -2521,7 +2525,8 @@
                                 </div>
                             </div>
                             <div class="u-is-144" id="statBankAudits">--</div>
-                            <div class="u-is-145">This Month: <strong class="u-is-147" id="statBankAuditsMonth">--</strong></div>
+                            <div class="u-is-145">This Month: <strong class="u-is-147"
+                                    id="statBankAuditsMonth">--</strong></div>
                         </div>
 
                         <div class="admin-stat-card">
@@ -2952,7 +2957,9 @@
                             </div>
                             <div>
                                 <label class="u-is-246">Monthly Report Quota (-1 for ∞)</label>
-                                <input type="number" id="newLitigatorLimit" class="bank-input-text u-is-247" aria-label="Monthly Report Quota" title="Monthly Report Quota" placeholder="25" value="25">
+                                <input type="number" id="newLitigatorLimit" class="bank-input-text u-is-247"
+                                    aria-label="Monthly Report Quota" title="Monthly Report Quota" placeholder="25"
+                                    value="25">
                             </div>
                         </div>
 
@@ -3321,8 +3328,10 @@
                 <p class="effective-date">Last Updated: June 29, 2026</p>
             </div>
             <div class="legal-text">
-                <p>By accessing or using the <strong>JUDIQ AI</strong> platform ("Service"), provided and operated by <strong>AIXYNZ Technologies Pvt Ltd</strong> ("Company", "we", "us"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our service.</p>
-                
+                <p>By accessing or using the <strong>JUDIQ AI</strong> platform ("Service"), provided and operated by
+                    <strong>AIXYNZ Technologies Pvt Ltd</strong> ("Company", "we", "us"), you agree to be bound by these
+                    Terms of Service. If you do not agree to these terms, please do not use our service.</p>
+
                 <h3>1. Nature of the Service</h3>
                 <p>JUDIQ AI provides an advanced legal research, litigation simulation, evidence analysis, and document drafting software-as-a-service (SaaS) platform using Artificial Intelligence. We provide <em>productivity tools</em> for legal professionals; JUDIQ AI is not a law firm and does not provide legal advice or attorney representation.</p>
 
@@ -3489,7 +3498,7 @@
                     <input class="u-is-68" type="text" name="username" autocomplete="username" tabindex="-1"
                         aria-hidden="true" aria-label="Username" title="Username">
                     <h4 class="u-is-345">Direct Password Update</h4>
-                    
+
                     <div class="form-group u-is-112">
                         <label class="u-is-346" for="changePassNew">New Password</label>
                         <input class="u-is-347" type="password" id="changePassNew" required minlength="6" autocomplete="new-password">
@@ -3763,19 +3772,39 @@
                 <p style="font-size:0.85rem; color:var(--gray-600); margin:0 0 1.25rem 0; line-height:1.5;">
                     Generate a formal litigation report link for your client, instructing counsel, or co-advocates. Recipients can review all findings and print the advisory memo in <strong>read-only</strong> mode.
                 </p>
-                <form id="saveVersionForm" onsubmit="window.handleSaveVersionSubmit(event)">
-                    <div class="u-is-112">
-                        <label class="u-is-393">Version Title / Tag *</label>
-                        <input type="text" id="versionTitleInput" required class="bank-input-text u-is-394" placeholder="e.g. Added Postal Delivery Slip & S.65B Certificate" aria-label="E.G.  Added  Postal  Delivery  Slip &  S.65 B  Certificate" title="E.G.  Added  Postal  Delivery  Slip &  S.65 B  Certificate">
+
+                <!-- Password Protection Card -->
+                <div style="background:rgba(59,130,246,0.04); border:1px solid rgba(59,130,246,0.2); border-radius:0.75rem; padding:1rem 1.25rem; margin-bottom:1.25rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <i class="fas fa-lock" style="color:#2563eb;"></i>
+                            <div>
+                                <span style="font-weight:700; font-size:0.9rem; color:#1e293b; display:block;">Password Protection</span>
+                                <small style="color:var(--gray-500); font-size:0.75rem;">Require a security code to view</small>
+                            </div>
+                        </div>
+                        <label class="switch" style="position:relative; display:inline-block; width:44px; height:24px;">
+                            <input type="checkbox" id="sharePasswordToggle" onchange="window.toggleSharePasswordInput(this.checked)">
+                            <span class="slider round"></span>
+                        </label>
                     </div>
-                    <div class="u-is-14">
-                        <label class="u-is-393">Advocate Notes & Key Strategy Changes</label>
-                        <textarea id="versionNoteInput" rows="3" class="bank-input-text u-is-395" placeholder="Describe evidence updates, rejoinder arguments, or new precedents considered in this iteration..." aria-label="Describe Evidence Updates, Rejoinder Arguments, Or New Precedents Considered In This Iteration..." title="Describe Evidence Updates, Rejoinder Arguments, Or New Precedents Considered In This Iteration..."></textarea>
+                    <div id="sharePasswordInputContainer" class="hidden" style="margin-top:0.75rem;">
+                        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--gray-600); margin-bottom:0.35rem;">Set Access Password *</label>
+                        <div style="display:flex; gap:0.5rem;">
+                            <input type="text" id="sharePasswordInput" placeholder="e.g. Court138#2026" class="bank-input-text" style="flex:1; padding:0.55rem 0.75rem; border-radius:0.5rem; font-size:0.85rem; border:1px solid var(--gray-300);">
+                            <button type="button" class="btn btn-sm btn-primary" onclick="window.applySharePassword()" style="font-weight:600;">Update</button>
+                        </div>
+                        <small style="color:var(--gray-500); font-size:0.72rem; display:block; margin-top:0.3rem;">Only recipients with this password will be able to unlock the report.</small>
                     </div>
-                    <div class="u-is-217">
-                        <button type="button" class="btn btn-outline" onclick="window.closeSaveVersionModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary u-is-396">
-                            <i class="fas fa-check"></i> Archive Version
+                </div>
+
+                <!-- Generated Sub-URL Box -->
+                <div style="margin-bottom:1.25rem;">
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--gray-700); margin-bottom:0.4rem;">Sub-URL Share Link</label>
+                    <div style="display:flex; gap:0.5rem;">
+                        <input type="text" id="shareUrlDisplay" readonly class="bank-input-text" style="flex:1; padding:0.6rem 0.75rem; font-size:0.82rem; background:var(--gray-50); border:1px solid var(--gray-300); border-radius:0.5rem; color:#2563eb; font-weight:600;" value="Generating link...">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="window.copyShareLink()" id="copyShareLinkBtn" style="padding:0.6rem 1rem; display:flex; align-items:center; gap:0.4rem; font-weight:700;">
+                            <i class="fas fa-copy"></i> Copy
                         </button>
                     </div>
                 </form>
@@ -4081,7 +4110,8 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Dishonour Memo Date</label>
-                                    <input type="date" id="ccDishonourDate" class="form-control" aria-label="Dishonour or Incident Date" title="Dishonour or Incident Date">
+                                    <input type="date" id="ccDishonourDate" class="form-control"
+                                        aria-label="Dishonour or Incident Date" title="Dishonour or Incident Date">
                                 </div>
                                 <div class="form-group">
                                     <label>Demand Notice Date</label>
@@ -4383,7 +4413,8 @@
                 </div>
             </div>
             <div class="cms-modal-footer">
-                <button class="btn btn-outline" onclick="this.closest('.cms-modal-overlay').classList.add('hidden')">Cancel</button>
+                <button class="btn btn-outline"
+                    onclick="this.closest('.cms-modal-overlay').classList.add('hidden')">Cancel</button>
                 <button class="btn btn-primary" onclick="submitLinkClientModal()">Link Client</button>
             </div>
         </div>
