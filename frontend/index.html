@@ -79,10 +79,7 @@
                     <!-- <button class="btn btn-outline hide-on-mobile cms-nav-btn u-is-4" onclick="switchScreen('caseListScreen')">
                         <i class="fas fa-briefcase"></i> Case Management
                     </button> -->
-                    
-                    <button class="btn btn-outline btn-sm cmd-palette-trigger hide-on-mobile u-is-6" title="Command Palette (Ctrl+K)" onclick="toggleCommandPalette()">
-                        <i class="fas fa-terminal u-is-7"></i> <span class="hide-on-mobile">Ctrl K</span>
-                    </button>
+
                     <button class="theme-toggle-btn" title="Toggle Light/Dark Mode" onclick="toggleTheme()">
                         <i class="fas fa-moon"></i>
                     </button>
@@ -360,8 +357,10 @@
                             <div class="timeline-step-item success" id="step2Item">
                                 <div class="timeline-step-icon"></div>
                                 <div class="timeline-step-title">2. Repayment Notice Period</div>
-                                <div class="timeline-step-desc" id="step2Desc">Opponent is given 15 days to repay after receiving the notice. No case can be filed during this time.</div>
-                                <div class="timeline-step-date" id="step2Date">Filing becomes legal on: June 31, 2026</div>
+                                <div class="timeline-step-desc" id="step2Desc">Opponent is given 15 days to repay after
+                                    receiving the notice. No case can be filed during this time.</div>
+                                <div class="timeline-step-date" id="step2Date">Filing becomes legal on: June 31, 2026
+                                </div>
                             </div>
                             <div class="timeline-step-item success" id="step3Item">
                                 <div class="timeline-step-icon"></div>
@@ -597,7 +596,9 @@
                                         <p>Limitation Act Sec 5 delay condonation, Order 39 prima facie injunction
                                             tests, specific performance &amp; commercial arbitration claims.</p>
                                     </div>
-                                    <div class="module-quota-pill">10 Cases / mo</div>
+                                    <div class="module-quota-pill"
+                                        style="background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.35); font-weight: 700;">
+                                        Coming Soon</div>
                                 </div>
                             </label>
 
@@ -827,7 +828,8 @@
                         </div>
                         <div class="blog-content">
                             <h3>Mastering Statutory Limitation Clocks under Section 138</h3>
-                            <p>A comprehensive guide to calculating notice periods and courtroom deadlines to prevent procedural dismissal of check dishonour complaints.</p>
+                            <p>A comprehensive guide to calculating notice periods and courtroom deadlines to prevent
+                                procedural dismissal of check dishonour complaints.</p>
                             <div class="blog-footer">
                                 <div><i class="far fa-calendar-alt"></i> June 05, 2026</div>
                                 <div><i class="far fa-clock"></i> 6 min read</div>
@@ -1059,7 +1061,10 @@
                         <div class="terms-agreement-group u-is-43">
                             <input class="u-is-44" type="checkbox" id="termsCheckbox" required>
                             <label class="u-is-45" for="termsCheckbox">
-                                I agree to the <a class="u-is-46" href="#" onclick="openLegalModal('termsConditionsModal'); return false;">Terms & Conditions</a> and <a class="u-is-46" href="#" onclick="openLegalModal('privacyPolicyModal'); return false;">Privacy Policy</a>.
+                                I agree to the <a class="u-is-46" href="#"
+                                    onclick="openLegalModal('termsConditionsModal'); return false;">Terms &amp;
+                                    Conditions</a> and <a class="u-is-46" href="#"
+                                    onclick="openLegalModal('privacyPolicyModal'); return false;">Privacy Policy</a>.
                             </label>
                         </div>
 
@@ -1716,7 +1721,7 @@
                         <!-- Row 2: Statutory Interpretation (full width) -->
                         <div class="result-card rl-card u-is-77">
                             <div class="rl-card-header">
-                                <div class="rl-icon-wrap rl-blue"><i class="fas fa-file-contract"></i></div>
+                                <div class="rl-icon-wrap rl-amber"><i class="fas fa-gavel"></i></div>
                                 <div>
                                     <h4>AI Case Summary</h4>
                                     <p class="card-subtitle">Auto-generated from case facts</p>
@@ -2335,7 +2340,7 @@
 
             <!-- Admin Main Content -->
             <div class="admin-portal-container">
-                
+
                 <!-- Admin Header Banner -->
                 <div class="admin-header-card">
                     <div>
@@ -2725,7 +2730,8 @@
                                 </div>
                                 <div>
                                     <h3 class="u-is-195">LLM Copilot Architecture</h3>
-                                    <p class="u-is-185">Select Copilot layer model for drafting &amp; strategic summaries</p>
+                                    <p class="u-is-185">Select Copilot layer model for drafting &amp; strategic
+                                        summaries</p>
                                 </div>
                             </div>
 
@@ -3082,7 +3088,8 @@
                         </div>
 
                         <div class="u-is-252">
-                            <button type="button" class="btn btn-outline" onclick="closeCreateLitigatorModal()">Cancel</button>
+                            <button type="button" class="btn btn-outline"
+                                onclick="closeCreateLitigatorModal()">Cancel</button>
                             <button type="submit" class="btn btn-primary u-is-218">
                                 <i class="fas fa-check"></i> Provision Account
                             </button>
@@ -3453,7 +3460,9 @@
                 </ul>
 
                 <h3>4. Intellectual Property</h3>
-                <p>The algorithms, scoring engines, UX designs, codebase, visual graphs, and proprietary workflows of JUDIQ AI remain our exclusive intellectual property. You retain all rights to the specific case data you input and the final legal drafts generated for your clients.</p>
+                <p>The algorithms, scoring engines, UX designs, codebase, visual graphs, and proprietary workflows of
+                    JUDIQ AI remain our exclusive intellectual property. You retain all rights to the specific case data
+                    you input and the final legal drafts generated for your clients.</p>
 
                 <h3>5. Limitation of Liability</h3>
                 <p>To the maximum extent permitted by law, JUDIQ AI and its affiliates shall not be liable for any direct, indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, legal standing, or adverse court outcomes resulting from:</p>
@@ -3656,10 +3665,14 @@
 
                             <h4>Navigating Your Dashboard</h4>
                             <ul>
-                                <li><strong>Start New Case:</strong> Launches the interactive case wizard to input facts, timelines, and evidence files.</li>
-                                <li><strong>Quick Mode:</strong> Minimal form entry to get immediate probability projections.</li>
-                                <li><strong>Smart Upload:</strong> Secure batch uploader for OCR document ingestion.</li>
-                                <li><strong>Notice/Reply Generator:</strong> Opens templates for demand notices, complaints, and responses.</li>
+                                <li><strong>Start New Case:</strong> Launches the interactive case wizard to input
+                                    facts, timelines, and evidence files.</li>
+                                <li><strong>Quick Mode:</strong> Minimal form entry to get immediate probability
+                                    projections.</li>
+                                <li><strong>Smart Upload:</strong> Secure batch uploader for OCR document ingestion.
+                                </li>
+                                <li><strong>Notice/Reply Generator:</strong> Opens templates for demand notices,
+                                    complaints, and responses.</li>
                             </ul>
                         </div>
 
@@ -3973,10 +3986,12 @@
                     <i class="fas fa-file-contract u-is-405"></i>
                     <div>
                         <h3 class="u-is-406">JUDIQ AI — TERMS OF SERVICE & SUBSCRIPTION CONDITIONS</h3>
-                        <span class="u-is-407">Effective Version 12.6 | Statutory Framework: IT Act 2000, Advocates Act 1961 & DPDP Act 2023</span>
+                        <span class="u-is-407">Effective Version 12.6 | Statutory Framework: IT Act 2000, Advocates Act
+                            1961 & DPDP Act 2023</span>
                     </div>
                 </div>
-                <button class="u-is-408" type="button" onclick="window.closeLegalModal('termsConditionsModal')">&times;</button>
+                <button class="u-is-408" type="button"
+                    onclick="window.closeLegalModal('termsConditionsModal')">&times;</button>
             </div>
             <div class="u-is-409">
                 <div class="u-is-410">
@@ -4297,7 +4312,8 @@
                 <a class="cms-nav-item" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i> Analytics</a>
                 <a class="cms-nav-item" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
                 <div class="u-is-413">
-                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Suite</a>
+                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to
+                        Suite</a>
                 </div>
             </aside>
             <main class="cms-main-content">
@@ -4588,7 +4604,9 @@
             <div class="cms-modal-body">
                 <div class="form-group">
                     <label>Certifier Full Name *</label>
-                    <input type="text" id="s65bCertifierName" class="form-control" placeholder="Advocate / Branch Manager Name" required aria-label="Advocate /  Branch  Manager  Name" title="Advocate /  Branch  Manager  Name">
+                    <input type="text" id="s65bCertifierName" class="form-control"
+                        placeholder="Advocate / Branch Manager Name" required
+                        aria-label="Advocate /  Branch  Manager  Name" title="Advocate /  Branch  Manager  Name">
                 </div>
                 <div class="form-group">
                     <label>Official Designation *</label>
