@@ -21,15 +21,10 @@ services:
         value: 1DfejIbgRXco3Tpp_aTBfarIm7h3t32EVykJGkEFdee4
       - key: GDRIVE_API_KEY
         value: ""
-      - key: FIREBASE_SERVICE_ACCOUNT_JSON
-        value: ""
-      - key: FIREBASE_PROJECT_ID
-        value: idcourt-cb58f
-      - key: FIREBASE_AUTH_DOMAIN
-        value: idcourt-cb58f.firebaseapp.com
-      - key: FIREBASE_APP_ID
-        value: "1:941086914513:web:8edad96b7e9f0dd4be12f0"
-      - key: FIREBASE_MESSAGING_SENDER_ID
-        value: "941086914513"
+      - key: SUPABASE_URL
+        value: https://eccqzpffofrvbzuadexk.supabase.co
+      - key: SUPABASE_ANON_KEY
+        value: sb_publishable_431lKcoHrDo-4IKtcKJICA_Ht3f2p42
+
       - key: LOG_LEVEL
         value: WARNING

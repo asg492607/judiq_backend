@@ -68,21 +68,8 @@ class AuditLogger:
             "action": action,
             "metadata": metadata or {}
         }
-        if os.getenv("ENABLE_FIREBASE_AUDIT", "false").lower() != "true":
-            logger.debug("[AUDIT] Firebase persistence disabled.")
-            return
-        try:
-            import firebase_admin
-            from firebase_admin import firestore
-            if not firebase_admin._apps:
-                firebase_admin.initialize_app()
-            db = firestore.client()
-            db.collection("audit_logs").add(log_entry)
-            logger.info("[AUDIT] Interaction persisted to Firebase.")
-        except ImportError:
-            logger.warning("Firebase audit enabled but firebase_admin is not installed.")
-        except Exception as e:
-            logger.warning(f"Audit persistence to Firebase skipped/failed: {e}")
+        logger.info(f"[AUDIT] {action} by {redact_identifier(user_id)} on case {case_id}")
+
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 security_scheme = HTTPBearer(auto_error=False)

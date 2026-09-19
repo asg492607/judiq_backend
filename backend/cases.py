@@ -43,14 +43,6 @@ def get_recent_cases(
                 "risk_level": analysis.get("risk_level") or analysis.get("defence_risk") or "Unknown",
                 "verdict": row[5]
             })
-        if not cases and user_id:
-            try:
-                from firebase_manager import FirebaseManager
-                fb_cases = FirebaseManager.list_user_cases(user_id, limit=limit)
-                if fb_cases:
-                    return fb_cases
-            except Exception as fb_err:
-                pass
         return cases
     except HTTPException:
         raise
@@ -112,20 +104,6 @@ def get_case_details(case_id: str, user_id: str = Depends(get_current_user_optio
         )
         row = cursor.fetchone()
         if not row:
-            # Fallback to Firebase Firestore
-            try:
-                from firebase_manager import FirebaseManager
-                fb_doc = FirebaseManager.get_case_analysis(case_id)
-                if fb_doc:
-                    return {
-                        "case_id": case_id,
-                        "case_data": fb_doc.get("case_data", {}),
-                        "analysis": fb_doc.get("analysis_result", {}),
-                        "score": fb_doc.get("score", 0),
-                        "verdict": fb_doc.get("verdict", "INCONCLUSIVE")
-                    }
-            except Exception:
-                pass
             raise HTTPException(status_code=404, detail="Case not found")
         try:
             cdata = json.loads(row[0]) if row[0] else {}
