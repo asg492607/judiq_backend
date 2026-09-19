@@ -134,7 +134,7 @@
             <section class="hero-section">
                 <div class="hero-content">
                     <div class="legal-seal-badge u-is-14">
-                        <i class="fas fa-scale-balanced"></i> High-Court Adversarial Engine
+                        <i class="fas fa-scale-balanced"></i> Adversarial Litigation Engine
                     </div>
                     <h1>Find the Weakness<br><span class="highlight">Before the Courtroom Does.</span></h1>
                     <p>Adversarial litigation simulation, automated statutory defect detection, and institutional courtroom strategy for top-tier law firms and in-house counsel.</p>
@@ -420,7 +420,7 @@
                                 <span>Official Postal Acknowledgment Card or Online Delivery Tracking Log</span>
                             </label>
                         </div>
-                        
+
                         <div class="readiness-gauge-box">
                             <div class="readiness-progress">
                                 <svg class="progress-svg" width="100" height="100">
@@ -640,7 +640,8 @@
                                     <div class="module-card-icon"><i class="fas fa-user-secret"></i></div>
                                     <div class="module-card-info">
                                         <h4>Opposing Counsel &amp; Judicial Intel</h4>
-                                        <p>Defense strategy patterns, judge-specific win rates, cross-examination counters, and tactical peer submissions.</p>
+                                        <p>Defense strategy patterns, judge-specific win rates, cross-examination
+                                            counters, and tactical peer submissions.</p>
                                     </div>
                                     <div class="module-quota-pill">10 Cases / mo</div>
                                 </div>
@@ -900,7 +901,8 @@
                         <form id="contactUsForm" class="contact-form" onsubmit="submitContactForm(event)">
                             <div class="form-group">
                                 <label for="contactName">Full Name</label>
-                                <input type="text" id="contactName" required placeholder="Alexander Stone" minlength="2" autocomplete="name">
+                                <input type="text" id="contactName" required placeholder="" minlength="2"
+                                    autocomplete="name">
                             </div>
                             <div class="form-group">
                                 <label for="contactEmail">Work Email</label>
@@ -1124,7 +1126,8 @@
                     </div>
                     <div class="user-menu">
                         <!-- Admin Control Button (visible only to authorized administrators) -->
-                        <button id="adminPortalBtn" class="btn btn-sm admin-portal-btn u-is-49" onclick="openAdminPortal()">
+                        <button id="adminPortalBtn" class="btn btn-sm admin-portal-btn u-is-49"
+                            onclick="openAdminPortal()">
                             <i class="fas fa-shield-halved"></i> <span>Admin Control</span>
                         </button>
                         <span id="userEmail" class="user-email-text"></span>
@@ -1772,9 +1775,12 @@
 
                     <!-- Weaknesses Section (NEW) -->
                     <div class="result-card">
-                        <h3><i class="fas fa-exclamation-circle"></i> Issues Detected</h3>
-                        <div id="issuesList" class="issues-list"></div>
+                        <h3><i class="fas fa-exclamation-triangle"></i> Weaknesses</h3>
+                        <p class="card-subtitle">Areas that may require attention or mitigation</p>
+                        <div id="weaknessesList" class="weaknesses-list"></div>
                     </div>
+
+                    <!-- Timeline Section (NEW) -->
                     <div class="result-card">
                         <h3><i class="fas fa-check-circle"></i> Strengths</h3>
                         <div id="strengthsList" class="strengths-list"></div>
@@ -2326,7 +2332,8 @@
                                 </div>
                             </div>
                             <div class="u-is-144" id="statTotalUsers">--</div>
-                            <div class="u-is-145">Active Litigators: <strong class="u-is-22" id="statActiveUsers">--</strong></div>
+                            <div class="u-is-145">Active Litigators: <strong class="u-is-22"
+                                    id="statActiveUsers">--</strong></div>
                         </div>
 
                         <div class="admin-stat-card">
@@ -2728,7 +2735,8 @@
                                 <div class="u-is-207">
                                     <div>
                                         <div class="u-is-208">Live Statutory Verifiers (MCA21 &amp; Post)</div>
-                                        <div class="u-is-209">Direct MCA corporate registry &amp; India Post Article tracking</div>
+                                        <div class="u-is-209">Direct MCA corporate registry &amp; India Post Article
+                                            tracking</div>
                                     </div>
                                     <span class="status-badge-active"><i class="fas fa-circle-check"></i> LIVE LINK</span>
                                 </div>
@@ -3084,7 +3092,8 @@
                         <div>
                             <div class="u-is-69">
                                 <h3 class="u-is-263" id="modalUserEmail">advocate@vermalaw.in</h3>
-                                <span id="modalUserStatusBadge" class="status-badge-active"><i class="fas fa-circle-check"></i> Active</span>
+                                <span id="modalUserStatusBadge" class="status-badge-active"><i
+                                        class="fas fa-circle-check"></i> Active</span>
                                 <span id="modalUserPlanBadge" class="badge u-is-264">APPROVED</span>
                             </div>
                             <p class="u-is-265" id="modalUserIdSubtitle">USR_DEL_VERMA_88</p>
@@ -3417,7 +3426,8 @@
                     India.</p>
 
                 <h3>7. Contact Us</h3>
-                <p>If you have any questions or feedback regarding these Terms, please contact us at <strong>legal@judiq.ai</strong>.</p>
+                <p>If you have any questions or feedback regarding these Terms, please contact us at
+                    <strong>legal@judiq.ai</strong>.</p>
             </div>
         </div>
     </div>
@@ -3639,8 +3649,9 @@
                         <!-- Legal Drafting Pane -->
                         <div id="docs-drafts" class="docs-content-pane">
                             <h3>Legal Drafting &amp; Templates</h3>
-                            <p>Automatically generate compliant notice drafts and response letters based on case analysis results.</p>
-                            
+                            <p>Automatically generate compliant notice drafts and response letters based on case
+                                analysis results.</p>
+
                             <h4>Drafting Procedure</h4>
                             <p>Upon completing a case analysis, navigate to the **Drafts** tab on your results page. Select the template type (e.g. Legal Notice Sec 138, Complaint Petition, or Reply Brief). The generator will automatically populate client names, dates, amounts, and citations.</p>
                             
@@ -3973,7 +3984,10 @@
 
                 <h4 class="u-is-411">4. Professional Vetting Requirement</h4>
                 <p>
-                    All AI-generated strategy memos, merit scores, procedural graphs, and legal drafts (complaints, notices, affidavits, rejoinders) are assistive templates. Advocates and litigants must exercise independent professional judgment, verify jurisdictional precedents, and ensure compliance before filing before any Court or Tribunal.
+                    All AI-generated strategy memos, merit scores, procedural graphs, and legal drafts (complaints,
+                    notices, affidavits, rejoinders) are assistive templates. Advocates and litigants must exercise
+                    independent professional judgment, verify jurisdictional precedents, and ensure compliance before
+                    filing before any Court or Tribunal.
                 </p>
 
                 <h4 class="u-is-411">5. Subscription Plans, Pricing & Fair Use Quotas</h4>
@@ -4327,7 +4341,8 @@
                             <h4><i class="fas fa-user"></i> 1. Profile Information</h4>
                             <div class="form-group">
                                 <label>Client / Institution Name *</label>
-                                <input type="text" id="clName" class="form-control" placeholder="e.g. HDFC Bank Ltd" required aria-label="E.G.  H D F C  Bank  Ltd" title="E.G.  H D F C  Bank  Ltd">
+                                <input type="text" id="clName" class="form-control" placeholder="e.g. HDFC Bank Ltd"
+                                    required aria-label="E.G.  H D F C  Bank  Ltd" title="E.G.  H D F C  Bank  Ltd">
                             </div>
                             <div class="form-group">
                                 <label>Entity Type *</label>
@@ -4612,7 +4627,8 @@
             <div class="u-is-409">
                 <h4 class="u-is-425">1. Zero Data Reselling & Confidentiality</h4>
                 <p>
-                    JudiQ AI enforces a strict zero-telemetry resale policy. We do not sell, rent, monetize, or disclose litigation facts, party identities, or evidence documents to any third party or public data broker.
+                    JudiQ AI enforces a strict zero-telemetry resale policy. We do not sell, rent, monetize, or disclose
+                    litigation facts, party identities, or evidence documents to any third party or public data broker.
                 </p>
 
                 <h4 class="u-is-426">2. 256-Bit Vault Storage & Access Controls</h4>
