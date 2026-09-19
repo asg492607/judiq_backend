@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List, Union
 
 logger = logging.getLogger(__name__)
@@ -460,6 +460,23 @@ class DatabaseManager:
                     outcome TEXT,
                     court_remarks TEXT,
                     reported_at TEXT
+                )
+            """)
+
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS shared_reports (
+                    id {serial_primary},
+                    share_id TEXT UNIQUE NOT NULL,
+                    case_id TEXT,
+                    user_id TEXT,
+                    title TEXT,
+                    domain TEXT DEFAULT 'ni_act',
+                    password_hash TEXT,
+                    case_data TEXT,
+                    analysis_result TEXT,
+                    views INTEGER DEFAULT 0,
+                    created_at TEXT,
+                    updated_at TEXT
                 )
             """)
             conn.commit()
