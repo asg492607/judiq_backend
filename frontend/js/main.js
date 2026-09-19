@@ -1880,11 +1880,6 @@ window.copyDraftFromPreview = window.copyDraft;
 window.downloadDraftText = window.downloadDraft;
 window.openDraftEditor = () => window.openDraftGeneratorScreen('results');
 
-window.viewFullReport = () => {
-    switchScreen('resultsScreen');
-    window.switchResultTab('overview');
-};
-
 window.currentDraftTemplate = 'demand_notice';
 window.currentDraftTone = 'standard';
 
@@ -4763,9 +4758,7 @@ window.updateModularPricing = function() {
     const priceCycleEl = document.getElementById('planPriceCycle');
     const rateDetailEl = document.getElementById('planRateDetail');
     const casesEl = document.getElementById('planTotalCases');
-    const modulesEl = document.getElementById('planTotalModules');
-    const titleEl = document.getElementById('planTierTitle');
-    const descEl = document.getElementById('planTierDesc');
+    const costPerAnalysisEl = document.getElementById('planCostPerAnalysis');
     const btnLabelEl = document.getElementById('subscribeBtnLabel');
 
     if (priceEl) priceEl.textContent = price.toLocaleString('en-IN');
