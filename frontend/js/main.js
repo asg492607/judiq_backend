@@ -2868,7 +2868,7 @@ window.updateReadinessProgress = () => {
             statusTextEl.style.color = isLight ? "#475569" : "var(--gray-400)";
         } else if (percentage < 40) {
             statusTextEl.textContent = "High Risk. Key evidence missing.";
-            statusTextEl.style.color = "var(--danger-400)";
+            statusTextEl.style.color = isLight ? "#dc2626" : "var(--danger-400)";
         } else if (percentage < 80) {
             statusTextEl.textContent = "Partial readiness. Notice served?";
             statusTextEl.style.color = isLight ? "#d97706" : "var(--warning-400)";
@@ -4778,7 +4778,7 @@ window.applyModularPreset = function(count) {
         count = 1;
     }
     document.querySelectorAll('input[name="legal_module"]').forEach(cb => {
-        cb.checked = targetModules.includes(cb.value);
+        cb.checked = (cb.value === 's138');
     });
 
     window.updateModularPricing();

@@ -234,7 +234,8 @@
                             onclick="selectSimulatorPreset('s138_security_cheque')">
                             <i class="fas fa-shield-halved"></i> S.138 Security Cheque
                         </button>
-                        <button class="sim-preset-btn" data-preset="s138_electronic_records" onclick="selectSimulatorPreset('s138_electronic_records')">
+                        <button class="sim-preset-btn" data-preset="s138_electronic_records"
+                            onclick="selectSimulatorPreset('s138_electronic_records')">
                             <i class="fas fa-file-code"></i> Missing S.65B Certificate
                         </button>
                     </div>
@@ -514,8 +515,9 @@
                     <!-- Left: Modular Selection Cards -->
                     <div class="pricing-modules-selection">
                         <div class="modules-selection-header">
-                            <span class="selection-title"><i class="fas fa-cubes"></i> Select Legal Engines / Modules</span>
-                            <span class="selection-rate-tag">₹500 / module (10 cases / 30 days)</span>
+                            <span class="selection-title"><i class="fas fa-cubes"></i> Select Legal Engines /
+                                Modules</span>
+                            <span class="selection-rate-tag">₹499 / month (∞)</span>
                         </div>
 
                         <div class="modules-checkbox-grid">
@@ -702,7 +704,8 @@
                                 / mo)</span>
                         </button>
                         <div class="plan-guarantee-note">
-                            <i class="fas fa-shield-check"></i> Instant activation • Upgrade or add modules anytime • No lock-in
+                            <i class="fas fa-shield-check"></i> Instant activation • Full access to Section 138
+                            statutory engine • No lock-in
                         </div>
                     </div>
                 </div>
@@ -1000,7 +1003,7 @@
                 <div class="auth-box">
                     <h2>Welcome Back</h2>
                     <p class="auth-subtitle">Sign in to access your legal dashboard</p>
-                    
+
                     <form id="loginForm" class="auth-form">
                         <div class="form-group">
                             <label for="loginEmail">Email Address</label>
@@ -1318,8 +1321,14 @@
                                         aria-label="Filing Date" title="Filing Date" required></div>
                             </div>
                             <div class="quick-form-grid">
-                                <div class="form-group"><label for="qComplainant">Complainant Name <span class="required">*</span></label><input type="text" id="qComplainant" aria-label="Complainant Name" title="Complainant Name" placeholder="Your Name or Entity" required></div>
-                                <div class="form-group"><label for="qAccused">Accused Name <span class="required">*</span></label><input type="text" id="qAccused" aria-label="Accused Name" title="Accused Name" placeholder="Drawer / Accused Entity" required></div>
+                                <div class="form-group"><label for="qComplainant">Complainant Name <span
+                                            class="required">*</span></label><input type="text" id="qComplainant"
+                                        aria-label="Complainant Name" title="Complainant Name"
+                                        placeholder="Your Name or Entity" required></div>
+                                <div class="form-group"><label for="qAccused">Accused Name <span
+                                            class="required">*</span></label><input type="text" id="qAccused"
+                                        aria-label="Accused Name" title="Accused Name"
+                                        placeholder="Drawer / Accused Entity" required></div>
                             </div>
                         </div>
                         <div class="u-is-63">
@@ -1960,7 +1969,7 @@
                 </div>
                 <!-- End Tab: Draft -->
 
-                
+
 
                 <!-- Action Buttons -->
                 <div class="results-actions">
@@ -2452,8 +2461,10 @@
                                 <i class="fas fa-hourglass-half u-is-163"></i> Pending Approvals <span
                                     class="pill-count" id="pillCountPending">0</span>
                             </button>
-                            <button class="admin-filter-pill" id="filterPillSuspended" onclick="window.setQuickFilter('status_suspended')">
-                                <i class="fas fa-ban u-is-164"></i> Suspended <span class="pill-count" id="pillCountSuspended">0</span>
+                            <button class="admin-filter-pill" id="filterPillSuspended"
+                                onclick="window.setQuickFilter('status_suspended')">
+                                <i class="fas fa-ban u-is-164"></i> Suspended <span class="pill-count"
+                                    id="pillCountSuspended">0</span>
                             </button>
                         </div>
 
@@ -2933,7 +2944,8 @@
                         <div class="u-is-230">
                             <div class="u-is-231">
                                 <div class="u-is-232"><i class="fas fa-shield-halved u-is-22"></i> JWT Token Guard</div>
-                                <div class="u-is-233">HS256 cryptographic signature validation with automatic expiration and refresh token rotation.</div>
+                                <div class="u-is-233">HS256 cryptographic signature validation with automatic expiration
+                                    and refresh token rotation.</div>
                             </div>
                             <div class="u-is-231">
                                 <div class="u-is-232"><i class="fas fa-filter u-is-234"></i> Input Sanitization</div>
@@ -3363,8 +3375,11 @@
                 <p class="effective-date">Last Updated: June 29, 2026</p>
             </div>
             <div class="legal-text">
-                <p>Welcome to <strong>JUDIQ AI</strong>, developed and operated by <strong>AIXYNZ Technologies Pvt Ltd</strong> ("we", "us", "our"). We act as a Data Fiduciary and are fully committed to protecting your personal data in strict compliance with the Digital Personal Data Protection (DPDP) Act, 2023 of India, as well as global standards (GDPR, CCPA).</p>
-                
+                <p>Welcome to <strong>JUDIQ AI</strong>, developed and operated by <strong>AIXYNZ Technologies Pvt
+                        Ltd</strong> ("we", "us", "our"). We act as a Data Fiduciary and are fully committed to
+                    protecting your personal data in strict compliance with the Digital Personal Data Protection (DPDP)
+                    Act, 2023 of India, as well as global standards (GDPR, CCPA).</p>
+
                 <h3>1. Personal Data We Collect</h3>
                 <p>Under the DPDP Act, we only collect personal data necessary for providing our service:</p>
                 <ul>
@@ -3581,7 +3596,7 @@
             <div class="legal-text u-is-334">
                 <form id="profileSettingsForm" onsubmit="saveUserProfile(event)">
                     <h3 class="u-is-335">Personalization Settings</h3>
-                    
+
                     <div class="form-group u-is-14">
                         <label class="u-is-336" for="profileDisplayName">Display Name / Counsel Title</label>
                         <input class="u-is-337" type="text" id="profileDisplayName" placeholder="Counsel Rajesh Sharma"
@@ -3835,7 +3850,8 @@
                         <div class="command-item-icon"><i class="fas fa-users-gear"></i></div>
                         <div>
                             <div class="command-item-title">Load Section 141 Vicarious Liability Demo Case</div>
-                            <div class="command-item-desc">Test director liability and company authorization trap scan</div>
+                            <div class="command-item-desc">Test director liability and company authorization trap scan
+                            </div>
                         </div>
                     </div>
                     <span class="command-shortcut-hint">Demo</span>
@@ -4272,7 +4288,8 @@
                             </div>
                             <div class="form-group">
                                 <label>Case Type *</label>
-                                <select id="ccCaseType" class="form-control" aria-label="Case Dispute Category" title="Case Dispute Category" required>
+                                <select id="ccCaseType" class="form-control" aria-label="Case Dispute Category"
+                                    title="Case Dispute Category" required>
                                     <option value="section_138" selected>Section 138 (Cheque Bounce)</option>
                                 </select>
                             </div>
@@ -4584,7 +4601,8 @@
                 <a class="cms-nav-item" onclick="showCaseList()"><i class="fas fa-briefcase"></i> Cases</a>
                 <a class="cms-nav-item" onclick="showClientList()"><i class="fas fa-users"></i> Clients</a>
                 <a class="cms-nav-item" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i> Analytics</a>
-                <a class="cms-nav-item active" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
+                <a class="cms-nav-item active" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit
+                    Trail</a>
                 <div class="u-is-413">
                     <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to
                         Suite</a>
@@ -4839,7 +4857,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    
+
     <!-- DOMPurify for XSS Protection -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 

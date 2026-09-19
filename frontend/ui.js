@@ -155,6 +155,12 @@ export function switchScreen(targetScreenId) {
         window.loadCasesList();
     } else if (targetScreenId === 'bankRecoveryScreen' && typeof window.updateBankOfficerUI === 'function') {
         window.updateBankOfficerUI();
+    } else if (targetScreenId === 'draftStudioScreen') {
+        if (typeof window.showStudioTypeSelection === 'function') {
+            window.showStudioTypeSelection();
+        } else if (typeof window.renderStudioDraftTypeGrid === 'function') {
+            window.renderStudioDraftTypeGrid();
+        }
     }
 
     // Dismiss tour overlay if switching away from dashboard
