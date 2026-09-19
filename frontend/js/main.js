@@ -122,7 +122,9 @@ function setupAuthListeners() {
         if (savedEmail) {
             loginLocally(savedEmail);
         } else {
-            switchScreen('landingScreen');
+            // Skip landing redirect if viewing a shared report
+            const hasShareParam = new URLSearchParams(window.location.search).has('share');
+            if (!hasShareParam) switchScreen('landingScreen');
         }
         return;
     }
@@ -2882,7 +2884,7 @@ window.updateReadinessProgress = () => {
             statusTextEl.style.color = isLight ? "#4f46e5" : "var(--primary-400)";
         } else {
             statusTextEl.textContent = "100% Ready. Secure filing approved!";
-            statusTextEl.style.color = "var(--success-400)";
+            statusTextEl.style.color = isLight ? "#16a34a" : "var(--success-400)";
         }
     }
 };
