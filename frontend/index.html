@@ -179,7 +179,7 @@
                     <div class="trust-metric-label">GenAI Hallucination Tolerance</div>
                 </div>
             </div>
-            
+
             <section id="featuresSection" class="features-section reveal-on-scroll">
                 <div class="section-heading">
                     <h2>Advanced Legal Intelligence</h2>
@@ -451,7 +451,10 @@
 
                         <div class="search-wrapper">
                             <i class="fas fa-search"></i>
-                            <input type="text" id="precedentSearchInput" class="precedent-search-bar" aria-label="Search Supreme Court Precedents" title="Search Precedents" placeholder="Search by case, citation, section, or keyword (e.g. Satender Antil, Bhajan Lal, Mardia, 138, Bail, Injunction)..." oninput="filterPrecedentsList()">
+                            <input type="text" id="precedentSearchInput" class="precedent-search-bar"
+                                aria-label="Search Supreme Court Precedents" title="Search Precedents"
+                                placeholder="Search by case, citation, section, or keyword (e.g. Satender Antil, Bhajan Lal, Mardia, 138, Bail, Injunction)..."
+                                oninput="filterPrecedentsList()">
                         </div>
 
                         <div class="precedent-tag-pills u-is-27">
@@ -690,8 +693,8 @@
 
                             <div class="plan-metrics-row">
                                 <div class="plan-metric-col">
-                                    <span class="metric-label">Monthly Quota</span>
-                                    <span id="planTotalCases" class="metric-value">10 Cases</span>
+                                    <span class="metric-label">Case Quota</span>
+                                    <span id="planTotalCases" class="metric-value" style="font-size: 1.4rem;">∞</span>
                                 </div>
                                 <div class="plan-metric-col">
                                     <span class="metric-label">Active Modules</span>
@@ -948,7 +951,7 @@
                     </div>
                 </div>
             </section>
-            
+
             <footer class="landing-footer">
                 <div class="footer-content">
                     <div class="footer-col brand-col">
@@ -1199,9 +1202,6 @@
                         </button>
                         <button class="btn btn-sm btn-outline" onclick="window.showDraftStudio()">
                             <i class="fas fa-file-contract"></i> Draft Studio
-                        </button>
-                        <button class="btn btn-sm btn-outline" onclick="window.loadSampleCaseData()">
-                            <i class="fas fa-magic"></i> Load Demo
                         </button>
                     </div>
                 </div>
@@ -1915,7 +1915,8 @@
                             </div>
                             <div class="u-is-100">
                                 <label class="u-is-101" for="draftTemplateSelector">Template:</label>
-                                <select class="u-is-102" id="draftTemplateSelector" onchange="window.onSelectDraftTemplate(this.value)">
+                                <select class="u-is-102" id="draftTemplateSelector"
+                                    onchange="window.onSelectDraftTemplate(this.value)">
                                     <optgroup label="Section 138 (NI Act)">
                                         <option value="demand_notice">📋 Legal Demand Notice (S.138 NI Act)</option>
                                         <option value="CERTIFICATE_BSA">🔐 S.63(4) BSA Digital Evidence Certificate</option>
@@ -2403,9 +2404,14 @@
                             <div class="u-is-154">
                                 <div class="search-input-wrapper u-is-155">
                                     <i class="fas fa-search u-is-156"></i>
-                                    <input class="u-is-157" type="text" id="adminUserSearchInput" aria-label="Search litigators" title="Search litigators" placeholder="Filter by email, ID, role or module..." oninput="filterAdminUsersTable()">
+                                    <input class="u-is-157" type="text" id="adminUserSearchInput"
+                                        aria-label="Search litigators" title="Search litigators"
+                                        placeholder="Filter by email, ID, role or module..."
+                                        oninput="filterAdminUsersTable()">
                                 </div>
-                                <select class="u-is-158" id="adminUserRoleFilter" aria-label="Filter Litigators by Role and Status" title="Filter Litigators by Role and Status" onchange="filterAdminUsersTable()">
+                                <select class="u-is-158" id="adminUserRoleFilter"
+                                    aria-label="Filter Litigators by Role and Status"
+                                    title="Filter Litigators by Role and Status" onchange="filterAdminUsersTable()">
                                     <option value="">All Roles &amp; Status</option>
                                     <option value="law_firm">Law Firm / Chamber</option>
                                     <option value="enterprise">Enterprise Legal Cell</option>
@@ -2795,7 +2801,9 @@
                                 </div>
                                 <div>
                                     <label class="u-is-214">Neutral Citation *</label>
-                                    <input class="u-is-215" type="text" id="adminPrecCitation" required placeholder="e.g. (2023) 1 SCC 578" aria-label="E.G. (2023) 1  S C C 578" title="E.G. (2023) 1  S C C 578">
+                                    <input class="u-is-215" type="text" id="adminPrecCitation" required
+                                        placeholder="e.g. (2023) 1 SCC 578" aria-label="E.G. (2023) 1  S C C 578"
+                                        title="E.G. (2023) 1  S C C 578">
                                 </div>
                                 <div>
                                     <label class="u-is-214">Court Jurisdiction</label>
@@ -3233,7 +3241,7 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <div id="adminBankOfficerDetailsModal" class="modal-overlay hidden u-is-259">
             <div class="modal-container u-is-290">
-                
+
                 <!-- Modal Header -->
                 <div class="modal-header u-is-291">
                     <div class="u-is-128">
@@ -3486,7 +3494,10 @@
                     court.</p>
 
                 <h3>3. Predictive Limitations</h3>
-                <p>The "Survivability Scores" and "Courtroom Strategies" generated by the platform are probabilistic models based on statistical patterns in historical case law. They are <strong>not</strong> guarantees or warranties of actual courtroom outcomes. The ultimate decision rests with the presiding judge and the specific, unquantifiable dynamics of a live trial.</p>
+                <p>The "Survivability Scores" and "Courtroom Strategies" generated by the platform are probabilistic
+                    models based on statistical patterns in historical case law. They are <strong>not</strong>
+                    guarantees or warranties of actual courtroom outcomes. The ultimate decision rests with the
+                    presiding judge and the specific, unquantifiable dynamics of a live trial.</p>
 
                 <h3>4. Support Contact</h3>
                 <p>For support and queries, please email us at <strong>support@judiq.ai</strong>.</p>
@@ -3705,9 +3716,12 @@
 
                             <h4>Data Protection Standards</h4>
                             <ul>
-                                <li><strong>Full Encryption:</strong> All uploaded files, memos, and case logs are encrypted using symmetric AES-256 before saving to disk.</li>
-                                <li><strong>Zero Model Training:</strong> We enforce strict tenancy isolation. Your case data is never used to train global AI models.</li>
-                                <li><strong>Complete Deletion:</strong> Clicking "Delete Case" permanently and irreversibly wipes the files and generated data from all servers.</li>
+                                <li><strong>Full Encryption:</strong> All uploaded files, memos, and case logs are
+                                    encrypted using symmetric AES-256 before saving to disk.</li>
+                                <li><strong>Zero Model Training:</strong> We enforce strict tenancy isolation. Your case
+                                    data is never used to train global AI models.</li>
+                                <li><strong>Complete Deletion:</strong> Clicking "Delete Case" permanently and
+                                    irreversibly wipes the files and generated data from all servers.</li>
                             </ul>
                         </div>
                     </div>
@@ -4122,7 +4136,8 @@
                 <a class="cms-nav-item" onclick="showCmsAnalytics()"><i class="fas fa-chart-line"></i> Analytics</a>
                 <a class="cms-nav-item" onclick="showAuditTrail()"><i class="fas fa-shield-alt"></i> Audit Trail</a>
                 <div class="u-is-413">
-                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to Suite</a>
+                    <a class="cms-nav-item" onclick="showDashboard()"><i class="fas fa-arrow-left"></i> Back to
+                        Suite</a>
                 </div>
             </aside>
             <main class="cms-main-content">
@@ -4420,7 +4435,8 @@
                             </div>
                             <div class="form-group">
                                 <label>Phone / Landline</label>
-                                <input type="text" id="clPhone" class="form-control" placeholder="+91 22 12345678" aria-label="+91 22 12345678" title="+91 22 12345678">
+                                <input type="text" id="clPhone" class="form-control" placeholder="+91 22 12345678"
+                                    aria-label="+91 22 12345678" title="+91 22 12345678">
                             </div>
                             <div class="form-group">
                                 <label>PAN Number</label>
@@ -4714,7 +4730,9 @@
             </div>
             <div class="u-is-409">
                 <p>
-                    The assessments, risk probabilities, merit scores, statutory limitation countdowns, and procedural graphs provided by JudiQ AI are generated through algorithmic analysis of Indian statutory laws and judicial precedents.
+                    The assessments, risk probabilities, merit scores, statutory limitation countdowns, and procedural
+                    graphs provided by JudiQ AI are generated through algorithmic analysis of Indian statutory laws and
+                    judicial precedents.
                 </p>
                 <p>
                     Judicial outcomes in Indian Courts and Tribunals depend on a wide array of oral testimony, judicial discretion, High Court coordinate bench precedents, and evidentiary cross-examination. JudiQ AI scores reflect analytical probability based strictly on inputted facts and do not guarantee any specific court ruling.
