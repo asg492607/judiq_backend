@@ -162,14 +162,6 @@ function setupAuthListeners() {
             if (!hasShareParam) {
                 renderDashboard();
                 switchScreen('dashboardScreen');
-            } else {
-                // Apply domain class to role screen before showing it
-                const roleScreen = document.getElementById('roleScreen');
-                if (roleScreen) {
-                    roleScreen.classList.remove('role-screen--sarfaesi', 'role-screen--ni');
-                    if (savedDomain === 'sarfaesi') roleScreen.classList.add('role-screen--sarfaesi');
-                }
-                switchScreen('roleScreen');
             }
         } else {
             switchScreen('landingScreen');
@@ -4708,6 +4700,17 @@ window.submitAdminPrecedentIngestion = async (e) => {
 // ============================================================================
 // MODULAR SUBSCRIPTION PRICING CONFIGURATOR (₹500 / Module / 10 Cases)
 // ============================================================================
+// MODULAR PRICING ENGINE & BILLING CYCLES
+// ============================================================================
+
+window.selectedBillingDuration = 1;
+
+window.setBillingDuration = function(months, btnEl) {
+    window.selectedBillingDuration = Number(months) || 1;
+    document.querySelectorAll('.billing-cycle-tab').forEach(b => b.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+    window.updateModularPricing();
+};
 
 window.updateModularPricing = function() {
     const checkboxes = document.querySelectorAll('input[name="legal_module"]');
