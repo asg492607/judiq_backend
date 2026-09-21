@@ -8,8 +8,8 @@ client = TestClient(app)
 def test_simulation_plan_approval_workflow():
     print("\n--- 1. Authenticate Admin ---")
     admin_auth_res = client.post("/api/v1/admin/auth/verify", json={
-        "email": "admin@judiq.ai",
-        "password": "492607"
+        "email": "aixynztechnologies",
+        "password": "asg@492607"
     })
     assert admin_auth_res.status_code == 200, f"Admin auth failed: {admin_auth_res.text}"
     auth_data = admin_auth_res.json()

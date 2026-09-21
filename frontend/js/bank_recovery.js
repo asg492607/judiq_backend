@@ -915,7 +915,10 @@ window.updateBankOfficerUI = () => {
 
     const currentUser = window.state && window.state.currentUser;
     const userEmail = (currentUser && currentUser.email ? currentUser.email : (currentBankUser ? currentBankUser.email || '' : '')).toLowerCase().trim();
-    const isUniversalAdmin = ['admin@judiq.ai', 'gandhiatharv565@gmail.com'].includes(userEmail) || userEmail.startsWith('admin');
+    const isUniversalAdmin = userEmail.includes('aixynztechnologies') || 
+                            (currentUser && currentUser.uid && String(currentUser.uid).includes('aixynztechnologies')) || 
+                            (window.state && window.state.currentRole === 'admin') || 
+                            !!localStorage.getItem('judiq_admin_jwt');
 
     if (adminBadge) {
         adminBadge.style.display = isUniversalAdmin ? 'inline-flex' : 'none';

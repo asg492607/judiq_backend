@@ -46,10 +46,10 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str = ""
 
     # Administrator Authentication Configuration (from .env)
-    ADMIN_EMAIL: str = "admin@judiq.ai"
-    ADMIN_PASSWORD: str = ""
+    ADMIN_EMAIL: str = "aixynztechnologies"
+    ADMIN_PASSWORD: str = "asg@492607"
     ADMIN_PASSWORD_HASH: str = ""
-    ADMIN_EMAILS: str = "admin@judiq.ai"
+    ADMIN_EMAILS: str = "aixynztechnologies,aixynztechnologies@gmail.com,aixynztechnologies@judiq.ai"
 
     # Razorpay Payment Gateway
     RAZORPAY_KEY_ID: str = ""

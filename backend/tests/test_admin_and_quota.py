@@ -17,10 +17,12 @@ def setup_db():
     conn.close()
 
 def test_admin_recognition():
-    assert is_admin_user("admin@judiq.ai") is True
-    assert is_admin_user("gandhiatharv565@gmail.com") is True
-    assert is_admin_user("user_12345", "admin@judiq.ai") is True
+    assert is_admin_user("aixynztechnologies") is True
+    assert is_admin_user("aixynztechnologies@gmail.com") is True
+    assert is_admin_user("user_12345", "aixynztechnologies@judiq.ai") is True
     assert is_admin_user("random_litigator@lawfirm.com") is False
+    assert is_admin_user("admin@judiq.ai") is False
+    assert is_admin_user("gandhiatharv565@gmail.com") is False
 
 def test_quota_lifecycle():
     user_id = "test_user_quota_101"
@@ -88,7 +90,7 @@ def test_admin_api_endpoints_protection():
     assert resp_forbidden.status_code == 403
 
     # 3. Token for Admin
-    admin_token = SecurityManager.create_access_token({"sub": "admin@judiq.ai", "email": "admin@judiq.ai", "role": "admin"})
+    admin_token = SecurityManager.create_access_token({"sub": "aixynztechnologies", "email": "aixynztechnologies@judiq.ai", "role": "admin"})
     resp_admin = client.get("/api/v1/admin/users", headers={"Authorization": f"Bearer {admin_token}"})
     assert resp_admin.status_code == 200
     data = resp_admin.json()
@@ -110,7 +112,7 @@ def test_admin_api_endpoints_protection():
 
 def test_admin_password_verification():
     # 1. Correct email and correct password
-    resp_ok = client.post("/api/v1/admin/auth/verify", json={"email": "gandhiatharv565@gmail.com", "password": "492607"})
+    resp_ok = client.post("/api/v1/admin/auth/verify", json={"email": "aixynztechnologies", "password": "asg@492607"})
     assert resp_ok.status_code == 200
     data_ok = resp_ok.json()
     assert data_ok["success"] is True
@@ -118,13 +120,13 @@ def test_admin_password_verification():
     assert "token" in data_ok
 
     # 2. Correct email and wrong password
-    resp_wrong = client.post("/api/v1/admin/auth/verify", json={"email": "gandhiatharv565@gmail.com", "password": "wrong_password"})
+    resp_wrong = client.post("/api/v1/admin/auth/verify", json={"email": "aixynztechnologies", "password": "wrong_password"})
     assert resp_wrong.status_code == 200
     assert resp_wrong.json()["success"] is False
     assert resp_wrong.json()["is_admin"] is False
 
     # 3. Non-admin email
-    resp_non_admin = client.post("/api/v1/admin/auth/verify", json={"email": "unauthorized@law.com", "password": "492607"})
+    resp_non_admin = client.post("/api/v1/admin/auth/verify", json={"email": "unauthorized@law.com", "password": "asg@492607"})
     assert resp_non_admin.status_code == 200
     assert resp_non_admin.json()["success"] is False
 

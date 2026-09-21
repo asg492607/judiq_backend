@@ -168,11 +168,11 @@ export const api = {
         try { return await response.json(); } catch (e) { throw new Error("Failed to load user quota."); }
     },
 
-    async verifyAdminAuth(email) {
+    async verifyAdminAuth(email, password = '') {
         const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/auth/verify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
+            body: JSON.stringify({ email, password })
         });
         try { return await response.json(); } catch (e) { throw new Error("Admin verification failed."); }
     },

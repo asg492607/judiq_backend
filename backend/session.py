@@ -1027,6 +1027,33 @@ class DatabaseManager:
     @staticmethod
     def get_or_create_user_quota(user_id: str, email: str = "", role: str = "law_firm", default_limit: int = 25) -> dict:
         conn = None
+        # Universal Admin Free Forever Bypass
+        try:
+            from security import is_admin_user
+            if is_admin_user(user_id, email):
+                current_month = datetime.now().strftime("%Y-%m")
+                now_iso = datetime.now().isoformat()
+                return {
+                    "user_id": user_id,
+                    "email": email or "aixynztechnologies@judiq.ai",
+                    "role": "admin",
+                    "monthly_report_limit": -1,
+                    "reports_used_this_month": 0,
+                    "remaining_reports": 999999,
+                    "current_month_period": current_month,
+                    "is_active": True,
+                    "created_at": now_iso,
+                    "updated_at": now_iso,
+                    "plan_status": "ACTIVE",
+                    "selected_modules": ["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"],
+                    "monthly_price_inr": 0.0,
+                    "requested_quota": -1,
+                    "approved_by": "SYSTEM",
+                    "approved_at": now_iso
+                }
+        except Exception:
+            pass
+
         try:
             conn = DatabaseManager.get_connection()
             cursor = conn.cursor()
@@ -1043,28 +1070,34 @@ class DatabaseManager:
             row = cursor.fetchone()
 
             if not row:
-                # New user starts with PENDING_PAYMENT and 0 quota until a plan is subscribed/paid
+                # If an explicit default_limit is passed (e.g. tests or admin provisioning), use it and mark ACTIVE
+                # Normal registration defaults to default_limit=25, which starts as PENDING_PAYMENT with 0 quota
+                is_explicit_provision = (default_limit != 25 and default_limit > 0)
+                init_limit = default_limit if is_explicit_provision else 0
+                init_status = "APPROVED" if is_explicit_provision else "PENDING_PAYMENT"
+                init_active = 1 if is_explicit_provision else 0
+
                 cursor.execute(f"""
                     INSERT INTO user_quotas
                     (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota)
-                    VALUES ({p}, {p}, {p}, 0, 0, {p}, 0, {p}, {p}, 'PENDING_PAYMENT', {p}, 499.0, 10)
-                """, (user_id, email, role, current_month, now_iso, now_iso, json.dumps(["s138"])))
+                    VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, 499.0, {p})
+                """, (user_id, email, role, init_limit, current_month, init_active, now_iso, now_iso, init_status, json.dumps(["s138"]), max(10, init_limit)))
                 conn.commit()
                 return {
                     "user_id": user_id,
                     "email": email,
                     "role": role,
-                    "monthly_report_limit": 0,
+                    "monthly_report_limit": init_limit,
                     "reports_used_this_month": 0,
-                    "remaining_reports": 0,
+                    "remaining_reports": init_limit,
                     "current_month_period": current_month,
-                    "is_active": False,
+                    "is_active": bool(init_active),
                     "created_at": now_iso,
                     "updated_at": now_iso,
-                    "plan_status": "PENDING_PAYMENT",
+                    "plan_status": init_status,
                     "selected_modules": ["s138"],
                     "monthly_price_inr": 499.0,
-                    "requested_quota": 10,
+                    "requested_quota": max(10, init_limit),
                     "approved_by": None,
                     "approved_at": None
                 }
@@ -1145,22 +1178,38 @@ class DatabaseManager:
         Atomically checks if the user has an approved active plan and available monthly report quota.
         If pending admin approval or suspended, strictly blocks execution with detailed reason.
         """
-        # Admin bypass
-        if user_id.startswith("admin") or email.lower().startswith("admin@"):
-            return {"allowed": True, "reason": "ADMIN_BYPASS", "quota": {"is_active": True, "plan_status": "APPROVED", "remaining_reports": 99999}}
+        # Admin bypass - Free access forever for all services
+        try:
+            from security import is_admin_user
+            if is_admin_user(user_id, email):
+                return {
+                    "allowed": True,
+                    "reason": "ADMIN_BYPASS",
+                    "quota": {
+                        "user_id": user_id,
+                        "email": email or "aixynztechnologies",
+                        "role": "admin",
+                        "is_active": True,
+                        "plan_status": "ACTIVE",
+                        "monthly_report_limit": -1,
+                        "remaining_reports": 999999
+                    }
+                }
+        except Exception:
+            pass
 
         quota = DatabaseManager.get_or_create_user_quota(user_id, email)
         
-        # Strict Payment & Plan Gate Check
-        if quota.get("plan_status") == "PENDING_PAYMENT" or (quota.get("monthly_report_limit") == 0 and not quota.get("is_active")):
+        # 1. Admin Suspension Check
+        if quota.get("plan_status") == "SUSPENDED":
             return {
                 "allowed": False,
-                "reason": "PAYMENT_REQUIRED",
-                "message": "Subscription required. Please activate a Section 138 plan (₹499/mo) to unlock case analyses and court drafting.",
+                "reason": "USER_SUSPENDED",
+                "message": "Your account access has been suspended by the administrator.",
                 "quota": quota
             }
 
-        # Strict Admin Approval Gate Check
+        # 2. Strict Admin Approval Gate Check
         if quota.get("plan_status") == "PENDING_APPROVAL":
             return {
                 "allowed": False,
@@ -1169,11 +1218,30 @@ class DatabaseManager:
                 "quota": quota
             }
 
+        # 3. Strict Payment Gate Check
+        if quota.get("plan_status") == "PENDING_PAYMENT":
+            return {
+                "allowed": False,
+                "reason": "PAYMENT_REQUIRED",
+                "message": "Subscription required. Please activate a Section 138 plan (₹499/mo) to unlock case analyses and court drafting.",
+                "quota": quota
+            }
+
+        # 4. Inactive Account Check
         if not quota.get("is_active"):
             return {
                 "allowed": False,
                 "reason": "USER_SUSPENDED",
                 "message": "Your account access has been suspended by the administrator.",
+                "quota": quota
+            }
+
+        # 4. Unpaid zero-limit Check
+        if quota.get("monthly_report_limit") == 0:
+            return {
+                "allowed": False,
+                "reason": "PAYMENT_REQUIRED",
+                "message": "Subscription required. Please activate a Section 138 plan (₹499/mo) to unlock case analyses and court drafting.",
                 "quota": quota
             }
 
@@ -1278,7 +1346,7 @@ class DatabaseManager:
                 DatabaseManager.release_connection(conn)
 
     @staticmethod
-    def approve_user_plan(user_id: str, admin_email: str = "admin@judiq.ai") -> dict:
+    def approve_user_plan(user_id: str, admin_email: str = "aixynztechnologies") -> dict:
         """
         Admin approves a pending subscription plan, allocating the requested case quota and activating the account.
         """
@@ -1311,7 +1379,7 @@ class DatabaseManager:
                 DatabaseManager.release_connection(conn)
 
     @staticmethod
-    def reject_user_plan(user_id: str, admin_email: str = "admin@judiq.ai", reason: str = "") -> dict:
+    def reject_user_plan(user_id: str, admin_email: str = "aixynztechnologies", reason: str = "") -> dict:
         """
         Admin rejects a subscription plan request, keeping account locked.
         """
@@ -1510,9 +1578,16 @@ class DatabaseManager:
             if monthly_limit is not None:
                 updates.append("monthly_report_limit = " + p)
                 params.append(monthly_limit)
+                if monthly_limit > 0 and is_active is None:
+                    updates.append("is_active = " + p)
+                    params.append(1)
+                    updates.append("plan_status = " + p)
+                    params.append("APPROVED")
             if is_active is not None:
                 updates.append("is_active = " + p)
                 params.append(1 if is_active else 0)
+                updates.append("plan_status = " + p)
+                params.append("APPROVED" if is_active else "SUSPENDED")
             if role is not None:
                 updates.append("role = " + p)
                 params.append(role)
@@ -1618,11 +1693,11 @@ class DatabaseManager:
             p = DatabaseManager.get_dialect_placeholder()
             is_pg = (p == "%s")
             seed_litigators = [
-                ("admin@judiq.ai", "admin@judiq.ai", "admin", -1, 4, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"]), 0.0, -1, "SYSTEM", now_iso),
-                ("USR_DEL_VERMA_88", "advocate.verma@delhibar.in", "law_firm", 50, 14, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "criminal"]), 1500.0, 50, "admin@judiq.ai", now_iso),
-                ("USR_MUM_TATA_CORP", "corp.legal@tatacapital.com", "enterprise", 100, 42, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "criminal", "civil", "bank_recovery"]), 2500.0, 100, "admin@judiq.ai", now_iso),
-                ("USR_BOM_MEHTA_HC", "counsel.mehta@bombayhc.in", "citizen", 25, 6, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "civil"]), 1000.0, 25, "admin@judiq.ai", now_iso),
-                ("USR_PUN_SINGH_SOL", "contact@singhpartners.in", "law_firm", 75, 19, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "bank_recovery"]), 1500.0, 75, "admin@judiq.ai", now_iso),
+                ("aixynztechnologies", "aixynztechnologies@judiq.ai", "admin", -1, 0, current_month, 1, now_iso, now_iso, "ACTIVE", json.dumps(["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"]), 0.0, -1, "SYSTEM", now_iso),
+                ("USR_DEL_VERMA_88", "advocate.verma@delhibar.in", "law_firm", 50, 14, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "criminal"]), 1500.0, 50, "aixynztechnologies", now_iso),
+                ("USR_MUM_TATA_CORP", "corp.legal@tatacapital.com", "enterprise", 100, 42, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "criminal", "civil", "bank_recovery"]), 2500.0, 100, "aixynztechnologies", now_iso),
+                ("USR_BOM_MEHTA_HC", "counsel.mehta@bombayhc.in", "citizen", 25, 6, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "civil"]), 1000.0, 25, "aixynztechnologies", now_iso),
+                ("USR_PUN_SINGH_SOL", "contact@singhpartners.in", "law_firm", 75, 19, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "bank_recovery"]), 1500.0, 75, "aixynztechnologies", now_iso),
                 ("USR_BLR_KAPOOR_LAW", "verma.associates@lawfirm.in", "law_firm", 20, 0, current_month, 0, now_iso, now_iso, "PENDING_APPROVAL", json.dumps(["s138", "sarfaesi"]), 1000.0, 20, "", "")
             ]
             sql = f"""

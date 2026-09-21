@@ -128,8 +128,12 @@ export function switchScreen(targetScreenId) {
         // Check if user is an administrator (exempt from subscription paywall)
         const role = (window.state && window.state.currentRole) || 
                      (currentUser && localStorage.getItem(`judiq_role_${currentUser.uid}`)) || '';
-        const userEmail = (currentUser && currentUser.email) || '';
-        const isAdmin = role === 'admin' || userEmail.toLowerCase().includes('admin@') || !!localStorage.getItem('judiq_admin_jwt');
+        const userEmail = ((currentUser && currentUser.email) || '').toLowerCase().trim();
+        const userId = ((currentUser && (currentUser.uid || currentUser.id)) || '').toLowerCase().trim();
+        const isAdmin = role === 'admin' || 
+                        userEmail.includes('aixynztechnologies') || 
+                        userId.includes('aixynztechnologies') || 
+                        !!localStorage.getItem('judiq_admin_jwt');
 
         if (!isAdmin) {
             let isPaid = false;

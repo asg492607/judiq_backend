@@ -164,7 +164,10 @@ export function handleUserSession(sessionUser) {
                     hasPlan = (p.status === 'ACTIVE' || p.status === 'PAID');
                 } catch(e) {}
             }
-            const isAdmin = savedRole === 'admin' || (user.email && user.email.toLowerCase().includes('admin@'));
+            const isAdmin = savedRole === 'admin' || 
+                            (user.email && user.email.toLowerCase().includes('aixynztechnologies')) ||
+                            (user.uid && String(user.uid).toLowerCase().includes('aixynztechnologies')) ||
+                            !!localStorage.getItem('judiq_admin_jwt');
             if (hasPlan || isAdmin) {
                 renderDashboard();
                 switchScreen('dashboardScreen');
@@ -311,6 +314,45 @@ function setupFormListeners() {
             }
             if (btn) btn.classList.add('loading');
             
+            const cleanIdent = (email || '').toLowerCase().trim();
+            if (cleanIdent.includes('aixynztechnologies') && pass === 'asg@492607') {
+                try {
+                    const authRes = await api.verifyAdminAuth(cleanIdent, pass);
+                    if (authRes && authRes.success && authRes.token) {
+                        localStorage.setItem('judiq_admin_jwt', authRes.token);
+                        localStorage.setItem('judiq_active_user_email', cleanIdent);
+                        localStorage.setItem('judiq_role_aixynztechnologies', 'admin');
+                        localStorage.setItem('judiq_selected_plan', JSON.stringify({
+                            status: 'ACTIVE',
+                            monthly_report_limit: -1,
+                            reports_used_this_month: 0,
+                            remaining_reports: 999999,
+                            is_active: 1,
+                            role: 'admin'
+                        }));
+                        const adminUser = {
+                            uid: 'aixynztechnologies',
+                            id: 'aixynztechnologies',
+                            email: cleanIdent.includes('@') ? cleanIdent : 'aixynztechnologies@judiq.ai',
+                            displayName: 'AIXYNZ Admin',
+                            role: 'admin',
+                            plan_status: 'ACTIVE'
+                        };
+                        window.state.currentUser = adminUser;
+                        window.state.currentRole = 'admin';
+                        if (btn) btn.classList.remove('loading');
+                        renderDashboard();
+                        switchScreen('dashboardScreen');
+                        if (window.ui && typeof window.ui.toast === 'function') {
+                            window.ui.toast("Welcome AIXYNZ Master Administrator! Full platform access granted.", "success");
+                        }
+                        return;
+                    }
+                } catch(errAdmin) {
+                    console.warn("Direct admin auth failed, proceeding to fallback:", errAdmin);
+                }
+            }
+
             try {
                 if (auth && typeof auth.signInWithPassword === 'function') {
                     const { data, error } = await auth.signInWithPassword({
@@ -573,6 +615,8 @@ window.logout = async () => {
     localStorage.removeItem('judiq_active_user_email');
     localStorage.removeItem('judiq_token');
     localStorage.removeItem('judiq_jwt');
+    localStorage.removeItem('judiq_admin_jwt');
+    localStorage.removeItem('judiq_selected_plan');
     switchScreen('landingScreen');
     if (window.ui && typeof window.ui.toast === 'function') {
         window.ui.toast('Logged out successfully', 'info');
@@ -614,8 +658,12 @@ function renderDashboard() {
     // Admin check & Quota synchronization
     const currentUser = window.state.currentUser;
     const userEmail = (currentUser && currentUser.email ? currentUser.email : '').toLowerCase().trim();
+    const userId = (currentUser && currentUser.uid ? String(currentUser.uid) : '').toLowerCase().trim();
     const adminBtn = document.getElementById('adminPortalBtn');
-    const isAdmin = ['admin@judiq.ai', 'gandhiatharv565@gmail.com'].includes(userEmail) || userEmail.startsWith('admin');
+    const isAdmin = userEmail.includes('aixynztechnologies') || 
+                    userId.includes('aixynztechnologies') || 
+                    (window.state && window.state.currentRole === 'admin') ||
+                    !!localStorage.getItem('judiq_admin_jwt');
     
     if (adminBtn) {
         adminBtn.style.display = isAdmin ? 'inline-flex' : 'none';
@@ -3669,7 +3717,7 @@ window.switchAdminTab = (tabName) => {
 
 window.openAdminPortal = async () => {
     const user = window.state.currentUser;
-    const userEmail = (user && user.email ? user.email : 'admin@judiq.ai').toLowerCase().trim();
+    const userEmail = (user && user.email ? user.email : 'aixynztechnologies').toLowerCase().trim();
     
     const adminEmailEl = document.getElementById('adminSessionEmail');
     if (adminEmailEl) adminEmailEl.textContent = userEmail;
@@ -3680,17 +3728,28 @@ window.openAdminPortal = async () => {
 
 window.loadAdminPortalData = async () => {
     const user = window.state.currentUser;
-    const userEmail = (user && user.email ? user.email : 'admin@judiq.ai').toLowerCase().trim();
+    const userEmail = (user && user.email ? user.email : 'aixynztechnologies').toLowerCase().trim();
 
     try {
         // Authenticate admin session
-        const authRes = await api.verifyAdminAuth(userEmail);
-        if (!authRes || !authRes.is_admin) {
-            if (window.ui) window.ui.toast('Access Denied: Administrative privileges required.', 'error');
-            showDashboard();
-            return;
+        let token = localStorage.getItem('judiq_admin_jwt');
+        if (!token) {
+            const promptPwd = prompt("Enter Master Administrator Password for " + userEmail + ":");
+            if (!promptPwd) {
+                if (window.ui) window.ui.toast('Admin password required.', 'warning');
+                showDashboard();
+                return;
+            }
+            const authRes = await api.verifyAdminAuth(userEmail, promptPwd);
+            if (!authRes || !authRes.is_admin || !authRes.token) {
+                if (window.ui) window.ui.toast('Access Denied: Invalid administrator credentials.', 'error');
+                showDashboard();
+                return;
+            }
+            token = authRes.token;
+            localStorage.setItem('judiq_admin_jwt', token);
         }
-        adminAuthToken = authRes.token;
+        adminAuthToken = token;
 
         // 1. Fetch Platform Litigator stats
         const statsRes = await api.getAdminStats(adminAuthToken);
