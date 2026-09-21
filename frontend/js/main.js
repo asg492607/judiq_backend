@@ -131,23 +131,56 @@ export function handleUserSession(sessionUser) {
         const savedDomain = sessionUser.user_metadata?.domain || localStorage.getItem(`judiq_domain_${user.uid}`) || 'ni_act';
         window.state.userDomain = savedDomain;
 
-        const savedRole = localStorage.getItem(`judiq_role_${user.uid}`) || 'law_firm';
-        window.state.currentRole = savedRole;
+        const savedRole = localStorage.getItem(`judiq_role_${user.uid}`) || (user.user_metadata?.role) || 'law_firm';
+        const userEmailLower = (user.email || '').toLowerCase().trim();
+        const userIdLower = String(user.uid || '').toLowerCase().trim();
+        const isAdmin = savedRole === 'admin' || 
+                        savedRole === 'administrator' ||
+                        userEmailLower.includes('aixynztechnologies') || 
+                        userIdLower.includes('aixynztechnologies') || 
+                        userEmailLower.includes('admin') || 
+                        userIdLower.includes('admin') || 
+                        userEmailLower.startsWith('admin') || 
+                        userIdLower.startsWith('admin') || 
+                        !!localStorage.getItem('judiq_admin_jwt');
 
-        // Check if there is a pending subscription checkout to resume
-        if (checkAndResumePendingCheckout()) return;
+        if (isAdmin) {
+            window.state.currentRole = 'admin';
+            localStorage.setItem(`judiq_role_${user.uid}`, 'admin');
+            sessionStorage.removeItem('judiq_pending_checkout');
+            localStorage.setItem('judiq_selected_plan', JSON.stringify({
+                status: 'ACTIVE',
+                role: 'admin',
+                is_active: 1,
+                monthly_report_limit: -1,
+                remaining_reports: 999999
+            }));
+            window.state.userQuota = {
+                user_id: user.uid,
+                email: user.email,
+                role: 'admin',
+                is_active: true,
+                plan_status: 'ACTIVE',
+                monthly_report_limit: -1,
+                remaining_reports: 999999
+            };
+        } else {
+            window.state.currentRole = savedRole;
+            // Check if there is a pending subscription checkout to resume
+            if (checkAndResumePendingCheckout()) return;
+        }
 
         // Sync user quota from backend to verify paid status
         if (typeof api !== 'undefined' && api.getUserQuota) {
             api.getUserQuota(user.uid, user.email).then(res => {
                 if (res && res.quota) {
                     window.state.userQuota = res.quota;
-                    if (res.quota.plan_status === 'ACTIVE' && res.quota.is_active) {
+                    if ((res.quota.plan_status === 'ACTIVE' || res.quota.plan_status === 'APPROVED' || res.quota.role === 'admin' || isAdmin) && res.quota.is_active) {
                         localStorage.setItem('judiq_selected_plan', JSON.stringify({
                             status: 'ACTIVE',
                             ...res.quota
                         }));
-                    } else {
+                    } else if (!isAdmin) {
                         localStorage.removeItem('judiq_selected_plan');
                     }
                 }
@@ -164,10 +197,6 @@ export function handleUserSession(sessionUser) {
                     hasPlan = (p.status === 'ACTIVE' || p.status === 'PAID');
                 } catch(e) {}
             }
-            const isAdmin = savedRole === 'admin' || 
-                            (user.email && user.email.toLowerCase().includes('aixynztechnologies')) ||
-                            (user.uid && String(user.uid).toLowerCase().includes('aixynztechnologies')) ||
-                            !!localStorage.getItem('judiq_admin_jwt');
             if (hasPlan || isAdmin) {
                 renderDashboard();
                 switchScreen('dashboardScreen');
@@ -258,16 +287,48 @@ export function loginLocally(email, domain = 'ni_act', role = 'law_firm') {
     window.state.userDomain = savedDomain;
     
     // Save role
-    const savedRole = localStorage.getItem(`judiq_role_${uid}`) || role || 'law_firm';
+    const cleanEmailLower = cleanEmail.toLowerCase().trim();
+    const uidLower = String(uid).toLowerCase().trim();
+    const isLocalAdmin = role === 'admin' || 
+                         role === 'administrator' ||
+                         cleanEmailLower.includes('aixynztechnologies') || 
+                         uidLower.includes('aixynztechnologies') || 
+                         cleanEmailLower.includes('admin') || 
+                         uidLower.includes('admin') || 
+                         cleanEmailLower.startsWith('admin') || 
+                         uidLower.startsWith('admin') || 
+                         !!localStorage.getItem('judiq_admin_jwt');
+
+    const savedRole = isLocalAdmin ? 'admin' : (localStorage.getItem(`judiq_role_${uid}`) || role || 'law_firm');
     localStorage.setItem(`judiq_role_${uid}`, savedRole);
     window.state.currentRole = savedRole;
+    
+    if (isLocalAdmin) {
+        sessionStorage.removeItem('judiq_pending_checkout');
+        localStorage.setItem('judiq_selected_plan', JSON.stringify({
+            status: 'ACTIVE',
+            role: 'admin',
+            is_active: 1,
+            monthly_report_limit: -1,
+            remaining_reports: 999999
+        }));
+        window.state.userQuota = {
+            user_id: uid,
+            email: cleanEmail,
+            role: 'admin',
+            is_active: true,
+            plan_status: 'ACTIVE',
+            monthly_report_limit: -1,
+            remaining_reports: 999999
+        };
+    }
     
     const userEmailEl = document.getElementById('userEmail');
     if (userEmailEl) ui.setText('userEmail', mockUser.email);
     
-    // Check if there is a pending subscription checkout to resume
+    // Check if there is a pending subscription checkout to resume (non-admin only)
     const pendingCheckout = sessionStorage.getItem('judiq_pending_checkout');
-    if (pendingCheckout) {
+    if (!isLocalAdmin && pendingCheckout) {
         sessionStorage.removeItem('judiq_pending_checkout');
         switchScreen('landingScreen');
         if (window.location.hash !== '#pricingSection') {
@@ -519,9 +580,76 @@ function setupFormListeners() {
                         const sessionUser = signInData?.user || data.user;
                         localStorage.setItem(`judiq_domain_${sessionUser.id}`, domain);
                         window.state.userDomain = domain;
-                        handleUserSession(sessionUser);
+                        
+                        const emailLower = email.toLowerCase().trim();
+                        const isRegAdmin = emailLower.includes('aixynztechnologies') || 
+                                           emailLower.includes('admin') || 
+                                           emailLower.startsWith('admin') ||
+                                           (window.state && window.state.currentRole === 'admin');
 
-                        // Direct new registration to Pricing Section to complete payment first
+                        if (isRegAdmin) {
+                            sessionStorage.removeItem('judiq_pending_checkout');
+                            window.state.currentRole = 'admin';
+                            localStorage.setItem(`judiq_role_${sessionUser.id}`, 'admin');
+                            localStorage.setItem('judiq_selected_plan', JSON.stringify({
+                                status: 'ACTIVE',
+                                role: 'admin',
+                                is_active: 1,
+                                monthly_report_limit: -1,
+                                remaining_reports: 999999
+                            }));
+                            window.state.userQuota = {
+                                user_id: sessionUser.id,
+                                email: email,
+                                role: 'admin',
+                                is_active: true,
+                                plan_status: 'ACTIVE',
+                                monthly_report_limit: -1,
+                                remaining_reports: 999999
+                            };
+                            handleUserSession(sessionUser);
+                            if (window.ui && typeof window.ui.toast === 'function') {
+                                window.ui.toast("👑 Admin Account created! Free unlimited access enabled.", "success");
+                            }
+                            renderDashboard();
+                            switchScreen('dashboardScreen');
+                        } else {
+                            handleUserSession(sessionUser);
+                            // Direct new registration to Pricing Section to complete payment first
+                            sessionStorage.setItem('judiq_pending_checkout', JSON.stringify({
+                                timestamp: Date.now(),
+                                plan: 'section_138'
+                            }));
+                            switchScreen('landingScreen');
+                            window.location.hash = 'pricingSection';
+                            if (window.ui && typeof window.ui.toast === 'function') {
+                                window.ui.toast("Account created! Please complete payment to activate your plan.", "success");
+                            }
+                            setTimeout(() => {
+                                const pricingEl = document.getElementById('pricingSection');
+                                if (pricingEl) pricingEl.scrollIntoView({ behavior: 'smooth' });
+                                if (typeof window.subscribeToSelectedModularPlan === 'function') {
+                                    window.subscribeToSelectedModularPlan();
+                                }
+                            }, 500);
+                        }
+                    }
+                } else {
+                    const emailLower = email.toLowerCase().trim();
+                    const isRegAdmin = emailLower.includes('aixynztechnologies') || 
+                                       emailLower.includes('admin') || 
+                                       emailLower.startsWith('admin') ||
+                                       (window.state && window.state.currentRole === 'admin');
+                    
+                    loginLocally(email, isRegAdmin ? 'admin' : domain);
+                    if (isRegAdmin) {
+                        sessionStorage.removeItem('judiq_pending_checkout');
+                        if (window.ui && typeof window.ui.toast === 'function') {
+                            window.ui.toast("👑 Admin Account active! Free unlimited access enabled.", "success");
+                        }
+                        renderDashboard();
+                        switchScreen('dashboardScreen');
+                    } else {
                         sessionStorage.setItem('judiq_pending_checkout', JSON.stringify({
                             timestamp: Date.now(),
                             plan: 'section_138'
@@ -539,8 +667,24 @@ function setupFormListeners() {
                             }
                         }, 500);
                     }
+                }
+            } catch (err) {
+                console.info('Activating local user session:', err?.message || err);
+                const emailLower = email.toLowerCase().trim();
+                const isRegAdmin = emailLower.includes('aixynztechnologies') || 
+                                   emailLower.includes('admin') || 
+                                   emailLower.startsWith('admin') ||
+                                   (window.state && window.state.currentRole === 'admin');
+                
+                loginLocally(email, isRegAdmin ? 'admin' : domain);
+                if (isRegAdmin) {
+                    sessionStorage.removeItem('judiq_pending_checkout');
+                    if (window.ui && typeof window.ui.toast === 'function') {
+                        window.ui.toast("👑 Admin Account active! Free unlimited access enabled.", "success");
+                    }
+                    renderDashboard();
+                    switchScreen('dashboardScreen');
                 } else {
-                    loginLocally(email, domain);
                     sessionStorage.setItem('judiq_pending_checkout', JSON.stringify({
                         timestamp: Date.now(),
                         plan: 'section_138'
@@ -558,25 +702,6 @@ function setupFormListeners() {
                         }
                     }, 500);
                 }
-            } catch (err) {
-                console.info('Activating local user session:', err?.message || err);
-                loginLocally(email, domain);
-                sessionStorage.setItem('judiq_pending_checkout', JSON.stringify({
-                    timestamp: Date.now(),
-                    plan: 'section_138'
-                }));
-                switchScreen('landingScreen');
-                window.location.hash = 'pricingSection';
-                if (window.ui && typeof window.ui.toast === 'function') {
-                    window.ui.toast("Account created! Please complete payment to activate your plan.", "success");
-                }
-                setTimeout(() => {
-                    const pricingEl = document.getElementById('pricingSection');
-                    if (pricingEl) pricingEl.scrollIntoView({ behavior: 'smooth' });
-                    if (typeof window.subscribeToSelectedModularPlan === 'function') {
-                        window.subscribeToSelectedModularPlan();
-                    }
-                }, 500);
             } finally {
                 if (btn) btn.classList.remove('loading');
             }
@@ -684,29 +809,42 @@ function renderDashboard() {
 
     // Admin check & Quota synchronization
     const currentUser = window.state.currentUser;
-    const userEmail = (currentUser && currentUser.email ? currentUser.email : '').toLowerCase().trim();
+    const userEmail = (currentUser && currentUser.email ? currentUser.email : (localStorage.getItem('judiq_active_user_email') || '')).toLowerCase().trim();
     const userId = (currentUser && currentUser.uid ? String(currentUser.uid) : '').toLowerCase().trim();
+    const savedRole = (currentUser && localStorage.getItem(`judiq_role_${currentUser.uid}`)) || (window.state && window.state.currentRole) || '';
     const adminBtn = document.getElementById('adminPortalBtn');
-    const isAdmin = userEmail.includes('aixynztechnologies') || 
+    const isAdmin = savedRole === 'admin' ||
+                    savedRole === 'administrator' ||
+                    userEmail.includes('aixynztechnologies') || 
                     userId.includes('aixynztechnologies') || 
+                    userEmail.includes('admin') || 
+                    userId.includes('admin') || 
+                    userEmail.startsWith('admin') || 
+                    userId.startsWith('admin') || 
                     (window.state && window.state.currentRole === 'admin') ||
-                    !!localStorage.getItem('judiq_admin_jwt');
+                    !!localStorage.getItem('judiq_admin_jwt') ||
+                    (window.state && window.state.userQuota && window.state.userQuota.role === 'admin');
     
     if (adminBtn) {
         adminBtn.style.display = isAdmin ? 'inline-flex' : 'none';
     }
 
     // Update User Monthly Quota Pill
+    const pill = document.getElementById('userQuotaPill');
+    const qText = document.getElementById('userQuotaText');
+    if (isAdmin && pill && qText) {
+        qText.textContent = `Unlimited Reports (Admin Access)`;
+        pill.style.display = 'inline-flex';
+    }
+
     if (currentUser && typeof api !== 'undefined' && api.getUserQuota) {
         const uid = currentUser.uid || 'demo_user_123';
         api.getUserQuota(uid, userEmail).then(res => {
             if (res && res.success && res.quota) {
                 const q = res.quota;
-                const pill = document.getElementById('userQuotaPill');
-                const qText = document.getElementById('userQuotaText');
                 if (pill && qText) {
-                    if (q.monthly_report_limit === -1) {
-                        qText.textContent = `${q.reports_used_this_month} Reports (Unlimited)`;
+                    if (isAdmin || q.monthly_report_limit === -1 || q.role === 'admin') {
+                        qText.textContent = `Unlimited Reports (Admin Access)`;
                     } else {
                         qText.textContent = `${q.remaining_reports}/${q.monthly_report_limit} Reports`;
                     }
@@ -3133,6 +3271,21 @@ let activeStudioDraftType = null;
  * Open the Draft Studio screen from dashboard
  */
 window.showDraftStudio = () => {
+    const isFreeDemo = !window.currentUser || (
+        window.currentUser.role !== 'admin' && 
+        (!window.currentUserQuota || window.currentUserQuota.remaining_reports <= 0 || !window.currentUserQuota.is_active)
+    );
+    if (isFreeDemo) {
+        if (window.ui && typeof window.ui.toast === 'function') {
+            window.ui.toast('🔒 Draft Studio is locked in Free Demo. Activate the ₹2 Paid Demo Plan to unlock 13+ court-ready legal templates.', 'warning');
+        } else if (window.showToast) {
+            window.showToast('🔒 Draft Studio is locked in Free Demo. Activate the ₹2 Paid Demo Plan to unlock 13+ court-ready legal templates.', 'warning');
+        }
+        if (typeof window.showModularPricingModal === 'function') {
+            window.showModularPricingModal();
+        }
+        return;
+    }
     switchScreen('draftStudioScreen');
     window.showStudioTypeSelection();
 };
@@ -4968,7 +5121,17 @@ window.submitAdminPrecedentIngestion = async (e) => {
 window.selectedBillingDuration = 1;
 
 window.setBillingDuration = function(months, btnEl) {
-    window.selectedBillingDuration = Number(months) || 1;
+    const isPaidDemoUsed = !!(window.currentUserQuota?.paid_demo_used || window.state?.userQuota?.paid_demo_used);
+    if (months === 'paid_demo' && isPaidDemoUsed) {
+        if (window.ui && typeof window.ui.toast === 'function') {
+            window.ui.toast('⚠️ The ₹2 Paid Demo Plan has already been claimed once for this account/email. Please choose a standard plan.', 'warning');
+        } else if (window.showToast) {
+            window.showToast('⚠️ The ₹2 Paid Demo Plan has already been claimed once for this account/email. Please choose a standard plan.', 'warning');
+        }
+        months = 1;
+        btnEl = document.querySelector('.billing-cycle-tab:nth-child(2)') || btnEl;
+    }
+    window.selectedBillingDuration = months;
     document.querySelectorAll('.billing-cycle-tab').forEach(b => b.classList.remove('active'));
     if (btnEl) btnEl.classList.add('active');
     window.updateModularPricing();
@@ -4976,9 +5139,25 @@ window.setBillingDuration = function(months, btnEl) {
 
 window.updateModularPricing = function() {
     const duration = window.selectedBillingDuration || 1;
+    const isPaidDemoUsed = !!(window.currentUserQuota?.paid_demo_used || window.state?.userQuota?.paid_demo_used);
     
-    // Pricing configurations for Section 138 (∞ Case Analyses, direct pricing)
+    // Pricing configurations for Section 138 & Paid Demo Plan
     const durationConfigs = {
+        'paid_demo': {
+            totalPrice: 2,
+            monthlyRate: 2,
+            cycleLabel: 'single report',
+            rateDetail: 'Single Report Pass • 1 Case Analysis',
+            cases: '1',
+            costPerCase: '₹2',
+            tierTitle: isPaidDemoUsed ? 'Paid Demo Plan (Already Claimed)' : 'Paid Demo Plan',
+            tierDesc: isPaidDemoUsed 
+                ? 'One-time ₹2 demo pass has already been claimed on this account. Please select a standard subscription plan.'
+                : 'Single case analysis pass — complete deterministic statutory defect audit, 15-day cure window calculation & court drafting.',
+            badge: '<i class="fas fa-flask"></i> Paid Demo Plan',
+            btnLabel: isPaidDemoUsed ? 'Demo Pass Already Claimed (Select Standard Plan)' : 'Get Started with Paid Demo Plan (₹2 / single report)',
+            quota: 1
+        },
         1: {
             totalPrice: 499,
             monthlyRate: 499,
@@ -4986,7 +5165,11 @@ window.updateModularPricing = function() {
             rateDetail: '30-Day Billing Cycle • ∞',
             cases: '∞',
             costPerCase: '∞',
-            btnLabel: 'Get Started with Section 138 (₹499 / mo)'
+            tierTitle: 'Section 138 NI Act Engine',
+            tierDesc: 'Complete statutory defect audit, 15-day notice clock & adversarial cross-exam preparation.',
+            badge: '<i class="fas fa-infinity"></i> Section 138 Plan',
+            btnLabel: 'Get Started with Section 138 (₹499 / mo)',
+            quota: 999999
         },
         3: {
             totalPrice: 1499,
@@ -4995,7 +5178,11 @@ window.updateModularPricing = function() {
             rateDetail: 'Quarterly Billing Cycle • ∞',
             cases: '∞',
             costPerCase: '∞',
-            btnLabel: 'Get Started (₹1,499 for 3 Months)'
+            tierTitle: 'Section 138 NI Act Engine',
+            tierDesc: 'Complete statutory defect audit, 15-day notice clock & adversarial cross-exam preparation.',
+            badge: '<i class="fas fa-infinity"></i> Section 138 Plan',
+            btnLabel: 'Get Started (₹1,499 for 3 Months)',
+            quota: 999999
         },
         6: {
             totalPrice: 2999,
@@ -5004,7 +5191,11 @@ window.updateModularPricing = function() {
             rateDetail: 'Half-Yearly Billing Cycle • ∞',
             cases: '∞',
             costPerCase: '∞',
-            btnLabel: 'Get Started (₹2,999 for 6 Months)'
+            tierTitle: 'Section 138 NI Act Engine',
+            tierDesc: 'Complete statutory defect audit, 15-day notice clock & adversarial cross-exam preparation.',
+            badge: '<i class="fas fa-infinity"></i> Section 138 Plan',
+            btnLabel: 'Get Started (₹2,999 for 6 Months)',
+            quota: 999999
         },
         12: {
             totalPrice: 5999,
@@ -5013,7 +5204,11 @@ window.updateModularPricing = function() {
             rateDetail: 'Annual Billing Cycle • ∞',
             cases: '∞',
             costPerCase: '∞',
-            btnLabel: 'Get Started (₹5,999 for 12 Months)'
+            tierTitle: 'Section 138 NI Act Engine',
+            tierDesc: 'Complete statutory defect audit, 15-day notice clock & adversarial cross-exam preparation.',
+            badge: '<i class="fas fa-infinity"></i> Section 138 Plan',
+            btnLabel: 'Get Started (₹5,999 for 12 Months)',
+            quota: 999999
         }
     };
 
@@ -5025,6 +5220,9 @@ window.updateModularPricing = function() {
     const casesEl = document.getElementById('planTotalCases');
     const costPerAnalysisEl = document.getElementById('planCostPerAnalysis');
     const btnLabelEl = document.getElementById('subscribeBtnLabel');
+    const tierTitleEl = document.getElementById('planTierTitle');
+    const tierDescEl = document.getElementById('planTierDesc');
+    const badgeEl = document.getElementById('planTypeBadge');
 
     if (priceEl) priceEl.textContent = cfg.totalPrice.toLocaleString('en-IN');
     if (priceCycleEl) priceCycleEl.textContent = cfg.cycleLabel;
@@ -5032,6 +5230,9 @@ window.updateModularPricing = function() {
     if (casesEl) casesEl.textContent = cfg.cases;
     if (costPerAnalysisEl) costPerAnalysisEl.textContent = cfg.costPerCase;
     if (btnLabelEl) btnLabelEl.textContent = cfg.btnLabel;
+    if (tierTitleEl && cfg.tierTitle) tierTitleEl.textContent = cfg.tierTitle;
+    if (tierDescEl && cfg.tierDesc) tierDescEl.textContent = cfg.tierDesc;
+    if (badgeEl && cfg.badge) badgeEl.innerHTML = cfg.badge;
 };
 
 window.applyModularPreset = function(count) {
@@ -5060,7 +5261,6 @@ window.subscribeToSelectedModularPlan = async function() {
         const parsed = parseInt(priceDisplay.textContent.replace(/[^0-9]/g, ''), 10);
         if (!isNaN(parsed) && parsed > 0) price = parsed;
     }
-    const cases = count * 10;
 
     // Gate: User must be registered and signed in to link subscription to their account
     const user = window.state ? window.state.currentUser : null;
@@ -5081,10 +5281,79 @@ window.subscribeToSelectedModularPlan = async function() {
 
     const cleanEmail = user.email.trim().toLowerCase();
     const userId = user.uid || user.id || ('USR_' + (cleanEmail.split('@')[0] || 'ADVOCATE').toUpperCase());
+    const savedRole = (window.state && window.state.currentRole) || (localStorage.getItem(`judiq_role_${userId}`)) || '';
+
+    const isAdmin = savedRole === 'admin' ||
+                    savedRole === 'administrator' ||
+                    cleanEmail.includes('aixynztechnologies') ||
+                    String(userId).toLowerCase().includes('aixynztechnologies') ||
+                    cleanEmail.includes('admin') ||
+                    String(userId).toLowerCase().includes('admin') ||
+                    cleanEmail.startsWith('admin') ||
+                    String(userId).toLowerCase().startsWith('admin') ||
+                    !!localStorage.getItem('judiq_admin_jwt') ||
+                    (window.state && window.state.userQuota && window.state.userQuota.role === 'admin');
+
+    if (isAdmin) {
+        console.log('[JudiQ] Admin user detected in checkout — granting free unlimited access.');
+        sessionStorage.removeItem('judiq_pending_checkout');
+        localStorage.setItem('judiq_selected_plan', JSON.stringify({
+            user_id: userId,
+            email: cleanEmail,
+            role: 'admin',
+            status: 'ACTIVE',
+            is_active: 1,
+            monthly_report_limit: -1,
+            remaining_reports: 999999,
+            activated_at: new Date().toISOString()
+        }));
+        if (window.state) {
+            window.state.currentRole = 'admin';
+            window.state.userQuota = {
+                user_id: userId,
+                email: cleanEmail,
+                role: 'admin',
+                plan_status: 'ACTIVE',
+                is_active: 1,
+                monthly_report_limit: -1,
+                remaining_reports: 999999,
+                reports_used_this_month: 0
+            };
+        }
+        if (window.ui && typeof window.ui.toast === 'function') {
+            window.ui.toast('👑 Admin Access: Platform service is 100% free and unlimited for administrators.', 'success');
+        } else if (window.showToast) {
+            window.showToast('👑 Admin Access: Platform service is 100% free and unlimited for administrators.', 'success');
+        }
+        renderDashboard();
+        switchScreen('dashboardScreen');
+        return;
+    }
+
+    const duration = window.selectedBillingDuration;
+    const isPaidDemo = (duration === 'paid_demo' || price === 2);
+    const isPaidDemoUsed = !!(window.currentUserQuota?.paid_demo_used || window.state?.userQuota?.paid_demo_used);
+    
+    if (isPaidDemo && isPaidDemoUsed) {
+        if (window.ui && typeof window.ui.toast === 'function') {
+            window.ui.toast('⚠️ The ₹2 Paid Demo Plan has already been claimed once for this account/email. Please choose a standard plan.', 'warning');
+        } else if (window.showToast) {
+            window.showToast('⚠️ The ₹2 Paid Demo Plan has already been claimed once for this account/email. Please choose a standard plan.', 'warning');
+        }
+        window.setBillingDuration(1);
+        return;
+    }
+
+    const planName = isPaidDemo ? 'Paid Demo Plan' : 'Section 138 Plan';
+    const cases = isPaidDemo ? 1 : 999999;
+    const planDescription = isPaidDemo 
+        ? 'JudiQ Paid Demo Plan — 1 Single Report Analysis · ₹2' 
+        : `JudiQ Section 138 Plan — ${count} module${count > 1 ? 's' : ''} · ₹${price.toLocaleString('en-IN')}`;
 
     const planPayload = {
         user_id: userId,
         email: cleanEmail,
+        plan_name: planName,
         selected_modules: selected,
         monthly_price_inr: price,
         requested_quota: cases,
@@ -5100,7 +5369,7 @@ window.subscribeToSelectedModularPlan = async function() {
 
     window.judiqPay({
         amount: price * 100,
-        description: `JudiQ Section 138 Plan — ${count} module${count > 1 ? 's' : ''} · ₹${price.toLocaleString('en-IN')} / mo`,
+        description: planDescription,
         receipt: (`judiq_${userId.slice(0, 12)}_${Date.now()}`).slice(0, 40),
         prefill: {
             email:   cleanEmail,
@@ -5109,6 +5378,7 @@ window.subscribeToSelectedModularPlan = async function() {
         },
         notes: {
             user_id:     userId,
+            plan_name:   planName,
             modules:     selected.join(','),
             cases_quota: String(cases)
         },
@@ -5152,7 +5422,9 @@ window.subscribeToSelectedModularPlan = async function() {
 
                 sessionStorage.removeItem('judiq_pending_checkout');
 
-                const celebrationMsg = `🎉 Payment verified successfully! Plan activated. Welcome to JUDIQ AI.`;
+                const celebrationMsg = isPaidDemo 
+                    ? `🎉 Paid Demo Plan activated for ₹2! You have 1 full case analysis report ready.`
+                    : `🎉 Payment verified successfully! Plan activated. Welcome to JUDIQ AI.`;
                 if (window.ui && typeof window.ui.toast === 'function') {
                     window.ui.toast(celebrationMsg, 'success');
                 } else if (window.showToast) {
@@ -5181,8 +5453,11 @@ window.subscribeToSelectedModularPlan = async function() {
                     activated_at: new Date().toISOString()
                 }));
                 sessionStorage.removeItem('judiq_pending_checkout');
+                const celebrationMsg = isPaidDemo 
+                    ? `🎉 Paid Demo Plan activated for ₹2! 1 case analysis report unlocked.`
+                    : `🎉 Payment verified! Workspace active with immediate effect.`;
                 if (window.ui && typeof window.ui.toast === 'function') {
-                    window.ui.toast(`🎉 Payment verified! Workspace active with immediate effect.`, 'success');
+                    window.ui.toast(celebrationMsg, 'success');
                 }
                 setTimeout(() => {
                     renderDashboard();

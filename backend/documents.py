@@ -14,9 +14,10 @@ def generate_pdf(data: dict = Body(...)):
         case_data = data.get("case_data", {}) if isinstance(data, dict) else {}
         user_id = data.get("user_id") or case_data.get("user_id") or ""
         email = data.get("email") or ""
+        role = data.get("role") or ""
         
         if user_id and user_id not in {"ANONYMOUS", "demo_user_123"}:
-            quota_res = DatabaseManager.check_and_consume_report_quota(user_id, email, cost=1)
+            quota_res = DatabaseManager.check_and_consume_report_quota(user_id, email, cost=1, role=role)
             if not quota_res["allowed"]:
                 return JSONResponse(status_code=429, content={
                     "error": quota_res["message"],
@@ -58,16 +59,25 @@ def generate_draft_word_endpoint(data: dict = Body(...)):
     from word_generator import WordGenerator
     from session import DatabaseManager
     try:
-        user_id = data.get("user_id") or ""
-        email = data.get("email") or ""
-        if user_id and user_id not in {"ANONYMOUS", "demo_user_123"}:
-            quota_res = DatabaseManager.check_and_consume_report_quota(user_id, email, cost=1)
-            if not quota_res["allowed"]:
-                return JSONResponse(status_code=403, content={
-                    "error": quota_res["message"],
-                    "reason": quota_res["reason"],
-                    "quota": quota_res.get("quota")
-                })
+        user_id = (data.get("user_id") or "").strip()
+        email = (data.get("email") or "").strip()
+        role = (data.get("role") or "").strip()
+        
+        if not user_id or user_id in {"ANONYMOUS", "demo_user_123"}:
+            return JSONResponse(status_code=403, content={
+                "error": "Draft Studio access requires an active plan or Paid Demo Plan.",
+                "reason": "DRAFT_STUDIO_LOCKED",
+                "message": "Draft Studio access requires an active subscription or Paid Demo Plan."
+            })
+
+        quota_res = DatabaseManager.check_and_consume_report_quota(user_id, email, cost=1, role=role)
+        if not quota_res.get("allowed"):
+            return JSONResponse(status_code=403, content={
+                "error": "Draft Studio is exclusive to Paid Demo and Active Subscribers.",
+                "reason": quota_res.get("reason", "QUOTA_EXCEEDED"),
+                "message": "Draft Studio access requires an active subscription or Paid Demo Plan. Please activate the ₹2 Paid Demo Plan to unlock.",
+                "quota": quota_res.get("quota")
+            })
 
         title = data.get("title", "Legal_Draft")
         content = data.get("content", "")
@@ -86,16 +96,25 @@ def generate_draft_word_endpoint(data: dict = Body(...)):
 def generate_draft_pdf(data: dict = Body(...)):
     from session import DatabaseManager
     try:
-        user_id = data.get("user_id") or ""
-        email = data.get("email") or ""
-        if user_id and user_id not in {"ANONYMOUS", "demo_user_123"}:
-            quota_res = DatabaseManager.check_and_consume_report_quota(user_id, email, cost=1)
-            if not quota_res["allowed"]:
-                return JSONResponse(status_code=403, content={
-                    "error": quota_res["message"],
-                    "reason": quota_res["reason"],
-                    "quota": quota_res.get("quota")
-                })
+        user_id = (data.get("user_id") or "").strip()
+        email = (data.get("email") or "").strip()
+        role = (data.get("role") or "").strip()
+
+        if not user_id or user_id in {"ANONYMOUS", "demo_user_123"}:
+            return JSONResponse(status_code=403, content={
+                "error": "Draft Studio access requires an active plan or Paid Demo Plan.",
+                "reason": "DRAFT_STUDIO_LOCKED",
+                "message": "Draft Studio access requires an active subscription or Paid Demo Plan."
+            })
+
+        quota_res = DatabaseManager.check_and_consume_report_quota(user_id, email, cost=1, role=role)
+        if not quota_res.get("allowed"):
+            return JSONResponse(status_code=403, content={
+                "error": "Draft Studio is exclusive to Paid Demo and Active Subscribers.",
+                "reason": quota_res.get("reason", "QUOTA_EXCEEDED"),
+                "message": "Draft Studio access requires an active subscription or Paid Demo Plan. Please activate the ₹2 Paid Demo Plan to unlock.",
+                "quota": quota_res.get("quota")
+            })
 
         title = data.get("title", "Legal_Draft")
         content = data.get("content", "")

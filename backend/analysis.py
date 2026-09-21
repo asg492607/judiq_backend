@@ -80,6 +80,36 @@ async def analyze(request_data: Dict[str, Any], request: Request):
         logger.error(f"[{request_id}] Security threats detected: {threats}")
         return JSONResponse(status_code=403, content={"success": False, "error": "Malicious payload detected."})
 
+    # Identify pre-loaded demo case
+    is_demo_case = bool(
+        raw_data.get("is_demo_case") or 
+        raw_data.get("case_id") in {"NI-DEMO-2026-001", "CR-FIR-2026-882", "COMM-SUIT-2026-104", "SARFAESI-DEMO-001", "SBI-NPA-MULTITRACK-2026"} or
+        "Demo" in str(raw_data.get("case_title", "")) or 
+        "State of Maharashtra vs Vikram Sharma" in str(raw_data.get("case_title", "")) or
+        "Apex Real Estate" in str(raw_data.get("case_title", "")) or
+        "Zenith Infrastructure" in str(raw_data.get("case_title", ""))
+    )
+
+    # Strictly enforce admin approval and monthly quota gate
+    user_id = raw_data.get("user_id", "ANONYMOUS")
+    email = raw_data.get("email", "")
+    role = raw_data.get("role", "")
+    if user_id and user_id not in {"ANONYMOUS", "demo_user_123"}:
+        quota_res = DatabaseManager.check_and_consume_report_quota(user_id, email, cost=1, role=role)
+        if not quota_res.get("allowed"):
+            # If user has no active quota, allow pre-loaded demo case preview in Free Demo mode
+            if is_demo_case:
+                logger.info(f"[{request_id}] Allowing Free Demo pre-loaded case preview for {user_id}")
+            else:
+                logger.warning(f"[{request_id}] Blocked analysis for {user_id}: {quota_res.get('reason')}")
+                return JSONResponse(status_code=403, content={
+                    "success": False,
+                    "error": "Free Demo only supports running pre-loaded demo cases. To analyze custom cases with full editable fields, please activate the ₹2 Paid Demo Plan.",
+                    "error_code": "QUOTA_EXCEEDED",
+                    "user_message": "Free Demo only supports running pre-loaded demo cases. Please activate the ₹2 Paid Demo Plan to analyze custom cases.",
+                    "quota": quota_res.get("quota")
+                })
+
     # User-scoped cache key prevents cross-user data leakage with TTL expiration
     cache_key = get_cache_key(user_id, raw_data)
     with CACHE_LOCK:
@@ -94,21 +124,6 @@ async def analyze(request_data: Dict[str, Any], request: Request):
                 del ANALYSIS_CACHE[cache_key]
 
     logger.info(f"[{request_id}] /analyze request received")
-    
-    # Strictly enforce admin approval and monthly quota gate
-    user_id = raw_data.get("user_id", "ANONYMOUS")
-    email = raw_data.get("email", "")
-    if user_id and user_id not in {"ANONYMOUS", "demo_user_123"}:
-        quota_res = DatabaseManager.check_and_consume_report_quota(user_id, email, cost=1)
-        if not quota_res.get("allowed"):
-            logger.warning(f"[{request_id}] Blocked analysis for {user_id}: {quota_res.get('reason')}")
-            return JSONResponse(status_code=403, content={
-                "success": False,
-                "error": quota_res.get("message", "Account pending administrator approval."),
-                "error_code": quota_res.get("reason", "PENDING_ADMIN_APPROVAL"),
-                "user_message": quota_res.get("message", "Your account subscription is pending administrative approval."),
-                "quota": quota_res.get("quota")
-            })
 
     try:
         validate_minimum_viability(raw_data)

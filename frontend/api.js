@@ -122,9 +122,17 @@ export async function fetchWithRetry(url, options = {}, maxRetries = 3, baseDela
 export const api = {
     async analyze(data) {
         const currentLang = (window.i18n && window.i18n.currentLang) || localStorage.getItem('judiq_lang') || 'en';
+        const currentUser = window.state ? window.state.currentUser : null;
+        const userId = (data && data.user_id) || (currentUser ? (currentUser.uid || currentUser.id) : '') || 'ANONYMOUS';
+        const userEmail = (data && data.email) || (currentUser ? currentUser.email : '') || localStorage.getItem('judiq_active_user_email') || '';
+        const userRole = (data && data.role) || (window.state && window.state.currentRole) || (currentUser && currentUser.role) || (currentUser ? localStorage.getItem(`judiq_role_${currentUser.uid}`) : '') || '';
+        
         const payload = {
             language: currentLang,
             lang: currentLang,
+            user_id: userId,
+            email: userEmail,
+            role: userRole,
             ...data
         };
         const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/analyze`, {
@@ -139,19 +147,42 @@ export const api = {
     },
     
     async generatePdf(data) {
+        const currentUser = window.state ? window.state.currentUser : null;
+        const userId = (data && data.user_id) || (currentUser ? (currentUser.uid || currentUser.id) : '') || '';
+        const userEmail = (data && data.email) || (currentUser ? currentUser.email : '') || localStorage.getItem('judiq_active_user_email') || '';
+        const userRole = (data && data.role) || (window.state && window.state.currentRole) || (currentUser && currentUser.role) || (currentUser ? localStorage.getItem(`judiq_role_${currentUser.uid}`) : '') || '';
+
+        const payload = {
+            user_id: userId,
+            email: userEmail,
+            role: userRole,
+            ...data
+        };
         const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/documents/generate-pdf`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            body: JSON.stringify(payload)
         });
         try { return await response.blob(); } catch (e) { throw new Error("Failed to read file blob."); }
     },
 
     async generateDraftPdf(title, content, metadata = {}) {
+        const currentUser = window.state ? window.state.currentUser : null;
+        const userId = (metadata && metadata.user_id) || (currentUser ? (currentUser.uid || currentUser.id) : '') || '';
+        const userEmail = (metadata && metadata.email) || (currentUser ? currentUser.email : '') || localStorage.getItem('judiq_active_user_email') || '';
+        const userRole = (metadata && metadata.role) || (window.state && window.state.currentRole) || (currentUser && currentUser.role) || (currentUser ? localStorage.getItem(`judiq_role_${currentUser.uid}`) : '') || '';
+
         const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/documents/draft-pdf`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, content, metadata })
+            body: JSON.stringify({ 
+                title, 
+                content, 
+                user_id: userId,
+                email: userEmail,
+                role: userRole,
+                metadata 
+            })
         });
         try { return await response.blob(); } catch (e) { throw new Error("Failed to read draft blob."); }
     },

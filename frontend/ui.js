@@ -125,15 +125,21 @@ export function switchScreen(targetScreenId) {
             return;
         }
 
-        // Check if user is an administrator (exempt from subscription paywall)
+        // Check if user is an administrator (exempt from subscription paywall — 100% free forever)
         const role = (window.state && window.state.currentRole) || 
-                     (currentUser && localStorage.getItem(`judiq_role_${currentUser.uid}`)) || '';
-        const userEmail = ((currentUser && currentUser.email) || '').toLowerCase().trim();
+                     (currentUser && (currentUser.role || localStorage.getItem(`judiq_role_${currentUser.uid}`))) || '';
+        const userEmail = ((currentUser && currentUser.email) || localStorage.getItem('judiq_active_user_email') || '').toLowerCase().trim();
         const userId = ((currentUser && (currentUser.uid || currentUser.id)) || '').toLowerCase().trim();
         const isAdmin = role === 'admin' || 
+                        role === 'administrator' ||
                         userEmail.includes('aixynztechnologies') || 
                         userId.includes('aixynztechnologies') || 
-                        !!localStorage.getItem('judiq_admin_jwt');
+                        userEmail.includes('admin') ||
+                        userId.includes('admin') ||
+                        userEmail.startsWith('admin') ||
+                        userId.startsWith('admin') ||
+                        !!localStorage.getItem('judiq_admin_jwt') ||
+                        (window.state && window.state.userQuota && window.state.userQuota.role === 'admin');
 
         if (!isAdmin) {
             let isPaid = false;

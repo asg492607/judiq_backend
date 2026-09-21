@@ -200,6 +200,47 @@ export function renderWizardStep() {
     updateProgress();
     updateNavigationButtons();
     updateConditionalFields();
+
+    // Enforce Free Demo restrictions: form inputs are non-editable in Free Demo
+    const isFreeDemo = !window.currentUser || (
+        window.currentUser.role !== 'admin' && 
+        (!window.currentUserQuota || window.currentUserQuota.remaining_reports <= 0 || !window.currentUserQuota.is_active)
+    );
+
+    let demoBanner = document.getElementById('freeDemoWizardBanner');
+    if (isFreeDemo) {
+        if (!demoBanner && container.parentNode) {
+            demoBanner = document.createElement('div');
+            demoBanner.id = 'freeDemoWizardBanner';
+            demoBanner.className = 'free-demo-banner';
+            demoBanner.innerHTML = `
+                <div style="background: rgba(14, 165, 233, 0.12); border: 1px solid rgba(14, 165, 233, 0.35); border-radius: 8px; padding: 12px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 15px; color: #bae6fd;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-flask" style="color: #38bdf8; font-size: 1.25rem;"></i>
+                        <span style="font-size: 0.92rem;"><strong>Free Demo Mode:</strong> Viewing pre-loaded demo case. Form fields are read-only. To customize case details and analyze your own cases, activate the <strong>₹2 Paid Demo Plan</strong>.</span>
+                    </div>
+                    <button type="button" class="btn btn-sm" onclick="if(typeof showModularPricingModal === 'function') showModularPricingModal();" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: #fff; font-weight: 700; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 8px rgba(37,99,235,0.4);">
+                        Unlock Custom Cases (₹2)
+                    </button>
+                </div>
+            `;
+            container.parentNode.insertBefore(demoBanner, container);
+        }
+        container.querySelectorAll('input, select, textarea').forEach(el => {
+            el.setAttribute('disabled', 'disabled');
+            el.setAttribute('readonly', 'readonly');
+            el.style.cursor = 'not-allowed';
+            el.style.opacity = '0.88';
+        });
+    } else {
+        if (demoBanner) demoBanner.remove();
+        container.querySelectorAll('input, select, textarea').forEach(el => {
+            el.removeAttribute('disabled');
+            el.removeAttribute('readonly');
+            el.style.cursor = '';
+            el.style.opacity = '';
+        });
+    }
 }
 window.renderWizardStep = renderWizardStep;
 
@@ -430,8 +471,17 @@ window.submitCase = async () => {
     saveCurrentStepValues();
     ui.show('analysisLoading');
     try {
-        const userId = window.state.currentUser ? window.state.currentUser.uid : 'ANONYMOUS';
-        const rawPayload = { ...window.state.caseData, user_id: userId };
+        const currentUser = window.state.currentUser;
+        const userId = currentUser ? (currentUser.uid || currentUser.id || 'ANONYMOUS') : 'ANONYMOUS';
+        const userEmail = currentUser ? (currentUser.email || '') : (localStorage.getItem('judiq_active_user_email') || '');
+        const userRole = (window.state && window.state.currentRole) || (currentUser && currentUser.role) || (currentUser ? localStorage.getItem(`judiq_role_${currentUser.uid}`) : '') || '';
+        
+        const rawPayload = { 
+            ...window.state.caseData, 
+            user_id: userId,
+            email: userEmail,
+            role: userRole
+        };
         const payload = sanitizePayload(rawPayload);
         const result = await api.analyze(payload);
         window.state.analysisResult = result;
@@ -446,7 +496,19 @@ window.submitCase = async () => {
     } catch (err) {
         ui.hide('analysisLoading');
         ui.toast(err.message, 'error');
-        if (err.message && (err.message.includes('Subscription required') || err.message.includes('activate a Section 138 plan') || err.message.includes('PAYMENT_REQUIRED'))) {
+        
+        const currentUser = window.state.currentUser;
+        const userEmail = ((currentUser && currentUser.email) || localStorage.getItem('judiq_active_user_email') || '').toLowerCase().trim();
+        const userId = ((currentUser && (currentUser.uid || currentUser.id)) || '').toLowerCase().trim();
+        const role = (window.state && window.state.currentRole) || '';
+        const isAdmin = role === 'admin' || 
+                        userEmail.includes('aixynztechnologies') || 
+                        userId.includes('aixynztechnologies') || 
+                        userEmail.includes('admin') || 
+                        userId.includes('admin') ||
+                        !!localStorage.getItem('judiq_admin_jwt');
+
+        if (!isAdmin && err.message && (err.message.includes('Subscription required') || err.message.includes('activate a Section 138 plan') || err.message.includes('PAYMENT_REQUIRED'))) {
             setTimeout(() => {
                 switchScreen('landingScreen');
                 window.location.hash = 'pricingSection';
@@ -641,6 +703,7 @@ window.loadSampleCaseData = (forcedPreset = null) => {
 
     const enrichedPreset = {
         ...preset,
+        is_demo_case: true,
         filing_date: preset.filing_date || filingDate,
         date_of_complaint: preset.date_of_complaint || filingDate,
         cheque_date: preset.cheque_date || fmt(d60),
