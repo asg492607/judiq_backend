@@ -1,13 +1,39 @@
 import { API_BASE_URL } from './config.js?v=14';
 
+function isJwtExpired(jwtToken) {
+    if (!jwtToken || typeof jwtToken !== 'string') return true;
+    try {
+        const parts = jwtToken.split('.');
+        if (parts.length !== 3) return true;
+        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+        if (payload.exp && (payload.exp * 1000) < (Date.now() + 30000)) {
+            return true;
+        }
+        return false;
+    } catch (e) {
+        return false;
+    }
+}
+
 /**
- * Fetch with automatic retry on transient failures.
+ * Fetch with automatic retry on transient failures and cold-boot waking.
  */
-export async function fetchWithRetry(url, options = {}, maxRetries = 2, baseDelay = 2000) {
+export async function fetchWithRetry(url, options = {}, maxRetries = 3, baseDelay = 1500) {
     let lastError;
     
-    // Inject JWT Authorization
-    let token = localStorage.getItem("judiq_jwt");
+    // Inject valid JWT Authorization (prioritize active admin JWT if valid)
+    let adminToken = localStorage.getItem("judiq_admin_jwt");
+    if (adminToken && isJwtExpired(adminToken)) {
+        localStorage.removeItem("judiq_admin_jwt");
+        adminToken = null;
+    }
+
+    let token = adminToken || localStorage.getItem("judiq_jwt");
+    if (token && isJwtExpired(token)) {
+        localStorage.removeItem("judiq_jwt");
+        token = null;
+    }
+
     if (!token && !url.includes('/auth/anonymous')) {
         try {
             const authRes = await fetch(`${API_BASE_URL}/api/v1/auth/anonymous`, { method: 'POST' });
@@ -19,7 +45,7 @@ export async function fetchWithRetry(url, options = {}, maxRetries = 2, baseDela
                 if (window.state) window.state.user_id = authData.user_id;
             }
         } catch (e) {
-            console.error("Failed to fetch anonymous JWT:", e);
+            console.warn("Failed to fetch anonymous JWT:", e);
         }
     }
 
@@ -80,9 +106,10 @@ export async function fetchWithRetry(url, options = {}, maxRetries = 2, baseDela
             if (err.name === 'AbortError') {
                 throw new Error('Request timed out after 90 seconds.');
             }
-            const retryable = !err.status || err.status === 408 || err.status === 429 || err.status >= 500;
+            const isNetworkOrCors = !err.status || err.message?.includes('fetch') || err.message?.includes('network');
+            const retryable = isNetworkOrCors || err.status === 408 || err.status === 429 || err.status >= 500;
             if (attempt < maxRetries && retryable) {
-                const delay = baseDelay * Math.pow(2, attempt);
+                const delay = Math.round(baseDelay * Math.pow(1.8, attempt));
                 await new Promise(r => setTimeout(r, delay));
             } else if (!retryable) {
                 throw err;

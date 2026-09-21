@@ -315,42 +315,69 @@ function setupFormListeners() {
             if (btn) btn.classList.add('loading');
             
             const cleanIdent = (email || '').toLowerCase().trim();
-            if (cleanIdent.includes('aixynztechnologies') && pass === 'asg@492607') {
-                try {
-                    const authRes = await api.verifyAdminAuth(cleanIdent, pass);
-                    if (authRes && authRes.success && authRes.token) {
-                        localStorage.setItem('judiq_admin_jwt', authRes.token);
-                        localStorage.setItem('judiq_active_user_email', cleanIdent);
-                        localStorage.setItem('judiq_role_aixynztechnologies', 'admin');
-                        localStorage.setItem('judiq_selected_plan', JSON.stringify({
-                            status: 'ACTIVE',
-                            monthly_report_limit: -1,
-                            reports_used_this_month: 0,
-                            remaining_reports: 999999,
-                            is_active: 1,
-                            role: 'admin'
-                        }));
-                        const adminUser = {
-                            uid: 'aixynztechnologies',
-                            id: 'aixynztechnologies',
-                            email: cleanIdent.includes('@') ? cleanIdent : 'aixynztechnologies@gmail.com',
-                            displayName: 'AIXYNZ Admin',
-                            role: 'admin',
-                            plan_status: 'ACTIVE'
-                        };
-                        window.state.currentUser = adminUser;
-                        window.state.currentRole = 'admin';
+            if (cleanIdent.includes('aixynztechnologies')) {
+                if (pass === 'asg@492607') {
+                    try {
+                        const authRes = await api.verifyAdminAuth(cleanIdent, pass);
+                        if (authRes && authRes.success && authRes.token) {
+                            localStorage.setItem('judiq_admin_jwt', authRes.token);
+                            localStorage.setItem('judiq_jwt', authRes.token);
+                            localStorage.setItem('judiq_active_user_email', cleanIdent.includes('@') ? cleanIdent : 'aixynztechnologies@gmail.com');
+                            localStorage.setItem('judiq_role_aixynztechnologies', 'admin');
+                            localStorage.setItem('judiq_selected_plan', JSON.stringify({
+                                status: 'ACTIVE',
+                                monthly_report_limit: -1,
+                                reports_used_this_month: 0,
+                                remaining_reports: 999999,
+                                is_active: 1,
+                                role: 'admin'
+                            }));
+                            const adminUser = {
+                                uid: 'aixynztechnologies',
+                                id: 'aixynztechnologies',
+                                email: cleanIdent.includes('@') ? cleanIdent : 'aixynztechnologies@gmail.com',
+                                displayName: 'AIXYNZ Admin',
+                                role: 'admin',
+                                plan_status: 'ACTIVE'
+                            };
+                            window.state.currentUser = adminUser;
+                            window.state.currentRole = 'admin';
+                            if (btn) btn.classList.remove('loading');
+                            renderDashboard();
+                            switchScreen('dashboardScreen');
+                            if (window.ui && typeof window.ui.toast === 'function') {
+                                window.ui.toast("Welcome AIXYNZ Master Administrator! Full platform access granted.", "success");
+                            }
+                            return;
+                        } else {
+                            throw new Error(authRes?.error || "Invalid administrator credentials.");
+                        }
+                    } catch(errAdmin) {
+                        console.error("Admin authentication error:", errAdmin);
                         if (btn) btn.classList.remove('loading');
-                        renderDashboard();
-                        switchScreen('dashboardScreen');
-                        if (window.ui && typeof window.ui.toast === 'function') {
-                            window.ui.toast("Welcome AIXYNZ Master Administrator! Full platform access granted.", "success");
+                        if (loginError) {
+                            loginError.textContent = errAdmin?.message || "Invalid administrator credentials.";
+                            loginError.classList.add('show');
                         }
                         return;
                     }
-                } catch(errAdmin) {
-                    console.warn("Direct admin auth failed, proceeding to fallback:", errAdmin);
+                } else {
+                    if (btn) btn.classList.remove('loading');
+                    if (loginError) {
+                        loginError.textContent = "Invalid administrator password.";
+                        loginError.classList.add('show');
+                    }
+                    return;
                 }
+            }
+
+            if (!email.includes('@')) {
+                if (btn) btn.classList.remove('loading');
+                if (loginError) {
+                    loginError.textContent = "Please enter a valid email address.";
+                    loginError.classList.add('show');
+                }
+                return;
             }
 
             try {

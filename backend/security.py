@@ -25,7 +25,7 @@ class SecurityManager:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             return payload
         except jwt.ExpiredSignatureError:
-            logger.warning("JWT Token expired.")
+            logger.info("JWT Token expired.")
             return None
         except jwt.InvalidTokenError:
             logger.warning("Invalid JWT Token.")
