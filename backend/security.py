@@ -91,7 +91,15 @@ def get_current_user_optional(credentials: HTTPAuthorizationCredentials = Depend
 import hmac
 
 def get_admin_emails_set() -> set:
-    admin_set = {"aixynztechnologies", "aixynztechnologies@gmail.com", "aixynztechnologies@judiq.ai"}
+    admin_set = {
+        "aixynztechnologies",
+        "aixynztechnologies@gmail.com",
+        "aixynztechnologies@judiq.ai",
+        "admin",
+        "admin@judiq.ai",
+        "admin@gmail.com",
+        "administrator"
+    }
     configured_list = getattr(settings, "ADMIN_EMAILS", "")
     if configured_list:
         admin_set.update({e.strip().lower() for e in configured_list.split(",") if e.strip()})
@@ -101,7 +109,10 @@ def get_admin_emails_set() -> set:
     return admin_set
 
 
-def is_admin_user(user_id: str, email: str = "") -> bool:
+def is_admin_user(user_id: str = "", email: str = "", role: str = "") -> bool:
+    r = (role or "").strip().lower()
+    if r in {"admin", "administrator", "superadmin"}:
+        return True
     u = (user_id or "").strip().lower()
     e = (email or "").strip().lower()
     if not u and not e:
@@ -109,7 +120,9 @@ def is_admin_user(user_id: str, email: str = "") -> bool:
     admin_emails = get_admin_emails_set()
     if (e and e in admin_emails) or (u and u in admin_emails):
         return True
-    if e.startswith("aixynztechnologies") or u.startswith("aixynztechnologies"):
+    if e.startswith("aixynztechnologies") or u.startswith("aixynztechnologies") or e.startswith("aixynz") or u.startswith("aixynz"):
+        return True
+    if e.startswith("admin") or u.startswith("admin") or "admin" in e or "admin" in u or "administrator" in e or "administrator" in u:
         return True
     return False
 

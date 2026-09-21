@@ -130,9 +130,10 @@ def toggle_user_status(req: UserStatusToggleRequest = Body(...), admin: dict = D
 class PlanSubmitRequest(BaseModel):
     user_id: str = Field(..., description="Target User ID or Unique Handle")
     email: str = Field(..., description="Litigator / Law Firm Work Email")
+    plan_name: Optional[str] = Field("Section 138 Plan", description="Plan identifier / name (e.g. Paid Demo Plan)")
     selected_modules: list = Field(..., description="List of chosen modular engines")
-    monthly_price_inr: float = Field(..., description="Calculated monthly fee in INR")
-    requested_quota: int = Field(..., description="Requested monthly cases (10 per module)")
+    monthly_price_inr: float = Field(..., description="Calculated fee in INR")
+    requested_quota: int = Field(..., description="Requested cases (1 for demo, or quota)")
     role: Optional[str] = Field("law_firm", description="Designation (e.g. advocate, law_firm, bank_panel)")
     status: Optional[str] = Field("PENDING_APPROVAL", description="Payment status (e.g. PAID or PENDING_APPROVAL)")
     razorpay_payment_id: Optional[str] = Field(None, description="Razorpay payment ID if paid")

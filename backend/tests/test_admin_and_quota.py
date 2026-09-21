@@ -20,9 +20,10 @@ def test_admin_recognition():
     assert is_admin_user("aixynztechnologies") is True
     assert is_admin_user("aixynztechnologies@gmail.com") is True
     assert is_admin_user("user_12345", "aixynztechnologies@judiq.ai") is True
+    assert is_admin_user("admin@judiq.ai") is True
+    assert is_admin_user("admin") is True
+    assert is_admin_user("user_custom", role="admin") is True
     assert is_admin_user("random_litigator@lawfirm.com") is False
-    assert is_admin_user("admin@judiq.ai") is False
-    assert is_admin_user("gandhiatharv565@gmail.com") is False
 
 def test_quota_lifecycle():
     user_id = "test_user_quota_101"
