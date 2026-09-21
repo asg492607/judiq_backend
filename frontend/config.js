@@ -4,11 +4,18 @@ export const API_BASE_URL = window.__JUDIQ_ENV__?.API_BASE_URL || (
         : "https://cheque-bounce-ragbased.onrender.com"
 );
 
-export const COMPANY_NAME = "AIXYNZ Technologies Pvt Ltd";
+export const COMPANY_NAME = "AIXYNZ Technologies Private Limited";
+export const COMPANY_EMAIL = "aixynztechnologies@gmail.com";
+export const COMPANY_PHONE = "7972133643";
+export const COMPANY_OWNERS = ["Atharva Gandhi", "Abhijeet Gandhi"];
+
 export const COMPANY_CONFIG = {
-    name: "AIXYNZ Technologies Pvt Ltd",
+    name: "AIXYNZ Technologies Private Limited",
     shortName: "AIXYNZ",
-    website: "https://aixynz.com"
+    website: email: "aixynztechnologies@gmail.com",
+    phone: "7972133643",
+    displayPhone: "+91 7972133643",
+    owners: ["Atharva Gandhi", "Abhijeet Gandhi"]
 };
 
 // Supabase Client Configuration
@@ -170,29 +177,29 @@ export const criminalWizardSteps = [
         title: 'Offense & Specific Charges',
         subtitle: 'Primary offense classification, sections charged, and timeline',
         fields: [
-            { 
-                name: 'offense_type', 
-                label: 'Primary Offense Category', 
-                type: 'select', 
+            {
+                name: 'offense_type',
+                label: 'Primary Offense Category',
+                type: 'select',
                 options: [
-                    'S.420 IPC / S.318 BNS (Cheating & Financial Fraud)', 
-                    'S.406/409 IPC / S.316 BNS (Criminal Breach of Trust)', 
-                    'S.467/468/471 IPC / S.336/338/340 BNS (Forgery & Valuable Security)', 
-                    'S.498A/304B IPC / S.85/80 BNS (Matrimonial Cruelty & Dowry Allegations)', 
-                    'S.302/304 IPC / S.103/105 BNS (Homicide / Murder vs Provocation)', 
-                    'S.307 IPC / S.109 BNS (Attempt to Murder)', 
-                    'S.376 IPC / S.64/69 BNS (Rape / False Promise of Marriage)', 
+                    'S.420 IPC / S.318 BNS (Cheating & Financial Fraud)',
+                    'S.406/409 IPC / S.316 BNS (Criminal Breach of Trust)',
+                    'S.467/468/471 IPC / S.336/338/340 BNS (Forgery & Valuable Security)',
+                    'S.498A/304B IPC / S.85/80 BNS (Matrimonial Cruelty & Dowry Allegations)',
+                    'S.302/304 IPC / S.103/105 BNS (Homicide / Murder vs Provocation)',
+                    'S.307 IPC / S.109 BNS (Attempt to Murder)',
+                    'S.376 IPC / S.64/69 BNS (Rape / False Promise of Marriage)',
                     'POCSO Act (Protection of Children from Sexual Offences / S.29 Presumption)',
-                    'S.323/324/326 IPC / S.115/117/118 BNS (Voluntarily Causing Hurt / Dangerous Weapon)', 
-                    'NDPS Act (Search S.50 & Twin Bail Conditions S.37)', 
+                    'S.323/324/326 IPC / S.115/117/118 BNS (Voluntarily Causing Hurt / Dangerous Weapon)',
+                    'NDPS Act (Search S.50 & Twin Bail Conditions S.37)',
                     'Prevention of Corruption Act (Prior Sanction S.17A / S.19)',
                     'PMLA / Money Laundering (ED Scheduled Offense / S.45 Bail)',
                     'Cyber Crime & IT Act (S.66C/66D & Digital Evidence)',
                     'Hit & Run / Rash Driving (S.279/304A IPC ↔ S.281/106 BNS)',
                     'Extortion, Robbery & Dacoity (S.384/392/395 IPC ↔ S.308/309/310 BNS)',
                     'Other Criminal Offense'
-                ], 
-                required: true 
+                ],
+                required: true
             },
             { name: 'ipc_section', label: 'Specific Sections Charged (IPC / BNS / Special Acts)', type: 'text', required: true, placeholder: 'e.g., S. 420, 406, 120B IPC / S. 318, 316, 61 BNS' },
             { name: 'incident_date', label: 'Date of Alleged Incident', type: 'date', required: true },
@@ -237,19 +244,19 @@ export const criminalWizardSteps = [
             { name: 'contract_exists', label: 'Is There an Underlying Contract / Commercial Dispute? (S.420 Defense)', type: 'select', options: ['Yes - Commercial Contract / Debt Recovery in Criminal Garb', 'No - Pure Criminal Act'], required: true },
             { name: 'relative_impleaded', label: 'Are Distant In-Laws / Relatives Impleaded with Omnibus Claims? (S.498A)', type: 'select', options: ['Yes - Vague Omnibus Allegations on Extended Family', 'No'], required: false },
             { name: 'flight_risk', label: 'Flight Risk / Tampering Apprehension', type: 'select', options: ['No - Deep Local Roots & Clean Track Record', 'Yes - Risk Alleged by Prosecution'], required: false },
-            { 
-                name: 'primary_relief_sought', 
-                label: 'Primary Legal Strategy / Relief Sought', 
-                type: 'select', 
+            {
+                name: 'primary_relief_sought',
+                label: 'Primary Legal Strategy / Relief Sought',
+                type: 'select',
                 options: [
-                    'Anticipatory Bail (S.438 CrPC / S.484 BNSS)', 
-                    'Regular Bail (S.437/439 CrPC / S.480/483 BNSS)', 
-                    'Default / Statutory Bail (S.167(2) CrPC / S.187 BNSS)', 
-                    'High Court Quashing u/s 482 CrPC / S.528 BNSS (Bhajan Lal)', 
-                    'Discharge Application u/s 227/239 CrPC / S.250/262 BNSS', 
+                    'Anticipatory Bail (S.438 CrPC / S.484 BNSS)',
+                    'Regular Bail (S.437/439 CrPC / S.480/483 BNSS)',
+                    'Default / Statutory Bail (S.167(2) CrPC / S.187 BNSS)',
+                    'High Court Quashing u/s 482 CrPC / S.528 BNSS (Bhajan Lal)',
+                    'Discharge Application u/s 227/239 CrPC / S.250/262 BNSS',
                     'Trial Cross-Examination & Comprehensive Defense Strategy'
-                ], 
-                required: true 
+                ],
+                required: true
             },
             { name: 'additional_notes', label: 'Specific Defense Grounds & Factual Context', type: 'textarea', required: false, placeholder: 'Detail any alibi, hostile witness history, prior settlement agreements, or specific legal objections...' }
         ]

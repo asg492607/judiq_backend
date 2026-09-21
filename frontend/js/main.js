@@ -333,7 +333,7 @@ function setupFormListeners() {
                         const adminUser = {
                             uid: 'aixynztechnologies',
                             id: 'aixynztechnologies',
-                            email: cleanIdent.includes('@') ? cleanIdent : 'aixynztechnologies@judiq.ai',
+                            email: cleanIdent.includes('@') ? cleanIdent : 'aixynztechnologies@gmail.com',
                             displayName: 'AIXYNZ Admin',
                             role: 'admin',
                             plan_status: 'ACTIVE'
