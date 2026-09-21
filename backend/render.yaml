@@ -9,22 +9,19 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
-      # SECURITY: Set DATABASE_URL as a Render Secret in the dashboard, not here.
-      # See: https://render.com/docs/environment-variables#secret-files
       - key: DATABASE_URL
         sync: false
       - key: SECRET_KEY
         generateValue: true
       - key: ENCRYPTION_KEY
         sync: false
-      - key: GDRIVE_FILE_ID
-        value: 1DfejIbgRXco3Tpp_aTBfarIm7h3t32EVykJGkEFdee4
-      - key: GDRIVE_API_KEY
-        value: ""
       - key: SUPABASE_URL
         value: https://eccqzpffofrvbzuadexk.supabase.co
       - key: SUPABASE_ANON_KEY
         value: sb_publishable_431lKcoHrDo-4IKtcKJICA_Ht3f2p42
-
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
       - key: LOG_LEVEL
-        value: WARNING
+        value: INFO

@@ -3,9 +3,7 @@
  * 100% Deterministic Rule-Based Legal & Procedural Audit Interface
  */
 
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? (window.location.port === '8000' ? '' : `${window.location.protocol}//${window.location.hostname}:8000`)
-    : "https://cheque-bounce-ragbased.onrender.com";
+const API_BASE = window.__JUDIQ_ENV__?.API_BASE_URL || "https://cheque-bounce-ragbased.onrender.com";
 
 let currentAuditResult = null;
 

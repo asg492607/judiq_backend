@@ -9,7 +9,19 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: DATABASE_URL
+        sync: false
       - key: SECRET_KEY
         generateValue: true
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: SUPABASE_URL
+        value: https://eccqzpffofrvbzuadexk.supabase.co
+      - key: SUPABASE_ANON_KEY
+        value: sb_publishable_431lKcoHrDo-4IKtcKJICA_Ht3f2p42
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
       - key: LOG_LEVEL
         value: INFO

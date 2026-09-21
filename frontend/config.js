@@ -1,9 +1,7 @@
 export const API_BASE_URL = window.__JUDIQ_ENV__?.API_BASE_URL || (
-    window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? `${window.location.protocol}//${window.location.host}`
-        : (window.location.origin && window.location.origin !== "null" && !window.location.origin.startsWith("file://")
-            ? window.location.origin
-            : "https://cheque-bounce-ragbased.onrender.com")
+    (window.location.origin && !window.location.origin.startsWith("file://") && window.location.origin.includes("onrender.com"))
+        ? window.location.origin
+        : "https://cheque-bounce-ragbased.onrender.com"
 );
 
 export const COMPANY_NAME = "AIXYNZ Technologies Pvt Ltd";

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 ws://localhost:8000 wss://* https://*.supabase.co https://*; frame-src 'self' https://*.supabase.co https://accounts.google.com https://*.google.com;">
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://apis.google.com https://*.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://checkout.razorpay.com https://*.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://*.razorpay.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://*.razorpay.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://cheque-bounce-ragbased.onrender.com wss://* https://*.supabase.co https://* https://checkout.razorpay.com https://api.razorpay.com https://*.razorpay.com; frame-src 'self' https://*.supabase.co https://accounts.google.com https://*.google.com https://api.razorpay.com https://*.razorpay.com;">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>JudiQ – AI Litigation Strategist</title>
@@ -1025,6 +1025,7 @@
 
                     <div class="auth-footer">
                         <p>Don't have an account? <a href="#" id="showRegister">Create one</a></p>
+                        <p style="margin-top: 12px;"><a href="#" onclick="showLanding(); return false;" style="color: var(--primary-color, #6366f1); font-size: 0.88rem;"><i class="fas fa-arrow-left"></i> Back to Plans &amp; Home</a></p>
                     </div>
                 </div>
             </div>
@@ -1099,6 +1100,7 @@
 
                     <div class="auth-footer">
                         <p>Already have an account? <a href="#" id="showLogin">Sign in</a></p>
+                        <p style="margin-top: 12px;"><a href="#" onclick="showLanding(); return false;" style="color: var(--primary-color, #6366f1); font-size: 0.88rem;"><i class="fas fa-arrow-left"></i> Back to Plans &amp; Home</a></p>
                     </div>
                 </div>
             </div>
@@ -4863,8 +4865,14 @@
     <!-- Chart.js for Visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Razorpay Standard Checkout SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <!-- Razorpay Checkout Integration -->
+    <script src="js/modules/razorpay_checkout.js?v=30"></script>
+
     <!-- Main Application Script (ES6 Module) -->
-    <script type="module" src="js/main.js?v=28"></script>
+    <script type="module" src="js/main.js?v=30"></script>
 </body>
 
 </html>
