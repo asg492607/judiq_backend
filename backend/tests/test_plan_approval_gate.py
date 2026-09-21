@@ -109,5 +109,51 @@ def test_simulation_plan_approval_workflow():
     print("ALL TESTS PASSED: Admin Approval Gate is 100% strictly enforced!")
     print("=======================================================")
 
+
+def test_instant_activation_upon_payment():
+    """
+    Verifies that when payment is completed, the service starts immediately
+    without requiring any admin approval.
+    """
+    uid_suffix = uuid.uuid4().hex[:6]
+    test_user_id = f"USR_PAID_ADVOCATE_{uid_suffix}"
+    test_email = f"advocate.paid_{uid_suffix}@lawfirm.in"
+
+    submit_res = client.post("/api/v1/admin/subscription/submit-plan", json={
+        "user_id": test_user_id,
+        "email": test_email,
+        "selected_modules": ["s138"],
+        "monthly_price_inr": 499.0,
+        "requested_quota": 25,
+        "role": "law_firm",
+        "status": "PAID",
+        "razorpay_payment_id": f"pay_{uid_suffix}"
+    })
+    assert submit_res.status_code == 200
+    data = submit_res.json()
+    assert data["status"] == "ACTIVE"
+    assert data["quota"]["plan_status"] == "ACTIVE"
+    assert data["quota"]["is_active"] is True
+    assert data["quota"]["monthly_report_limit"] == 25
+
+    analyze_payload = {
+        "user_id": test_user_id,
+        "email": test_email,
+        "case_description": "Instant payment activation test case description within statutory limits.",
+        "cheque_amount": 250000,
+        "cheque_date": "2026-06-01",
+        "dishonour_date": "2026-06-10",
+        "notice_date": "2026-06-20",
+        "recipient_received_date": "2026-06-25",
+        "complaint_date": "2026-07-10",
+        "complainant_type": "individual",
+        "accused_type": "individual"
+    }
+    analyze_res = client.post("/api/v1/analyze", json=analyze_payload)
+    assert analyze_res.status_code == 200, f"Expected 200 OK without admin approval, got: {analyze_res.status_code}"
+    assert analyze_res.json().get("success") is True
+
+
 if __name__ == "__main__":
     test_simulation_plan_approval_workflow()
+    test_instant_activation_upon_payment()

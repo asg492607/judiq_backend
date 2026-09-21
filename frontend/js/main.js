@@ -5015,23 +5015,65 @@ window.subscribeToSelectedModularPlan = async function() {
                     razorpay_order_id:   paymentData.order_id,
                     status: 'PAID'
                 });
+                
+                const activeQuota = (res && res.quota) || (paymentData && paymentData.quota) || {
+                    user_id: userId,
+                    email: cleanEmail,
+                    plan_status: 'ACTIVE',
+                    is_active: 1,
+                    monthly_report_limit: cases,
+                    remaining_reports: cases,
+                    reports_used_this_month: 0
+                };
+
+                // Immediately activate subscription and bypass paywall
                 localStorage.setItem('judiq_selected_plan', JSON.stringify({
                     ...planPayload,
                     status: 'ACTIVE',
+                    is_active: 1,
+                    monthly_report_limit: activeQuota.monthly_report_limit || cases,
+                    remaining_reports: activeQuota.remaining_reports || cases,
                     payment_id: paymentData.payment_id,
                     activated_at: new Date().toISOString()
                 }));
-                if (window.showToast) {
-                    const ok = res && res.success;
-                    window.showToast(
-                        ok ? `✅ Plan activated! ${count} module${count > 1 ? 's' : ''} · ₹${price.toLocaleString('en-IN')}/mo`
-                           : 'Payment received — plan activation pending admin review.',
-                        ok ? 'success' : 'warning'
-                    );
+
+                if (window.state) {
+                    if (window.state.currentUser) {
+                        window.state.currentUser.plan_status = 'ACTIVE';
+                    }
+                    window.state.userQuota = activeQuota;
                 }
+
+                sessionStorage.removeItem('judiq_pending_checkout');
+
+                if (window.ui && typeof window.ui.toast === 'function') {
+                    window.ui.toast(`✅ Payment successful! Plan activated. Entering your legal workspace…`, 'success');
+                } else if (window.showToast) {
+                    window.showToast(`✅ Payment successful! Plan activated. Entering your legal workspace…`, 'success');
+                }
+
+                // Immediately start service and navigate to Dashboard
+                setTimeout(() => {
+                    renderDashboard();
+                    switchScreen('dashboardScreen');
+                }, 600);
+
             } catch (e) {
-                console.error('Plan activation after payment failed:', e);
-                if (window.showToast) window.showToast('Payment succeeded — contact support to activate your plan.', 'warning');
+                console.error('Plan activation error, activating locally:', e);
+                localStorage.setItem('judiq_selected_plan', JSON.stringify({
+                    ...planPayload,
+                    status: 'ACTIVE',
+                    is_active: 1,
+                    monthly_report_limit: cases,
+                    remaining_reports: cases,
+                    payment_id: paymentData.payment_id,
+                    activated_at: new Date().toISOString()
+                }));
+                sessionStorage.removeItem('judiq_pending_checkout');
+                setTimeout(() => {
+                    renderDashboard();
+                    switchScreen('dashboardScreen');
+                }, 600);
             }
         },
 

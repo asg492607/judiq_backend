@@ -152,7 +152,7 @@ export function switchScreen(targetScreenId) {
             // 2. Check loaded state quota
             if (window.state && window.state.userQuota) {
                 const q = window.state.userQuota;
-                if (q.plan_status === 'ACTIVE' && q.is_active) {
+                if ((q.plan_status === 'ACTIVE' || q.plan_status === 'PAID' || q.plan_status === 'APPROVED') && q.is_active) {
                     isPaid = true;
                 } else if (q.plan_status === 'PENDING_PAYMENT' || !q.is_active || q.monthly_report_limit === 0) {
                     isPaid = false;

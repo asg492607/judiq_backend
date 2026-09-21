@@ -98,11 +98,20 @@ async function _createOrder(amount, currency = 'INR', receipt = '') {
  * Verify the payment signature via the backend.
  * @returns {{ success: boolean, message: string }}
  */
-async function _verifyPayment(razorpay_order_id, razorpay_payment_id, razorpay_signature) {
+async function _verifyPayment(razorpay_order_id, razorpay_payment_id, razorpay_signature, extra = {}) {
     const res = await fetch(`${API_BASE_URL}/api/v1/payments/verify-payment`, {
         method: 'POST',
         headers: _getAuthHeaders(),
-        body: JSON.stringify({ razorpay_order_id, razorpay_payment_id, razorpay_signature }),
+        body: JSON.stringify({ 
+            razorpay_order_id, 
+            razorpay_payment_id, 
+            razorpay_signature,
+            user_id: extra.user_id || '',
+            email: extra.email || '',
+            modules: extra.modules || ['s138'],
+            quota: extra.quota || 25,
+            amount: extra.amount || 499.0
+        }),
     });
     if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -183,18 +192,27 @@ async function judiqPay({
                 const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = response;
                 try {
                     _toast('Verifying payment…', 'info');
+                    const extraData = {
+                        user_id: (notes && notes.user_id) || (prefill && prefill.email) || '',
+                        email: (prefill && prefill.email) || '',
+                        modules: notes && notes.modules ? notes.modules.split(',') : ['s138'],
+                        quota: notes && notes.cases_quota ? parseInt(notes.cases_quota, 10) : 25,
+                        amount: amount / 100
+                    };
                     const result = await _verifyPayment(
                         razorpay_order_id,
                         razorpay_payment_id,
                         razorpay_signature,
+                        extraData
                     );
                     if (result.success) {
-                        _toast('Payment successful! Thank you.', 'success');
+                        _toast('Payment successful! Platform service is now active.', 'success');
                         if (typeof onSuccess === 'function') {
                             onSuccess({
                                 payment_id: razorpay_payment_id,
                                 order_id: razorpay_order_id,
                                 signature: razorpay_signature,
+                                quota: result.quota
                             });
                         }
                     } else {

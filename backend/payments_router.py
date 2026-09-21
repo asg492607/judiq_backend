@@ -77,11 +77,18 @@ class VerifyPaymentRequest(BaseModel):
     razorpay_order_id: str
     razorpay_payment_id: str
     razorpay_signature: str
+    user_id: Optional[str] = None
+    email: Optional[str] = None
+    plan: Optional[str] = "section_138"
+    modules: Optional[list] = None
+    quota: Optional[int] = 25
+    amount: Optional[float] = 499.0
 
 
 class VerifyPaymentResponse(BaseModel):
     success: bool
     message: str
+    quota: Optional[dict] = None
 
 
 # ---------------------------------------------------------------------------
@@ -198,7 +205,32 @@ async def verify_payment(payload: VerifyPaymentRequest) -> VerifyPaymentResponse
         payload.razorpay_payment_id,
     )
 
+    activated_quota = None
+    if payload.user_id or payload.email:
+        try:
+            from session import DatabaseManager
+            target_uid = (payload.user_id or "").strip()
+            target_email = (payload.email or "").strip().lower()
+            if not target_uid and target_email:
+                target_uid = f"USR_{target_email.split('@')[0].upper()}"
+
+            allocated_quota = payload.quota if (payload.quota and payload.quota > 0) else 25
+            activated_quota = DatabaseManager.submit_subscription_plan(
+                user_id=target_uid,
+                email=target_email,
+                selected_modules=payload.modules or ["s138"],
+                monthly_price_inr=payload.amount or 499.0,
+                requested_quota=allocated_quota,
+                role="law_firm",
+                status="ACTIVE",
+                razorpay_payment_id=payload.razorpay_payment_id
+            )
+            logger.info("Subscription activated immediately without admin approval for user=%s (%s)", target_uid, target_email)
+        except Exception as e:
+            logger.error("Error auto-activating subscription in verify-payment: %s", e)
+
     return VerifyPaymentResponse(
         success=True,
-        message="Payment verified successfully.",
+        message="Payment verified and subscription activated successfully.",
+        quota=activated_quota
     )

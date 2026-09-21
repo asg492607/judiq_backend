@@ -1314,9 +1314,9 @@ class DatabaseManager:
             now_iso = datetime.now().isoformat()
             modules_json = json.dumps(selected_modules)
 
-            is_active_flag = 1 if status == "ACTIVE" or razorpay_payment_id else 0
+            is_active_flag = 1 if (status in ("ACTIVE", "PAID", "APPROVED") or razorpay_payment_id) else 0
             plan_status_val = "ACTIVE" if is_active_flag else "PENDING_APPROVAL"
-            report_limit = requested_quota if is_active_flag else 0
+            report_limit = (requested_quota if requested_quota > 0 else 25) if is_active_flag else 0
 
             cursor.execute(f"SELECT user_id FROM user_quotas WHERE user_id = {p}", (user_id,))
             exists = cursor.fetchone()
