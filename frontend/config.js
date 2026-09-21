@@ -12,7 +12,9 @@ export const COMPANY_OWNERS = ["Atharva Gandhi", "Abhijeet Gandhi"];
 export const COMPANY_CONFIG = {
     name: "AIXYNZ Technologies Private Limited",
     shortName: "AIXYNZ",
-    website: email: "aixynztechnologies@gmail.com",
+    website: null,
+    logo: null,
+    email: "aixynztechnologies@gmail.com",
     phone: "7972133643",
     displayPhone: "+91 7972133643",
     owners: ["Atharva Gandhi", "Abhijeet Gandhi"]
