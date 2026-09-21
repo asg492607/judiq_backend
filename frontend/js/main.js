@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDocumentLibrary();
     initDraftWorkflow();
     initCmsAnalytics();
-    
+
     // Initialize Co-Counsel Dock & Strategy Simulator
     window.judiqDock = new JudiQCoCounselDock();
     window.judiqSimulator = new JudiQStrategySimulator();
@@ -134,15 +134,15 @@ export function handleUserSession(sessionUser) {
         const savedRole = localStorage.getItem(`judiq_role_${user.uid}`) || (user.user_metadata?.role) || 'law_firm';
         const userEmailLower = (user.email || '').toLowerCase().trim();
         const userIdLower = String(user.uid || '').toLowerCase().trim();
-        const isAdmin = savedRole === 'admin' || 
-                        savedRole === 'administrator' ||
-                        userEmailLower.includes('aixynztechnologies') || 
-                        userIdLower.includes('aixynztechnologies') || 
-                        userEmailLower.includes('admin') || 
-                        userIdLower.includes('admin') || 
-                        userEmailLower.startsWith('admin') || 
-                        userIdLower.startsWith('admin') || 
-                        !!localStorage.getItem('judiq_admin_jwt');
+        const isAdmin = savedRole === 'admin' ||
+            savedRole === 'administrator' ||
+            userEmailLower.includes('aixynztechnologies') ||
+            userIdLower.includes('aixynztechnologies') ||
+            userEmailLower.includes('admin') ||
+            userIdLower.includes('admin') ||
+            userEmailLower.startsWith('admin') ||
+            userIdLower.startsWith('admin') ||
+            !!localStorage.getItem('judiq_admin_jwt');
 
         if (isAdmin) {
             window.state.currentRole = 'admin';
@@ -184,7 +184,7 @@ export function handleUserSession(sessionUser) {
                         localStorage.removeItem('judiq_selected_plan');
                     }
                 }
-            }).catch(() => {});
+            }).catch(() => { });
         }
 
         const hasShareParam = new URLSearchParams(window.location.search).has('share');
@@ -195,7 +195,7 @@ export function handleUserSession(sessionUser) {
                 try {
                     const p = JSON.parse(planStr);
                     hasPlan = (p.status === 'ACTIVE' || p.status === 'PAID');
-                } catch(e) {}
+                } catch (e) { }
             }
             if (hasPlan || isAdmin) {
                 renderDashboard();
@@ -267,7 +267,7 @@ function setupAuthListeners() {
             if (data?.session?.user) {
                 handleUserSession(data.session.user);
             }
-        }).catch(() => {});
+        }).catch(() => { });
     }
 }
 
@@ -280,29 +280,29 @@ export function loginLocally(email, domain = 'ni_act', role = 'law_firm') {
         displayName: cleanEmail.split('@')[0]
     };
     window.state.currentUser = mockUser;
-    
+
     // Save domain
     const savedDomain = localStorage.getItem(`judiq_domain_${uid}`) || domain || 'ni_act';
     localStorage.setItem(`judiq_domain_${uid}`, savedDomain);
     window.state.userDomain = savedDomain;
-    
+
     // Save role
     const cleanEmailLower = cleanEmail.toLowerCase().trim();
     const uidLower = String(uid).toLowerCase().trim();
-    const isLocalAdmin = role === 'admin' || 
-                         role === 'administrator' ||
-                         cleanEmailLower.includes('aixynztechnologies') || 
-                         uidLower.includes('aixynztechnologies') || 
-                         cleanEmailLower.includes('admin') || 
-                         uidLower.includes('admin') || 
-                         cleanEmailLower.startsWith('admin') || 
-                         uidLower.startsWith('admin') || 
-                         !!localStorage.getItem('judiq_admin_jwt');
+    const isLocalAdmin = role === 'admin' ||
+        role === 'administrator' ||
+        cleanEmailLower.includes('aixynztechnologies') ||
+        uidLower.includes('aixynztechnologies') ||
+        cleanEmailLower.includes('admin') ||
+        uidLower.includes('admin') ||
+        cleanEmailLower.startsWith('admin') ||
+        uidLower.startsWith('admin') ||
+        !!localStorage.getItem('judiq_admin_jwt');
 
     const savedRole = isLocalAdmin ? 'admin' : (localStorage.getItem(`judiq_role_${uid}`) || role || 'law_firm');
     localStorage.setItem(`judiq_role_${uid}`, savedRole);
     window.state.currentRole = savedRole;
-    
+
     if (isLocalAdmin) {
         sessionStorage.removeItem('judiq_pending_checkout');
         localStorage.setItem('judiq_selected_plan', JSON.stringify({
@@ -322,10 +322,10 @@ export function loginLocally(email, domain = 'ni_act', role = 'law_firm') {
             remaining_reports: 999999
         };
     }
-    
+
     const userEmailEl = document.getElementById('userEmail');
     if (userEmailEl) ui.setText('userEmail', mockUser.email);
-    
+
     // Check if there is a pending subscription checkout to resume (non-admin only)
     const pendingCheckout = sessionStorage.getItem('judiq_pending_checkout');
     if (!isLocalAdmin && pendingCheckout) {
@@ -374,7 +374,7 @@ function setupFormListeners() {
                 loginError.classList.remove('show');
             }
             if (btn) btn.classList.add('loading');
-            
+
             const cleanIdent = (email || '').toLowerCase().trim();
             if (cleanIdent.includes('aixynztechnologies')) {
                 if (pass === 'asg@492607') {
@@ -413,7 +413,7 @@ function setupFormListeners() {
                         } else {
                             throw new Error(authRes?.error || "Invalid administrator credentials.");
                         }
-                    } catch(errAdmin) {
+                    } catch (errAdmin) {
                         console.error("Admin authentication error:", errAdmin);
                         if (btn) btn.classList.remove('loading');
                         if (loginError) {
@@ -580,12 +580,12 @@ function setupFormListeners() {
                         const sessionUser = signInData?.user || data.user;
                         localStorage.setItem(`judiq_domain_${sessionUser.id}`, domain);
                         window.state.userDomain = domain;
-                        
+
                         const emailLower = email.toLowerCase().trim();
-                        const isRegAdmin = emailLower.includes('aixynztechnologies') || 
-                                           emailLower.includes('admin') || 
-                                           emailLower.startsWith('admin') ||
-                                           (window.state && window.state.currentRole === 'admin');
+                        const isRegAdmin = emailLower.includes('aixynztechnologies') ||
+                            emailLower.includes('admin') ||
+                            emailLower.startsWith('admin') ||
+                            (window.state && window.state.currentRole === 'admin');
 
                         if (isRegAdmin) {
                             sessionStorage.removeItem('judiq_pending_checkout');
@@ -636,11 +636,11 @@ function setupFormListeners() {
                     }
                 } else {
                     const emailLower = email.toLowerCase().trim();
-                    const isRegAdmin = emailLower.includes('aixynztechnologies') || 
-                                       emailLower.includes('admin') || 
-                                       emailLower.startsWith('admin') ||
-                                       (window.state && window.state.currentRole === 'admin');
-                    
+                    const isRegAdmin = emailLower.includes('aixynztechnologies') ||
+                        emailLower.includes('admin') ||
+                        emailLower.startsWith('admin') ||
+                        (window.state && window.state.currentRole === 'admin');
+
                     loginLocally(email, isRegAdmin ? 'admin' : domain);
                     if (isRegAdmin) {
                         sessionStorage.removeItem('judiq_pending_checkout');
@@ -671,11 +671,11 @@ function setupFormListeners() {
             } catch (err) {
                 console.info('Activating local user session:', err?.message || err);
                 const emailLower = email.toLowerCase().trim();
-                const isRegAdmin = emailLower.includes('aixynztechnologies') || 
-                                   emailLower.includes('admin') || 
-                                   emailLower.startsWith('admin') ||
-                                   (window.state && window.state.currentRole === 'admin');
-                
+                const isRegAdmin = emailLower.includes('aixynztechnologies') ||
+                    emailLower.includes('admin') ||
+                    emailLower.startsWith('admin') ||
+                    (window.state && window.state.currentRole === 'admin');
+
                 loginLocally(email, isRegAdmin ? 'admin' : domain);
                 if (isRegAdmin) {
                     sessionStorage.removeItem('judiq_pending_checkout');
@@ -761,7 +761,7 @@ window.logout = async () => {
     if (auth && typeof auth.signOut === 'function') {
         try {
             await auth.signOut();
-        } catch (_) {}
+        } catch (_) { }
     }
     window.state.currentUser = null;
     localStorage.removeItem('judiq_active_user_email');
@@ -814,17 +814,17 @@ function renderDashboard() {
     const savedRole = (currentUser && localStorage.getItem(`judiq_role_${currentUser.uid}`)) || (window.state && window.state.currentRole) || '';
     const adminBtn = document.getElementById('adminPortalBtn');
     const isAdmin = savedRole === 'admin' ||
-                    savedRole === 'administrator' ||
-                    userEmail.includes('aixynztechnologies') || 
-                    userId.includes('aixynztechnologies') || 
-                    userEmail.includes('admin') || 
-                    userId.includes('admin') || 
-                    userEmail.startsWith('admin') || 
-                    userId.startsWith('admin') || 
-                    (window.state && window.state.currentRole === 'admin') ||
-                    !!localStorage.getItem('judiq_admin_jwt') ||
-                    (window.state && window.state.userQuota && window.state.userQuota.role === 'admin');
-    
+        savedRole === 'administrator' ||
+        userEmail.includes('aixynztechnologies') ||
+        userId.includes('aixynztechnologies') ||
+        userEmail.includes('admin') ||
+        userId.includes('admin') ||
+        userEmail.startsWith('admin') ||
+        userId.startsWith('admin') ||
+        (window.state && window.state.currentRole === 'admin') ||
+        !!localStorage.getItem('judiq_admin_jwt') ||
+        (window.state && window.state.userQuota && window.state.userQuota.role === 'admin');
+
     if (adminBtn) {
         adminBtn.style.display = isAdmin ? 'inline-flex' : 'none';
     }
@@ -860,7 +860,7 @@ function renderDashboard() {
     const grid = document.getElementById('actionCardsGrid');
     if (grid) {
         const allCases = JSON.parse(localStorage.getItem('judiq_recent_cases_v1') || '[]');
-        
+
         if (domain === 'composite') {
             const domainCases = allCases.filter(c => c.domain === 'composite' || (c.case_data && String(c.case_data.case_type).toLowerCase().includes('composite')));
             const total = domainCases.length;
@@ -1143,7 +1143,7 @@ function renderDashboard() {
                 const profile = JSON.parse(savedProfileStr);
                 if (profile.displayName) name = profile.displayName;
                 if (profile.firmName) firm = profile.firmName;
-            } catch (_) {}
+            } catch (_) { }
         }
         greetingEl.textContent = `Welcome, Counsel ${name}`;
         const domainLabels = {
@@ -1175,9 +1175,9 @@ function formatDate(dateStr) {
     try {
         const d = new Date(dateStr);
         if (isNaN(d.getTime())) return dateStr;
-        return d.toLocaleDateString(undefined, { 
-            year: 'numeric', 
-            month: 'short', 
+        return d.toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'short',
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
@@ -1196,7 +1196,7 @@ window.saveCaseToHistory = async (caseData, analysisResult) => {
         let localCases = [];
         try {
             localCases = JSON.parse(localStorage.getItem('judiq_recent_cases_v1') || '[]');
-        } catch (_) {}
+        } catch (_) { }
 
         const score = analysisResult.score !== undefined ? analysisResult.score : (analysisResult.merit_score || 0);
         const verdict = analysisResult.verdict || analysisResult.primary_verdict || 'ANALYZED';
@@ -1221,7 +1221,7 @@ window.saveCaseToHistory = async (caseData, analysisResult) => {
 
         localStorage.setItem('judiq_recent_cases_v1', JSON.stringify(localCases));
 
-        
+
         // Refresh dashboard view if it's currently rendered
         const recentCasesContainer = document.getElementById('recentCases');
         if (recentCasesContainer) {
@@ -1246,7 +1246,7 @@ window.loadRecentCases = async () => {
         let localCases = [];
         try {
             localCases = JSON.parse(localStorage.getItem('judiq_recent_cases_v1') || '[]');
-        } catch (_) {}
+        } catch (_) { }
 
         const userId = window.state.currentUser ? window.state.currentUser.uid : 'ANONYMOUS';
         const currentDomain = window.state.userDomain || 'ni_act';
@@ -1313,14 +1313,14 @@ window.loadRecentCases = async () => {
 
             const infoDiv = document.createElement('div');
             infoDiv.className = 'recent-case-info';
-            
+
             const h4 = document.createElement('h4');
             h4.textContent = c.title || 'Untitled Case';
-            
+
             const p = document.createElement('p');
             p.style.cssText = 'font-size: 0.75rem; color: var(--gray-400); margin-top: 0.25rem;';
             p.innerHTML = `ID: <strong>${escapeHtml(c.id)}</strong> | Updated: <strong>${formatDate(c.date)}</strong> | Assessment: <span style="color: var(--primary-400); font-weight: 600;">${escapeHtml(c.verdict)}</span>`;
-            
+
             infoDiv.appendChild(h4);
             infoDiv.appendChild(p);
 
@@ -1347,7 +1347,7 @@ window.loadRecentCases = async () => {
 
             itemDiv.appendChild(infoDiv);
             itemDiv.appendChild(rightDiv);
-            
+
             container.appendChild(itemDiv);
         });
     } catch (err) {
@@ -1365,7 +1365,7 @@ window.loadCaseFromHistory = async (caseId) => {
         let localCases = [];
         try {
             localCases = JSON.parse(localStorage.getItem('judiq_recent_cases_v1') || '[]');
-        } catch (_) {}
+        } catch (_) { }
 
         const localCase = localCases.find(c => c.id === caseId);
         if (localCase && localCase.case_data && localCase.analysis_result) {
@@ -1425,7 +1425,7 @@ window.deleteCaseFromHistory = async (caseId, event) => {
         let localCases = [];
         try {
             localCases = JSON.parse(localStorage.getItem('judiq_recent_cases_v1') || '[]');
-        } catch (_) {}
+        } catch (_) { }
         localCases = localCases.filter(c => c.id !== caseId);
         localStorage.setItem('judiq_recent_cases_v1', JSON.stringify(localCases));
 
@@ -1451,8 +1451,8 @@ window.startCaseAnalysis = (initialData = null) => {
     window.state.caseData = flatData;
     try {
         localStorage.setItem('judiq_wizard_autosave', JSON.stringify(window.state.caseData));
-    } catch (_) {}
-    
+    } catch (_) { }
+
     switchScreen('caseWizardScreen');
     if (typeof renderWizardStep === 'function') {
         renderWizardStep();
@@ -1529,7 +1529,7 @@ window.runQuickAnalysis = async () => {
         dishonour_memo: document.getElementById('qDishonourMemo')?.checked ? "Yes - Original" : "No",
         notice_sent: document.getElementById('qNoticeSent')?.checked ? "Yes" : "No",
         supporting_documents: document.getElementById('qDebtProof')?.checked ? "Yes - All Documents" : "No Documents",
-        
+
         // Defaults
         case_id: "CC/QUICK/" + Date.now().toString().slice(-4),
         case_title: `${complainantEl.value} vs ${accusedEl.value}`,
@@ -1664,7 +1664,7 @@ window.selectDraftType = (id) => {
                 <i class="fas ${activeDraftType.icon}"></i> Type ${activeDraftType.number} of 13 &nbsp;·&nbsp; ${activeDraftType.subtitle}
             </span>`;
     }
-    
+
     ui.setText('draftFormTitle', activeDraftType.title);
     ui.setText('draftFormSubtitle', activeDraftType.description);
 
@@ -1742,7 +1742,7 @@ window.generateDraftFromForm = () => {
         const txt = activeDraftType.generate(data);
         const textPreview = document.getElementById('generatedDraftContent');
         if (textPreview) textPreview.value = txt;
-        
+
         const badge = document.getElementById('draftOutputBadge');
         if (badge) {
             badge.innerHTML = `
@@ -1779,7 +1779,7 @@ window.generateDraftFromForm = () => {
                                     </div>
                                 `;
                             }).join('');
-                            
+
                             window.loadDraftVersion = (version) => {
                                 const found = data.history.find(h => String(h.version) === String(version));
                                 if (found) {
@@ -1815,7 +1815,7 @@ window.copyGeneratedDraft = () => {
 window.downloadGeneratedDraft = async () => {
     const content = document.getElementById('generatedDraftContent')?.value;
     if (!content) { ui.toast('Nothing to download', 'warning'); return; }
-    
+
     // Create highly premium loading overlay
     const overlay = document.createElement('div');
     overlay.id = 'dossierLoadingOverlay';
@@ -1840,7 +1840,7 @@ window.downloadGeneratedDraft = async () => {
     let stepIdx = 0;
     const loadingInterval = setInterval(() => {
         const textEl = document.getElementById('dossierLoadingText');
-        if(textEl && stepIdx < steps.length) {
+        if (textEl && stepIdx < steps.length) {
             textEl.innerText = steps[stepIdx];
             stepIdx++;
         }
@@ -1848,10 +1848,10 @@ window.downloadGeneratedDraft = async () => {
 
     try {
         const title = activeDraftType ? activeDraftType.title : 'Legal Draft';
-        
+
         // Extract full intelligence metadata
         const ar = window.state.analysisResult || {};
-        
+
         const topDefences = (ar.defence_strategy || []).slice(0, 2).map(d => typeof d === 'string' ? d : d.argument);
         const topPrecedents = (ar.precedents || []).slice(0, 2).map(p => {
             if (typeof p === 'string') return p;
@@ -1859,8 +1859,8 @@ window.downloadGeneratedDraft = async () => {
             const cit = p.citation || '';
             return cit ? `${name} [${cit}]` : name;
         });
-        
-        const metadata = { 
+
+        const metadata = {
             caseId: ar.case_id || 'Unknown_Case',
             score: ar.score || null,
             riskLevel: ar.risk_level || 'Unknown',
@@ -1870,10 +1870,10 @@ window.downloadGeneratedDraft = async () => {
             precedents: topPrecedents,
             analysis_result: ar
         };
-        
+
         const blob = await api.generateDraftPdf(title, content, metadata);
         if (blob.size < 100) throw new Error('Received empty PDF');
-        
+
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.style.display = 'none';
@@ -1882,12 +1882,12 @@ window.downloadGeneratedDraft = async () => {
         a.download = getSanitizedCaseFilename(draftTitle, metadata, 'pdf');
         document.body.appendChild(a);
         a.click();
-        
+
         setTimeout(() => {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }, 100);
-        
+
         ui.toast('Comprehensive Dossier Downloaded!', 'success');
     } catch (error) {
         console.error('Download draft error:', error);
@@ -1949,7 +1949,7 @@ window.proceedWithExtractedText = () => {
         purpose: text.substring(0, 1000),
         additional_notes: text
     };
-    
+
     window.startCaseAnalysis(initialData);
     ui.toast("Wizard pre-filled with extracted data", "success");
 };
@@ -2087,7 +2087,7 @@ window.startNewCase = () => {
 export function getSanitizedCaseFilename(prefix = 'Report', data = null, ext = 'pdf') {
     const d = data || window.state.analysisResult || window.state.caseData || {};
     const cd = (d && d.case_data) ? d.case_data : (d || {});
-    
+
     // Extract most descriptive name available
     let title = cd.case_title || cd.case_caption || cd.title || '';
     if (!title && cd.complainant_name && cd.accused_name) {
@@ -2105,19 +2105,19 @@ export function getSanitizedCaseFilename(prefix = 'Report', data = null, ext = '
     if (!title) {
         title = 'Legal_Matter';
     }
-    
+
     // Clean string for safe cross-platform file naming
     const safeTitle = String(title)
         .replace(/[^a-zA-Z0-9_\-\s]/g, '')
         .trim()
         .replace(/\s+/g, '_')
         .slice(0, 60);
-        
+
     const safePrefix = String(prefix)
         .replace(/[^a-zA-Z0-9_\-\s]/g, '')
         .trim()
         .replace(/\s+/g, '_');
-        
+
     return `JUDIQ_${safePrefix}_${safeTitle}.${ext.replace(/^\./, '')}`;
 }
 window.getSanitizedCaseFilename = getSanitizedCaseFilename;
@@ -2213,7 +2213,7 @@ window.renderSelectedDraft = () => {
     const templateId = window.currentDraftTemplate || 'demand_notice';
     const templateObj = DRAFT_TYPES.find(t => t.id === templateId) || DRAFT_TYPES[0];
     const caseData = window.state.caseData || {};
-    
+
     const d = {
         complainant_name: caseData.complainant_name || 'Apex Global Traders Pvt Ltd',
         complainant_address: caseData.complainant_address || 'Plot 42, Hinjewadi Phase 1, Pune, 411057',
@@ -2234,12 +2234,12 @@ window.renderSelectedDraft = () => {
     };
 
     let text = templateObj.generate(d);
-    
+
     if (window.currentDraftTone === 'aggressive') {
-        text = text.replace(/Please treat this as a final opportunity to settle the matter amicably\./g, 
+        text = text.replace(/Please treat this as a final opportunity to settle the matter amicably\./g,
             'TAKE NOTICE that no further extensions will be granted, and strict criminal prosecution under Section 138 of the Negotiable Instruments Act along with punitive costs will be filed immediately upon expiry of the 15-day statutory deadline without further reference to you.');
     } else if (window.currentDraftTone === 'conciliatory') {
-        text = text.replace(/Please treat this as a final opportunity to settle the matter amicably\./g, 
+        text = text.replace(/Please treat this as a final opportunity to settle the matter amicably\./g,
             'My client remains open to structured pre-trial settlement options provided your authorized representative contacts our counsel within 7 days of receipt of this notice.');
     }
 
@@ -2258,7 +2258,7 @@ window.downloadDraftWord = () => {
     const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Legal Draft</title><style>body{font-family:'Courier New',Courier,monospace;font-size:11pt;line-height:1.6;}</style></head><body><pre style='font-family:inherit;white-space:pre-wrap;'>";
     const footer = "</pre></body></html>";
     const sourceHTML = header + preview.value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + footer;
-    
+
     const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -2294,7 +2294,7 @@ function initTheme() {
 window.toggleTheme = () => {
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    
+
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('judiq_theme', newTheme);
     updateThemeIcons(newTheme);
@@ -2320,22 +2320,22 @@ window.togglePricingPeriod = (isAnnual) => {
     const citizenPrice = document.getElementById('priceCitizen');
     const proPrice = document.getElementById('pricePro');
     const enterprisePrice = document.getElementById('priceEnterprise');
-    
+
     const monthlyLabel = document.getElementById('billingMonthlyLabel');
     const annualLabel = document.getElementById('billingAnnualLabel');
-    
+
     if (isAnnual) {
         if (citizenPrice) citizenPrice.textContent = '239';
         if (proPrice) proPrice.textContent = '479';
         if (enterprisePrice) enterprisePrice.textContent = '799';
-        
+
         if (monthlyLabel) monthlyLabel.classList.remove('active');
         if (annualLabel) annualLabel.classList.add('active');
     } else {
         if (citizenPrice) citizenPrice.textContent = '299';
         if (proPrice) proPrice.textContent = '599';
         if (enterprisePrice) enterprisePrice.textContent = '999';
-        
+
         if (monthlyLabel) monthlyLabel.classList.add('active');
         if (annualLabel) annualLabel.classList.remove('active');
     }
@@ -2396,12 +2396,12 @@ window.switchExplorerTab = (tabName, element) => {
 
     // Typewriter effect: clear console and print line-by-line with a slight delay
     previewEl.innerHTML = '';
-    
+
     // Store active timer ID to prevent overlapping typing animations if clicked rapidly
     if (window.explorerTypewriterTimer) {
         clearInterval(window.explorerTypewriterTimer);
     }
-    
+
     let currentLineIdx = 0;
     const typeNextLine = () => {
         if (currentLineIdx < lines.length) {
@@ -2414,20 +2414,20 @@ window.switchExplorerTab = (tabName, element) => {
             p.style.transition = 'all 0.3s ease';
             p.textContent = line.text;
             previewEl.appendChild(p);
-            
+
             // Force reflow and animate in
             setTimeout(() => {
                 p.style.opacity = '1';
                 p.style.transform = 'translateY(0)';
             }, 10);
-            
+
             currentLineIdx++;
         } else {
             clearInterval(window.explorerTypewriterTimer);
             window.explorerTypewriterTimer = null;
         }
     };
-    
+
     typeNextLine(); // Print first line immediately
     window.explorerTypewriterTimer = setInterval(typeNextLine, 350);
 };
@@ -2436,7 +2436,7 @@ window.switchDocsTab = (tabName, element) => {
     // Toggle active class on sidebar buttons
     const container = element.closest('.docs-modal-container');
     if (!container) return;
-    
+
     container.querySelectorAll('.docs-tab-btn').forEach(btn => btn.classList.remove('active'));
     element.classList.add('active');
 
@@ -2454,7 +2454,7 @@ window.submitContactForm = (event) => {
     const btn = form.querySelector('button[type="submit"]');
     const name = document.getElementById('contactName').value;
     const email = document.getElementById('contactEmail').value;
-    
+
     if (btn) {
         btn.disabled = true;
         btn.innerHTML = '<span class="btn-text">Sending...</span><span class="btn-loader" style="display:inline-block;"></span>';
@@ -2467,7 +2467,7 @@ window.submitContactForm = (event) => {
         } else {
             alert(`Message sent successfully! Thank you, ${name}.`);
         }
-        
+
         form.reset();
         if (btn) {
             btn.disabled = false;
@@ -2580,7 +2580,7 @@ window.closeGuidedTour = () => {
         overlay.classList.remove('open');
     }
     document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
-    try { localStorage.setItem('judiq_tour_completed', 'true'); } catch (_) {}
+    try { localStorage.setItem('judiq_tour_completed', 'true'); } catch (_) { }
 };
 
 /* =============================================================================
@@ -2594,7 +2594,7 @@ window.calculateSandboxTimelines = () => {
 
     const memoDate = new Date(memoVal);
     const noticeDate = new Date(noticeVal);
-    
+
     // Calculate difference in days (ignoring daylight savings timezone shifts)
     const timeDiff = noticeDate.getTime() - memoDate.getTime();
     const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
@@ -2672,7 +2672,7 @@ window.submitNewsletterForm = (event) => {
     const emailInput = document.getElementById('newsletterEmail');
     if (!emailInput) return;
     const email = emailInput.value.trim();
-    
+
     if (!email) {
         if (window.ui && typeof window.ui.toast === 'function') {
             window.ui.toast('Please enter a valid email address.', 'warning');
@@ -2718,7 +2718,7 @@ window.closeLegalModal = (modalId) => {
 
 window.openProfileModal = (event) => {
     if (event) event.preventDefault();
-    
+
     // Load current values
     const user = window.state.currentUser;
     if (!user) {
@@ -2727,30 +2727,30 @@ window.openProfileModal = (event) => {
         }
         return;
     }
-    
+
     const uid = user.uid;
     const savedProfileStr = localStorage.getItem(`judiq_profile_${uid}`);
     let name = user.displayName || user.email.split('@')[0];
     let firm = '';
     let role = window.state.currentRole || 'law_firm';
-    
+
     if (savedProfileStr) {
         try {
             const profile = JSON.parse(savedProfileStr);
             if (profile.displayName) name = profile.displayName;
             if (profile.firmName) firm = profile.firmName;
             if (profile.role) role = profile.role;
-        } catch (_) {}
+        } catch (_) { }
     }
-    
+
     const nameInput = document.getElementById('profileDisplayName');
     const firmInput = document.getElementById('profileFirmName');
     const roleSelect = document.getElementById('profileRole');
-    
+
     if (nameInput) nameInput.value = name;
     if (firmInput) firmInput.value = firm;
     if (roleSelect) roleSelect.value = role;
-    
+
     window.openLegalModal('profileSettingsModal');
 };
 
@@ -2758,37 +2758,37 @@ window.saveUserProfile = (event) => {
     event.preventDefault();
     const user = window.state.currentUser;
     if (!user) return;
-    
+
     const name = document.getElementById('profileDisplayName').value.trim();
     const firm = document.getElementById('profileFirmName').value.trim();
     const role = document.getElementById('profileRole').value;
-    
+
     const profile = {
         displayName: name,
         firmName: firm,
         role: role
     };
-    
+
     localStorage.setItem(`judiq_profile_${user.uid}`, JSON.stringify(profile));
     localStorage.setItem(`judiq_role_${user.uid}`, role);
-    
+
     window.state.currentRole = role;
-    
+
     // Update user profile in Supabase Auth
     if (window.supabaseClient?.auth?.updateUser) {
         window.supabaseClient.auth.updateUser({ data: { displayName: name, role: role } }).catch(console.error);
     }
 
-    
+
     // Refresh dashboard view and welcome greeting
     renderDashboard();
-    
+
     if (window.ui && typeof window.ui.toast === 'function') {
         window.ui.toast("Profile settings saved successfully!", "success");
     } else {
         alert("Profile settings saved successfully!");
     }
-    
+
     window.closeLegalModal('profileSettingsModal');
 };
 
@@ -2796,10 +2796,10 @@ window.resendVerificationEmail = async (event) => {
     if (event) event.preventDefault();
     const user = window.state.currentUser;
     if (!user) return;
-    
+
     const btn = event.target;
     if (btn) btn.disabled = true;
-    
+
     try {
         if (typeof user.sendEmailVerification === 'function') {
             await user.sendEmailVerification();
@@ -2831,10 +2831,10 @@ window.triggerPasswordResetEmail = async (event) => {
     if (event) event.preventDefault();
     const user = window.state.currentUser;
     if (!user) return;
-    
+
     const btn = event.target;
     if (btn) btn.disabled = true;
-    
+
     try {
         if (auth && typeof auth.sendPasswordResetEmail === 'function') {
             await auth.sendPasswordResetEmail(user.email);
@@ -2865,10 +2865,10 @@ window.changeUserPasswordDirect = async (event) => {
     event.preventDefault();
     const user = window.state.currentUser;
     if (!user) return;
-    
+
     const newPass = document.getElementById('changePassNew').value;
     const confirmPass = document.getElementById('changePassConfirm').value;
-    
+
     if (newPass !== confirmPass) {
         if (window.ui && typeof window.ui.toast === 'function') {
             window.ui.toast("New passwords do not match", "warning");
@@ -2877,10 +2877,10 @@ window.changeUserPasswordDirect = async (event) => {
         }
         return;
     }
-    
+
     const btn = event.target.querySelector('button[type="submit"]');
     if (btn) btn.disabled = true;
-    
+
     try {
         if (typeof user.updatePassword === 'function') {
             await user.updatePassword(newPass);
@@ -3151,18 +3151,18 @@ const landmarkPrecedents = [
 window.updateReadinessProgress = () => {
     const checks = document.querySelectorAll('.readiness-check');
     if (checks.length === 0) return;
-    
+
     let checkedCount = 0;
     checks.forEach(check => {
         if (check.checked) checkedCount++;
     });
-    
+
     const percentage = Math.round((checkedCount / checks.length) * 100);
-    
+
     // Update progress text
     const textEl = document.getElementById('readinessProgressText');
     if (textEl) textEl.textContent = `${percentage}%`;
-    
+
     // Update progress circle offset (circumference of r=40 circle is 2 * pi * 40 ≈ 251.2)
     const circleBar = document.getElementById('readinessCircleBar');
     if (circleBar) {
@@ -3170,7 +3170,7 @@ window.updateReadinessProgress = () => {
         const offset = circumference - (percentage / 100) * circumference;
         circleBar.style.strokeDashoffset = offset;
     }
-    
+
     // Update status text
     const statusTextEl = document.getElementById('readinessStatusText');
     if (statusTextEl) {
@@ -3198,27 +3198,27 @@ window.filterPrecedentsList = () => {
     const searchInput = document.getElementById('precedentSearchInput');
     const container = document.getElementById('precedentsListContainer');
     if (!container) return;
-    
+
     const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
-    
+
     const filtered = landmarkPrecedents.filter(item => {
-        return item.title.toLowerCase().includes(query) || 
-               (item.tag && item.tag.toLowerCase().includes(query)) || 
-               (item.domain && item.domain.toLowerCase().includes(query)) ||
-               item.text.toLowerCase().includes(query) ||
-               item.source.toLowerCase().includes(query);
+        return item.title.toLowerCase().includes(query) ||
+            (item.tag && item.tag.toLowerCase().includes(query)) ||
+            (item.domain && item.domain.toLowerCase().includes(query)) ||
+            item.text.toLowerCase().includes(query) ||
+            item.source.toLowerCase().includes(query);
     });
-    
+
     if (filtered.length === 0) {
         container.innerHTML = `<p style="color: var(--gray-500); font-size: 0.9rem; text-align: center; margin-top: 2rem;"><i class="fas fa-search" style="margin-right: 0.4rem;"></i> No matching precedent authorities found for "${query}". Try searching by statute or judge.</p>`;
         return;
     }
-    
+
     container.innerHTML = filtered.map(item => {
         const domainColor = item.domain === 'Criminal' ? '#ef4444' : (item.domain === 'SARFAESI' ? '#f59e0b' : (item.domain === 'Arbitration' ? '#8b5cf6' : (item.domain === 'Commercial Suits' ? '#10b981' : '#0ea5e9')));
         const link = item.link || `https://indiankanoon.org/search/?formInput=${encodeURIComponent(item.title)}`;
         const copyText = `${item.title}, ${item.source} (${item.court || 'Supreme Court of India'})`;
-        
+
         return `
         <div class="citation-result-card" style="border-left: 3px solid ${domainColor}; transition: var(--transition-fast); margin-bottom: 0.85rem; padding: 0.95rem; background: var(--gray-100); border-radius: 0.6rem; border: 1px solid var(--gray-200); box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
             <div class="citation-result-header" style="display:flex; align-items:flex-start; justify-content:space-between; gap:0.5rem; margin-bottom:0.45rem; flex-wrap: wrap;">
@@ -3272,7 +3272,7 @@ let activeStudioDraftType = null;
  */
 window.showDraftStudio = () => {
     const isFreeDemo = !window.currentUser || (
-        window.currentUser.role !== 'admin' && 
+        window.currentUser.role !== 'admin' &&
         (!window.currentUserQuota || window.currentUserQuota.remaining_reports <= 0 || !window.currentUserQuota.is_active)
     );
     if (isFreeDemo) {
@@ -3482,7 +3482,7 @@ window.printStudioDraft = () => {
     const w = window.open('', '_blank');
     w.document.write(`<html><head><title>${activeStudioDraftType?.title || 'Legal Draft'}</title>
     <style>body{font-family:monospace;white-space:pre-wrap;padding:2cm;font-size:12pt;line-height:1.6;}</style>
-    </head><body>${ta.value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
+    </head><body>${ta.value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</body></html>`);
     w.document.close();
     w.print();
 };
@@ -3507,24 +3507,24 @@ window.runAnalysis = async () => {
         }
         return;
     }
-    
+
     if (window.ui && typeof window.ui.show === 'function') window.ui.show('analysisLoading');
     try {
         const userId = window.state.currentUser ? window.state.currentUser.uid : 'ANONYMOUS';
         const rawPayload = { ...window.state.caseData, user_id: userId };
-        
+
         // If sanitizePayload is available (from wizard.js), use it, otherwise use raw
         const payload = typeof sanitizePayload === 'function' ? sanitizePayload(rawPayload) : rawPayload;
-        
+
         const result = await api.analyze(payload);
         window.state.analysisResult = result;
-        
+
         if (window.saveCaseToHistory) {
             window.saveCaseToHistory(payload, result);
         }
-        
+
         if (window.ui && typeof window.ui.hide === 'function') window.ui.hide('analysisLoading');
-        
+
         // Re-render the results dashboard with the new data
         if (typeof renderResults === 'function') {
             renderResults(result);
@@ -3541,7 +3541,7 @@ window.runAnalysis = async () => {
 };
 
 // --- Copy Strategy Memo to Clipboard ---
-window.copyStrategyMemoToClipboard = function() {
+window.copyStrategyMemoToClipboard = function () {
     const res = window.state.analysisResult;
     if (!res) {
         if (window.ui && typeof window.ui.toast === 'function') {
@@ -3551,14 +3551,14 @@ window.copyStrategyMemoToClipboard = function() {
         }
         return;
     }
-    
+
     let memo = `# JUDIQ AI — Litigation Strategy & Weakness Audit Memo\n`;
     memo += `Generated on: ${new Date().toLocaleDateString()} | Domain: ${res.domain || 'Section 138 NI Act'}\n\n`;
     memo += `## 1. Viability & Score Summary\n`;
     memo += `- **Overall Score**: ${res.score !== undefined ? res.score : 'N/A'}/100\n`;
     memo += `- **Merit Assessment**: ${res.verdict || 'ANALYZED'}\n`;
     if (res.summary) memo += `- **Summary**: ${res.summary}\n`;
-    
+
     if (res.statutory_timeline || res.limitation) {
         memo += `\n## 2. Limitation & Procedural Audit\n`;
         if (res.limitation) {
@@ -3581,9 +3581,9 @@ window.copyStrategyMemoToClipboard = function() {
             memo += `${idx + 1}. ${act}\n`;
         });
     }
-    
+
     memo += `\n---\n*Report generated by JudiQ AI Litigation Operating System.*`;
-    
+
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(memo).then(() => {
             if (window.ui && typeof window.ui.toast === 'function') {
@@ -3612,7 +3612,7 @@ window.copyStrategyMemoToClipboard = function() {
 };
 
 // --- Print Strategy Memo in High-Court Formal Format ---
-window.printStrategyMemo = function() {
+window.printStrategyMemo = function () {
     const res = window.state.analysisResult;
     if (!res) {
         if (window.ui && typeof window.ui.toast === 'function') {
@@ -3622,14 +3622,14 @@ window.printStrategyMemo = function() {
         }
         return;
     }
-    
+
     const printWin = window.open('', '_blank', 'width=900,height=800');
     if (!printWin) return;
-    
+
     const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
     const score = res.score !== undefined ? res.score : 'N/A';
     const domain = res.domain || 'Section 138 NI Act / Criminal Jurisdiction';
-    
+
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -3684,17 +3684,17 @@ window.printStrategyMemo = function() {
     </script>
 </body>
 </html>`;
-    
+
     printWin.document.write(html);
     printWin.document.close();
 };
 
 // --- Command Palette Functions ---
-window.toggleCommandPalette = function(forceState) {
+window.toggleCommandPalette = function (forceState) {
     const modal = document.getElementById('commandPaletteModal');
     if (!modal) return;
     const input = document.getElementById('commandPaletteInput');
-    
+
     const shouldOpen = forceState !== undefined ? forceState : !modal.classList.contains('open');
     if (shouldOpen) {
         modal.classList.add('open');
@@ -3708,11 +3708,11 @@ window.toggleCommandPalette = function(forceState) {
     }
 };
 
-window.filterCommandPalette = function(query) {
+window.filterCommandPalette = function (query) {
     const q = (query || '').toLowerCase().trim();
     const container = document.getElementById('commandListContainer');
     if (!container) return;
-    
+
     const items = container.querySelectorAll('.command-item');
     items.forEach(item => {
         const txt = item.innerText.toLowerCase();
@@ -3724,7 +3724,7 @@ window.filterCommandPalette = function(query) {
     });
 };
 
-window.executeCommand = function(cmd) {
+window.executeCommand = function (cmd) {
     window.toggleCommandPalette(false);
     switch (cmd) {
         case 'demo_s138':
@@ -3820,7 +3820,7 @@ window.startCaseAnalysis = (initialData = {}) => {
     window.state.currentStep = 1;
     try {
         localStorage.setItem('judiq_wizard_autosave', JSON.stringify(window.state.caseData));
-    } catch (_) {}
+    } catch (_) { }
     switchScreen('caseWizardScreen');
     if (typeof window.setCaseType === 'function' && initialData.case_type) {
         window.setCaseType(initialData.case_type);
@@ -3898,7 +3898,7 @@ window.switchAdminTab = (tabName) => {
 window.openAdminPortal = async () => {
     const user = window.state.currentUser;
     const userEmail = (user && user.email ? user.email : 'aixynztechnologies').toLowerCase().trim();
-    
+
     const adminEmailEl = document.getElementById('adminSessionEmail');
     if (adminEmailEl) adminEmailEl.textContent = userEmail;
 
@@ -3980,7 +3980,7 @@ window.loadAdminPortalData = async () => {
                 setBStat('statBankAudits', bs.total_audits_performed || 0);
                 setBStat('statBankAuditsMonth', bs.audits_this_month || 0);
                 const vol = bs.total_recovery_volume_evaluated || 0;
-                setBStat('statBankVolume', vol >= 10000000 ? `₹${(vol/10000000).toFixed(2)} Cr` : (vol >= 100000 ? `₹${(vol/100000).toFixed(1)} L` : `₹${vol.toLocaleString('en-IN')}`));
+                setBStat('statBankVolume', vol >= 10000000 ? `₹${(vol / 10000000).toFixed(2)} Cr` : (vol >= 100000 ? `₹${(vol / 100000).toFixed(1)} L` : `₹${vol.toLocaleString('en-IN')}`));
             }
         } catch (e) {
             console.warn('Bank stats load skipped:', e);
@@ -4617,7 +4617,7 @@ window.filterAdminBankOfficersTable = () => {
         window.renderAdminBankOfficersTable(adminCachedBankOfficers);
         return;
     }
-    const filtered = adminCachedBankOfficers.filter(o => 
+    const filtered = adminCachedBankOfficers.filter(o =>
         (o.name && o.name.toLowerCase().includes(query)) ||
         (o.officer_id && o.officer_id.toLowerCase().includes(query)) ||
         (o.bank_name && o.bank_name.toLowerCase().includes(query)) ||
@@ -5042,7 +5042,7 @@ window.exportAdminAuditLogs = (format = 'json') => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(adminCachedSecurityLogs, null, 2));
     const dlAnchorElem = document.createElement('a');
     dlAnchorElem.setAttribute("href", dataStr);
-    dlAnchorElem.setAttribute("download", `judiq_audit_logs_${new Date().toISOString().slice(0,10)}.json`);
+    dlAnchorElem.setAttribute("download", `judiq_audit_logs_${new Date().toISOString().slice(0, 10)}.json`);
     dlAnchorElem.click();
     if (window.ui) window.ui.toast('Cryptographic audit trail downloaded.', 'success');
 };
@@ -5120,7 +5120,7 @@ window.submitAdminPrecedentIngestion = async (e) => {
 
 window.selectedBillingDuration = 1;
 
-window.setBillingDuration = function(months, btnEl) {
+window.setBillingDuration = function (months, btnEl) {
     const isPaidDemoUsed = !!(window.currentUserQuota?.paid_demo_used || window.state?.userQuota?.paid_demo_used);
     if (months === 'paid_demo' && isPaidDemoUsed) {
         if (window.ui && typeof window.ui.toast === 'function') {
@@ -5137,10 +5137,10 @@ window.setBillingDuration = function(months, btnEl) {
     window.updateModularPricing();
 };
 
-window.updateModularPricing = function() {
+window.updateModularPricing = function () {
     const duration = window.selectedBillingDuration || 1;
     const isPaidDemoUsed = !!(window.currentUserQuota?.paid_demo_used || window.state?.userQuota?.paid_demo_used);
-    
+
     // Pricing configurations for Section 138 & Paid Demo Plan
     const durationConfigs = {
         'paid_demo': {
@@ -5151,7 +5151,7 @@ window.updateModularPricing = function() {
             cases: '1',
             costPerCase: '₹2',
             tierTitle: isPaidDemoUsed ? 'Paid Demo Plan (Already Claimed)' : 'Paid Demo Plan',
-            tierDesc: isPaidDemoUsed 
+            tierDesc: isPaidDemoUsed
                 ? 'One-time ₹2 demo pass has already been claimed on this account. Please select a standard subscription plan.'
                 : 'Single case analysis pass — complete deterministic statutory defect audit, 15-day cure window calculation & court drafting.',
             badge: '<i class="fas fa-flask"></i> Paid Demo Plan',
@@ -5235,7 +5235,7 @@ window.updateModularPricing = function() {
     if (badgeEl && cfg.badge) badgeEl.innerHTML = cfg.badge;
 };
 
-window.applyModularPreset = function(count) {
+window.applyModularPreset = function (count) {
     if (count > 1) {
         if (window.showToast) {
             window.showToast('Additional statutory modules are coming soon! Section 138 is available now.', 'info');
@@ -5249,7 +5249,7 @@ window.applyModularPreset = function(count) {
     window.updateModularPricing();
 };
 
-window.subscribeToSelectedModularPlan = async function() {
+window.subscribeToSelectedModularPlan = async function () {
     console.log('[JudiQ] subscribeToSelectedModularPlan triggered');
     const checkboxes = document.querySelectorAll('input[name="legal_module"]:checked');
     const selected = Array.from(checkboxes).map(cb => cb.value);
@@ -5261,6 +5261,7 @@ window.subscribeToSelectedModularPlan = async function() {
         const parsed = parseInt(priceDisplay.textContent.replace(/[^0-9]/g, ''), 10);
         if (!isNaN(parsed) && parsed > 0) price = parsed;
     }
+    const cases = count * 10;
 
     // Gate: User must be registered and signed in to link subscription to their account
     const user = window.state ? window.state.currentUser : null;
@@ -5284,15 +5285,15 @@ window.subscribeToSelectedModularPlan = async function() {
     const savedRole = (window.state && window.state.currentRole) || (localStorage.getItem(`judiq_role_${userId}`)) || '';
 
     const isAdmin = savedRole === 'admin' ||
-                    savedRole === 'administrator' ||
-                    cleanEmail.includes('aixynztechnologies') ||
-                    String(userId).toLowerCase().includes('aixynztechnologies') ||
-                    cleanEmail.includes('admin') ||
-                    String(userId).toLowerCase().includes('admin') ||
-                    cleanEmail.startsWith('admin') ||
-                    String(userId).toLowerCase().startsWith('admin') ||
-                    !!localStorage.getItem('judiq_admin_jwt') ||
-                    (window.state && window.state.userQuota && window.state.userQuota.role === 'admin');
+        savedRole === 'administrator' ||
+        cleanEmail.includes('aixynztechnologies') ||
+        String(userId).toLowerCase().includes('aixynztechnologies') ||
+        cleanEmail.includes('admin') ||
+        String(userId).toLowerCase().includes('admin') ||
+        cleanEmail.startsWith('admin') ||
+        String(userId).toLowerCase().startsWith('admin') ||
+        !!localStorage.getItem('judiq_admin_jwt') ||
+        (window.state && window.state.userQuota && window.state.userQuota.role === 'admin');
 
     if (isAdmin) {
         console.log('[JudiQ] Admin user detected in checkout — granting free unlimited access.');
@@ -5333,7 +5334,7 @@ window.subscribeToSelectedModularPlan = async function() {
     const duration = window.selectedBillingDuration;
     const isPaidDemo = (duration === 'paid_demo' || price === 2);
     const isPaidDemoUsed = !!(window.currentUserQuota?.paid_demo_used || window.state?.userQuota?.paid_demo_used);
-    
+
     if (isPaidDemo && isPaidDemoUsed) {
         if (window.ui && typeof window.ui.toast === 'function') {
             window.ui.toast('⚠️ The ₹2 Paid Demo Plan has already been claimed once for this account/email. Please choose a standard plan.', 'warning');
@@ -5346,8 +5347,8 @@ window.subscribeToSelectedModularPlan = async function() {
 
     const planName = isPaidDemo ? 'Paid Demo Plan' : 'Section 138 Plan';
     const cases = isPaidDemo ? 1 : 999999;
-    const planDescription = isPaidDemo 
-        ? 'JudiQ Paid Demo Plan — 1 Single Report Analysis · ₹2' 
+    const planDescription = isPaidDemo
+        ? 'JudiQ Paid Demo Plan — 1 Single Report Analysis · ₹2'
         : `JudiQ Section 138 Plan — ${count} module${count > 1 ? 's' : ''} · ₹${price.toLocaleString('en-IN')}`;
 
     const planPayload = {
@@ -5372,26 +5373,26 @@ window.subscribeToSelectedModularPlan = async function() {
         description: planDescription,
         receipt: (`judiq_${userId.slice(0, 12)}_${Date.now()}`).slice(0, 40),
         prefill: {
-            email:   cleanEmail,
-            name:    user && user.displayName ? user.displayName : 'Advocate Member',
+            email: cleanEmail,
+            name: user && user.displayName ? user.displayName : 'Advocate Member',
             contact: user && user.phone ? user.phone : '9876543210'
         },
         notes: {
-            user_id:     userId,
-            plan_name:   planName,
-            modules:     selected.join(','),
+            user_id: userId,
+            plan_name: planName,
+            modules: selected.join(','),
             cases_quota: String(cases)
         },
 
-        onSuccess: async function(paymentData) {
+        onSuccess: async function (paymentData) {
             try {
                 const res = await api.submitSubscriptionPlan({
                     ...planPayload,
                     razorpay_payment_id: paymentData.payment_id,
-                    razorpay_order_id:   paymentData.order_id,
+                    razorpay_order_id: paymentData.order_id,
                     status: 'PAID'
                 });
-                
+
                 const activeQuota = (res && res.quota) || (paymentData && paymentData.quota) || {
                     user_id: userId,
                     email: cleanEmail,
@@ -5422,7 +5423,7 @@ window.subscribeToSelectedModularPlan = async function() {
 
                 sessionStorage.removeItem('judiq_pending_checkout');
 
-                const celebrationMsg = isPaidDemo 
+                const celebrationMsg = isPaidDemo
                     ? `🎉 Paid Demo Plan activated for ₹2! You have 1 full case analysis report ready.`
                     : `🎉 Payment verified successfully! Plan activated. Welcome to JUDIQ AI.`;
                 if (window.ui && typeof window.ui.toast === 'function') {
@@ -5453,7 +5454,7 @@ window.subscribeToSelectedModularPlan = async function() {
                     activated_at: new Date().toISOString()
                 }));
                 sessionStorage.removeItem('judiq_pending_checkout');
-                const celebrationMsg = isPaidDemo 
+                const celebrationMsg = isPaidDemo
                     ? `🎉 Paid Demo Plan activated for ₹2! 1 case analysis report unlocked.`
                     : `🎉 Payment verified! Workspace active with immediate effect.`;
                 if (window.ui && typeof window.ui.toast === 'function') {
@@ -5466,7 +5467,7 @@ window.subscribeToSelectedModularPlan = async function() {
             }
         },
 
-        onFailure: function(err) {
+        onFailure: function (err) {
             if (err && err.message === 'User dismissed the payment modal.') {
                 if (window.ui && typeof window.ui.toast === 'function') {
                     window.ui.toast('Payment cancelled. Platform services remain locked until subscription is completed.', 'warning');
