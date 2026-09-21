@@ -4035,6 +4035,9 @@ window.renderAdminUsersTable = (users) => {
                         <button class="btn btn-sm btn-outline" onclick="window.openUserDetailsModal('${u.user_id}')" title="View Full Litigator Dossier" style="padding: 0.3rem 0.55rem; font-size: 0.78rem; color: #4f46e5; border-color: rgba(79,70,229,0.4);">
                             <i class="fas fa-id-card"></i>
                         </button>
+                        <button class="btn btn-sm btn-outline" onclick="window.generateUserCertificate('${u.user_id}')" title="Generate Formal Certificate" style="padding: 0.3rem 0.55rem; font-size: 0.78rem; color: #0f172a; border-color: rgba(15,23,42,0.3);">
+                            <i class="fas fa-certificate"></i>
+                        </button>
                         <button class="btn btn-sm btn-outline" onclick="window.resetUserUsage('${u.user_id}')" title="Reset Monthly Usage Counter" style="padding: 0.3rem 0.45rem; font-size: 0.78rem;">
                             <i class="fas fa-arrow-rotate-left"></i>
                         </button>
@@ -4141,6 +4144,82 @@ window.openUserDetailsModal = (userId) => {
 window.closeUserDetailsModal = () => {
     const modal = document.getElementById('adminAccountDetailsModal');
     if (modal) modal.classList.add('hidden');
+};
+
+/**
+ * Generate a basic, formal, and professional certificate for a subscriber.
+ * Designed with a classic corporate/statutory format (Times New Roman, formal border, zero flashy designs).
+ */
+window.generateUserCertificate = (userId) => {
+    const user = (adminCachedUsers || []).find(u => u.user_id === userId) || {
+        user_id: userId,
+        email: userId,
+        role: 'law_firm',
+        plan_status: 'ACTIVE',
+        monthly_report_limit: 25,
+        selected_modules: ['s138']
+    };
+
+    const modal = document.getElementById('adminUserCertificateModal');
+    if (!modal) return;
+
+    const certNo = `CERT/AIXYNZ/${new Date().getFullYear()}/${(userId || 'MBR').replace(/[^a-zA-Z0-9]/g, '').slice(-6).toUpperCase()}`;
+    const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const roleMap = {
+        'law_firm': 'Law Firm / Senior Chamber Counsel',
+        'enterprise': 'Enterprise Corporate Counsel',
+        'citizen': 'Independent Litigator / Advocate',
+        'admin': 'Master System Administrator'
+    };
+
+    const moduleMap = {
+        's138': 'Section 138 NI Act Cheque Dishonour Suite',
+        'sarfaesi': 'SARFAESI Act 2002 & DRT Enforcement OS',
+        'criminal': 'BNSS / IPC Criminal Defense Matrix',
+        'civil': 'Civil Commercial Court Plaint Suite',
+        'bank_recovery': 'Institutional Banking SARB Recovery OS',
+        'counsel_intel': 'Neural Precedent RAG Intelligence'
+    };
+
+    const modules = Array.isArray(user.selected_modules) && user.selected_modules.length > 0
+        ? user.selected_modules.map(m => moduleMap[m] || m.toUpperCase()).join(', ')
+        : 'Section 138 NI Act Cheque Dishonour Suite';
+
+    const limitStr = user.monthly_report_limit === -1 ? 'Unlimited Allocation' : `${user.monthly_report_limit || 25} Monthly Audit Reports`;
+
+    const setEl = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    };
+
+    setEl('certNumberVal', certNo);
+    setEl('certDateVal', dateStr);
+    setEl('certUserEmailVal', user.email || user.user_id);
+    setEl('certUserIdVal', user.user_id);
+    setEl('certUserRoleVal', roleMap[user.role] || (user.role ? user.role.toUpperCase() : 'Advocate Member'));
+    setEl('certUserModulesVal', modules);
+    setEl('certUserStatusVal', `ACTIVE & APPROVED (${limitStr})`);
+
+    modal.classList.remove('hidden');
+};
+
+window.generateUserCertificateFromModal = () => {
+    const userIdEl = document.getElementById('modalUserIdSubtitle');
+    const userId = userIdEl ? userIdEl.textContent.trim() : '';
+    if (userId) {
+        window.closeUserDetailsModal();
+        window.generateUserCertificate(userId);
+    }
+};
+
+window.closeUserCertificateModal = () => {
+    const modal = document.getElementById('adminUserCertificateModal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.printUserCertificate = () => {
+    window.print();
 };
 
 window.renderAdminBankOfficersTable = (officers) => {

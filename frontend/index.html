@@ -3256,6 +3256,9 @@
                             <button id="modalToggleStatusBtn" class="btn btn-outline btn-sm u-is-160">
                                 <i class="fas fa-ban"></i> Suspend Account
                             </button>
+                            <button id="modalGenerateCertBtn" type="button" class="btn btn-outline btn-sm" onclick="window.generateUserCertificateFromModal()" style="color: #0f172a; border-color: #cbd5e1; background: #ffffff;">
+                                <i class="fas fa-certificate"></i> Generate Certificate
+                            </button>
                         </div>
                         <div class="u-is-106">
                             <button type="button" class="btn btn-outline btn-sm"
@@ -3264,6 +3267,139 @@
                     </div>
 
                 </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- FORMAL USER CERTIFICATE MODAL (ADMIN CONTROL) -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div id="adminUserCertificateModal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 999999; display: flex; align-items: center; justify-content: center; padding: 1.5rem; overflow-y: auto;">
+            <div style="background: #ffffff; width: 100%; max-width: 820px; border-radius: 6px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); overflow: hidden; display: flex; flex-direction: column;">
+                
+                <!-- Action Toolbar for Admin (Hidden during print) -->
+                <div class="cert-toolbar no-print" style="background: #f8fafc; padding: 12px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="font-size: 0.85rem; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-certificate" style="color: #0f172a;"></i>
+                        <span>AIXYNZ Technologies • Formal Member Certificate</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="window.printUserCertificate()" style="padding: 6px 14px; font-size: 0.82rem; background: #0f172a; border-color: #0f172a; color: #ffffff;">
+                            <i class="fas fa-print"></i> Print / Save as PDF
+                        </button>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="window.closeUserCertificateModal()" style="padding: 6px 12px; font-size: 0.82rem;">
+                            Close
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Basic, Formal & Professional Certificate Content -->
+                <div id="certPrintArea" style="padding: 40px; background: #ffffff; color: #000000; font-family: 'Times New Roman', Times, Georgia, serif;">
+                    <div style="border: 2px solid #000000; padding: 36px 40px; position: relative; background: #ffffff; outline: 1px solid #000000; outline-offset: 5px;">
+                        
+                        <!-- Formal Header -->
+                        <div style="text-align: center; margin-bottom: 24px;">
+                            <div style="font-size: 1.25rem; font-weight: bold; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; color: #000000;">
+                                AIXYNZ TECHNOLOGIES PRIVATE LIMITED
+                            </div>
+                            <div style="font-size: 0.82rem; letter-spacing: 1px; text-transform: uppercase; color: #333333; margin-bottom: 16px;">
+                                JUDIQ AI LITIGATION INTELLIGENCE OPERATING SYSTEM
+                            </div>
+                            <div style="width: 140px; height: 1px; background: #000000; margin: 0 auto 18px auto;"></div>
+                            <div style="font-size: 1.35rem; font-weight: bold; letter-spacing: 1.5px; text-transform: uppercase; color: #000000; margin-bottom: 6px;">
+                                CERTIFICATE OF ENROLLMENT &amp; PLATFORM ACCESS
+                            </div>
+                            <div style="font-size: 0.82rem; font-style: italic; color: #444444;">
+                                Statutory Operational Framework: IT Act 2000 &amp; Advocates Act 1961 Compliance
+                            </div>
+                        </div>
+
+                        <!-- Certificate Metadata -->
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; border-bottom: 1px solid #cccccc; padding-bottom: 12px; margin-bottom: 22px;">
+                            <div>
+                                <strong>Certificate No:</strong> <span id="certNumberVal" style="font-family: monospace;">CERT/AIXYNZ/2026/USR001</span>
+                            </div>
+                            <div>
+                                <strong>Date of Issue:</strong> <span id="certDateVal">September 21, 2026</span>
+                            </div>
+                        </div>
+
+                        <!-- Formal Body Text -->
+                        <div style="font-size: 1rem; line-height: 1.8; text-align: justify; margin-bottom: 24px;">
+                            <p style="margin-bottom: 14px;">
+                                This is to formally certify that the subscriber designated below has been duly enrolled, authenticated, and provisioned with institutional access to the <strong>JUDIQ AI Litigation Intelligence Suite</strong>, developed and operated by <strong>AIXYNZ Technologies Private Limited</strong>.
+                            </p>
+                            
+                            <table style="width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 0.92rem;">
+                                <tr>
+                                    <td style="padding: 8px 12px; border: 1px solid #cccccc; width: 35%; background: #fbfbfb;"><strong>Subscriber / Account Holder:</strong></td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cccccc; font-weight: bold;" id="certUserEmailVal">advocate@vermalaw.in</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 12px; border: 1px solid #cccccc; background: #fbfbfb;"><strong>Unique Member Identifier (UID):</strong></td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cccccc; font-family: monospace;" id="certUserIdVal">USR_DEL_VERMA_88</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 12px; border: 1px solid #cccccc; background: #fbfbfb;"><strong>Account Tier / Designation:</strong></td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cccccc;" id="certUserRoleVal">Law Firm / Chamber</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 12px; border: 1px solid #cccccc; background: #fbfbfb;"><strong>Subscribed Legal Engines:</strong></td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cccccc;" id="certUserModulesVal">Section 138 NI Act Cheque Dishonour Suite</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 12px; border: 1px solid #cccccc; background: #fbfbfb;"><strong>Authorization &amp; Quota Status:</strong></td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cccccc;" id="certUserStatusVal">ACTIVE &amp; APPROVED</td>
+                                </tr>
+                            </table>
+
+                            <p style="font-size: 0.85rem; color: #444444; line-height: 1.6; margin-top: 14px;">
+                                The bearer is authorized to utilize the platform's deterministic statutory analysis, limitation calculators, fatal defect auditing, and automated court drafting engines in accordance with standard platform terms and professional responsibilities.
+                            </p>
+                        </div>
+
+                        <!-- Formal Signatories -->
+                        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #000000; display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div style="text-align: center; width: 40%;">
+                                <div style="font-family: 'Times New Roman', Times, serif; font-size: 0.98rem; font-weight: bold; margin-bottom: 2px;">
+                                    ATHARVA GANDHI
+                                </div>
+                                <div style="font-size: 0.78rem; color: #333333;">
+                                    Co-Founder &amp; Director
+                                </div>
+                                <div style="font-size: 0.72rem; color: #555555;">
+                                    AIXYNZ Technologies Private Limited
+                                </div>
+                            </div>
+                            
+                            <div style="text-align: center;">
+                                <div style="border: 1px solid #555555; border-radius: 50%; width: 68px; height: 68px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 auto; color: #333333; line-height: 1.2;">
+                                    <span>AIXYNZ</span>
+                                    <strong>CORPORATE</strong>
+                                    <span>SEAL</span>
+                                </div>
+                            </div>
+
+                            <div style="text-align: center; width: 40%;">
+                                <div style="font-family: 'Times New Roman', Times, serif; font-size: 0.98rem; font-weight: bold; margin-bottom: 2px;">
+                                    ABHIJEET GANDHI
+                                </div>
+                                <div style="font-size: 0.78rem; color: #333333;">
+                                    Co-Founder &amp; Director
+                                </div>
+                                <div style="font-size: 0.72rem; color: #555555;">
+                                    AIXYNZ Technologies Private Limited
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Formal Footer Note -->
+                        <div style="text-align: center; font-size: 0.68rem; color: #666666; margin-top: 24px; letter-spacing: 0.5px;">
+                            Issued by AIXYNZ Technologies Private Limited • Email: aixynztechnologies@gmail.com • Contact: +91 7972133643
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
         </div>
 

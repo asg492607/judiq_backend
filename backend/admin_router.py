@@ -427,6 +427,39 @@ def clear_system_cache(admin: dict = Depends(require_admin)):
     return {"success": True, "message": "System in-memory response caches and session buffers cleared."}
 
 
+@router.get("/users/{user_id}/certificate", tags=["Admin Control"])
+def generate_user_certificate(user_id: str, admin: dict = Depends(require_admin)):
+    """
+    Generates formal certificate issuance metadata for a designated subscriber/user.
+    Authorized exclusively for System Administrators.
+    """
+    from datetime import datetime
+    import hashlib
+    quota = DatabaseManager.get_or_create_user_quota(user_id)
+    serial_no = f"CERT/AIXYNZ/{datetime.now().year}/{user_id[:8].upper()}"
+    verification_hash = hashlib.sha256(f"{user_id}:{serial_no}:AIXYNZ".encode()).hexdigest()[:16].upper()
+    
+    return {
+        "success": True,
+        "certificate": {
+            "serial_number": serial_no,
+            "verification_hash": verification_hash,
+            "issued_at": datetime.now().strftime("%B %d, %Y"),
+            "issuing_company": "AIXYNZ Technologies Private Limited",
+            "platform_name": "JUDIQ AI Litigation Intelligence Operating System",
+            "user_id": user_id,
+            "email": quota.get("email") or user_id,
+            "role": quota.get("role", "law_firm"),
+            "plan_status": quota.get("plan_status", "ACTIVE"),
+            "monthly_report_limit": quota.get("monthly_report_limit", 25),
+            "selected_modules": quota.get("selected_modules") or ["s138"],
+            "directors": ["Atharva Gandhi", "Abhijeet Gandhi"],
+            "contact_email": "aixynztechnologies@gmail.com",
+            "contact_phone": "+91 7972133643"
+        }
+    }
+
+
 user_quota_router = APIRouter()
 
 @user_quota_router.get("/quota", tags=["User Quota"])

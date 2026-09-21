@@ -8147,6 +8147,27 @@ body.dark-theme .dac-icon--sarfaesi {
         box-shadow: none;
         border: 1px solid #e2e8f0;
     }
+
+    /* Certificate Modal Print Isolation */
+    #adminUserCertificateModal:not(.hidden) {
+        position: fixed !important;
+        inset: 0 !important;
+        background: white !important;
+        z-index: 99999999 !important;
+        display: block !important;
+        padding: 0 !important;
+    }
+
+    #adminUserCertificateModal .cert-toolbar,
+    .no-print {
+        display: none !important;
+    }
+
+    #certPrintArea {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
 }
 
 /* ============================================================================
