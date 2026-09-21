@@ -10,11 +10,14 @@
  * NO ES6 imports/exports — plain IIFE pattern.
  */
 
+(function () {
+'use strict';
+
     /* ------------------------------------------------------------------ */
     /*  Constants                                                           */
     /* ------------------------------------------------------------------ */
 
-    var API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? "http://127.0.0.1:8000" : "https://cheque-bounce-ragbased.onrender.com";
+    var API_BASE_URL = window.__JUDIQ_ENV__?.API_BASE_URL || "https://cheque-bounce-ragbased.onrender.com";
     var TELEMETRY_ENDPOINT = API_BASE_URL + '/api/v1/telemetry/error';
     var BANNER_ID          = 'judiqErrorBanner';
     var IS_DEV             = (
@@ -302,5 +305,6 @@
     } else {
         _getOrCreateBanner();
     }
+})();
 
 

@@ -92,6 +92,88 @@ window.ui = ui;
  * Screen switching logic
  */
 export function switchScreen(targetScreenId) {
+    // Public screens accessible without a paid subscription
+    const publicScreens = [
+        'landingScreen', 'loginScreen', 'registerScreen', 
+        'termsScreen', 'privacyScreen', 'refundScreen', 'sharedReportScreen'
+    ];
+
+    const screens = [
+        'landingScreen', 'loginScreen', 'registerScreen', 
+        'dashboardScreen', 'caseWizardScreen', 
+        'resultsScreen', 'termsScreen', 'privacyScreen', 'refundScreen',
+        'draftGeneratorScreen', 'draftStudioScreen', 'quickAnalysisScreen',
+        'reportScreen', 'sharedReportScreen', 'bankRecoveryScreen', 'adminPortalScreen',
+        // ── CMS Screens ───────────────────────────────────────
+        'cmsHomeScreen', 'caseListScreen', 'caseCreateScreen', 'caseDetailScreen',
+        'clientListScreen', 'clientCreateScreen', 'clientDetailScreen',
+        'documentLibraryScreen', 'draftWorkflowScreen',
+        'teamManagementScreen', 'cmsAnalyticsScreen', 'auditTrailScreen'
+    ];
+
+    // Protection Gate: Require authentication AND paid subscription for all platform services
+    if (!publicScreens.includes(targetScreenId)) {
+        const currentUser = (window.state && window.state.currentUser) || (typeof window.supabaseClient !== 'undefined' && window.supabaseClient.auth);
+        const hasGeneralAuth = !!currentUser || !!localStorage.getItem('judiq_token') || !!localStorage.getItem('judiq_jwt') || !!localStorage.getItem('judiq_active_user_email');
+
+        if (!hasGeneralAuth) {
+            if (ui && typeof ui.toast === 'function') {
+                ui.toast("Please sign in or register to access the platform.", "warning");
+            }
+            screens.forEach(id => ui.hide(id));
+            ui.show('loginScreen');
+            return;
+        }
+
+        // Check if user is an administrator (exempt from subscription paywall)
+        const role = (window.state && window.state.currentRole) || 
+                     (currentUser && localStorage.getItem(`judiq_role_${currentUser.uid}`)) || '';
+        const userEmail = (currentUser && currentUser.email) || '';
+        const isAdmin = role === 'admin' || userEmail.toLowerCase().includes('admin@') || !!localStorage.getItem('judiq_admin_jwt');
+
+        if (!isAdmin) {
+            let isPaid = false;
+
+            // 1. Check local plan record
+            const planStr = localStorage.getItem('judiq_selected_plan');
+            if (planStr) {
+                try {
+                    const plan = JSON.parse(planStr);
+                    if (plan.status === 'ACTIVE' || plan.status === 'PAID') {
+                        isPaid = true;
+                    }
+                } catch (e) {}
+            }
+
+            // 2. Check loaded state quota
+            if (window.state && window.state.userQuota) {
+                const q = window.state.userQuota;
+                if (q.plan_status === 'ACTIVE' && q.is_active) {
+                    isPaid = true;
+                } else if (q.plan_status === 'PENDING_PAYMENT' || !q.is_active || q.monthly_report_limit === 0) {
+                    isPaid = false;
+                }
+            }
+
+            if (!isPaid) {
+                if (ui && typeof ui.toast === 'function') {
+                    ui.toast("🔒 Subscription required. Please complete checkout to access the platform.", "warning");
+                }
+                screens.forEach(id => ui.hide(id));
+                ui.show('landingScreen');
+                window.location.hash = 'pricingSection';
+                setTimeout(() => {
+                    const pricingEl = document.getElementById('pricingSection');
+                    if (pricingEl) pricingEl.scrollIntoView({ behavior: 'smooth' });
+                    if (typeof window.subscribeToSelectedModularPlan === 'function') {
+                        window.subscribeToSelectedModularPlan();
+                    }
+                }, 400);
+                return;
+            }
+        }
+    }
+
     // Auth gate for bankRecoveryScreen: require officer or account login
     if (targetScreenId === 'bankRecoveryScreen') {
         const bankUserStr = localStorage.getItem('judiq_bank_user');
@@ -110,36 +192,6 @@ export function switchScreen(targetScreenId) {
         }
     }
 
-    // Auth gate for CMS screens
-    const isCmsScreen = targetScreenId.startsWith('cms') || targetScreenId.startsWith('case') || 
-                        targetScreenId.startsWith('client') || targetScreenId.startsWith('document') ||
-                        targetScreenId.startsWith('draft') || targetScreenId.startsWith('team') ||
-                        targetScreenId.startsWith('audit');
-    if (isCmsScreen && targetScreenId !== 'caseWizardScreen') {
-        const currentUser = (window.state && window.state.currentUser) || (typeof window.supabaseClient !== 'undefined' && window.supabaseClient.auth);
-        const hasGeneralAuth = !!currentUser || !!localStorage.getItem('judiq_token') || !!localStorage.getItem('judiq_jwt');
-        if (!hasGeneralAuth) {
-            if (ui && typeof ui.toast === 'function') {
-                ui.toast("Please sign in to access Case Management.", "warning");
-            }
-            switchScreen('loginScreen');
-            return;
-        }
-    }
-
-    const screens = [
-        'landingScreen', 'loginScreen', 'registerScreen', 
-        'dashboardScreen', 'caseWizardScreen', 
-        'resultsScreen', 'termsScreen', 'privacyScreen', 'refundScreen',
-        'draftGeneratorScreen', 'draftStudioScreen', 'quickAnalysisScreen',
-        'reportScreen', 'sharedReportScreen', 'bankRecoveryScreen', 'adminPortalScreen',
-        // ── CMS Screens ───────────────────────────────────────
-        'cmsHomeScreen', 'caseListScreen', 'caseCreateScreen', 'caseDetailScreen',
-        'clientListScreen', 'clientCreateScreen', 'clientDetailScreen',
-        'documentLibraryScreen', 'draftWorkflowScreen',
-        'teamManagementScreen', 'cmsAnalyticsScreen', 'auditTrailScreen'
-    ];
-    
     screens.forEach(id => ui.hide(id));
     ui.show(targetScreenId);
     

@@ -446,6 +446,17 @@ window.submitCase = async () => {
     } catch (err) {
         ui.hide('analysisLoading');
         ui.toast(err.message, 'error');
+        if (err.message && (err.message.includes('Subscription required') || err.message.includes('activate a Section 138 plan') || err.message.includes('PAYMENT_REQUIRED'))) {
+            setTimeout(() => {
+                switchScreen('landingScreen');
+                window.location.hash = 'pricingSection';
+                const el = document.getElementById('pricingSection');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+                if (typeof window.subscribeToSelectedModularPlan === 'function') {
+                    window.subscribeToSelectedModularPlan();
+                }
+            }, 1200);
+        }
     }
 };
 

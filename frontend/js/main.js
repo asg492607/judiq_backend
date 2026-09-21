@@ -92,6 +92,100 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+export function checkAndResumePendingCheckout() {
+    const pendingCheckout = sessionStorage.getItem('judiq_pending_checkout');
+    if (pendingCheckout) {
+        sessionStorage.removeItem('judiq_pending_checkout');
+        switchScreen('landingScreen');
+        if (window.location.hash !== '#pricingSection') {
+            window.location.hash = 'pricingSection';
+        }
+        if (window.ui && typeof window.ui.toast === 'function') {
+            window.ui.toast("Account authenticated! Resuming your plan checkout...", "info");
+        }
+        setTimeout(() => {
+            const pricingEl = document.getElementById('pricingSection');
+            if (pricingEl) pricingEl.scrollIntoView({ behavior: 'smooth' });
+            if (typeof window.subscribeToSelectedModularPlan === 'function') {
+                window.subscribeToSelectedModularPlan();
+            }
+        }, 500);
+        return true;
+    }
+    return false;
+}
+window.checkAndResumePendingCheckout = checkAndResumePendingCheckout;
+
+export function handleUserSession(sessionUser) {
+    if (sessionUser) {
+        const user = {
+            ...sessionUser,
+            uid: sessionUser.id,
+            email: sessionUser.email || '',
+            displayName: sessionUser.user_metadata?.displayName || sessionUser.user_metadata?.full_name || sessionUser.email?.split('@')[0] || 'Advocate'
+        };
+        window.state.currentUser = user;
+        const userEmailEl = document.getElementById('userEmail');
+        if (userEmailEl) ui.setText('userEmail', user.email);
+
+        const savedDomain = sessionUser.user_metadata?.domain || localStorage.getItem(`judiq_domain_${user.uid}`) || 'ni_act';
+        window.state.userDomain = savedDomain;
+
+        const savedRole = localStorage.getItem(`judiq_role_${user.uid}`) || 'law_firm';
+        window.state.currentRole = savedRole;
+
+        // Check if there is a pending subscription checkout to resume
+        if (checkAndResumePendingCheckout()) return;
+
+        // Sync user quota from backend to verify paid status
+        if (typeof api !== 'undefined' && api.getUserQuota) {
+            api.getUserQuota(user.uid, user.email).then(res => {
+                if (res && res.quota) {
+                    window.state.userQuota = res.quota;
+                    if (res.quota.plan_status === 'ACTIVE' && res.quota.is_active) {
+                        localStorage.setItem('judiq_selected_plan', JSON.stringify({
+                            status: 'ACTIVE',
+                            ...res.quota
+                        }));
+                    } else {
+                        localStorage.removeItem('judiq_selected_plan');
+                    }
+                }
+            }).catch(() => {});
+        }
+
+        const hasShareParam = new URLSearchParams(window.location.search).has('share');
+        if (!hasShareParam) {
+            const planStr = localStorage.getItem('judiq_selected_plan');
+            let hasPlan = false;
+            if (planStr) {
+                try {
+                    const p = JSON.parse(planStr);
+                    hasPlan = (p.status === 'ACTIVE' || p.status === 'PAID');
+                } catch(e) {}
+            }
+            const isAdmin = savedRole === 'admin' || (user.email && user.email.toLowerCase().includes('admin@'));
+            if (hasPlan || isAdmin) {
+                renderDashboard();
+                switchScreen('dashboardScreen');
+            } else {
+                switchScreen('landingScreen');
+                window.location.hash = 'pricingSection';
+            }
+        }
+    } else {
+        window.state.currentUser = null;
+        const savedEmail = localStorage.getItem('judiq_active_user_email');
+        if (savedEmail) {
+            loginLocally(savedEmail);
+        } else {
+            const hasShareParam = new URLSearchParams(window.location.search).has('share');
+            if (!hasShareParam) switchScreen('landingScreen');
+        }
+    }
+}
+window.handleUserSession = handleUserSession;
+
 function setupAuthListeners() {
     // Bind click events for navigation
     const showRegisterEl = document.getElementById('showRegister');
@@ -131,41 +225,6 @@ function setupAuthListeners() {
         return;
     }
 
-    const handleUserSession = (sessionUser) => {
-        if (sessionUser) {
-            const user = {
-                ...sessionUser,
-                uid: sessionUser.id,
-                email: sessionUser.email || '',
-                displayName: sessionUser.user_metadata?.displayName || sessionUser.user_metadata?.full_name || sessionUser.email?.split('@')[0] || 'Advocate'
-            };
-            window.state.currentUser = user;
-            const userEmailEl = document.getElementById('userEmail');
-            if (userEmailEl) ui.setText('userEmail', user.email);
-
-            const savedDomain = sessionUser.user_metadata?.domain || localStorage.getItem(`judiq_domain_${user.uid}`) || 'ni_act';
-            window.state.userDomain = savedDomain;
-
-            const savedRole = localStorage.getItem(`judiq_role_${user.uid}`) || 'law_firm';
-            window.state.currentRole = savedRole;
-
-            const hasShareParam = new URLSearchParams(window.location.search).has('share');
-            if (!hasShareParam) {
-                renderDashboard();
-                switchScreen('dashboardScreen');
-            }
-        } else {
-            window.state.currentUser = null;
-            const savedEmail = localStorage.getItem('judiq_active_user_email');
-            if (savedEmail) {
-                loginLocally(savedEmail);
-            } else {
-                const hasShareParam = new URLSearchParams(window.location.search).has('share');
-                if (!hasShareParam) switchScreen('landingScreen');
-            }
-        }
-    };
-
     auth.onAuthStateChange((_event, session) => {
         handleUserSession(session?.user || null);
     });
@@ -203,6 +262,27 @@ export function loginLocally(email, domain = 'ni_act', role = 'law_firm') {
     const userEmailEl = document.getElementById('userEmail');
     if (userEmailEl) ui.setText('userEmail', mockUser.email);
     
+    // Check if there is a pending subscription checkout to resume
+    const pendingCheckout = sessionStorage.getItem('judiq_pending_checkout');
+    if (pendingCheckout) {
+        sessionStorage.removeItem('judiq_pending_checkout');
+        switchScreen('landingScreen');
+        if (window.location.hash !== '#pricingSection') {
+            window.location.hash = 'pricingSection';
+        }
+        if (window.ui && typeof window.ui.toast === 'function') {
+            window.ui.toast("Account authenticated! Resuming your plan checkout...", "info");
+        }
+        setTimeout(() => {
+            const pricingEl = document.getElementById('pricingSection');
+            if (pricingEl) pricingEl.scrollIntoView({ behavior: 'smooth' });
+            if (typeof window.subscribeToSelectedModularPlan === 'function') {
+                window.subscribeToSelectedModularPlan();
+            }
+        }, 500);
+        return;
+    }
+
     // Skip dashboard redirect if viewing a shared report
     const hasShareParam = new URLSearchParams(window.location.search).has('share');
     if (!hasShareParam) {
@@ -371,22 +451,63 @@ function setupFormListeners() {
                         localStorage.setItem(`judiq_domain_${sessionUser.id}`, domain);
                         window.state.userDomain = domain;
                         handleUserSession(sessionUser);
-                        renderDashboard();
-                        switchScreen('dashboardScreen');
+
+                        // Direct new registration to Pricing Section to complete payment first
+                        sessionStorage.setItem('judiq_pending_checkout', JSON.stringify({
+                            timestamp: Date.now(),
+                            plan: 'section_138'
+                        }));
+                        switchScreen('landingScreen');
+                        window.location.hash = 'pricingSection';
                         if (window.ui && typeof window.ui.toast === 'function') {
-                            window.ui.toast("Registration successful! Welcome to JudiQ.", "success");
+                            window.ui.toast("Account created! Please complete payment to activate your plan.", "success");
                         }
+                        setTimeout(() => {
+                            const pricingEl = document.getElementById('pricingSection');
+                            if (pricingEl) pricingEl.scrollIntoView({ behavior: 'smooth' });
+                            if (typeof window.subscribeToSelectedModularPlan === 'function') {
+                                window.subscribeToSelectedModularPlan();
+                            }
+                        }, 500);
                     }
                 } else {
                     loginLocally(email, domain);
-                    renderDashboard();
-                    switchScreen('dashboardScreen');
+                    sessionStorage.setItem('judiq_pending_checkout', JSON.stringify({
+                        timestamp: Date.now(),
+                        plan: 'section_138'
+                    }));
+                    switchScreen('landingScreen');
+                    window.location.hash = 'pricingSection';
+                    if (window.ui && typeof window.ui.toast === 'function') {
+                        window.ui.toast("Account created! Please complete payment to activate your plan.", "success");
+                    }
+                    setTimeout(() => {
+                        const pricingEl = document.getElementById('pricingSection');
+                        if (pricingEl) pricingEl.scrollIntoView({ behavior: 'smooth' });
+                        if (typeof window.subscribeToSelectedModularPlan === 'function') {
+                            window.subscribeToSelectedModularPlan();
+                        }
+                    }, 500);
                 }
             } catch (err) {
-                console.info('Supabase registration notice, activating session:', err?.message || err);
+                console.info('Activating local user session:', err?.message || err);
                 loginLocally(email, domain);
-                renderDashboard();
-                switchScreen('dashboardScreen');
+                sessionStorage.setItem('judiq_pending_checkout', JSON.stringify({
+                    timestamp: Date.now(),
+                    plan: 'section_138'
+                }));
+                switchScreen('landingScreen');
+                window.location.hash = 'pricingSection';
+                if (window.ui && typeof window.ui.toast === 'function') {
+                    window.ui.toast("Account created! Please complete payment to activate your plan.", "success");
+                }
+                setTimeout(() => {
+                    const pricingEl = document.getElementById('pricingSection');
+                    if (pricingEl) pricingEl.scrollIntoView({ behavior: 'smooth' });
+                    if (typeof window.subscribeToSelectedModularPlan === 'function') {
+                        window.subscribeToSelectedModularPlan();
+                    }
+                }, 500);
             } finally {
                 if (btn) btn.classList.remove('loading');
             }
@@ -4763,21 +4884,38 @@ window.applyModularPreset = function(count) {
 };
 
 window.subscribeToSelectedModularPlan = async function() {
+    console.log('[JudiQ] subscribeToSelectedModularPlan triggered');
     const checkboxes = document.querySelectorAll('input[name="legal_module"]:checked');
     const selected = Array.from(checkboxes).map(cb => cb.value);
     const count = Math.max(1, selected.length);
-    let price = count * 500;
-    if (count === 6) price = 2500;
+
+    let price = 499;
+    const priceDisplay = document.getElementById('planTotalPrice');
+    if (priceDisplay && priceDisplay.textContent) {
+        const parsed = parseInt(priceDisplay.textContent.replace(/[^0-9]/g, ''), 10);
+        if (!isNaN(parsed) && parsed > 0) price = parsed;
+    }
     const cases = count * 10;
 
+    // Gate: User must be registered and signed in to link subscription to their account
     const user = window.state ? window.state.currentUser : null;
-    let userEmail = user && user.email ? user.email : '';
-    if (!userEmail) {
-        userEmail = prompt('Enter your advocate / firm work email to register plan subscription:', 'advocate@lawfirm.in');
-        if (!userEmail) return;
+    if (!user || !user.email) {
+        console.log('[JudiQ] Unauthenticated user clicked subscribe. Storing intent and redirecting to registration.');
+        sessionStorage.setItem('judiq_pending_checkout', JSON.stringify({
+            timestamp: Date.now(),
+            plan: 'section_138'
+        }));
+        if (window.ui && typeof window.ui.toast === 'function') {
+            window.ui.toast('Please create an account or sign in to activate your plan.', 'info');
+        } else if (window.showToast) {
+            window.showToast('Please create an account or sign in to activate your plan.', 'info');
+        }
+        switchScreen('registerScreen');
+        return;
     }
-    const cleanEmail = userEmail.trim().toLowerCase();
-    const userId = user && user.uid ? user.uid : 'USR_' + cleanEmail.split('@')[0].toUpperCase();
+
+    const cleanEmail = user.email.trim().toLowerCase();
+    const userId = user.uid || user.id || ('USR_' + (cleanEmail.split('@')[0] || 'ADVOCATE').toUpperCase());
 
     const planPayload = {
         user_id: userId,
@@ -4785,40 +4923,71 @@ window.subscribeToSelectedModularPlan = async function() {
         selected_modules: selected,
         monthly_price_inr: price,
         requested_quota: cases,
-        role: "law_firm"
+        role: 'law_firm'
     };
 
-    try {
-        const res = await api.submitSubscriptionPlan(planPayload);
-        if (res && res.success) {
-            localStorage.setItem('judiq_selected_plan', JSON.stringify({
-                ...planPayload,
-                status: 'PENDING_APPROVAL',
-                submitted_at: new Date().toISOString()
-            }));
-
-            // Alert user that plan is queued for admin approval
-            alert(
-                `📋 SUBSCRIPTION PLAN SUBMITTED (SIMULATION MODE)\n\n` +
-                `Account: ${cleanEmail}\n` +
-                `Selected Modules: ${count} (${selected.join(', ')})\n` +
-                `Monthly Fee: ₹${price.toLocaleString('en-IN')} / month\n` +
-                `Monthly Case Allowance: ${cases} Cases / 30 Days\n\n` +
-                `⏳ STATUS: PENDING ADMIN APPROVAL\n` +
-                `An entry has been logged in the Master Admin Control Center.\n` +
-                `Until approved by an administrator, case analysis and draft generation will remain locked for this profile.`
-            );
-
-            if (window.ui && window.ui.toast) {
-                window.ui.toast(`Plan request submitted! Logged in Admin Center as PENDING APPROVAL.`, 'warning');
-            }
-        } else {
-            if (window.ui && window.ui.toast) window.ui.toast(res.detail || 'Plan submission failed', 'error');
-        }
-    } catch (e) {
-        console.error('Plan submit failed:', e);
-        if (window.ui && window.ui.toast) window.ui.toast('Plan submission error: ' + e.message, 'error');
+    // Razorpay Standard Checkout
+    if (typeof window.judiqPay !== 'function') {
+        console.error('[JudiQ Pay] window.judiqPay is not a function');
+        if (window.showToast) window.showToast('Payment module is initializing. Please click again.', 'warning');
+        return;
     }
+
+    window.judiqPay({
+        amount: price * 100,
+        description: `JudiQ Section 138 Plan — ${count} module${count > 1 ? 's' : ''} · ₹${price.toLocaleString('en-IN')} / mo`,
+        receipt: (`judiq_${userId.slice(0, 12)}_${Date.now()}`).slice(0, 40),
+        prefill: {
+            email:   cleanEmail,
+            name:    user && user.displayName ? user.displayName : 'Advocate Member',
+            contact: user && user.phone ? user.phone : '9876543210'
+        },
+        notes: {
+            user_id:     userId,
+            modules:     selected.join(','),
+            cases_quota: String(cases)
+        },
+
+        onSuccess: async function(paymentData) {
+            try {
+                const res = await api.submitSubscriptionPlan({
+                    ...planPayload,
+                    razorpay_payment_id: paymentData.payment_id,
+                    razorpay_order_id:   paymentData.order_id,
+                    status: 'PAID'
+                });
+                localStorage.setItem('judiq_selected_plan', JSON.stringify({
+                    ...planPayload,
+                    status: 'ACTIVE',
+                    payment_id: paymentData.payment_id,
+                    activated_at: new Date().toISOString()
+                }));
+                if (window.showToast) {
+                    const ok = res && res.success;
+                    window.showToast(
+                        ok ? `✅ Plan activated! ${count} module${count > 1 ? 's' : ''} · ₹${price.toLocaleString('en-IN')}/mo`
+                           : 'Payment received — plan activation pending admin review.',
+                        ok ? 'success' : 'warning'
+                    );
+                }
+            } catch (e) {
+                console.error('Plan activation after payment failed:', e);
+                if (window.showToast) window.showToast('Payment succeeded — contact support to activate your plan.', 'warning');
+            }
+        },
+
+        onFailure: function(err) {
+            if (err && err.message === 'User dismissed the payment modal.') {
+                if (window.ui && typeof window.ui.toast === 'function') {
+                    window.ui.toast('Payment cancelled. Platform services remain locked until subscription is completed.', 'warning');
+                } else if (window.showToast) {
+                    window.showToast('Payment cancelled. Platform services remain locked until subscription is completed.', 'warning');
+                }
+            } else {
+                console.error('[JudiQ Pay] Payment failed:', err);
+            }
+        }
+    });
 };
 
 // Auto-initialize pricing calculator on DOM load
