@@ -19,6 +19,7 @@ from document_manager import router as document_manager_router
 from draft_workflow import router as draft_workflow_router
 from team_manager import router as team_manager_router
 from communication import router as communication_router
+from payments_router import router as payments_router
 
 api_router.include_router(analysis.router, prefix="/analyze", tags=["Section 138 Analysis"])
 api_router.include_router(counsel_router, prefix="/intel/counsel", tags=["Opposing Counsel Intel"])
@@ -42,6 +43,9 @@ api_router.include_router(document_manager_router, prefix="/cms", tags=["Documen
 api_router.include_router(draft_workflow_router, prefix="/cms", tags=["Draft Workflow"])
 api_router.include_router(team_manager_router, prefix="/cms", tags=["Team Management"])
 api_router.include_router(communication_router, prefix="/cms", tags=["Communication & Audit"])
+
+# ── Payments ──────────────────────────────────────────────────
+api_router.include_router(payments_router, prefix="/payments", tags=["Payments"])
 
 from knowledge_pipeline import PrecedentIngestionPayload, PrecedentIngestionService
 from fastapi import Body, Depends

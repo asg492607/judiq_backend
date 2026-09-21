@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     ADMIN_PASSWORD_HASH: str = ""
     ADMIN_EMAILS: str = "admin@judiq.ai"
 
+    # Razorpay Payment Gateway
+    RAZORPAY_KEY_ID: str = ""
+    RAZORPAY_KEY_SECRET: str = ""
+
 
 @lru_cache()
 def get_settings():

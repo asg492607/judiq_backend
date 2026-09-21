@@ -1043,29 +1043,30 @@ class DatabaseManager:
             row = cursor.fetchone()
 
             if not row:
+                # New user starts with PENDING_PAYMENT and 0 quota until a plan is subscribed/paid
                 cursor.execute(f"""
                     INSERT INTO user_quotas
                     (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota)
-                    VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
-                """, (user_id, email, role, default_limit, 0, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138"]), 500.0, default_limit))
+                    VALUES ({p}, {p}, {p}, 0, 0, {p}, 0, {p}, {p}, 'PENDING_PAYMENT', {p}, 499.0, 10)
+                """, (user_id, email, role, current_month, now_iso, now_iso, json.dumps(["s138"])))
                 conn.commit()
                 return {
                     "user_id": user_id,
                     "email": email,
                     "role": role,
-                    "monthly_report_limit": default_limit,
+                    "monthly_report_limit": 0,
                     "reports_used_this_month": 0,
-                    "remaining_reports": default_limit if default_limit != -1 else 999999,
+                    "remaining_reports": 0,
                     "current_month_period": current_month,
-                    "is_active": True,
+                    "is_active": False,
                     "created_at": now_iso,
                     "updated_at": now_iso,
-                    "plan_status": "APPROVED",
+                    "plan_status": "PENDING_PAYMENT",
                     "selected_modules": ["s138"],
-                    "monthly_price_inr": 500.0,
-                    "requested_quota": default_limit,
-                    "approved_by": "system",
-                    "approved_at": now_iso
+                    "monthly_price_inr": 499.0,
+                    "requested_quota": 10,
+                    "approved_by": None,
+                    "approved_at": None
                 }
 
             # If existing user, check if month period rolled over
@@ -1150,6 +1151,15 @@ class DatabaseManager:
 
         quota = DatabaseManager.get_or_create_user_quota(user_id, email)
         
+        # Strict Payment & Plan Gate Check
+        if quota.get("plan_status") == "PENDING_PAYMENT" or (quota.get("monthly_report_limit") == 0 and not quota.get("is_active")):
+            return {
+                "allowed": False,
+                "reason": "PAYMENT_REQUIRED",
+                "message": "Subscription required. Please activate a Section 138 plan (₹499/mo) to unlock case analyses and court drafting.",
+                "quota": quota
+            }
+
         # Strict Admin Approval Gate Check
         if quota.get("plan_status") == "PENDING_APPROVAL":
             return {
@@ -1213,9 +1223,19 @@ class DatabaseManager:
                 DatabaseManager.release_connection(conn)
 
     @staticmethod
-    def submit_subscription_plan(user_id: str, email: str, selected_modules: list, monthly_price_inr: float, requested_quota: int, role: str = "law_firm") -> dict:
+    def submit_subscription_plan(
+        user_id: str,
+        email: str,
+        selected_modules: list,
+        monthly_price_inr: float,
+        requested_quota: int,
+        role: str = "law_firm",
+        status: str = "PENDING_APPROVAL",
+        razorpay_payment_id: Optional[str] = None
+    ) -> dict:
         """
-        Registers or updates a user subscription plan in PENDING_APPROVAL status, queuing it for admin review.
+        Registers or updates a user subscription plan.
+        If status is 'ACTIVE' or razorpay_payment_id is provided, activates the account immediately.
         """
         conn = None
         try:
@@ -1226,23 +1246,27 @@ class DatabaseManager:
             now_iso = datetime.now().isoformat()
             modules_json = json.dumps(selected_modules)
 
+            is_active_flag = 1 if status == "ACTIVE" or razorpay_payment_id else 0
+            plan_status_val = "ACTIVE" if is_active_flag else "PENDING_APPROVAL"
+            report_limit = requested_quota if is_active_flag else 0
+
             cursor.execute(f"SELECT user_id FROM user_quotas WHERE user_id = {p}", (user_id,))
             exists = cursor.fetchone()
 
             if exists:
                 cursor.execute(f"""
                     UPDATE user_quotas
-                    SET email = {p}, role = {p}, plan_status = 'PENDING_APPROVAL', is_active = 0,
-                        monthly_report_limit = 0, requested_quota = {p}, monthly_price_inr = {p},
+                    SET email = {p}, role = {p}, plan_status = {p}, is_active = {p},
+                        monthly_report_limit = {p}, requested_quota = {p}, monthly_price_inr = {p},
                         selected_modules = {p}, updated_at = {p}
                     WHERE user_id = {p}
-                """, (email, role, requested_quota, monthly_price_inr, modules_json, now_iso, user_id))
+                """, (email, role, plan_status_val, is_active_flag, report_limit, requested_quota, monthly_price_inr, modules_json, now_iso, user_id))
             else:
                 cursor.execute(f"""
                     INSERT INTO user_quotas
                     (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota)
-                    VALUES ({p}, {p}, {p}, 0, 0, {p}, 0, {p}, {p}, 'PENDING_APPROVAL', {p}, {p}, {p})
-                """, (user_id, email, role, current_month, now_iso, now_iso, modules_json, monthly_price_inr, requested_quota))
+                    VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+                """, (user_id, email, role, report_limit, current_month, is_active_flag, now_iso, now_iso, plan_status_val, modules_json, monthly_price_inr, requested_quota))
             
             conn.commit()
             return DatabaseManager.get_or_create_user_quota(user_id, email)

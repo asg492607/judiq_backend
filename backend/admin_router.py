@@ -136,6 +136,9 @@ class PlanSubmitRequest(BaseModel):
     monthly_price_inr: float = Field(..., description="Calculated monthly fee in INR")
     requested_quota: int = Field(..., description="Requested monthly cases (10 per module)")
     role: Optional[str] = Field("law_firm", description="Designation (e.g. advocate, law_firm, bank_panel)")
+    status: Optional[str] = Field("PENDING_APPROVAL", description="Payment status (e.g. PAID or PENDING_APPROVAL)")
+    razorpay_payment_id: Optional[str] = Field(None, description="Razorpay payment ID if paid")
+    razorpay_order_id: Optional[str] = Field(None, description="Razorpay order ID if paid")
 
 class PlanActionRequest(BaseModel):
     user_id: str = Field(..., description="Target User ID")
@@ -150,23 +153,26 @@ def submit_modular_plan_request(
     current_user: str = Depends(get_current_user_optional)
 ):
     """
-    Submits a modular subscription request into the admin approval queue (PENDING_APPROVAL).
-    Access to analysis and drafting remains locked until approved by platform admin.
+    Submits a modular subscription request into the admin approval queue or activates immediately if paid.
     """
     try:
+        is_paid = (req.status == "PAID") or bool(req.razorpay_payment_id)
+        final_status = "ACTIVE" if is_paid else "PENDING_APPROVAL"
         quota = DatabaseManager.submit_subscription_plan(
             user_id=req.user_id,
             email=req.email,
             selected_modules=req.selected_modules,
             monthly_price_inr=req.monthly_price_inr,
             requested_quota=req.requested_quota,
-            role=req.role or "law_firm"
+            role=req.role or "law_firm",
+            status=final_status,
+            razorpay_payment_id=req.razorpay_payment_id
         )
-        logger.info(f"[SUBSCRIPTION] Plan request submitted for {req.user_id} ({len(req.selected_modules)} modules, ₹{req.monthly_price_inr}) - PENDING_APPROVAL")
+        logger.info(f"[SUBSCRIPTION] Plan request submitted for {req.user_id} ({len(req.selected_modules)} modules, ₹{req.monthly_price_inr}) - {final_status}")
         return {
             "success": True,
-            "status": "PENDING_APPROVAL",
-            "message": "Your subscription plan request has been submitted to the Admin Control Center. Analysis and draft generation access will remain locked until administrative approval.",
+            "status": final_status,
+            "message": "Plan activated successfully!" if is_paid else "Your subscription plan request has been submitted to the Admin Control Center. Analysis and draft generation access will remain locked until administrative approval.",
             "quota": quota
         }
     except Exception as e:
