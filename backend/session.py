@@ -1615,6 +1615,8 @@ class DatabaseManager:
         try:
             now_iso = datetime.now().isoformat()
             current_month = datetime.now().strftime("%Y-%m")
+            p = DatabaseManager.get_dialect_placeholder()
+            is_pg = (p == "%s")
             seed_litigators = [
                 ("admin@judiq.ai", "admin@judiq.ai", "admin", -1, 4, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"]), 0.0, -1, "SYSTEM", now_iso),
                 ("USR_DEL_VERMA_88", "advocate.verma@delhibar.in", "law_firm", 50, 14, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "criminal"]), 1500.0, 50, "admin@judiq.ai", now_iso),
@@ -1623,12 +1625,18 @@ class DatabaseManager:
                 ("USR_PUN_SINGH_SOL", "contact@singhpartners.in", "law_firm", 75, 19, current_month, 1, now_iso, now_iso, "APPROVED", json.dumps(["s138", "sarfaesi", "bank_recovery"]), 1500.0, 75, "admin@judiq.ai", now_iso),
                 ("USR_BLR_KAPOOR_LAW", "verma.associates@lawfirm.in", "law_firm", 20, 0, current_month, 0, now_iso, now_iso, "PENDING_APPROVAL", json.dumps(["s138", "sarfaesi"]), 1000.0, 20, "", "")
             ]
+            sql = f"""
+                INSERT INTO user_quotas
+                (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota, approved_by, approved_at)
+                VALUES ({', '.join([p]*15)})
+                ON CONFLICT (user_id) DO NOTHING
+            """ if is_pg else """
+                INSERT OR IGNORE INTO user_quotas
+                (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota, approved_by, approved_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """
             for lit in seed_litigators:
-                cursor.execute("""
-                    INSERT OR IGNORE INTO user_quotas
-                    (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota, approved_by, approved_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, lit)
+                cursor.execute(sql, lit)
             conn.commit()
         except Exception as e:
             logger.warning(f"Seed litigators skipped or failed: {e}")
@@ -1638,6 +1646,8 @@ class DatabaseManager:
         try:
             now_iso = datetime.now().isoformat()
             current_month = datetime.now().strftime("%Y-%m")
+            p = DatabaseManager.get_dialect_placeholder()
+            is_pg = (p == "%s")
             seed_officers = [
                 ("OFFICER_SARB_842", "Rajesh Nambiar", "State Bank of India", "SBI — Stressed Asset Recovery Branch (SARB Mumbai)", "sarb_manager", "rajesh.nambiar@sbi.co.in", 250, 18, current_month, 1, now_iso, now_iso),
                 ("OFFICER_MUM_SARB_104", "Ananya Deshmukh", "State Bank of India", "SBI — Stressed Asset Recovery Cell (SARB Mumbai)", "bank_officer", "ananya.d@sbi.co.in", 150, 12, current_month, 1, now_iso, now_iso),
@@ -1645,12 +1655,18 @@ class DatabaseManager:
                 ("OFFICER_MUM_WLR_302", "Anand Kulkarni", "HDFC Bank", "HDFC Bank — Wholesale Recovery Dept (Mumbai)", "recovery_head", "anand.kulkarni@hdfcbank.com", 300, 24, current_month, 1, now_iso, now_iso),
                 ("OFFICER_PUN_SAMB_512", "Priya Patel", "Bank of Baroda", "BOB — Stressed Assets Management Branch (SAMB Ahmedabad)", "bank_officer", "priya.patel@bankofbaroda.co.in", 100, 5, current_month, 1, now_iso, now_iso),
             ]
+            sql = f"""
+                INSERT INTO bank_officers
+                (officer_id, name, bank_name, branch_name, role, email, monthly_audit_limit, audits_used_this_month, current_month_period, is_active, created_at, updated_at)
+                VALUES ({', '.join([p]*12)})
+                ON CONFLICT (officer_id) DO NOTHING
+            """ if is_pg else """
+                INSERT OR IGNORE INTO bank_officers
+                (officer_id, name, bank_name, branch_name, role, email, monthly_audit_limit, audits_used_this_month, current_month_period, is_active, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """
             for off in seed_officers:
-                cursor.execute("""
-                    INSERT OR IGNORE INTO bank_officers
-                    (officer_id, name, bank_name, branch_name, role, email, monthly_audit_limit, audits_used_this_month, current_month_period, is_active, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, off)
+                cursor.execute(sql, off)
             conn.commit()
         except Exception as e:
             logger.warning(f"Seed bank officers skipped or failed: {e}")
