@@ -5629,11 +5629,13 @@ window.generateOrUpdateShareLink = async (password = null) => {
             analysis_result: analysisResult
         };
 
-        const res = await fetch(`${api.baseUrl || 'http://127.0.0.1:8000'}/api/v1/reports/share`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        }).then(r => r.json());
+        const res = (typeof api.createSharedReport === 'function')
+            ? await api.createSharedReport(payload)
+            : await fetch(`${api.baseUrl || 'http://127.0.0.1:8000'}/api/v1/reports/share`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(r => r.json());
 
         if (res && res.share_id) {
             const baseUrl = window.location.origin + window.location.pathname;
@@ -5649,7 +5651,7 @@ window.generateOrUpdateShareLink = async (password = null) => {
     } catch (err) {
         console.error("Error generating share link:", err);
         if (displayInput) displayInput.value = "Failed to generate link. Try again.";
-        if (ui && ui.toast) ui.toast(err.message, "error");
+        if (ui && ui.toast) ui.toast(err.message || "Failed to generate share link", "error");
     }
 };
 
@@ -5707,9 +5709,12 @@ window.checkUrlForSharedReport = async () => {
     window.activeShareId = shareId;
 
     try {
-        const res = await fetch(`${api.baseUrl || 'http://127.0.0.1:8000'}/api/v1/reports/shared/${encodeURIComponent(shareId)}`).then(r => r.json());
+        const res = (typeof api.getSharedReport === 'function')
+            ? await api.getSharedReport(shareId)
+            : await fetch(`${api.baseUrl || 'http://127.0.0.1:8000'}/api/v1/reports/shared/${encodeURIComponent(shareId)}`).then(r => r.json());
+
         if (!res || !res.success) {
-            alert(res.detail || "This shared report does not exist or has expired.");
+            alert(res?.detail || "This shared report does not exist or has expired.");
             return;
         }
 
@@ -5746,14 +5751,15 @@ window.submitSharedPassword = async (e) => {
     if (errMsg) errMsg.style.display = 'none';
 
     try {
-        const res = await fetch(`${api.baseUrl || 'http://127.0.0.1:8000'}/api/v1/reports/shared/${encodeURIComponent(window.activeShareId)}/verify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: pwd })
-        });
+        const data = (typeof api.verifySharedReportPassword === 'function')
+            ? await api.verifySharedReportPassword(window.activeShareId, pwd)
+            : await fetch(`${api.baseUrl || 'http://127.0.0.1:8000'}/api/v1/reports/shared/${encodeURIComponent(window.activeShareId)}/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: pwd })
+            }).then(r => r.json());
 
-        const data = await res.json();
-        if (res.ok && data.success) {
+        if (data && data.success) {
             const modal = document.getElementById('sharedPasswordChallengeModal');
             if (modal) modal.classList.add('hidden');
             window.activeShareReportData = data;
@@ -5761,7 +5767,7 @@ window.submitSharedPassword = async (e) => {
             switchScreen('sharedReportScreen');
         } else {
             if (errMsg) {
-                errMsg.textContent = data.detail || "Incorrect password. Please try again.";
+                errMsg.textContent = data.detail || data.message || "Incorrect password. Please try again.";
                 errMsg.style.display = 'block';
             }
             if (pwdInput) {
@@ -5771,7 +5777,7 @@ window.submitSharedPassword = async (e) => {
         }
     } catch (err) {
         if (errMsg) {
-            errMsg.textContent = "Network error. Please try again.";
+            errMsg.textContent = err.message || "Incorrect password. Please try again.";
             errMsg.style.display = 'block';
         }
     } finally {

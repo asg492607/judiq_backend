@@ -829,6 +829,35 @@ export const api = {
     async getCmsDeadlineHeatmap() {
         const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/analytics/deadlines`);
         try { return await response.json(); } catch (e) { throw new Error("Failed to load deadline heatmap."); }
+    },
+
+    // ══════════════════════════════════════════════════════════
+    // FORMAL SHARED REPORT API
+    // ══════════════════════════════════════════════════════════
+    baseUrl: API_BASE_URL,
+    API_BASE_URL: API_BASE_URL,
+
+    async createSharedReport(payload) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/reports/share`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to generate secure shared report."); }
+    },
+
+    async getSharedReport(shareId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/reports/shared/${encodeURIComponent(shareId)}`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load shared report."); }
+    },
+
+    async verifySharedReportPassword(shareId, password) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/reports/shared/${encodeURIComponent(shareId)}/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to verify report password."); }
     }
 };
 
