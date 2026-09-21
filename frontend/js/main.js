@@ -5261,7 +5261,6 @@ window.subscribeToSelectedModularPlan = async function () {
         const parsed = parseInt(priceDisplay.textContent.replace(/[^0-9]/g, ''), 10);
         if (!isNaN(parsed) && parsed > 0) price = parsed;
     }
-    const cases = count * 10;
 
     // Gate: User must be registered and signed in to link subscription to their account
     const user = window.state ? window.state.currentUser : null;
