@@ -10650,13 +10650,20 @@ body.dark-theme .dac-icon--sarfaesi {
 
 .billing-cycle-selector {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.45rem;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.35rem;
     margin-bottom: 1.25rem;
     background: rgba(15, 23, 42, 0.4);
     padding: 0.35rem;
     border-radius: var(--radius-lg);
     border: 1px solid var(--border-color);
+}
+
+@media (max-width: 640px) {
+    .billing-cycle-selector {
+        grid-template-columns: repeat(auto-fit, minmax(65px, 1fr));
+        gap: 0.25rem;
+    }
 }
 
 [data-theme="light"] .billing-cycle-selector {

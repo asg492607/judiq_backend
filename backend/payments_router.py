@@ -57,6 +57,10 @@ class CreateOrderRequest(BaseModel):
         default_factory=lambda: f"judiq_{uuid.uuid4().hex[:12]}",
         max_length=40,
     )
+    user_id: Optional[str] = None
+    email: Optional[str] = None
+    plan_name: Optional[str] = None
+    is_paid_demo: Optional[bool] = False
 
     @field_validator("amount")
     @classmethod
@@ -80,6 +84,7 @@ class VerifyPaymentRequest(BaseModel):
     user_id: Optional[str] = None
     email: Optional[str] = None
     plan: Optional[str] = "section_138"
+    plan_name: Optional[str] = "Section 138 Plan"
     modules: Optional[list] = None
     quota: Optional[int] = 25
     amount: Optional[float] = 499.0
@@ -123,7 +128,22 @@ async def create_order(payload: CreateOrderRequest) -> CreateOrderResponse:
 
     Creates a server-side order via the Razorpay Orders API and returns the
     order_id that the frontend needs to open the payment modal.
+    Enforces one-time redemption for the ₹2 Paid Demo Plan per account/email.
     """
+    from session import DatabaseManager
+
+    is_demo = (
+        payload.is_paid_demo or 
+        (payload.plan_name and "demo" in payload.plan_name.lower()) or 
+        payload.amount == 200
+    )
+    if is_demo and (payload.user_id or payload.email):
+        if DatabaseManager.has_user_used_paid_demo(payload.user_id or "", payload.email or ""):
+            raise HTTPException(
+                status_code=400,
+                detail="The ₹2 Paid Demo Plan has already been claimed once for this account or Gmail address. Please select a standard subscription plan."
+            )
+
     client = _get_razorpay_client()
 
     order_data = {
@@ -214,18 +234,30 @@ async def verify_payment(payload: VerifyPaymentRequest) -> VerifyPaymentResponse
             if not target_uid and target_email:
                 target_uid = f"USR_{target_email.split('@')[0].upper()}"
 
-            allocated_quota = payload.quota if (payload.quota and payload.quota > 0) else 25
+            is_paid_demo = (
+                (payload.plan_name and "demo" in payload.plan_name.lower()) or 
+                payload.plan == "paid_demo" or 
+                (payload.quota == 1 and payload.amount == 2.0)
+            )
+            allocated_quota = 1 if is_paid_demo else (payload.quota if (payload.quota and payload.quota > 0) else 25)
+            plan_name = "Paid Demo Plan" if is_paid_demo else (payload.plan_name or "Section 138 Plan")
+
             activated_quota = DatabaseManager.submit_subscription_plan(
                 user_id=target_uid,
                 email=target_email,
                 selected_modules=payload.modules or ["s138"],
-                monthly_price_inr=payload.amount or 499.0,
+                monthly_price_inr=payload.amount or (2.0 if is_paid_demo else 499.0),
                 requested_quota=allocated_quota,
                 role="law_firm",
                 status="ACTIVE",
-                razorpay_payment_id=payload.razorpay_payment_id
+                razorpay_payment_id=payload.razorpay_payment_id,
+                plan_name=plan_name,
+                paid_demo_used=1 if is_paid_demo else None
             )
-            logger.info("Subscription activated immediately without admin approval for user=%s (%s)", target_uid, target_email)
+            logger.info("Subscription activated immediately without admin approval for user=%s (%s), plan=%s", target_uid, target_email, plan_name)
+        except ValueError as ve:
+            logger.warning("Subscription activation rejected: %s", ve)
+            raise HTTPException(status_code=400, detail=str(ve))
         except Exception as e:
             logger.error("Error auto-activating subscription in verify-payment: %s", e)
 

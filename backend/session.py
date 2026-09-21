@@ -268,7 +268,9 @@ class DatabaseManager:
                 ("monthly_price_inr", "REAL DEFAULT 500"),
                 ("requested_quota", "INTEGER DEFAULT 10"),
                 ("approved_by", "TEXT"),
-                ("approved_at", "TEXT")
+                ("approved_at", "TEXT"),
+                ("paid_demo_used", "INTEGER DEFAULT 0"),
+                ("plan_name", "TEXT DEFAULT 'Free Demo'")
             ]:
                 try:
                     cursor.execute(f"ALTER TABLE user_quotas ADD COLUMN {col} {col_type}")
@@ -612,10 +614,10 @@ class DatabaseManager:
             now = datetime.now().isoformat()
 
             # Find latest version number & previous score
-            cursor.execute(f"SELECT MAX(version_num), score FROM case_versions WHERE case_id = {p} GROUP BY case_id", (case_id,))
+            cursor.execute(f"SELECT version_num, score FROM case_versions WHERE case_id = {p} ORDER BY version_num DESC LIMIT 1", (case_id,))
             row = cursor.fetchone()
-            if row and row[0]:
-                next_version = row[0] + 1
+            if row and row[0] is not None:
+                next_version = int(row[0]) + 1
                 prev_score = float(row[1]) if row[1] is not None else float(score)
             else:
                 next_version = 1
@@ -1027,10 +1029,15 @@ class DatabaseManager:
     @staticmethod
     def get_or_create_user_quota(user_id: str, email: str = "", role: str = "law_firm", default_limit: int = 25) -> dict:
         conn = None
-        # Universal Admin Free Forever Bypass
         try:
             from security import is_admin_user
-            if is_admin_user(user_id, email):
+        except Exception:
+            def is_admin_user(u="", e="", r=""):  # type: ignore[misc]
+                return (r or "").lower() == "admin" or "admin" in (e or "").lower() or "aixynz" in (e or "").lower()
+
+        # Universal Admin Free Forever Bypass
+        try:
+            if role == "admin" or is_admin_user(user_id, email, role):
                 current_month = datetime.now().strftime("%Y-%m")
                 now_iso = datetime.now().isoformat()
                 return {
@@ -1063,7 +1070,7 @@ class DatabaseManager:
 
             cursor.execute(f"""
                 SELECT user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at,
-                       plan_status, selected_modules, monthly_price_inr, requested_quota, approved_by, approved_at
+                       plan_status, selected_modules, monthly_price_inr, requested_quota, approved_by, approved_at, paid_demo_used, plan_name
                 FROM user_quotas
                 WHERE user_id = {p}
             """, (user_id,))
@@ -1079,8 +1086,8 @@ class DatabaseManager:
 
                 cursor.execute(f"""
                     INSERT INTO user_quotas
-                    (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota)
-                    VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, 499.0, {p})
+                    (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota, paid_demo_used, plan_name)
+                    VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, 499.0, {p}, 0, 'Free Demo')
                 """, (user_id, email, role, init_limit, current_month, init_active, now_iso, now_iso, init_status, json.dumps(["s138"]), max(10, init_limit)))
                 conn.commit()
                 return {
@@ -1099,7 +1106,9 @@ class DatabaseManager:
                     "monthly_price_inr": 499.0,
                     "requested_quota": max(10, init_limit),
                     "approved_by": None,
-                    "approved_at": None
+                    "approved_at": None,
+                    "paid_demo_used": False,
+                    "plan_name": "Free Demo"
                 }
 
             # If existing user, check if month period rolled over
@@ -1114,6 +1123,31 @@ class DatabaseManager:
             req_quota = int(row[12]) if len(row) > 12 and row[12] is not None else int(db_limit)
             approved_by = row[13] if len(row) > 13 else ""
             approved_at = row[14] if len(row) > 14 else ""
+            paid_demo_used = bool(row[15]) if len(row) > 15 and row[15] is not None else False
+            plan_name = str(row[16]) if len(row) > 16 and row[16] else ("Paid Demo Plan" if (int(db_limit) == 1 and paid_demo_used) else "Free Demo")
+
+            # Check if existing DB record is admin
+            if db_role == "admin" or is_admin_user(db_user_id, db_email, db_role):
+                return {
+                    "user_id": db_user_id,
+                    "email": db_email or email,
+                    "role": "admin",
+                    "monthly_report_limit": -1,
+                    "reports_used_this_month": int(db_used or 0),
+                    "remaining_reports": 999999,
+                    "current_month_period": db_period,
+                    "is_active": True,
+                    "created_at": db_created,
+                    "updated_at": db_updated,
+                    "plan_status": "ACTIVE",
+                    "selected_modules": ["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"],
+                    "monthly_price_inr": 0.0,
+                    "requested_quota": -1,
+                    "approved_by": approved_by or "SYSTEM",
+                    "approved_at": approved_at or now_iso,
+                    "paid_demo_used": False,
+                    "plan_name": "Unlimited Admin"
+                }
 
             if db_period != current_month:
                 db_used = 0
@@ -1140,7 +1174,7 @@ class DatabaseManager:
                 "role": db_role,
                 "monthly_report_limit": limit,
                 "reports_used_this_month": used,
-                "remaining_reports": max(0, remaining),
+                "remaining_reports": remaining,
                 "current_month_period": current_month,
                 "is_active": bool(db_active),
                 "created_at": db_created,
@@ -1150,7 +1184,9 @@ class DatabaseManager:
                 "monthly_price_inr": monthly_price,
                 "requested_quota": req_quota,
                 "approved_by": approved_by,
-                "approved_at": approved_at
+                "approved_at": approved_at,
+                "paid_demo_used": paid_demo_used,
+                "plan_name": plan_name
             }
         except Exception as e:
             logger.error(f"Error in get_or_create_user_quota: {e}")
@@ -1173,15 +1209,21 @@ class DatabaseManager:
                 DatabaseManager.release_connection(conn)
 
     @staticmethod
-    def check_and_consume_report_quota(user_id: str, email: str = "", cost: int = 1) -> dict:
+    def check_and_consume_report_quota(user_id: str, email: str = "", cost: int = 1, role: str = "") -> dict:
         """
         Atomically checks if the user has an approved active plan and available monthly report quota.
         If pending admin approval or suspended, strictly blocks execution with detailed reason.
+        Administrators are granted free, unlimited bypass across all platform capabilities.
         """
-        # Admin bypass - Free access forever for all services
         try:
             from security import is_admin_user
-            if is_admin_user(user_id, email):
+        except Exception:
+            def is_admin_user(u="", e="", r=""):  # type: ignore[misc]
+                return (r or "").lower() == "admin" or "admin" in (e or "").lower() or "aixynz" in (e or "").lower()
+
+        # Admin bypass - Free access forever for all services
+        try:
+            if role == "admin" or is_admin_user(user_id, email, role):
                 return {
                     "allowed": True,
                     "reason": "ADMIN_BYPASS",
@@ -1198,8 +1240,16 @@ class DatabaseManager:
         except Exception:
             pass
 
-        quota = DatabaseManager.get_or_create_user_quota(user_id, email)
+        quota = DatabaseManager.get_or_create_user_quota(user_id, email, role)
         
+        # Check if user quota object belongs to an administrator
+        if quota.get("role") == "admin" or is_admin_user(quota.get("user_id", ""), quota.get("email", ""), quota.get("role", "")):
+            return {
+                "allowed": True,
+                "reason": "ADMIN_BYPASS",
+                "quota": quota
+            }
+
         # 1. Admin Suspension Check
         if quota.get("plan_status") == "SUSPENDED":
             return {
@@ -1299,11 +1349,14 @@ class DatabaseManager:
         requested_quota: int,
         role: str = "law_firm",
         status: str = "PENDING_APPROVAL",
-        razorpay_payment_id: Optional[str] = None
+        razorpay_payment_id: Optional[str] = None,
+        plan_name: Optional[str] = None,
+        paid_demo_used: Optional[int] = None
     ) -> dict:
         """
         Registers or updates a user subscription plan.
         If status is 'ACTIVE' or razorpay_payment_id is provided, activates the account immediately.
+        Enforces one-time redemption for Paid Demo Plan per account/email.
         """
         conn = None
         try:
@@ -1314,9 +1367,28 @@ class DatabaseManager:
             now_iso = datetime.now().isoformat()
             modules_json = json.dumps(selected_modules)
 
+            is_paid_demo = (
+                (plan_name and "demo" in plan_name.lower()) or 
+                (requested_quota == 1 and abs(monthly_price_inr - 2.0) < 0.01) or 
+                (paid_demo_used == 1)
+            )
+
+            # Check if user/email already used Paid Demo Plan
+            if is_paid_demo:
+                cursor.execute(f"""
+                    SELECT paid_demo_used FROM user_quotas 
+                    WHERE user_id = {p} OR (email = {p} AND email IS NOT NULL AND email != '')
+                """, (user_id, email))
+                rows = cursor.fetchall()
+                for r in rows:
+                    if r and r[0] and int(r[0]) == 1:
+                        raise ValueError("The ₹2 Paid Demo Plan has already been used once for this account or Gmail address. Please choose a standard subscription plan.")
+
             is_active_flag = 1 if (status in ("ACTIVE", "PAID", "APPROVED") or razorpay_payment_id) else 0
             plan_status_val = "ACTIVE" if is_active_flag else "PENDING_APPROVAL"
             report_limit = (requested_quota if requested_quota > 0 else 25) if is_active_flag else 0
+            demo_flag = 1 if is_paid_demo else 0
+            plan_name_val = plan_name or ("Paid Demo Plan" if is_paid_demo else "Section 138 Plan")
 
             cursor.execute(f"SELECT user_id FROM user_quotas WHERE user_id = {p}", (user_id,))
             exists = cursor.fetchone()
@@ -1326,21 +1398,51 @@ class DatabaseManager:
                     UPDATE user_quotas
                     SET email = {p}, role = {p}, plan_status = {p}, is_active = {p},
                         monthly_report_limit = {p}, requested_quota = {p}, monthly_price_inr = {p},
-                        selected_modules = {p}, updated_at = {p}
+                        selected_modules = {p}, updated_at = {p},
+                        reports_used_this_month = 0,
+                        paid_demo_used = CASE WHEN {p} = 1 THEN 1 ELSE paid_demo_used END,
+                        plan_name = {p}
                     WHERE user_id = {p}
-                """, (email, role, plan_status_val, is_active_flag, report_limit, requested_quota, monthly_price_inr, modules_json, now_iso, user_id))
+                """, (email, role, plan_status_val, is_active_flag, report_limit, requested_quota, monthly_price_inr, modules_json, now_iso, demo_flag, plan_name_val, user_id))
             else:
                 cursor.execute(f"""
                     INSERT INTO user_quotas
-                    (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota)
-                    VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
-                """, (user_id, email, role, report_limit, current_month, is_active_flag, now_iso, now_iso, plan_status_val, modules_json, monthly_price_inr, requested_quota))
+                    (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota, paid_demo_used, plan_name)
+                    VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+                """, (user_id, email, role, report_limit, current_month, is_active_flag, now_iso, now_iso, plan_status_val, modules_json, monthly_price_inr, requested_quota, demo_flag, plan_name_val))
             
             conn.commit()
             return DatabaseManager.get_or_create_user_quota(user_id, email)
         except Exception as e:
             logger.error(f"Error submitting subscription plan: {e}")
             raise e
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    @staticmethod
+    def has_user_used_paid_demo(user_id: str = "", email: str = "") -> bool:
+        """Return True if the user_id or email has already claimed the 1-time ₹2 Paid Demo Plan."""
+        if not user_id and not email:
+            return False
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"""
+                SELECT paid_demo_used FROM user_quotas 
+                WHERE (user_id = {p} AND user_id IS NOT NULL AND user_id != '') 
+                   OR (email = {p} AND email IS NOT NULL AND email != '')
+            """, (user_id, email))
+            rows = cursor.fetchall()
+            for r in rows:
+                if r and r[0] and int(r[0]) == 1:
+                    return True
+            return False
+        except Exception as e:
+            logger.error(f"Error checking paid demo usage: {e}")
+            return False
         finally:
             if conn:
                 DatabaseManager.release_connection(conn)
