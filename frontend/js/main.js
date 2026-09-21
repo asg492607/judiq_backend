@@ -5046,17 +5046,22 @@ window.subscribeToSelectedModularPlan = async function() {
 
                 sessionStorage.removeItem('judiq_pending_checkout');
 
+                const celebrationMsg = `🎉 Payment verified successfully! Plan activated. Welcome to JUDIQ AI.`;
                 if (window.ui && typeof window.ui.toast === 'function') {
-                    window.ui.toast(`✅ Payment successful! Plan activated. Entering your legal workspace…`, 'success');
+                    window.ui.toast(celebrationMsg, 'success');
                 } else if (window.showToast) {
-                    window.showToast(`✅ Payment successful! Plan activated. Entering your legal workspace…`, 'success');
+                    window.showToast(celebrationMsg, 'success');
                 }
 
-                // Immediately start service and navigate to Dashboard
-                setTimeout(() => {
-                    renderDashboard();
+                // Render dashboard behind or after celebration
+                renderDashboard();
+                if (!document.getElementById('paymentCelebrationOverlay')) {
+                    setTimeout(() => {
+                        switchScreen('dashboardScreen');
+                    }, 600);
+                } else {
                     switchScreen('dashboardScreen');
-                }, 600);
+                }
 
             } catch (e) {
                 console.error('Plan activation error, activating locally:', e);
@@ -5070,6 +5075,9 @@ window.subscribeToSelectedModularPlan = async function() {
                     activated_at: new Date().toISOString()
                 }));
                 sessionStorage.removeItem('judiq_pending_checkout');
+                if (window.ui && typeof window.ui.toast === 'function') {
+                    window.ui.toast(`🎉 Payment verified! Workspace active with immediate effect.`, 'success');
+                }
                 setTimeout(() => {
                     renderDashboard();
                     switchScreen('dashboardScreen');
