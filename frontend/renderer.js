@@ -2096,7 +2096,26 @@ export function renderResults(data) {
 
     animateScore(score);
 
-    renderList("issuesList", data.issues, "No critical issues detected");
+    // Merge issues with any detected cross-document contradictions
+    const allIssues = [...(data.issues || [])];
+    const contras = data.cross_document_contradictions || data.contradictions || (window.state?.caseData?.cross_document_contradictions) || [];
+    contras.forEach(c => {
+        const desc = c.detail || c.description || (typeof c === 'string' ? c : JSON.stringify(c));
+        const title = c.issue || (c.field ? `Contradiction in ${c.field.replace(/_/g, ' ').toUpperCase()}` : 'Document Contradiction');
+        const alreadyPresent = allIssues.some(iss => {
+            const issText = typeof iss === 'object' ? (iss.risk || iss.detail || '') : String(iss);
+            return issText.includes(title) || (desc && issText.includes(desc));
+        });
+        if (!alreadyPresent) {
+            allIssues.unshift({
+                risk: title,
+                severity: c.severity || 'CRITICAL',
+                detail: desc
+            });
+        }
+    });
+
+    renderList("issuesList", allIssues, "No critical issues detected");
     renderList("strengthsList", data.strengths, "No strong points identified");
 
     const weaknesses = (data.evidence_gaps && data.evidence_gaps.length > 0)

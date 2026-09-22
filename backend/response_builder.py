@@ -148,12 +148,15 @@ class ResponseBuilder:
         contradictions = engine_result.get("contradictions", [])
         for contra in contradictions:
             penalty = contra.get("penalty", 0)
-            severity_mapped = "FATAL" if penalty <= -85 else ("CRITICAL" if penalty <= -50 else "HIGH")
-            detail_text = contra.get("detail", "")
+            severity_mapped = contra.get("severity") or ("FATAL" if penalty <= -85 else ("CRITICAL" if penalty <= -50 else "HIGH"))
+            detail_text = contra.get("detail", "") or contra.get("description", "")
+            issue_title = contra.get("issue") or contra.get("field") or "Logical Contradiction"
+            if not str(issue_title).startswith("[CONTRADICTION]"):
+                issue_title = f"[CONTRADICTION] {issue_title}"
             if severity_mapped == "FATAL":
                 detail_text = format_fatal_explanation(contra.get("issue", "contradiction"))
             structured_weaknesses.append({
-                "risk": f"[CONTRADICTION] {contra.get('issue', 'Logical Contradiction')}",
+                "risk": issue_title,
                 "severity": severity_mapped,
                 "detail": detail_text
             })

@@ -79,7 +79,11 @@ function persistAutosave(syncFromInputs = false) {
 window.loadAutosave = loadAutosave;
 window.persistAutosave = persistAutosave;
 
+let _isPopulatingInputs = false;
+
 window.setCaseType = (type) => {
+    if (_isPopulatingInputs) return;
+    if (window.state?.caseData?.case_type === type && isWizardInitialized) return;
     window.state = window.state || {};
     window.state.caseData = window.state.caseData || {};
     window.state.caseData.case_type = type;
@@ -90,92 +94,100 @@ window.setCaseType = (type) => {
 };
 
 export function populateAllInputs() {
-    const steps = getCurrentSteps();
-    const caseData = window.state?.caseData || {};
-    steps.forEach((s) => {
-        s.fields.forEach(field => {
-            const el = document.getElementById(field.name);
-            if (!el) return;
-            let val = caseData[field.name];
-            if (val === undefined || val === null || val === '') {
-                if (field.name === 'amount' && caseData['cheque_amount'] !== undefined) {
-                    val = caseData['cheque_amount'];
-                } else if (field.name === 'cheque_amount' && caseData['amount'] !== undefined) {
-                    val = caseData['amount'];
-                } else if (field.name === 'debt_amount' && caseData['amount'] !== undefined) {
-                    val = caseData['amount'];
-                } else if (field.name === 'amount' && caseData['debt_amount'] !== undefined) {
-                    val = caseData['debt_amount'];
-                } else if (field.name === 'notice_received_date' && caseData['notice_delivery_date'] !== undefined) {
-                    val = caseData['notice_delivery_date'];
+    if (_isPopulatingInputs) return;
+    _isPopulatingInputs = true;
+    try {
+        const steps = getCurrentSteps();
+        const caseData = window.state?.caseData || {};
+        steps.forEach((s) => {
+            s.fields.forEach(field => {
+                const el = document.getElementById(field.name);
+                if (!el) return;
+                let val = caseData[field.name];
+                if (val === undefined || val === null || val === '') {
+                    if (field.name === 'amount' && caseData['cheque_amount'] !== undefined) {
+                        val = caseData['cheque_amount'];
+                    } else if (field.name === 'cheque_amount' && caseData['amount'] !== undefined) {
+                        val = caseData['amount'];
+                    } else if (field.name === 'debt_amount' && caseData['amount'] !== undefined) {
+                        val = caseData['amount'];
+                    } else if (field.name === 'amount' && caseData['debt_amount'] !== undefined) {
+                        val = caseData['debt_amount'];
+                    } else if (field.name === 'notice_received_date' && caseData['notice_delivery_date'] !== undefined) {
+                        val = caseData['notice_delivery_date'];
+                    }
                 }
-            }
-            if (val !== undefined && val !== null && val !== '') {
-                if (el.type === 'date') {
-                    // HTML5 date inputs require strictly YYYY-MM-DD
-                    if (typeof val === 'string') {
-                        const dmy = val.trim().match(/^(\d{1,2})[./\-](\d{1,2})[./\-](\d{4})$/);
-                        if (dmy) {
-                            val = `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`;
-                        } else {
-                            const ymd = val.trim().match(/^(\d{4})[./\-](\d{1,2})[./\-](\d{1,2})$/);
-                            if (ymd) {
-                                val = `${ymd[1]}-${ymd[2].padStart(2, '0')}-${ymd[3].padStart(2, '0')}`;
+                if (val !== undefined && val !== null && val !== '') {
+                    if (el.type === 'date') {
+                        // HTML5 date inputs require strictly YYYY-MM-DD
+                        if (typeof val === 'string') {
+                            const dmy = val.trim().match(/^(\d{1,2})[./\-](\d{1,2})[./\-](\d{4})$/);
+                            if (dmy) {
+                                val = `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`;
+                            } else {
+                                const ymd = val.trim().match(/^(\d{4})[./\-](\d{1,2})[./\-](\d{1,2})$/);
+                                if (ymd) {
+                                    val = `${ymd[1]}-${ymd[2].padStart(2, '0')}-${ymd[3].padStart(2, '0')}`;
+                                }
                             }
                         }
-                    }
-                    el.value = val;
-                } else if (el.type === 'number') {
-                    // HTML5 number inputs reject currency symbols and commas
-                    if (typeof val === 'string') {
-                        const numStr = val.replace(/[^0-9.]/g, '');
-                        if (numStr) val = numStr;
-                    }
-                    el.value = val;
-                } else if (el.tagName === 'SELECT') {
-                    let matched = false;
-                    const valStr = String(val).trim().toLowerCase();
-                    for (let i = 0; i < el.options.length; i++) {
-                        const optVal = el.options[i].value;
-                        if (String(optVal).toLowerCase() === valStr) {
-                            el.selectedIndex = i;
-                            matched = true;
-                            break;
+                        el.value = val;
+                    } else if (el.type === 'number') {
+                        // HTML5 number inputs reject currency symbols and commas
+                        if (typeof val === 'string') {
+                            const numStr = val.replace(/[^0-9.]/g, '');
+                            if (numStr) val = numStr;
                         }
-                    }
-                    if (!matched) {
-                        // Substring / fuzzy match
+                        el.value = val;
+                    } else if (el.tagName === 'SELECT') {
+                        let matched = false;
+                        const valStr = String(val).trim().toLowerCase();
                         for (let i = 0; i < el.options.length; i++) {
-                            const optVal = el.options[i].value.toLowerCase();
-                            if ((valStr === 'true' || valStr === '1' || valStr === 'yes') && optVal.startsWith('yes')) {
-                                el.selectedIndex = i;
-                                matched = true;
-                                break;
-                            } else if ((valStr === 'false' || valStr === '0' || valStr === 'no') && optVal.startsWith('no')) {
-                                el.selectedIndex = i;
-                                matched = true;
-                                break;
-                            } else if (valStr && (optVal.includes(valStr) || valStr.includes(optVal))) {
+                            const optVal = el.options[i].value;
+                            if (String(optVal).toLowerCase() === valStr) {
                                 el.selectedIndex = i;
                                 matched = true;
                                 break;
                             }
                         }
+                        if (!matched) {
+                            // Substring / fuzzy match
+                            for (let i = 0; i < el.options.length; i++) {
+                                const optVal = el.options[i].value.toLowerCase();
+                                if ((valStr === 'true' || valStr === '1' || valStr === 'yes') && optVal.startsWith('yes')) {
+                                    el.selectedIndex = i;
+                                    matched = true;
+                                    break;
+                                } else if ((valStr === 'false' || valStr === '0' || valStr === 'no') && optVal.startsWith('no')) {
+                                    el.selectedIndex = i;
+                                    matched = true;
+                                    break;
+                                } else if (valStr && (optVal.includes(valStr) || valStr.includes(optVal))) {
+                                    el.selectedIndex = i;
+                                    matched = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!matched) el.value = val;
+                    } else if (el.type === 'checkbox') {
+                        el.checked = (val === true || val === 'true' || val === 1 || String(val).toLowerCase().startsWith('yes'));
+                    } else {
+                        el.value = val;
                     }
-                    if (!matched) el.value = val;
-                } else if (el.type === 'checkbox') {
-                    el.checked = (val === true || val === 'true' || val === 1 || String(val).toLowerCase().startsWith('yes'));
-                } else {
-                    el.value = val;
-                }
 
-                // Trigger change/input events for listeners
-                try {
-                    el.dispatchEvent(new Event('change', { bubbles: true }));
-                } catch (_) {}
-            }
+                    // Trigger change/input events for listeners (never case_type to avoid triggering setCaseType recursion)
+                    if (field.name !== 'case_type' && el.id !== 'case_type') {
+                        try {
+                            el.dispatchEvent(new Event('change', { bubbles: true }));
+                        } catch (_) {}
+                    }
+                }
+            });
         });
-    });
+    } finally {
+        _isPopulatingInputs = false;
+    }
 }
 window.populateAllInputs = populateAllInputs;
 

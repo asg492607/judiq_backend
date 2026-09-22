@@ -254,6 +254,30 @@ class JudiQEngine:
             fallback=[],
             context="ContradictionEngine"
         )
+        if not isinstance(contradictions, list):
+            contradictions = []
+
+        # Ingest and merge cross-document contradictions from case_data (e.g. Document Intelligence)
+        ext_contras = case_data.get("cross_document_contradictions") or case_data.get("contradictions") or case_data.get("document_contradictions") or []
+        for ec in ext_contras:
+            if isinstance(ec, dict):
+                item = {
+                    "issue": ec.get("issue") or (f"Contradiction in {ec.get('field')}" if ec.get('field') else "Document Contradiction"),
+                    "field": ec.get("field"),
+                    "severity": ec.get("severity") or "CRITICAL",
+                    "detail": ec.get("detail") or ec.get("description") or "Contradiction detected across uploaded case documents.",
+                    "penalty": ec.get("penalty", -60),
+                }
+                if not any(c.get("field") == item["field"] and item["field"] for c in contradictions):
+                    contradictions.append(item)
+            elif hasattr(ec, "description"):
+                contradictions.append({
+                    "issue": getattr(ec, "field", "Document Contradiction"),
+                    "field": getattr(ec, "field", None),
+                    "severity": getattr(ec, "severity", "CRITICAL"),
+                    "detail": getattr(ec, "description", str(ec)),
+                    "penalty": -60
+                })
         timeline_anomalies = _safe_call(
             adversarial_engine.detect_timeline_anomalies, case_data,
             fallback=[],

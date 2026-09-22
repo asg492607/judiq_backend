@@ -1320,6 +1320,17 @@ function _applyToWizard(autoAnalyze = false) {
     cd.urgency_level = cd.urgency_level || 'Urgent';
     cd.additional_notes = cd.additional_notes || 'All statutory notices served within prescribed limitation under Sections 138/142 NI Act.';
 
+    // Forward all detected cross-document contradictions so they surface under Issues in the legal analysis
+    cd.cross_document_contradictions = (_contradictions || []).map(c => ({
+        issue: c.field ? `Contradiction in ${_getFieldDisplayLabel(c.field)}` : (c.issue || 'Document Contradiction'),
+        field: c.field,
+        severity: c.severity || 'CRITICAL',
+        detail: c.description || c.detail || 'Discrepancy detected across uploaded case documents.',
+        penalty: (c.severity === 'CRITICAL' || c.severity === 'FATAL') ? -65 : -35,
+        values: c.values || []
+    }));
+    cd.contradictions = cd.cross_document_contradictions;
+
     // Persist and synchronize to DOM
     if (typeof window.persistAutosave === 'function') window.persistAutosave();
     if (typeof window.switchScreen === 'function') window.switchScreen('caseWizardScreen');
