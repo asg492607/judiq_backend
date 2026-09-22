@@ -533,6 +533,10 @@ class JudiQEngine:
 
         evidence_gaps = EvidenceIntelligenceEngine.evaluate_evidence_gaps(case_data)
         cross_doc_contradictions = EvidenceIntelligenceEngine.detect_cross_document_contradictions(case_data)
+        raw_cross = case_data.get("cross_document_contradictions") or case_data.get("contradictions") or []
+        for rc in raw_cross:
+            if rc not in cross_doc_contradictions:
+                cross_doc_contradictions.append(rc)
         procedural_graph = ProceduralGraphEngine.build_graph(case_data) if is_sarfaesi else {"nodes": [], "current_stage": "Active Litigation"}
 
         detailed_assessment = {}

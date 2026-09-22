@@ -2105,10 +2105,11 @@ export function renderResults(data) {
 
     // Merge issues with any detected cross-document contradictions
     const allIssues = [...(data.issues || [])];
-    const contras = data.cross_document_contradictions || data.contradictions || (window.state?.caseData?.cross_document_contradictions) || [];
+    const contras = data.cross_document_contradictions || data.contradictions || (window.state?.caseData?.cross_document_contradictions) || window._docIntelContradictions || [];
     contras.forEach(c => {
         const desc = c.detail || c.description || (typeof c === 'string' ? c : JSON.stringify(c));
-        const title = c.issue || (c.field ? `Contradiction in ${c.field.replace(/_/g, ' ').toUpperCase()}` : 'Document Contradiction');
+        const fieldName = c.field ? c.field.replace(/_/g, ' ').toUpperCase() : '';
+        const title = c.issue || (fieldName ? `Contradiction in ${fieldName}` : 'Document Contradiction');
         const alreadyPresent = allIssues.some(iss => {
             const issText = typeof iss === 'object' ? (iss.risk || iss.detail || '') : String(iss);
             return issText.includes(title) || (desc && issText.includes(desc));
@@ -2121,6 +2122,8 @@ export function renderResults(data) {
             });
         }
     });
+
+    if (issuesCountEl) issuesCountEl.innerText = allIssues.length;
 
     renderList("issuesList", allIssues, "No critical issues detected");
     renderList("strengthsList", data.strengths, "No strong points identified");

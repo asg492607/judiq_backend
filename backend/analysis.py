@@ -107,10 +107,12 @@ async def analyze(request_data: Dict[str, Any], request: Request):
                 "quota": quota_res.get("quota")
             })
 
-    # User-scoped cache key prevents cross-user data leakage with TTL expiration
+    # User-scoped cache key prevents cross-user data leakage with TTL expiration.
+    # Never return cached responses when cross-document contradictions or active issues exist.
+    has_contras = bool(raw_data.get("cross_document_contradictions") or raw_data.get("contradictions"))
     cache_key = get_cache_key(user_id, raw_data)
     with CACHE_LOCK:
-        if cache_key in ANALYSIS_CACHE:
+        if not has_contras and cache_key in ANALYSIS_CACHE:
             cached_data, cached_at = ANALYSIS_CACHE[cache_key]
             if time.time() - cached_at < CACHE_TTL_SECONDS:
                 logger.info(f"[{request_id}] Cache hit for request.")

@@ -381,6 +381,20 @@ window._diExtract = async () => {
         _missingDocs    = analyzeResult.missing_documents || [];
         _timeline       = analyzeResult.timeline || [];
 
+        // Immediately attach contradictions to caseData so they are available to any downstream analysis
+        window._docIntelContradictions = _contradictions;
+        if (window.state?.caseData) {
+            window.state.caseData.cross_document_contradictions = _contradictions.map(c => ({
+                issue: c.field ? `Contradiction in ${_getFieldDisplayLabel(c.field)}` : (c.issue || 'Document Contradiction'),
+                field: c.field,
+                severity: c.severity || 'CRITICAL',
+                detail: c.description || c.detail || 'Discrepancy detected across uploaded case documents.',
+                penalty: (c.severity === 'CRITICAL' || c.severity === 'FATAL') ? -65 : -35,
+                values: c.values || []
+            }));
+            window.state.caseData.contradictions = window.state.caseData.cross_document_contradictions;
+        }
+
         _renderFactReviewStep();
 
     } catch (err) {
@@ -1340,17 +1354,11 @@ function _applyToWizard(autoAnalyze = false) {
 
     const filledCount = Object.keys(cd).filter(k => cd[k] !== undefined && cd[k] !== null && cd[k] !== '').length;
 
-    // Verification Gate: Ensure lawyer resolves conflicting facts before analysis
+    // Verification state recording
     const vStatus = _computeStatus();
-    cd.verification_status = vStatus.isFullyVerified ? 'VERIFIED' : 'UNVERIFIED';
+    cd.verification_status = vStatus.isFullyVerified ? 'VERIFIED' : 'REQUIRES_ADVOCATE_VERIFICATION';
     cd.unresolved_contradictions_count = vStatus.unresolvedCount;
     cd.missing_facts_count = vStatus.missingCount;
-
-    if (!vStatus.isFullyVerified && autoAnalyze && vStatus.unresolvedCount > 0) {
-        if (ui?.toast) ui.toast(`⚠️ Verification Gate: ${vStatus.unresolvedCount} unresolved contradiction(s) must be resolved.`, 'warning');
-        alert(`⚠️ Verification Gate Active (Legal Analysis Blocked):\n\nThere are ${vStatus.unresolvedCount} unresolved document contradiction(s) detected across uploaded case documents.\n\nPer legal drafting integrity rules, the advocate must verify and select the canonical value for each conflicting fact before conclusive legal analysis and complaint drafting can proceed.`);
-        return;
-    }
 
     if (autoAnalyze) {
         closeDocIntelPanel();

@@ -1,27 +1,27 @@
-import { supabaseConfig, roleActions, wizardSteps } from '../config.js?v=14';
-import { api } from '../api.js?v=15';
-import { ui, switchScreen } from '../ui.js?v=15';
-import { renderWizardStep } from '../wizard.js?v=14';
-import { renderResults, switchResultTab } from '../renderer.js?v=15';
-import { DRAFT_TYPES, formatDraftDate, numberToWords } from '../draft_templates.js?v=14';
-import { escapeHtml } from './modules/utils.js?v=14';
+import { supabaseConfig, roleActions, wizardSteps } from '../config.js?v=50';
+import { api } from '../api.js?v=50';
+import { ui, switchScreen } from '../ui.js?v=50';
+import { renderWizardStep } from '../wizard.js?v=50';
+import { renderResults, switchResultTab } from '../renderer.js?v=50';
+import { DRAFT_TYPES, formatDraftDate, numberToWords } from '../draft_templates.js?v=50';
+import { escapeHtml } from './modules/utils.js?v=50';
 
 // Import sub-modules to register their exports or initialize their global interfaces
-import { JudiQModals } from './modules/modals.js?v=14';
-import { renderAdversarialCharts, renderScoreBreakdownChart } from './modules/charts.js?v=14';
-import { JudiQValidator } from './modules/validation.js?v=14';
-import { JudiQCoCounselDock } from './modules/counsel_dock.js?v=14';
-import { JudiQStrategySimulator } from './modules/simulator.js?v=14';
-import { initBankRecoveryModule } from './bank_recovery.js?v=14';
-import './compliance_auditor.js?v=15';
-import './counsel_intel.js?v=15';
-import './enterprise_features.js?v=15';
-import { initCaseManager } from './case_manager.js?v=16';
-import { initClientManager } from './client_manager.js?v=16';
-import { initDocumentLibrary } from './document_library.js?v=16';
-import { initDraftWorkflow } from './draft_workflow_ui.js?v=16';
-import { initCmsAnalytics } from './analytics_charts.js?v=16';
-import { initDocIntel } from './doc_intel.js?v=17';
+import { JudiQModals } from './modules/modals.js?v=50';
+import { renderAdversarialCharts, renderScoreBreakdownChart } from './modules/charts.js?v=50';
+import { JudiQValidator } from './modules/validation.js?v=50';
+import { JudiQCoCounselDock } from './modules/counsel_dock.js?v=50';
+import { JudiQStrategySimulator } from './modules/simulator.js?v=50';
+import { initBankRecoveryModule } from './bank_recovery.js?v=50';
+import './compliance_auditor.js?v=50';
+import './counsel_intel.js?v=50';
+import './enterprise_features.js?v=50';
+import { initCaseManager } from './case_manager.js?v=50';
+import { initClientManager } from './client_manager.js?v=50';
+import { initDocumentLibrary } from './document_library.js?v=50';
+import { initDraftWorkflow } from './draft_workflow_ui.js?v=50';
+import { initCmsAnalytics } from './analytics_charts.js?v=50';
+import { initDocIntel } from './doc_intel.js?v=50';
 
 
 import { store } from './modules/store.js?v=14';
