@@ -163,6 +163,10 @@ DOC_TYPE_SIGNATURES: Dict[str, List[str]] = {
         "income tax return", "assessment year", "return of income",
         "pan", "acknowledgement", "form itr"
     ],
+    "EMAIL_EXCHANGE": [
+        "email chain", "email exchange", "mailbox export", "from:", "to:",
+        "subject: re:", "sent:", "cc:", "bcc:", "fictional senders"
+    ],
     "OTHER": [],
 }
 
@@ -177,6 +181,7 @@ FILENAME_TYPE_TOKENS: Dict[str, List[str]] = {
                               "notice", "demand"],
     "TRACKING_REPORT":       ["tracking", "postal", "speed_post", "booking", "track", "dispatch"],
     "AGREEMENT":             ["agreement", "mou", "loan", "deed", "contract", "supply", "purchase"],
+    "EMAIL_EXCHANGE":        ["email", "email_exchange", "mail", "correspondence", "email_chain"],
     "COURT_ORDER":           ["order", "judgment", "summons", "warrant", "tribunal"],
     "FIR":                   ["fir", "first_information"],
     "ITR":                   ["itr", "income_tax", "tax_return"],
@@ -1167,11 +1172,22 @@ def _deterministic_fact_extraction(text: str, doc_type: str) -> Dict[str, Any]:
         snip=del_date_snip
     )
 
-    # ── Transaction / agreement date ──────────────────────────────────────────
+    # ── Agreement executed date (specifically from agreement documents / recitals) ──
+    agr_date = _extract_date_near(text, [
+        "agreement date", "date of agreement", "agreement dated",
+        "executed on", "date of execution", "this agreement executed",
+        "contract date", "contract dated", "supply agreement",
+    ], context_chars=60)
+    result["agreement_date"] = _field(
+        _normalize_date(agr_date[0]) if agr_date else None,
+        0.82 if agr_date else 0.0,
+        snip=agr_date[2] if agr_date else None
+    )
+
+    # ── Transaction / debt date (generic only when explicitly stated) ──────────
     txn_date = _extract_date_near(text, [
-        "transaction date", "loan dated", "loan date", "agreement dated",
-        "agreement date", "date of agreement", "executed on", "date of execution",
-        "this agreement executed",
+        "transaction date", "date of transaction", "loan dated", "loan date",
+        "debt incurred on", "debt date",
     ], context_chars=60)
     result["transaction_date"] = _field(
         _normalize_date(txn_date[0]) if txn_date else None,
@@ -1613,6 +1629,15 @@ def detect_missing_facts(documents: List[ExtractedDocument], workflow_type: str)
                 found = True
                 break
         if not found:
+            # If field is transaction_date, but agreement_date or invoice_date was established, debt proof is satisfied
+            if field == "transaction_date":
+                has_alt_debt = any(
+                    (isinstance(d.facts.get("agreement_date"), dict) and d.facts["agreement_date"].get("value"))
+                    or (isinstance(d.facts.get("invoice_date"), dict) and d.facts["invoice_date"].get("value"))
+                    for d in documents
+                )
+                if has_alt_debt:
+                    continue
             missing.append({
                 "field": field,
                 "required_for": req["required_for"],
@@ -1656,9 +1681,10 @@ def detect_missing_documents(documents: List["ExtractedDocument"], workflow_type
 # ─────────────────────────────────────────────────────────────────────────────
 
 DATE_FIELD_LABELS: Dict[str, str] = {
+    "agreement_date":      "Agreement Executed Date",
     "invoice_date":        "Tax Invoice / Bill Raised",
     "part_payment_date":   "Part Payment Received",
-    "transaction_date":    "Transaction / Agreement Executed",
+    "transaction_date":    "Transaction Date",
     "cheque_date":         "Cheque Issued",
     "dishonour_date":      "Cheque Dishonoured",
     "memo_date":           "Bank Return Memo Issued",
@@ -1684,6 +1710,7 @@ def _parse_date_for_sort(date_str: str) -> datetime:
 
 
 DOC_PRIORITY_FOR_DATE: Dict[str, List[str]] = {
+    "agreement_date":      ["AGREEMENT", "SECTION_138_COMPLAINT", "COMPLAINT"],
     "cheque_date":         ["CHEQUE", "BANK_MEMO", "SECTION_138_COMPLAINT", "COMPLAINT", "LEGAL_NOTICE"],
     "notice_delivery_date":["TRACKING_REPORT", "SECTION_138_COMPLAINT", "COMPLAINT", "LEGAL_NOTICE"],
     "invoice_date":        ["INVOICE_LEDGER", "SECTION_138_COMPLAINT", "COMPLAINT"],
@@ -1746,8 +1773,8 @@ def build_timeline(
                 is_conflicted=is_conf,
             ))
 
-    # Add missing date fields as placeholder events (skip transaction_date if invoice_date exists)
-    has_invoice_or_debt = "invoice_date" in seen_dates or "part_payment_date" in seen_dates
+    # Add missing date fields as placeholder events (skip transaction_date if invoice/part payment/agreement exists)
+    has_invoice_or_debt = "invoice_date" in seen_dates or "part_payment_date" in seen_dates or "agreement_date" in seen_dates
     missing_fields = {m["field"] for m in missing_facts}
     for field, label in DATE_FIELD_LABELS.items():
         if field == "transaction_date" and has_invoice_or_debt:

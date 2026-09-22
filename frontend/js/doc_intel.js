@@ -49,9 +49,10 @@ const CORE_SCHEMA_FIELDS = {
         { key: 'notice_date',          label: 'Notice Date',              defaultHint: 'Date demand notice dispatched' },
         { key: 'notice_delivery_date', label: 'Delivery Date',            defaultHint: 'Postal delivery / service date' },
         { key: 'notice_mode',          label: 'Notice Mode',              defaultHint: 'Dispatch channel (Speed Post, etc)' },
+        { key: 'agreement_date',       label: 'Agreement Executed Date',  defaultHint: 'Date agreement executed' },
         { key: 'invoice_date',         label: 'Invoice Date',             defaultHint: 'Date of supply invoice' },
         { key: 'part_payment_date',    label: 'Part Payment Date',        defaultHint: 'Date part payment received' },
-        { key: 'transaction_date',     label: 'Transaction Date',         defaultHint: 'Underlying transaction/agreement' },
+        { key: 'transaction_date',     label: 'Transaction Date',         defaultHint: 'Underlying transaction/debt date' },
         { key: 'filing_date',          label: 'Filing Date',              defaultHint: 'Court filing date' },
     ],
     sarfaesi: [
@@ -119,6 +120,9 @@ const FACT_TO_WIZARD_MAP = {
     notice_date:         ['notice_date'],
     notice_mode:         ['notice_mode'],
     notice_delivery_date:['notice_delivery_date', 'notice_received_date'],
+    agreement_date:      ['agreement_date', 'transaction_date'],
+    invoice_date:        ['invoice_date'],
+    part_payment_date:   ['part_payment_date'],
     transaction_date:    ['transaction_date'],
     filing_date:         ['filing_date'],
     case_number:         ['case_id'],
@@ -242,6 +246,7 @@ const DOC_TYPE_OPTIONS = [
     { value: 'LEGAL_NOTICE',          label: '⚖️ Legal Notice' },
     { value: 'TRACKING_REPORT',       label: '📮 Tracking Report' },
     { value: 'AGREEMENT',             label: '📋 Agreement / Loan Deed' },
+    { value: 'EMAIL_EXCHANGE',        label: '✉️ Email Exchange / Correspondence' },
     { value: 'COURT_ORDER',           label: '🏛️ Court Order' },
     { value: 'FIR',                   label: '🚔 FIR' },
     { value: 'ITR',                   label: '💰 Income Tax Return' },
@@ -1344,7 +1349,7 @@ function _docTypeIcon(type) {
     const icons = {
         SECTION_138_COMPLAINT: '⚖️', INVOICE_LEDGER: '🧾',
         CHEQUE: '📄', BANK_MEMO: '🏦', LEGAL_NOTICE: '⚖️',
-        TRACKING_REPORT: '📮', AGREEMENT: '📋', COURT_ORDER: '🏛️',
+        TRACKING_REPORT: '📮', AGREEMENT: '📋', EMAIL_EXCHANGE: '✉️', COURT_ORDER: '🏛️',
         FIR: '🚔', ITR: '💰', OTHER: '📁',
     };
     return icons[type] || '📁';
