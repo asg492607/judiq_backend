@@ -1182,7 +1182,10 @@
                                 title="Extract case facts automatically from uploaded legal documents">
                             <i class="fas fa-file-upload"></i> Upload &amp; Extract Docs
                         </button>
-
+                        <button class="btn btn-sm btn-outline" onclick="window.openCaseRagChat(window.state?.caseData || {}, window.state?.docIntel || {})"
+                                title="Open AI Legal Co-Counsel Workspace">
+                            <i class="fas fa-robot"></i> Case AI Chat
+                        </button>
                         <button class="btn btn-sm btn-outline" onclick="window.showDraftStudio()">
                             <i class="fas fa-file-contract"></i> Draft Studio
                         </button>
@@ -1432,6 +1435,10 @@
                             title="Extract case facts automatically from uploaded legal documents">
                             <i class="fas fa-magic"></i> Smart Fill from Docs
                         </button>
+                        <button id="wizardCaseAiBtn" class="btn btn-outline" style="border-color: #6366f1; color: #818cf8;" onclick="window.openCaseRagChat(window.state?.caseData || {})"
+                            title="Open Case AI Workspace to ask questions, verify facts, or test cross-examination">
+                            <i class="fas fa-robot"></i> Case AI Workspace 💬
+                        </button>
                         <button id="nextBtn" class="btn btn-primary" onclick="nextStep()">
                             Next <i class="fas fa-arrow-right"></i>
                         </button>
@@ -1456,10 +1463,15 @@
                         <span>Document &amp; Case Fact Intelligence</span>
                         <span class="di-modal-sub">JudiQ AI</span>
                     </div>
-                    <button class="di-modal-close" onclick="window.closeDocIntelPanel()"
-                            aria-label="Close Document Intelligence panel">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <div style="display: flex; align-items: center; gap: 0.6rem;">
+                        <button class="btn btn-sm" id="diHeaderChatBtn" onclick="window._openCaseRagFromDocIntel()" style="background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%); color: #ffffff; border: none; font-weight: 600; padding: 0.35rem 0.85rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);" title="Ask questions & cross-question with AI grounded in these documents">
+                            <i class="fas fa-robot"></i> Case AI Workspace 💬
+                        </button>
+                        <button class="di-modal-close" onclick="window.closeDocIntelPanel()"
+                                aria-label="Close Document Intelligence panel">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
                 <div id="docIntelContent" class="di-modal-body">
                     <!-- Dynamically rendered by doc_intel.js -->
@@ -5175,7 +5187,7 @@
     <script src="js/modules/razorpay_checkout.js?v=30"></script>
 
     <!-- Main Application Script (ES6 Module) -->
-    <script type="module" src="js/main.js?v=50"></script>
+    <script type="module" src="js/main.js?v=55"></script>
 </body>
 
 </html>

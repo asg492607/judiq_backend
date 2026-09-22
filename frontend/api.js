@@ -198,10 +198,85 @@ export const api = {
     },
 
     async deleteCase(caseId, userId) {
-        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cases/delete?case_id=${encodeURIComponent(caseId)}&user_id=${encodeURIComponent(userId)}`, {
-            method: 'DELETE'
+        const uid = userId || localStorage.getItem('judiq_user_id') || 'ANONYMOUS';
+        try {
+            const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cases/delete?case_id=${encodeURIComponent(caseId)}&user_id=${encodeURIComponent(uid)}`, {
+                method: 'DELETE'
+            });
+            return await response.json();
+        } catch (err) {
+            if (err.status === 405 || err.message?.includes('405') || err.message?.includes('Method Not Allowed')) {
+                const postRes = await fetchWithRetry(`${API_BASE_URL}/api/v1/cases/delete?case_id=${encodeURIComponent(caseId)}&user_id=${encodeURIComponent(uid)}`, {
+                    method: 'POST'
+                });
+                return await postRes.json();
+            }
+            throw err;
+        }
+    },
+
+    // ── Case AI Chat & RAG Workspace ──────────────────────────────────────────
+    async initCaseChat(payload) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/case-chat/init`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         });
-        try { return await response.json(); } catch (e) { throw new Error("Invalid JSON from server."); }
+        try { return await response.json(); } catch (e) { throw new Error("Invalid response from case chat service."); }
+    },
+
+    async queryCaseChat(payload) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/case-chat/query`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to process legal query."); }
+    },
+
+    async updateCaseFact(payload) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/case-chat/update-fact`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to update case fact."); }
+    },
+
+    async generateCrossExam(payload) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/case-chat/cross-exam`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to generate cross-examination."); }
+    },
+
+    async generateArguments(payload) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/case-chat/arguments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to generate arguments."); }
+    },
+
+    async exportCaseFacts(payload) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/case-chat/export`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to export case dossier."); }
+    },
+
+    async clearCaseChatHistory(caseId) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/case-chat/clear-history`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ case_id: caseId })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to clear chat history."); }
     },
 
     async getDraftHistory(caseId, draftType) {
@@ -516,7 +591,7 @@ export const api = {
         try { return await response.json(); } catch (e) { throw new Error("Failed to update status."); }
     },
 
-    async deleteCase(caseId) {
+    async deleteCmsCase(caseId) {
         const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/cms/cases/${encodeURIComponent(caseId)}`, {
             method: 'DELETE'
         });

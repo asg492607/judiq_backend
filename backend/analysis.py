@@ -325,3 +325,9 @@ def orchestrate_multi_track_endpoint(request: Request, debtor_facts: Optional[Mu
     orchestrator = MultiTrackOrchestrator()
     data = debtor_facts.model_dump() if debtor_facts else {}
     return orchestrator.orchestrate_recovery_strategy(data)
+
+
+def run_12_pillar_analysis(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Execute standard 12-pillar case analysis via JudiQEngine."""
+    return JudiQEngine.analyze_case(data)
+

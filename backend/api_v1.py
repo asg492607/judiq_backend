@@ -21,6 +21,9 @@ from team_manager import router as team_manager_router
 from communication import router as communication_router
 from payments_router import router as payments_router
 from case_fact_intelligence import router as doc_intel_router
+from case_chat_router import router as case_chat_router
+
+api_router.include_router(case_chat_router, prefix="/case-chat", tags=["Case AI Chat & RAG"])
 
 api_router.include_router(analysis.router, prefix="/analyze", tags=["Section 138 Analysis"])
 api_router.include_router(counsel_router, prefix="/intel/counsel", tags=["Opposing Counsel Intel"])

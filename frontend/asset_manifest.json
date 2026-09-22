@@ -1,27 +1,27 @@
 {
   "styles.css": {
-    "sri_integrity": "sha384-vsOi6OTjN0Lgm+KreBSXK0Jh98NScRzqGZDa2MR9ClFogMiGkYIb3bcAuCB60HnF",
-    "size_kb": 316.86
+    "sri_integrity": "sha384-an3vlx0amxftaHznmJb9QkmejGwyQlEVkhXYtvtfEdJb59iUxbKLsmVZpjDUxdtb",
+    "size_kb": 368.59
   },
   "renderer.js": {
-    "sri_integrity": "sha384-VR1A+nLvLmsM892I1BgCDJ/Gv8ckZSTnyD3t5DEY1ZzRITH+t+MpqAlt0+ryqJiZ",
-    "size_kb": 146.15
+    "sri_integrity": "sha384-Dt92aqCWzUwUCFBZcxf/QCVNH58nH1pMr2LwG2BQOwdLmgZ0mMNX2bicCjXJd6Gi",
+    "size_kb": 147.59
   },
   "wizard.js": {
-    "sri_integrity": "sha384-zez/DmUcXfrkRplHDWtqEzb5mQw2XUQ/iHiUXcmns0LI3IBQKTNfate6bSjpfa3i",
-    "size_kb": 30.66
+    "sri_integrity": "sha384-pR+agfBf9wRZVTGskQE63hVxPo+UprFyNATm+79P+8WU+U/NHLWdkT+XAaArtXbh",
+    "size_kb": 42.86
   },
   "api.js": {
-    "sri_integrity": "sha384-Tef8HeJRqpsarEZ6OqcIM1lZpzx85orUPLWyiLOcYvRxY16NVpQ35/4tepig6fvD",
-    "size_kb": 38.63
+    "sri_integrity": "sha384-MwtFK+R3ZzMqH0qh71E1+sO4JVRfCtOTMaMDIDU+7B7J8QNNjLO9QnfuS1RiuuEP",
+    "size_kb": 50.09
   },
   "draft_templates.js": {
     "sri_integrity": "sha384-eHIIxnnZFrBQIflzYMISVOZbPPu1OJanwJwtlxVPKzeXFpoLN53rOqUZfG6GNFXR",
     "size_kb": 63.37
   },
   "js/main.js": {
-    "sri_integrity": "sha384-81r08O+mugChQbJk57/c8PqXZSlfN8kPtqJ3tSyUm0ZF1RFEfw6l0Rbmf/2GDVJX",
-    "size_kb": 246.86
+    "sri_integrity": "sha384-MmpPkKJUPzRWrneNBqbdkW1ZTwCItmdU7eLedfOTlWlDB8IXnF2DM6ap28lpmO3O",
+    "size_kb": 287.37
   },
   "js/modules/store.js": {
     "sri_integrity": "sha384-q2enoYfjzs35HSKZkZlyAYrvISAW2qHpGMUyOBeLSlfUVoiR7fLvg5yzgqSKdxRF",
@@ -36,7 +36,7 @@
     "size_kb": 7.82
   },
   "js/modules/counsel_dock.js": {
-    "sri_integrity": "sha384-7iw/xA6XbI41J0NcyjT1V2KWPyPelnPyimf5LGgDeXDmykZcHINgGGVhT3RGtPM2",
-    "size_kb": 21.34
+    "sri_integrity": "sha384-ANFX+LHJdDrs0xyR3qvZ3dkaJXvAXEfERLOPtJ7qM2nEBz+aGg5kMPQi7meBuJje",
+    "size_kb": 24.37
   }
 }

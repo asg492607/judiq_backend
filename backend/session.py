@@ -305,6 +305,23 @@ class DatabaseManager:
                 )
             """)
 
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS case_chat_messages (
+                    id {serial_primary},
+                    case_id TEXT NOT NULL,
+                    role TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    citations TEXT,
+                    proposed_updates TEXT,
+                    language TEXT DEFAULT 'en',
+                    created_at TEXT
+                )
+            """)
+            try:
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_case_chat_cid ON case_chat_messages (case_id)")
+            except Exception:
+                pass
+
             # ── CMS Tables ──────────────────────────────────────────
             cursor.execute(f"""
                 CREATE TABLE IF NOT EXISTS cases_v2 (
@@ -595,6 +612,134 @@ class DatabaseManager:
             return True
         except Exception as e:
             logger.error(f"Failed to save case {case_id}: {e}")
+            return False
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    @staticmethod
+    def _ensure_case_chat_table(cursor):
+        try:
+            serial_primary = (
+                "SERIAL PRIMARY KEY"
+                if DatabaseManager._active_dialect == "postgres"
+                else "INTEGER PRIMARY KEY AUTOINCREMENT"
+            )
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS case_chat_messages (
+                    id {serial_primary},
+                    case_id TEXT NOT NULL,
+                    role TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    citations TEXT,
+                    proposed_updates TEXT,
+                    language TEXT DEFAULT 'en',
+                    created_at TEXT
+                )
+            """)
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_case_chat_cid ON case_chat_messages (case_id)")
+        except Exception:
+            pass
+
+    @staticmethod
+    def save_case_chat_message(
+        case_id: str,
+        role: str,
+        content: str,
+        citations: Optional[List[str]] = None,
+        proposed_updates: Optional[List[Dict[str, Any]]] = None,
+        language: str = "en"
+    ) -> bool:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            DatabaseManager._ensure_case_chat_table(cursor)
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now().isoformat()
+            cursor.execute(
+                f"""
+                INSERT INTO case_chat_messages (case_id, role, content, citations, proposed_updates, language, created_at)
+                VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p})
+                """,
+                (
+                    case_id,
+                    role,
+                    content,
+                    json.dumps(citations or []),
+                    json.dumps(proposed_updates or []),
+                    language,
+                    now
+                )
+            )
+            conn.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Failed to save case chat message: {e}")
+            return False
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    @staticmethod
+    def get_case_chat_history(case_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            DatabaseManager._ensure_case_chat_table(cursor)
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(
+                f"""
+                SELECT role, content, citations, proposed_updates, language, created_at
+                FROM case_chat_messages
+                WHERE case_id = {p}
+                ORDER BY id ASC
+                LIMIT {limit}
+                """,
+                (case_id,)
+            )
+            rows = cursor.fetchall()
+            history = []
+            for r in rows:
+                cites = []
+                updates = []
+                try:
+                    cites = json.loads(r[2]) if r[2] else []
+                except Exception:
+                    pass
+                try:
+                    updates = json.loads(r[3]) if r[3] else []
+                except Exception:
+                    pass
+                history.append({
+                    "role": r[0],
+                    "content": r[1],
+                    "citations": cites,
+                    "proposed_updates": updates,
+                    "language": r[4] or "en",
+                    "created_at": r[5]
+                })
+            return history
+        except Exception as e:
+            logger.error(f"Failed to fetch case chat history: {e}")
+            return []
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    @staticmethod
+    def clear_case_chat_history(case_id: str) -> bool:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute(f"DELETE FROM case_chat_messages WHERE case_id = {p}", (case_id,))
+            conn.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Failed to clear case chat history: {e}")
             return False
         finally:
             if conn:

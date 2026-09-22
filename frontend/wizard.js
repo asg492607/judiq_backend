@@ -6,10 +6,214 @@ import { renderResults } from './renderer.js?v=14';
 let isWizardInitialized = false;
 let currentCaseType = null;
 
+export function resetWizardInit() {
+    isWizardInitialized = false;
+    currentCaseType = null;
+}
+window.resetWizardInit = resetWizardInit;
+
+export function unwrapFactValue(val) {
+    if (val === undefined || val === null) return '';
+    if (Array.isArray(val)) {
+        if (val.length === 0) return '';
+        for (const item of val) {
+            if (item && typeof item === 'object' && 'value' in item && item.value !== undefined && item.value !== null && item.value !== '') {
+                return unwrapFactValue(item.value);
+            }
+        }
+        return unwrapFactValue(val[0]);
+    }
+    if (typeof val === 'object' && val !== null && 'value' in val) {
+        return unwrapFactValue(val.value);
+    }
+    if (typeof val === 'string') {
+        const trimmed = val.trim();
+        if (trimmed.startsWith('[{') && trimmed.includes("'value':")) {
+            const m = trimmed.match(/['"]value['"]\s*:\s*['"]?([^,'"}]+)['"]?/);
+            if (m) return m[1];
+        }
+    }
+    return val;
+}
+window.unwrapFactValue = unwrapFactValue;
+
+export function inferEntityType(name) {
+    if (!name || typeof name !== 'string') return 'Individual';
+    const upper = name.toUpperCase().trim();
+    if (upper.includes('PVT') || upper.includes('PRIVATE') || upper.includes('LTD') || upper.includes('LIMITED') || upper.includes('CORP') || upper.includes('INC')) {
+        return 'Pvt Ltd/Ltd Company';
+    }
+    if (upper.includes('LLP')) {
+        return 'Partnership Firm';
+    }
+    if (upper.includes('PARTNERSHIP') || upper.includes('PARTNERS') || upper.includes(' & CO') || upper.includes(' AND CO')) {
+        return 'Partnership Firm';
+    }
+    if (upper.includes('HUF')) {
+        return 'HUF';
+    }
+    if (upper.includes('PROPRIETOR') || upper.includes('ENTERPRISES') || upper.includes('TRADERS') || upper.includes('AGENCIES')) {
+        return 'Proprietorship';
+    }
+    return 'Individual';
+}
+window.inferEntityType = inferEntityType;
+
+export function normalizeCaseFacts(rawFacts = {}) {
+    if (!rawFacts || typeof rawFacts !== 'object') return {};
+    const norm = {};
+
+    // 1. Unwrap all candidate lists and candidate dicts
+    for (const [k, v] of Object.entries(rawFacts)) {
+        const unwrapped = unwrapFactValue(v);
+        if (unwrapped !== undefined && unwrapped !== null && unwrapped !== '') {
+            norm[k] = unwrapped;
+        }
+    }
+
+    // 2. Resolve party names & clean placeholder strings
+    let comp = norm.complainant_name;
+    if (comp === 'Complainant' || comp === 'null') comp = '';
+    let acc = norm.accused_name;
+    if (acc === 'Accused' || acc === 'null') acc = '';
+
+    if (comp) norm.complainant_name = comp;
+    if (acc) norm.accused_name = acc;
+
+    // 3. Resolve clean case title
+    let title = norm.case_title || norm.case_name;
+    if (!title || title === 'Complainant vs Accused' || title === 'Untitled Case' || title === 'null') {
+        if (comp && acc) {
+            title = `${comp} vs. ${acc}`;
+        } else if (comp) {
+            title = `${comp} Matter`;
+        } else if (acc) {
+            title = `Matter against ${acc}`;
+        } else {
+            title = 'Section 138 Negotiable Instruments Case';
+        }
+    }
+    norm.case_title = title;
+
+    // 4. Resolve entity types
+    if (!norm.complainant_type || norm.complainant_type === 'Select Option') {
+        norm.complainant_type = inferEntityType(comp);
+    }
+    if (!norm.accused_type || norm.accused_type === 'Select Option') {
+        norm.accused_type = inferEntityType(acc);
+    }
+
+    // 5. Section 138 Case Type (Strictly match select option)
+    norm.case_type = 'Cheque Bounce (Section 138 NI Act)';
+
+    // 6. Cross-map amount fields
+    const amountVal = norm.cheque_amount || norm.amount || norm.debt_amount;
+    if (amountVal) {
+        norm.cheque_amount = amountVal;
+        norm.amount = amountVal;
+        norm.debt_amount = amountVal;
+    }
+
+    // 7. Resolve filing date
+    let filingDate = norm.filing_date || norm.complaint_date || norm.date_of_complaint || norm.complaint_filed_date;
+    if (!filingDate) {
+        const deliveryDateStr = norm.notice_delivery_date || norm.notice_received_date;
+        if (deliveryDateStr) {
+            try {
+                const delDate = new Date(deliveryDateStr);
+                if (!isNaN(delDate.getTime())) {
+                    delDate.setDate(delDate.getDate() + 16); // 15 days cure + 1 day
+                    filingDate = delDate.toISOString().split('T')[0];
+                }
+            } catch (_) {}
+        }
+    }
+    if (!filingDate && norm.dishonour_date) {
+        try {
+            const disDate = new Date(norm.dishonour_date);
+            if (!isNaN(disDate.getTime())) {
+                disDate.setDate(disDate.getDate() + 45); // Approximate statutory deadline window
+                filingDate = disDate.toISOString().split('T')[0];
+            }
+        } catch (_) {}
+    }
+    if (filingDate) norm.filing_date = filingDate;
+
+    // 8. Resolve Court Name
+    let courtName = norm.court_name || norm.court || norm.jurisdiction_court;
+    if (!courtName) {
+        const city = norm.city || norm.branch_name || '';
+        courtName = city ? `Court of Metropolitan Magistrate, ${city}` : 'Court of Judicial Magistrate First Class (JMFC)';
+    }
+    norm.court_name = courtName;
+
+    // 9. Condonation of Delay & Statutory Defaults
+    if (!norm.condonation_attached) {
+        norm.condonation_attached = 'No';
+    }
+    if (!norm.judicial_temperament) {
+        norm.judicial_temperament = 'Balanced';
+    }
+
+    // 10. Cheque defaults
+    if (!norm.cheque_type) norm.cheque_type = 'Account Payee Cheque';
+    if (!norm.post_dated) norm.post_dated = 'No';
+    if (!norm.original_cheque) norm.original_cheque = 'Yes - Original';
+
+    // 11. Dishonour & Memo defaults
+    if (norm.dishonour_date || norm.dishonour_reason) {
+        if (!norm.bank_memo_received) norm.bank_memo_received = 'Yes';
+        if (!norm.memo_signed) norm.memo_signed = 'Yes - Signed & Stamped';
+        if (!norm.presentation_date) norm.presentation_date = norm.dishonour_date || norm.cheque_date;
+    }
+
+    // 12. Notice defaults
+    if (norm.notice_date) {
+        if (!norm.notice_sent) norm.notice_sent = 'Yes';
+        if (!norm.notice_mode) norm.notice_mode = 'Speed Post';
+        if (!norm.notice_received) norm.notice_received = 'Yes - Acknowledged';
+        if (norm.notice_delivery_date && !norm.notice_received_date) {
+            norm.notice_received_date = norm.notice_delivery_date;
+        }
+    }
+
+    // 13. Entity representation & Directors liability
+    if (norm.complainant_type !== 'Individual') {
+        if (!norm.complainant_authorized) norm.complainant_authorized = 'Yes - Original';
+    } else {
+        if (!norm.complainant_authorized) norm.complainant_authorized = 'Not Applicable';
+    }
+
+    if (norm.accused_type !== 'Individual') {
+        if (!norm.directors_named) norm.directors_named = 'Yes - Company as A1 and Directors/Partners Named';
+        if (!norm.director_role_category) norm.director_role_category = 'Managing Director / Whole-Time Director (Inherent Liability)';
+        if (!norm.active_management_averment) norm.active_management_averment = 'Yes - Expressly averred in charge of day-to-day business (S.M.S. Pharma Standard)';
+    } else {
+        if (!norm.directors_named) norm.directors_named = 'Not Applicable';
+    }
+
+    // 14. Transaction purpose & agreement
+    if (!norm.agreement_type) {
+        norm.agreement_type = (norm.invoice_date || norm.invoice_number) ? 'Invoice/Bill' : 'Written Agreement';
+    }
+    if (!norm.loan_advanced_via) {
+        norm.loan_advanced_via = 'Bank Transfer (NEFT/RTGS/IMPS)';
+    }
+    if (!norm.purpose) {
+        norm.purpose = 'Discharge of legally enforceable debt/liability arising out of commercial supply of goods/materials.';
+    }
+    if (!norm.transaction_date) {
+        norm.transaction_date = norm.agreement_date || norm.invoice_date || norm.cheque_date;
+    }
+
+    return norm;
+}
+window.normalizeCaseFacts = normalizeCaseFacts;
+
 function getCurrentSteps() {
     window.state = window.state || {};
     window.state.caseData = window.state.caseData || {};
-    window.state.caseData.case_type = 'Cheque Bounce';
+    window.state.caseData.case_type = 'Cheque Bounce (Section 138 NI Act)';
     return wizardSteps;
 }
 
@@ -20,7 +224,7 @@ function loadAutosave() {
             const parsed = JSON.parse(saved);
             if (parsed && typeof parsed === 'object') {
                 window.state = window.state || {};
-                window.state.caseData = { ...parsed, ...(window.state.caseData || {}) };
+                window.state.caseData = normalizeCaseFacts({ ...parsed, ...(window.state.caseData || {}) });
             }
         }
     } catch (e) {
@@ -28,95 +232,21 @@ function loadAutosave() {
     }
 }
 
-export function flattenDemoData(data) {
-    if (!data || typeof data !== 'object') return {};
-    const flat = { ...data };
-    if (data.case_identity) {
-        if (data.case_identity.case_id) flat.case_id = data.case_identity.case_id;
-        if (data.case_identity.court) flat.court_name = data.case_identity.court;
-        if (data.case_identity.case_type) flat.case_type = data.case_identity.case_type;
-    }
-    if (data.parties) {
-        if (data.parties.complainant) flat.complainant_name = data.parties.complainant;
-        if (data.parties.accused) flat.accused_name = data.parties.accused;
-        if (data.parties.complainant_type) flat.complainant_type = data.parties.complainant_type;
-        if (data.parties.accused_entity_type) flat.accused_type = data.parties.accused_entity_type;
-    }
-    if (data.transaction) {
-        if (data.transaction.amount) flat.debt_amount = data.transaction.amount;
-        if (data.transaction.transaction_type) flat.agreement_type = data.transaction.transaction_type;
-        if (data.transaction.loan_date) flat.transaction_date = data.transaction.loan_date;
-        if (data.transaction.loan_mode) flat.loan_advanced_via = data.transaction.loan_mode;
-    }
-    if (data.cheque) {
-        if (data.cheque.cheque_number) flat.cheque_number = data.cheque.cheque_number;
-        if (data.cheque.bank) flat.bank_name = data.cheque.bank;
-        if (data.cheque.branch) flat.branch_name = data.cheque.branch;
-        if (data.cheque.cheque_date) flat.cheque_date = data.cheque.cheque_date;
-    }
-    if (data.dishonour) {
-        if (data.dishonour.dishonour_date) flat.dishonour_date = data.dishonour.dishonour_date;
-        if (data.dishonour.dishonour_reason) flat.dishonour_reason = data.dishonour.dishonour_reason;
-    }
-    if (data.notice) {
-        if (data.notice.notice_date) flat.notice_date = data.notice.notice_date;
-        if (data.notice.delivery_date) flat.notice_delivery_date = data.notice.delivery_date;
-    }
-    return flat;
-}
-
-function persistAutosave(syncFromInputs = false) {
-    try {
-        if (syncFromInputs) {
-            saveCurrentStepValues();
-        }
-        localStorage.setItem('judiq_wizard_autosave', JSON.stringify(window.state?.caseData || {}));
-    } catch (e) {
-        console.warn('Failed to persist autosave state:', e);
-    }
-}
-
-window.loadAutosave = loadAutosave;
-window.persistAutosave = persistAutosave;
-
-let _isPopulatingInputs = false;
-
-window.setCaseType = (type) => {
-    if (_isPopulatingInputs) return;
-    if (window.state?.caseData?.case_type === type && isWizardInitialized) return;
-    window.state = window.state || {};
-    window.state.caseData = window.state.caseData || {};
-    window.state.caseData.case_type = type;
-    window.state.currentStep = 1;
-    isWizardInitialized = false;
-    currentCaseType = null;
-    renderWizardStep();
-};
-
 export function populateAllInputs() {
     if (_isPopulatingInputs) return;
     _isPopulatingInputs = true;
     try {
         const steps = getCurrentSteps();
-        const caseData = window.state?.caseData || {};
+        window.state = window.state || {};
+        window.state.caseData = normalizeCaseFacts(window.state.caseData || {});
+        const caseData = window.state.caseData;
+
         steps.forEach((s) => {
             s.fields.forEach(field => {
                 const el = document.getElementById(field.name);
                 if (!el) return;
-                let val = caseData[field.name];
-                if (val === undefined || val === null || val === '') {
-                    if (field.name === 'amount' && caseData['cheque_amount'] !== undefined) {
-                        val = caseData['cheque_amount'];
-                    } else if (field.name === 'cheque_amount' && caseData['amount'] !== undefined) {
-                        val = caseData['amount'];
-                    } else if (field.name === 'debt_amount' && caseData['amount'] !== undefined) {
-                        val = caseData['amount'];
-                    } else if (field.name === 'amount' && caseData['debt_amount'] !== undefined) {
-                        val = caseData['debt_amount'];
-                    } else if (field.name === 'notice_received_date' && caseData['notice_delivery_date'] !== undefined) {
-                        val = caseData['notice_delivery_date'];
-                    }
-                }
+                let val = unwrapFactValue(caseData[field.name]);
+
                 if (val !== undefined && val !== null && val !== '') {
                     if (el.type === 'date') {
                         // HTML5 date inputs require strictly YYYY-MM-DD
@@ -144,7 +274,7 @@ export function populateAllInputs() {
                         const valStr = String(val).trim().toLowerCase();
                         for (let i = 0; i < el.options.length; i++) {
                             const optVal = el.options[i].value;
-                            if (String(optVal).toLowerCase() === valStr) {
+                            if (String(optVal).trim().toLowerCase() === valStr) {
                                 el.selectedIndex = i;
                                 matched = true;
                                 break;
@@ -192,8 +322,11 @@ export function populateAllInputs() {
 window.populateAllInputs = populateAllInputs;
 
 export function renderWizardStep() {
+    window.state = window.state || {};
+    window.state.caseData = normalizeCaseFacts(window.state.caseData || {});
+
     const steps = getCurrentSteps();
-    const caseType = window.state?.caseData?.case_type || 'Cheque Bounce';
+    const caseType = window.state?.caseData?.case_type || 'Cheque Bounce (Section 138 NI Act)';
     
     if (currentCaseType !== caseType) {
         isWizardInitialized = false;
@@ -205,7 +338,7 @@ export function renderWizardStep() {
     const step = steps[stepIdx];
 
     // Auto-lock case_type strictly to Section 138 Cheque Bounce
-    window.state.caseData['case_type'] = 'Cheque Bounce';
+    window.state.caseData['case_type'] = 'Cheque Bounce (Section 138 NI Act)';
 
     ui.setText('wizardTitle', step.title);
     ui.setText('wizardSubtitle', step.subtitle);
@@ -315,24 +448,62 @@ function updateConditionalFields() {
     }
 }
 
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function renderField(field) {
-    const value = window.state.caseData[field.name] || '';
+    let rawVal = window.state?.caseData ? window.state.caseData[field.name] : '';
+    let value = unwrapFactValue(rawVal);
+    if (value === undefined || value === null) value = '';
     let inputHtml = '';
     
     if (field.type === 'select') {
         const changeHandler = field.name === 'case_type'
             ? "window.setCaseType(this.value); if(typeof updateConditionalFields === 'function') updateConditionalFields();"
             : "if(typeof updateConditionalFields === 'function') updateConditionalFields();";
+        
+        const valStr = String(value).trim().toLowerCase();
         inputHtml = `
             <select id="${field.name}" name="${field.name}" ${field.required ? 'required' : ''} onchange="${changeHandler}">
                 <option value="">Select Option</option>
-                ${field.options.map(opt => `<option value="${opt}" ${value === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                ${field.options.map(opt => {
+                    const optStr = String(opt).trim().toLowerCase();
+                    const isSelected = (valStr === optStr) ||
+                                       (valStr && optStr && (optStr.includes(valStr) || valStr.includes(optStr))) ||
+                                       ((valStr === 'true' || valStr === '1' || valStr === 'yes') && optStr.startsWith('yes')) ||
+                                       ((valStr === 'false' || valStr === '0' || valStr === 'no') && optStr.startsWith('no'));
+                    return `<option value="${escapeHtml(opt)}" ${isSelected ? 'selected' : ''}>${escapeHtml(opt)}</option>`;
+                }).join('')}
             </select>
         `;
     } else if (field.type === 'textarea') {
-        inputHtml = `<textarea id="${field.name}" name="${field.name}" ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}" onchange="if(typeof updateConditionalFields === 'function') updateConditionalFields()">${value}</textarea>`;
+        inputHtml = `<textarea id="${field.name}" name="${field.name}" ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}" onchange="if(typeof updateConditionalFields === 'function') updateConditionalFields()">${escapeHtml(String(value))}</textarea>`;
+    } else if (field.type === 'date') {
+        let dateVal = String(value).trim();
+        if (dateVal) {
+            const dmy = dateVal.match(/^(\d{1,2})[./\-](\d{1,2})[./\-](\d{4})$/);
+            if (dmy) {
+                dateVal = `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`;
+            } else {
+                const ymd = dateVal.match(/^(\d{4})[./\-](\d{1,2})[./\-](\d{1,2})$/);
+                if (ymd) {
+                    dateVal = `${ymd[1]}-${ymd[2].padStart(2, '0')}-${ymd[3].padStart(2, '0')}`;
+                }
+            }
+        }
+        inputHtml = `<input type="date" id="${field.name}" name="${field.name}" value="${escapeHtml(dateVal)}" ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}" onchange="if(typeof updateConditionalFields === 'function') updateConditionalFields()">`;
+    } else if (field.type === 'checkbox') {
+        const isChecked = (value === true || value === 'true' || value === 1 || String(value).toLowerCase().startsWith('yes'));
+        inputHtml = `<input type="checkbox" id="${field.name}" name="${field.name}" ${isChecked ? 'checked' : ''} onchange="if(typeof updateConditionalFields === 'function') updateConditionalFields()">`;
     } else {
-        inputHtml = `<input type="${field.type}" id="${field.name}" name="${field.name}" value="${value}" ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}" onchange="if(typeof updateConditionalFields === 'function') updateConditionalFields()">`;
+        inputHtml = `<input type="${field.type}" id="${field.name}" name="${field.name}" value="${escapeHtml(String(value))}" ${field.required ? 'required' : ''} placeholder="${field.placeholder || ''}" onchange="if(typeof updateConditionalFields === 'function') updateConditionalFields()">`;
     }
     
     return `

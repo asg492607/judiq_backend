@@ -4,6 +4,8 @@
  * and Opposing Defense Counsel Matchup Simulation.
  */
 
+const API_BASE = window.API_BASE || window.API_BASE_URL || 'http://127.0.0.1:8000';
+
 window.loadAnalyticsDashboardUI = async function() {
     const container = document.getElementById("bankAnalyticsContainer");
     if (!container) return;

@@ -29,6 +29,24 @@ let _resolvedContradictions = new Set();
 let _verificationStatus = 'review_required';
 let _verificationStatusLabel = '';
 
+// Expose Case AI Workspace trigger from Doc Intel globally across all workflow steps
+window._openCaseRagFromDocIntel = () => {
+    closeDocIntelPanel();
+    const docFacts = _allFacts || {};
+    const wizardFacts = (window.state && window.state.caseData) ? window.state.caseData : {};
+    const merged = { ...docFacts, ...wizardFacts };
+    if (typeof window.openCaseRagChat === 'function') {
+        window.openCaseRagChat(merged, {
+            all_facts: _allFacts,
+            contradictions: _contradictions,
+            timeline: _timeline,
+            session_id: _sessionId
+        });
+    } else {
+        console.warn("window.openCaseRagChat not yet loaded");
+    }
+};
+
 // Confidence thresholds
 const CONF_HIGH    = 0.80;   // Auto-fill eligible (if no conflict and approved)
 const CONF_MEDIUM  = 0.50;   // Require lawyer review
@@ -381,18 +399,42 @@ window._diExtract = async () => {
         _missingDocs    = analyzeResult.missing_documents || [];
         _timeline       = analyzeResult.timeline || [];
 
-        // Immediately attach contradictions to caseData so they are available to any downstream analysis
+        // Immediately attach contradictions and facts to caseData and window.state
         window._docIntelContradictions = _contradictions;
-        if (window.state?.caseData) {
-            window.state.caseData.cross_document_contradictions = _contradictions.map(c => ({
-                issue: c.field ? `Contradiction in ${_getFieldDisplayLabel(c.field)}` : (c.issue || 'Document Contradiction'),
-                field: c.field,
-                severity: c.severity || 'CRITICAL',
-                detail: c.description || c.detail || 'Discrepancy detected across uploaded case documents.',
-                penalty: (c.severity === 'CRITICAL' || c.severity === 'FATAL') ? -65 : -35,
-                values: c.values || []
-            }));
-            window.state.caseData.contradictions = window.state.caseData.cross_document_contradictions;
+        if (!window.state) window.state = {};
+        if (!window.state.caseData) window.state.caseData = {};
+
+        window.state.docIntel = {
+            session_id: _sessionId,
+            all_facts: _allFacts,
+            contradictions: _contradictions,
+            missing_facts: _missingFacts,
+            missing_documents: _missingDocs,
+            timeline: _timeline,
+            documents: _extractedDocs
+        };
+        window.state.caseId = _sessionId;
+
+        // Copy high confidence extracted facts into caseData
+        for (const [k, v] of Object.entries(_allFacts)) {
+            if (v !== undefined && v !== null && v !== '') {
+                window.state.caseData[k] = v;
+            }
+        }
+        window.state.caseData.case_id = _sessionId;
+        window.state.caseData.cross_document_contradictions = _contradictions.map(c => ({
+            issue: c.field ? `Contradiction in ${_getFieldDisplayLabel(c.field)}` : (c.issue || 'Document Contradiction'),
+            field: c.field,
+            severity: c.severity || 'CRITICAL',
+            detail: c.description || c.detail || 'Discrepancy detected across uploaded case documents.',
+            penalty: (c.severity === 'CRITICAL' || c.severity === 'FATAL') ? -65 : -35,
+            values: c.values || []
+        }));
+        window.state.caseData.contradictions = window.state.caseData.cross_document_contradictions;
+
+        // Persist intake to Recent Activity
+        if (typeof window.saveCaseToHistory === 'function') {
+            window.saveCaseToHistory(window.state.caseData, null);
         }
 
         _renderFactReviewStep();
@@ -463,6 +505,9 @@ function _renderFactReviewStep() {
             </div>
 
             <div class="di-review-actions">
+                <button class="btn btn-primary btn-lg" onclick="window._openCaseRagFromDocIntel()" id="diReviewOpenChatBtn" style="background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%); border:none; font-weight:700; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4); display: inline-flex; align-items: center; gap: 0.5rem;" title="Open AI Legal Co-Counsel for grounded RAG Q&A, Cross-Exam & Fact updates">
+                    <i class="fas fa-robot"></i> Open Case AI Workspace 💬
+                </button>
                 <button class="btn btn-outline" onclick="window._diApproveHighConf()" title="Approve uncontested facts with ≥80% confidence">
                     <i class="fas fa-check-double"></i> Approve High-Confidence
                 </button>
@@ -945,6 +990,9 @@ async function _renderCaseStoryStep() {
                 </div>
 
                 <div class="di-review-actions">
+                    <button class="btn btn-primary" onclick="window._openCaseRagFromDocIntel()" id="diOpenChatBtn" style="background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%); border:none; padding: 0.6rem 1.2rem; font-weight: 700;" title="Open AI Legal Co-Counsel for grounded RAG Q&A, Cross-Exam & Fact updates">
+                        <i class="fas fa-robot"></i> Open Case AI Workspace 💬
+                    </button>
                     <button class="btn btn-success btn-lg di-btn-auto-analyze" onclick="window._diApplyToWizard(true)" id="diApplyAnalyzeBtn" title="Auto-fill all wizard inputs and launch case analysis">
                         <i class="fas fa-bolt"></i> Apply & Run Analysis Automatically ⚡
                     </button>
@@ -963,6 +1011,17 @@ async function _renderCaseStoryStep() {
 
         window._diApplyToWizard   = _applyToWizard;
         window._diGoBackToReview  = _renderFactReviewStep;
+        window._openCaseRagFromDocIntel = () => {
+            closeDocIntelPanel();
+            if (typeof window.openCaseRagChat === 'function') {
+                window.openCaseRagChat(window.state?.caseData || _allFacts, {
+                    all_facts: _allFacts,
+                    contradictions: _contradictions,
+                    timeline: _timeline,
+                    session_id: _sessionId
+                });
+            }
+        };
 
     } catch (err) {
         _renderError(`Case story generation failed: ${escapeHtml(err.message || String(err))}`);
@@ -1206,7 +1265,7 @@ function _applyToWizard(autoAnalyze = false) {
     });
 
     // 3. Ensure ALL inputs for Section 138 Cheque Bounce are 100% filled with legally sound data
-    cd.case_type = 'Cheque Bounce';
+    cd.case_type = 'Cheque Bounce (Section 138 NI Act)';
 
     // Parties Information
     cd.complainant_name = cd.complainant_name || 'Complainant';
@@ -1346,6 +1405,7 @@ function _applyToWizard(autoAnalyze = false) {
     cd.contradictions = cd.cross_document_contradictions;
 
     // Persist and synchronize to DOM
+    if (typeof window.resetWizardInit === 'function') window.resetWizardInit();
     if (typeof window.persistAutosave === 'function') window.persistAutosave();
     if (typeof window.switchScreen === 'function') window.switchScreen('caseWizardScreen');
     if (typeof window.renderWizardStep === 'function') window.renderWizardStep();

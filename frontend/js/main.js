@@ -1,28 +1,32 @@
-import { supabaseConfig, roleActions, wizardSteps } from '../config.js?v=50';
-import { api } from '../api.js?v=50';
-import { ui, switchScreen } from '../ui.js?v=50';
-import { renderWizardStep } from '../wizard.js?v=50';
-import { renderResults, switchResultTab } from '../renderer.js?v=50';
-import { DRAFT_TYPES, formatDraftDate, numberToWords } from '../draft_templates.js?v=50';
-import { escapeHtml } from './modules/utils.js?v=50';
+import { supabaseConfig, roleActions, wizardSteps } from '../config.js?v=55';
+import { api } from '../api.js?v=55';
+import { ui, switchScreen } from '../ui.js?v=55';
+import { renderWizardStep, resetWizardInit, normalizeCaseFacts, populateAllInputs } from '../wizard.js?v=55';
+import { renderResults, switchResultTab } from '../renderer.js?v=55';
+import { DRAFT_TYPES, formatDraftDate, numberToWords } from '../draft_templates.js?v=52';
+import { escapeHtml } from './modules/utils.js?v=52';
 
 // Import sub-modules to register their exports or initialize their global interfaces
-import { JudiQModals } from './modules/modals.js?v=50';
-import { renderAdversarialCharts, renderScoreBreakdownChart } from './modules/charts.js?v=50';
-import { JudiQValidator } from './modules/validation.js?v=50';
-import { JudiQCoCounselDock } from './modules/counsel_dock.js?v=50';
-import { JudiQStrategySimulator } from './modules/simulator.js?v=50';
-import { initBankRecoveryModule } from './bank_recovery.js?v=50';
-import './compliance_auditor.js?v=50';
-import './counsel_intel.js?v=50';
-import './enterprise_features.js?v=50';
-import { initCaseManager } from './case_manager.js?v=50';
-import { initClientManager } from './client_manager.js?v=50';
-import { initDocumentLibrary } from './document_library.js?v=50';
-import { initDraftWorkflow } from './draft_workflow_ui.js?v=50';
-import { initCmsAnalytics } from './analytics_charts.js?v=50';
-import { initDocIntel } from './doc_intel.js?v=50';
+import { JudiQModals } from './modules/modals.js?v=52';
+import { renderAdversarialCharts, renderScoreBreakdownChart } from './modules/charts.js?v=52';
+import { JudiQValidator } from './modules/validation.js?v=52';
+import { JudiQCoCounselDock } from './modules/counsel_dock.js?v=52';
+import { JudiQStrategySimulator } from './modules/simulator.js?v=52';
+import { initBankRecoveryModule } from './bank_recovery.js?v=52';
+import './compliance_auditor.js?v=52';
+import './counsel_intel.js?v=52';
+import './enterprise_features.js?v=52';
+import { initCaseManager } from './case_manager.js?v=52';
+import { initClientManager } from './client_manager.js?v=52';
+import { initDocumentLibrary } from './document_library.js?v=52';
+import { initDraftWorkflow } from './draft_workflow_ui.js?v=52';
+import { initCmsAnalytics } from './analytics_charts.js?v=52';
+import { initDocIntel } from './doc_intel.js?v=54';
+import { caseRagWorkspace } from './modules/case_rag_chat.js?v=55';
 
+window.normalizeCaseFacts = normalizeCaseFacts;
+window.populateAllInputs = populateAllInputs;
+window.resetWizardInit = resetWizardInit;
 
 import { store } from './modules/store.js?v=14';
 
@@ -1075,7 +1079,11 @@ function renderDashboard() {
                         <div class="dac-title">Upload &amp; Extract Docs</div>
                         <div class="dac-sub">OCR Bank Memos, Cheques &amp; Notices, cross-match facts, detect contradictions and auto-fill.</div>
                     </div>
-
+                    <div class="domain-action-card domain-action-card--ni" onclick="window.openCaseRagChat(window.state?.caseData || {}, window.state?.docIntel || {})" style="border: 2px solid rgba(79,70,229,0.35); background: rgba(79,70,229,0.04);">
+                        <div class="dac-icon" style="color:#4f46e5;"><i class="fas fa-robot"></i></div>
+                        <div class="dac-title">Case AI Co-Counsel</div>
+                        <div class="dac-sub">Multilingual grounded AI chat — query case facts, probe limitation dates, cross-examine & draft arguments.</div>
+                    </div>
                     <div class="domain-action-card domain-action-card--ni" onclick="loadDemoCase()">
                         <div class="dac-icon dac-icon--ni"><i class="fas fa-bolt"></i></div>
                         <div class="dac-title">Load Demo Case</div>
@@ -1196,7 +1204,7 @@ function formatDate(dateStr) {
     }
 }
 
-window.saveCaseToHistory = async (caseData, analysisResult) => {
+window.saveCaseToHistory = async (caseData = {}, analysisResult = null) => {
     try {
         const userId = window.state.currentUser ? (window.state.currentUser.uid || window.state.currentUser.email) : 'ANONYMOUS';
         const caseId = caseData.case_id || (analysisResult && analysisResult.case_id) || ('case_' + Date.now());
@@ -1207,20 +1215,45 @@ window.saveCaseToHistory = async (caseData, analysisResult) => {
             localCases = JSON.parse(localStorage.getItem('judiq_recent_cases_v1') || '[]');
         } catch (_) { }
 
-        const score = analysisResult.score !== undefined ? analysisResult.score : (analysisResult.merit_score || 0);
-        const verdict = analysisResult.verdict || analysisResult.primary_verdict || 'ANALYZED';
+        // Resolve clean human-readable title
+        let comp = caseData.complainant_name;
+        if (Array.isArray(comp) && comp.length) comp = comp[0].value || comp[0];
+        let acc = caseData.accused_name;
+        if (Array.isArray(acc) && acc.length) acc = acc[0].value || acc[0];
+
+        let title = caseData.case_title || caseData.case_name;
+        if (!title || title === 'Untitled Case' || title === 'null') {
+            if (comp && acc && comp !== 'Complainant' && acc !== 'Accused') {
+                title = `${comp} vs. ${acc}`;
+            } else if (comp && comp !== 'Complainant') {
+                title = `${comp} Matter`;
+            } else if (acc && acc !== 'Accused') {
+                title = `Matter against ${acc}`;
+            } else {
+                title = 'Section 138 Cheque Bounce Case';
+            }
+        }
+
+        const score = (analysisResult && analysisResult.score !== undefined) 
+            ? analysisResult.score 
+            : (analysisResult && analysisResult.merit_score !== undefined ? analysisResult.merit_score : null);
+
+        const verdict = (analysisResult && (analysisResult.verdict || analysisResult.primary_verdict)) || 'Intake / RAG Ready';
+
         const newCaseObj = {
             id: caseId,
             user_id: userId,
-            domain: window.state.userDomain || 'ni_act',  // stamp domain permanently
-            title: caseData.case_title || 'Untitled Case',
+            domain: window.state.userDomain || 'ni_act',
+            title: title,
             date: new Date().toISOString(),
             score: score,
-            risk_level: analysisResult.risk_level || analysisResult.defence_risk || 'Unknown',
+            risk_level: (analysisResult && (analysisResult.risk_level || analysisResult.defence_risk)) || 'Pending Analysis',
             verdict: verdict,
             case_data: caseData,
-            analysis_result: analysisResult
+            analysis_result: analysisResult || null,
+            doc_intel: window.state.docIntel || {}
         };
+
         // Remove duplicates and put new one at the start
         localCases = localCases.filter(c => c.id !== caseId);
         localCases.unshift(newCaseObj);
@@ -1229,7 +1262,6 @@ window.saveCaseToHistory = async (caseData, analysisResult) => {
         }
 
         localStorage.setItem('judiq_recent_cases_v1', JSON.stringify(localCases));
-
 
         // Refresh dashboard view if it's currently rendered
         const recentCasesContainer = document.getElementById('recentCases');
@@ -1267,7 +1299,6 @@ window.loadRecentCases = async () => {
             } catch (err) {
                 console.warn('Failed to fetch recent cases from backend:', err);
             }
-
         }
 
         // Merge and de-duplicate by case ID
@@ -1300,7 +1331,6 @@ window.loadRecentCases = async () => {
         });
 
         const mergedCases = Array.from(casesMap.values())
-            // Filter by user's domain — each user only sees their own domain's cases
             .filter(c => !c.domain || c.domain === currentDomain);
         mergedCases.sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -1312,7 +1342,7 @@ window.loadRecentCases = async () => {
             return;
         }
 
-        container.replaceChildren(); // clear children safely
+        container.replaceChildren();
 
         mergedCases.forEach(c => {
             const itemDiv = document.createElement('div');
@@ -1323,23 +1353,52 @@ window.loadRecentCases = async () => {
             const infoDiv = document.createElement('div');
             infoDiv.className = 'recent-case-info';
 
+            // Clean title resolution
+            let title = c.title;
+            if (!title || title === 'Untitled Case' || title === 'null') {
+                const cd = c.case_data || {};
+                let comp = cd.complainant_name;
+                if (Array.isArray(comp) && comp.length) comp = comp[0].value || comp[0];
+                let acc = cd.accused_name;
+                if (Array.isArray(acc) && acc.length) acc = acc[0].value || acc[0];
+                if (comp && acc && comp !== 'Complainant' && acc !== 'Accused') {
+                    title = `${comp} vs. ${acc}`;
+                } else if (comp && comp !== 'Complainant') {
+                    title = `${comp} Matter`;
+                } else {
+                    title = 'Section 138 Negotiable Instruments Case';
+                }
+            }
+
             const h4 = document.createElement('h4');
-            h4.textContent = c.title || 'Untitled Case';
+            h4.textContent = title;
+
+            const rawVerdict = c.verdict;
+            const verdictText = (rawVerdict && rawVerdict !== 'null' && rawVerdict !== 'undefined') ? rawVerdict : 'Intake / RAG Ready';
 
             const p = document.createElement('p');
-            p.style.cssText = 'font-size: 0.75rem; color: var(--gray-400); margin-top: 0.25rem;';
-            p.innerHTML = `ID: <strong>${escapeHtml(c.id)}</strong> | Updated: <strong>${formatDate(c.date)}</strong> | Assessment: <span style="color: var(--primary-400); font-weight: 600;">${escapeHtml(c.verdict)}</span>`;
+            p.style.cssText = 'font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem;';
+            p.innerHTML = `ID: <strong>${escapeHtml(c.id)}</strong> | Updated: <strong>${formatDate(c.date)}</strong> | Assessment: <span style="color: var(--primary-600); font-weight: 600;">${escapeHtml(verdictText)}</span>`;
 
             infoDiv.appendChild(h4);
             infoDiv.appendChild(p);
 
             const rightDiv = document.createElement('div');
-            rightDiv.style.cssText = 'display: flex; align-items: center; gap: 1.5rem;';
+            rightDiv.style.cssText = 'display: flex; align-items: center; gap: 1.2rem;';
 
             const scoreDiv = document.createElement('div');
             scoreDiv.className = 'recent-case-score';
             scoreDiv.style.cssText = 'min-width: 80px; text-align: center;';
-            scoreDiv.textContent = `${c.score}/100`;
+            if (c.score !== null && c.score !== undefined && c.score !== 'null' && !isNaN(Number(c.score))) {
+                scoreDiv.textContent = `${Math.round(Number(c.score))}/100`;
+            } else {
+                scoreDiv.textContent = 'Active Case';
+                scoreDiv.style.fontSize = '0.78rem';
+                scoreDiv.style.fontWeight = '600';
+                scoreDiv.style.padding = '0.35rem 0.65rem';
+                scoreDiv.style.background = 'var(--primary-50)';
+                scoreDiv.style.color = 'var(--primary-700)';
+            }
 
             const delBtn = document.createElement('button');
             delBtn.className = 'btn-delete-case';
@@ -1347,7 +1406,7 @@ window.loadRecentCases = async () => {
             delBtn.style.cssText = 'background: transparent; border: none; color: var(--error-500); cursor: pointer; padding: 0.5rem; font-size: 1rem; transition: color 0.2s; display: flex; align-items: center; justify-content: center;';
             delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
             delBtn.onclick = (event) => {
-                event.stopPropagation(); // Stop parent onclick
+                event.stopPropagation();
                 window.deleteCaseFromHistory(c.id, event);
             };
 
@@ -1377,46 +1436,54 @@ window.loadCaseFromHistory = async (caseId) => {
         } catch (_) { }
 
         const localCase = localCases.find(c => c.id === caseId);
-        if (localCase && localCase.case_data && localCase.analysis_result) {
-            window.state.caseData = localCase.case_data;
-            window.state.analysisResult = localCase.analysis_result;
+        if (localCase) {
+            window.state.caseData = localCase.case_data || {};
+            window.state.analysisResult = localCase.analysis_result || null;
+            window.state.docIntel = localCase.doc_intel || (localCase.case_data?.doc_intel) || { session_id: caseId };
+            window.state.caseId = caseId;
             ui.hide('analysisLoading');
-            switchScreen('resultsScreen');
-            renderResults(localCase.analysis_result);
+
+            // If case already has a full analysis result, go to results screen
+            if (localCase.analysis_result && (localCase.analysis_result.score !== undefined || localCase.analysis_result.verdict)) {
+                switchScreen('resultsScreen');
+                renderResults(localCase.analysis_result);
+                return;
+            }
+
+            // Case is in intake or consultation phase: Open Case Intelligence Chat Workspace!
+            if (typeof window.openCaseRagChat === 'function') {
+                window.openCaseRagChat(localCase.case_data || {}, localCase.doc_intel || { session_id: caseId });
+            } else if (typeof window.switchScreen === 'function') {
+                window.switchScreen('caseWizardScreen');
+                if (typeof window.populateAllInputs === 'function') window.populateAllInputs();
+            }
             return;
         }
 
         const userId = window.state.currentUser ? window.state.currentUser.uid : 'ANONYMOUS';
         if (userId !== 'ANONYMOUS') {
             const response = await api.getCaseDetails(caseId, userId);
-            if (response && response.case_data && response.analysis_result) {
+            if (response && response.case_data) {
                 window.state.caseData = response.case_data;
-                window.state.analysisResult = response.analysis_result;
-
-                // Cache locally
-                const newCaseObj = {
-                    id: caseId,
-                    user_id: userId,
-                    title: response.case_data.case_title || 'Untitled Case',
-                    date: new Date().toISOString(),
-                    score: response.analysis_result.score !== undefined ? response.analysis_result.score : 0,
-                    risk_level: response.analysis_result.risk_level || response.analysis_result.defence_risk || 'Unknown',
-                    verdict: response.analysis_result.verdict || 'Unknown',
-                    case_data: response.case_data,
-                    analysis_result: response.analysis_result
-                };
-                localCases = localCases.filter(c => c.id !== caseId);
-                localCases.unshift(newCaseObj);
-                if (localCases.length > 20) localCases.pop();
-                localStorage.setItem('judiq_recent_cases_v1', JSON.stringify(localCases));
+                window.state.analysisResult = response.analysis_result || null;
+                window.state.caseId = caseId;
 
                 ui.hide('analysisLoading');
-                switchScreen('resultsScreen');
-                renderResults(response.analysis_result);
+                if (response.analysis_result && (response.analysis_result.score !== undefined || response.analysis_result.verdict)) {
+                    switchScreen('resultsScreen');
+                    renderResults(response.analysis_result);
+                } else {
+                    if (typeof window.openCaseRagChat === 'function') {
+                        window.openCaseRagChat(response.case_data || {}, { session_id: caseId });
+                    } else if (typeof window.switchScreen === 'function') {
+                        window.switchScreen('caseWizardScreen');
+                        if (typeof window.populateAllInputs === 'function') window.populateAllInputs();
+                    }
+                }
                 return;
             }
         }
-        throw new Error('Case details could not be retrieved.');
+        throw new Error('Case details could not be found.');
     } catch (err) {
         ui.hide('analysisLoading');
         ui.toast(err.message, 'error');
@@ -1438,9 +1505,11 @@ window.deleteCaseFromHistory = async (caseId, event) => {
         localCases = localCases.filter(c => c.id !== caseId);
         localStorage.setItem('judiq_recent_cases_v1', JSON.stringify(localCases));
 
-        const userId = window.state.currentUser ? window.state.currentUser.uid : 'ANONYMOUS';
-        if (userId !== 'ANONYMOUS') {
+        const userId = window.state.currentUser ? (window.state.currentUser.uid || window.state.currentUser.email) : (localStorage.getItem('judiq_user_id') || 'ANONYMOUS');
+        try {
             await api.deleteCase(caseId, userId);
+        } catch (apiErr) {
+            console.warn('Backend case delete warning:', apiErr);
         }
 
         ui.toast('Case successfully removed from history.', 'success');
@@ -1455,16 +1524,37 @@ window.deleteCaseFromHistory = async (caseId, event) => {
 // Wizard starting function
 window.startCaseAnalysis = (initialData = null) => {
     window.state = window.state || {};
+    
+    // 1. Reset wizard init so form inputs are freshly generated with incoming data
+    if (typeof resetWizardInit === 'function') {
+        resetWizardInit();
+    } else if (typeof window.resetWizardInit === 'function') {
+        window.resetWizardInit();
+    }
+
+    // 2. Flatten demo data if needed, or normalize facts
     let flatData = initialData ? (typeof window.flattenDemoData === 'function' ? window.flattenDemoData(initialData) : { ...initialData }) : {};
+    const normalizedData = (typeof normalizeCaseFacts === 'function')
+        ? normalizeCaseFacts(flatData)
+        : (typeof window.normalizeCaseFacts === 'function' ? window.normalizeCaseFacts(flatData) : flatData);
+
     window.state.currentStep = 1;
-    window.state.caseData = flatData;
+    window.state.caseData = normalizedData;
     try {
         localStorage.setItem('judiq_wizard_autosave', JSON.stringify(window.state.caseData));
     } catch (_) { }
 
     switchScreen('caseWizardScreen');
-    if (typeof renderWizardStep === 'function') {
+    if (typeof window.setCaseType === 'function' && normalizedData.case_type) {
+        window.setCaseType(normalizedData.case_type);
+    } else if (typeof renderWizardStep === 'function') {
         renderWizardStep();
+    }
+
+    if (typeof populateAllInputs === 'function') {
+        populateAllInputs();
+    } else if (typeof window.populateAllInputs === 'function') {
+        window.populateAllInputs();
     }
 };
 
@@ -3806,22 +3896,9 @@ window.toggleMobileNav = (forceState) => {
 };
 
 /**
- * Universal Case Analysis Starter
+ * Universal Case Analysis Starter - delegates to canonical window.startCaseAnalysis
  */
-window.startCaseAnalysis = (initialData = {}) => {
-    window.state = window.state || {};
-    window.state.caseData = { ...(initialData || {}) };
-    window.state.currentStep = 1;
-    try {
-        localStorage.setItem('judiq_wizard_autosave', JSON.stringify(window.state.caseData));
-    } catch (_) { }
-    switchScreen('caseWizardScreen');
-    if (typeof window.setCaseType === 'function' && initialData.case_type) {
-        window.setCaseType(initialData.case_type);
-    } else if (typeof renderWizardStep === 'function') {
-        renderWizardStep();
-    }
-};
+// Handled by canonical window.startCaseAnalysis with full normalization and wizard initialization
 
 /**
  * Demo Case Loaders with Instant Preset Population

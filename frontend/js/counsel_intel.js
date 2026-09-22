@@ -4,6 +4,8 @@
  * and community crowdsourced peer observations.
  */
 
+const API_BASE = window.API_BASE || window.API_BASE_URL || 'http://127.0.0.1:8000';
+
 window.loadOpposingCounselDirectory = async function(jurisdiction = "") {
     const listContainer = document.getElementById("opposingCounselList");
     if (!listContainer) return;

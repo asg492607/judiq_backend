@@ -1,12 +1,19 @@
 export const API_BASE_URL = window.__JUDIQ_ENV__?.API_BASE_URL || (
-    (window.location.origin && !window.location.origin.startsWith("file://") && (
-        window.location.origin.includes("localhost") ||
-        window.location.origin.includes("127.0.0.1") ||
-        window.location.origin.includes("onrender.com")
+    (typeof window !== "undefined" && window.location && (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
     ))
-        ? window.location.origin
-        : "https://cheque-bounce-ragbased.onrender.com"
+        ? `${window.location.protocol}//${window.location.hostname}:8000`
+        : (typeof window !== "undefined" && window.location?.origin && !window.location.origin.startsWith("file://") && window.location.origin.includes("onrender.com"))
+            ? window.location.origin
+            : "https://cheque-bounce-ragbased.onrender.com"
 );
+
+// Global fallback access for all modules and legacy scripts
+if (typeof window !== "undefined") {
+    window.API_BASE = API_BASE_URL;
+    window.API_BASE_URL = API_BASE_URL;
+}
 
 export const COMPANY_NAME = "AIXYNZ Technologies Private Limited";
 export const COMPANY_EMAIL = "aixynztechnologies@gmail.com";

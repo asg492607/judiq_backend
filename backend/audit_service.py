@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Optional, Dict, Any
 from session import DatabaseManager
 import logging
 
@@ -7,9 +8,18 @@ logger = logging.getLogger("judiq.audit")
 
 class AuditService:
     @staticmethod
-    def log(user_id: str, action: str, entity_type: str = None, entity_id: str = None,
-            case_id: str = None, before_state: dict = None, after_state: dict = None,
-            ip_address: str = None, user_agent: str = None, note: str = None) -> bool:
+    def log(
+        user_id: str,
+        action: str,
+        entity_type: Optional[str] = None,
+        entity_id: Optional[str] = None,
+        case_id: Optional[str] = None,
+        before_state: Optional[Dict[str, Any]] = None,
+        after_state: Optional[Dict[str, Any]] = None,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
+        note: Optional[str] = None
+    ) -> bool:
         """
         Record an immutable audit log entry into audit_log_v2.
         """

@@ -142,7 +142,7 @@ def update_case(
     if not before:
         raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
 
-    updates = {k: v for k, v in payload.dict().items() if v is not None}
+    updates = {k: v for k, v in payload.model_dump().items() if v is not None}
     res = DatabaseManager.cms_update_case(case_id=case_id, updates=updates)
     if not res.get("success"):
         raise HTTPException(status_code=500, detail=res.get("error", "Failed to update case"))
@@ -196,7 +196,7 @@ def update_case_status(
 
     return {"success": True, "case_id": case_id, "status": payload.status}
 
-@router.delete("/cases/{case_id}")
+@router.api_route("/cases/{case_id:path}", methods=["DELETE", "POST"])
 def delete_case(
     case_id: str,
     request: Request,

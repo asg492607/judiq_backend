@@ -4,6 +4,8 @@
  * Renders structured gap cards, authoritative precedents, remedies, and action priorities.
  */
 
+const API_BASE = window.API_BASE || window.API_BASE_URL || 'http://127.0.0.1:8000';
+
 window.performComplianceAudit = async function(caseData) {
     const auditContainer = document.getElementById("complianceAuditResults") || document.getElementById("bankRecoveryAuditResults");
     if (!auditContainer) return;

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query, Depends
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from session import DatabaseManager
 from security import get_current_user_optional
 import json
@@ -9,10 +9,12 @@ router = APIRouter()
 
 @router.get("")
 def get_recent_cases(
-    user_id: str = Depends(get_current_user_optional),
+    user_id: Optional[str] = Query(None, description="User ID"),
+    auth_user: Optional[str] = Depends(get_current_user_optional),
     limit: int = Query(20, ge=1, le=100, description="Maximum number of cases to return"),
     offset: int = Query(0, ge=0, description="Number of cases to skip for pagination")
 ) -> List[Dict[str, Any]]:
+    effective_user = auth_user or user_id or "ANONYMOUS"
     conn = None
     try:
         conn = DatabaseManager.get_connection()
@@ -21,7 +23,7 @@ def get_recent_cases(
         cursor.execute(
             f"SELECT case_id, user_id, case_data, analysis_result, score, verdict, created_at, updated_at, tags "
             f"FROM saved_cases WHERE user_id = {p} ORDER BY updated_at DESC LIMIT {limit} OFFSET {offset}",
-            (user_id,)
+            (effective_user,)
         )
         rows = cursor.fetchall()
         cases = []
@@ -56,30 +58,37 @@ def get_recent_cases(
 @router.get("/detail")
 def get_case_details_query(
     case_id: str = Query(...),
-    user_id: str = Depends(get_current_user_optional)
+    user_id: Optional[str] = Query(None),
+    auth_user: Optional[str] = Depends(get_current_user_optional)
 ) -> Dict[str, Any]:
-    return get_case_details(case_id, user_id)
+    return get_case_details(case_id, user_id=user_id, auth_user=auth_user)
 
 
-@router.delete("/delete")
+@router.api_route("/delete", methods=["DELETE", "POST"])
 def delete_case_query(
     case_id: str = Query(...),
-    user_id: str = Depends(get_current_user_optional)
+    user_id: Optional[str] = Query(None),
+    auth_user: Optional[str] = Depends(get_current_user_optional)
 ) -> Dict[str, Any]:
-    return delete_case(case_id, user_id)
+    return delete_case(case_id, user_id=user_id, auth_user=auth_user)
 
 
-@router.delete("/{case_id}")
-def delete_case(case_id: str, user_id: str = Depends(get_current_user_optional)) -> Dict[str, Any]:
+@router.api_route("/{case_id:path}", methods=["DELETE", "POST"])
+def delete_case(
+    case_id: str,
+    user_id: Optional[str] = Query(None),
+    auth_user: Optional[str] = Depends(get_current_user_optional)
+) -> Dict[str, Any]:
+    effective_user = auth_user or user_id or "ANONYMOUS"
     conn = None
     try:
         conn = DatabaseManager.get_connection()
         cursor = conn.cursor()
         p = DatabaseManager.get_dialect_placeholder()
-        cursor.execute(f"SELECT id FROM saved_cases WHERE case_id = {p} AND user_id = {p}", (case_id, user_id))
+        cursor.execute(f"SELECT id FROM saved_cases WHERE case_id = {p} AND (user_id = {p} OR user_id = 'ANONYMOUS')", (case_id, effective_user))
         if not cursor.fetchone():
-            raise HTTPException(status_code=404, detail="Case not found or unauthorized")
-        cursor.execute(f"DELETE FROM saved_cases WHERE case_id = {p} AND user_id = {p}", (case_id, user_id))
+            return {"success": True, "message": "Case already deleted or not found"}
+        cursor.execute(f"DELETE FROM saved_cases WHERE case_id = {p} AND (user_id = {p} OR user_id = 'ANONYMOUS')", (case_id, effective_user))
         conn.commit()
         return {"success": True, "message": "Case deleted successfully"}
     except HTTPException:
@@ -91,8 +100,13 @@ def delete_case(case_id: str, user_id: str = Depends(get_current_user_optional))
             DatabaseManager.release_connection(conn)
 
 
-@router.get("/{case_id}")
-def get_case_details(case_id: str, user_id: str = Depends(get_current_user_optional)) -> Dict[str, Any]:
+@router.get("/{case_id:path}")
+def get_case_details(
+    case_id: str,
+    user_id: Optional[str] = Query(None),
+    auth_user: Optional[str] = Depends(get_current_user_optional)
+) -> Dict[str, Any]:
+    effective_user = auth_user or user_id or "ANONYMOUS"
     conn = None
     try:
         conn = DatabaseManager.get_connection()
@@ -100,7 +114,7 @@ def get_case_details(case_id: str, user_id: str = Depends(get_current_user_optio
         p = DatabaseManager.get_dialect_placeholder()
         cursor.execute(
             f"SELECT case_data, analysis_result, score, verdict FROM saved_cases WHERE case_id = {p} AND user_id = {p}",
-            (case_id, user_id)
+            (case_id, effective_user)
         )
         row = cursor.fetchone()
         if not row:

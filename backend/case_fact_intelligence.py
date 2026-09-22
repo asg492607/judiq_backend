@@ -805,7 +805,7 @@ def normalize_entity_name(name: Optional[str]) -> str:
     """
     if not name:
         return ""
-    s = str(name).strip()
+    s = name.strip()
     # 1. Strip leading OCR artifact fragments like "mer ", "omer ", "mer.", "customer ", "client ", "party "
     s = re.sub(
         r'^(?:mer|omer|ustomer|customer|consumer|former|client|party|accused|complainant|drawer|drawee|payee|to|from|m/s\.?|messrs\.?|shri\.?|smt\.?|mr\.?|mrs\.?|dr\.?)\s*[:\-]?\s*',
