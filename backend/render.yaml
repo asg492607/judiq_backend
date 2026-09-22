@@ -29,5 +29,15 @@ services:
         sync: false
       - key: ADMIN_EMAILS
         value: aixynztechnologies,aixynztechnologies@gmail.com,aixynztechnologies@judiq.ai
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: GROQ_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://judiq-ai.netlify.app,https://judiq.netlify.app,https://cheque-bounce-ragbased.onrender.com,https://asg492607.github.io
+      - key: DEBUG
+        value: "false"
       - key: LOG_LEVEL
         value: INFO
