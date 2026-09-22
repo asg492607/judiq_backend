@@ -1,5 +1,9 @@
 export const API_BASE_URL = window.__JUDIQ_ENV__?.API_BASE_URL || (
-    (window.location.origin && !window.location.origin.startsWith("file://") && window.location.origin.includes("onrender.com"))
+    (window.location.origin && !window.location.origin.startsWith("file://") && (
+        window.location.origin.includes("localhost") ||
+        window.location.origin.includes("127.0.0.1") ||
+        window.location.origin.includes("onrender.com")
+    ))
         ? window.location.origin
         : "https://cheque-bounce-ragbased.onrender.com"
 );

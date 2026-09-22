@@ -21,6 +21,7 @@ import { initClientManager } from './client_manager.js?v=16';
 import { initDocumentLibrary } from './document_library.js?v=16';
 import { initDraftWorkflow } from './draft_workflow_ui.js?v=16';
 import { initCmsAnalytics } from './analytics_charts.js?v=16';
+import { initDocIntel } from './doc_intel.js?v=17';
 
 
 import { store } from './modules/store.js?v=14';
@@ -53,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDocumentLibrary();
     initDraftWorkflow();
     initCmsAnalytics();
+    initDocIntel();
 
     // Initialize Co-Counsel Dock & Strategy Simulator
     window.judiqDock = new JudiQCoCounselDock();
@@ -1068,6 +1070,12 @@ function renderDashboard() {
                         <div class="dac-title">Analyse S.138 Case</div>
                         <div class="dac-sub">Run adversarial weakness scan — Limitation, Notice, Instrument, Debt</div>
                     </div>
+                    <div class="domain-action-card domain-action-card--ni domain-action-card--doc-intel" onclick="window.openDocIntelPanel()">
+                        <div class="dac-icon dac-icon--doc-intel"><i class="fas fa-file-upload"></i></div>
+                        <div class="dac-title">Upload &amp; Extract Docs</div>
+                        <div class="dac-sub">OCR Bank Memos, Cheques &amp; Notices, cross-match facts, detect contradictions and auto-fill.</div>
+                    </div>
+
                     <div class="domain-action-card domain-action-card--ni" onclick="loadDemoCase()">
                         <div class="dac-icon dac-icon--ni"><i class="fas fa-bolt"></i></div>
                         <div class="dac-title">Load Demo Case</div>
@@ -1079,6 +1087,7 @@ function renderDashboard() {
                         <div class="dac-sub">Open Draft Studio — demand notices, criminal complaints, reply notices, affidavits & BSA certificates.</div>
                     </div>
                 </div>
+
             `;
         } else {
             // "ALL" DOMAINS — Unified Multi-Domain Command Center
