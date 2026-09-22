@@ -201,46 +201,14 @@ export function renderWizardStep() {
     updateNavigationButtons();
     updateConditionalFields();
 
-    // Enforce Free Demo restrictions: form inputs are non-editable in Free Demo
-    const isFreeDemo = !window.currentUser || (
-        window.currentUser.role !== 'admin' && 
-        (!window.currentUserQuota || window.currentUserQuota.remaining_reports <= 0 || !window.currentUserQuota.is_active)
-    );
-
-    let demoBanner = document.getElementById('freeDemoWizardBanner');
-    if (isFreeDemo) {
-        if (!demoBanner && container.parentNode) {
-            demoBanner = document.createElement('div');
-            demoBanner.id = 'freeDemoWizardBanner';
-            demoBanner.className = 'free-demo-banner';
-            demoBanner.innerHTML = `
-                <div style="background: rgba(14, 165, 233, 0.12); border: 1px solid rgba(14, 165, 233, 0.35); border-radius: 8px; padding: 12px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 15px; color: #bae6fd;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-flask" style="color: #38bdf8; font-size: 1.25rem;"></i>
-                        <span style="font-size: 0.92rem;"><strong>Free Demo Mode:</strong> Viewing pre-loaded demo case. Form fields are read-only. To customize case details and analyze your own cases, activate the <strong>₹2 Paid Demo Plan</strong>.</span>
-                    </div>
-                    <button type="button" class="btn btn-sm" onclick="if(typeof showModularPricingModal === 'function') showModularPricingModal();" style="background: linear-gradient(135deg, #38bdf8, #2563eb); color: #fff; font-weight: 700; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 8px rgba(37,99,235,0.4);">
-                        Unlock Custom Cases (₹2)
-                    </button>
-                </div>
-            `;
-            container.parentNode.insertBefore(demoBanner, container);
-        }
-        container.querySelectorAll('input, select, textarea').forEach(el => {
-            el.setAttribute('disabled', 'disabled');
-            el.setAttribute('readonly', 'readonly');
-            el.style.cursor = 'not-allowed';
-            el.style.opacity = '0.88';
-        });
-    } else {
-        if (demoBanner) demoBanner.remove();
-        container.querySelectorAll('input, select, textarea').forEach(el => {
-            el.removeAttribute('disabled');
-            el.removeAttribute('readonly');
-            el.style.cursor = '';
-            el.style.opacity = '';
-        });
-    }
+    const demoBanner = document.getElementById('freeDemoWizardBanner');
+    if (demoBanner) demoBanner.remove();
+    container.querySelectorAll('input, select, textarea').forEach(el => {
+        el.removeAttribute('disabled');
+        el.removeAttribute('readonly');
+        el.style.cursor = '';
+        el.style.opacity = '';
+    });
 }
 window.renderWizardStep = renderWizardStep;
 

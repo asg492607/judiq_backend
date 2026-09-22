@@ -1027,7 +1027,7 @@ class DatabaseManager:
                 DatabaseManager.release_connection(conn)
 
     @staticmethod
-    def get_or_create_user_quota(user_id: str, email: str = "", role: str = "law_firm", default_limit: int = 25) -> dict:
+    def get_or_create_user_quota(user_id: str, email: str = "", role: str = "law_firm", default_limit: int = 3) -> dict:
         conn = None
         try:
             from security import is_admin_user
@@ -1077,18 +1077,17 @@ class DatabaseManager:
             row = cursor.fetchone()
 
             if not row:
-                # If an explicit default_limit is passed (e.g. tests or admin provisioning), use it and mark ACTIVE
-                # Normal registration defaults to default_limit=25, which starts as PENDING_PAYMENT with 0 quota
-                is_explicit_provision = (default_limit != 25 and default_limit > 0)
-                init_limit = default_limit if is_explicit_provision else 0
-                init_status = "APPROVED" if is_explicit_provision else "PENDING_PAYMENT"
-                init_active = 1 if is_explicit_provision else 0
+                # Every new demo user receives 3 free reports by default
+                is_explicit_provision = (default_limit != 3 and default_limit > 0)
+                init_limit = default_limit if is_explicit_provision else 3
+                init_status = "APPROVED" if is_explicit_provision else "ACTIVE"
+                init_active = 1
 
                 cursor.execute(f"""
                     INSERT INTO user_quotas
                     (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota, paid_demo_used, plan_name)
-                    VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, 499.0, {p}, 0, 'Free Demo')
-                """, (user_id, email, role, init_limit, current_month, init_active, now_iso, now_iso, init_status, json.dumps(["s138"]), max(10, init_limit)))
+                    VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, 0.0, {p}, 0, 'Free Demo')
+                """, (user_id, email, role, init_limit, current_month, init_active, now_iso, now_iso, init_status, json.dumps(["s138"]), max(3, init_limit)))
                 conn.commit()
                 return {
                     "user_id": user_id,
@@ -1103,8 +1102,8 @@ class DatabaseManager:
                     "updated_at": now_iso,
                     "plan_status": init_status,
                     "selected_modules": ["s138"],
-                    "monthly_price_inr": 499.0,
-                    "requested_quota": max(10, init_limit),
+                    "monthly_price_inr": 0.0,
+                    "requested_quota": max(3, init_limit),
                     "approved_by": None,
                     "approved_at": None,
                     "paid_demo_used": False,
@@ -1300,10 +1299,16 @@ class DatabaseManager:
 
         # -1 represents unlimited reports
         if limit != -1 and (used + cost) > limit:
+            is_free_demo = (quota.get("plan_name") == "Free Demo" or limit <= 3)
+            msg = (
+                f"Free demo case analysis limit reached ({used}/{limit} reports used). Please subscribe to a standard plan to continue analyzing cases."
+                if is_free_demo
+                else f"Monthly case analysis quota limit reached ({used}/{limit} reports used). Please request a plan increase in the Admin Control Center."
+            )
             return {
                 "allowed": False,
                 "reason": "QUOTA_EXCEEDED",
-                "message": f"Monthly case analysis quota limit reached ({used}/{limit} reports used). Please request a plan increase in the Admin Control Center.",
+                "message": msg,
                 "quota": quota
             }
 

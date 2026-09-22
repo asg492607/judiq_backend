@@ -3271,21 +3271,6 @@ let activeStudioDraftType = null;
  * Open the Draft Studio screen from dashboard
  */
 window.showDraftStudio = () => {
-    const isFreeDemo = !window.currentUser || (
-        window.currentUser.role !== 'admin' &&
-        (!window.currentUserQuota || window.currentUserQuota.remaining_reports <= 0 || !window.currentUserQuota.is_active)
-    );
-    if (isFreeDemo) {
-        if (window.ui && typeof window.ui.toast === 'function') {
-            window.ui.toast('🔒 Draft Studio is locked in Free Demo. Activate the ₹2 Paid Demo Plan to unlock 13+ court-ready legal templates.', 'warning');
-        } else if (window.showToast) {
-            window.showToast('🔒 Draft Studio is locked in Free Demo. Activate the ₹2 Paid Demo Plan to unlock 13+ court-ready legal templates.', 'warning');
-        }
-        if (typeof window.showModularPricingModal === 'function') {
-            window.showModularPricingModal();
-        }
-        return;
-    }
     switchScreen('draftStudioScreen');
     window.showStudioTypeSelection();
 };
@@ -5121,16 +5106,6 @@ window.submitAdminPrecedentIngestion = async (e) => {
 window.selectedBillingDuration = 1;
 
 window.setBillingDuration = function (months, btnEl) {
-    const isPaidDemoUsed = !!(window.currentUserQuota?.paid_demo_used || window.state?.userQuota?.paid_demo_used);
-    if (months === 'paid_demo' && isPaidDemoUsed) {
-        if (window.ui && typeof window.ui.toast === 'function') {
-            window.ui.toast('⚠️ The ₹2 Paid Demo Plan has already been claimed once for this account/email. Please choose a standard plan.', 'warning');
-        } else if (window.showToast) {
-            window.showToast('⚠️ The ₹2 Paid Demo Plan has already been claimed once for this account/email. Please choose a standard plan.', 'warning');
-        }
-        months = 1;
-        btnEl = document.querySelector('.billing-cycle-tab:nth-child(2)') || btnEl;
-    }
     window.selectedBillingDuration = months;
     document.querySelectorAll('.billing-cycle-tab').forEach(b => b.classList.remove('active'));
     if (btnEl) btnEl.classList.add('active');
@@ -5139,25 +5114,9 @@ window.setBillingDuration = function (months, btnEl) {
 
 window.updateModularPricing = function () {
     const duration = window.selectedBillingDuration || 1;
-    const isPaidDemoUsed = !!(window.currentUserQuota?.paid_demo_used || window.state?.userQuota?.paid_demo_used);
 
-    // Pricing configurations for Section 138 & Paid Demo Plan
+    // Pricing configurations for Section 138 Plan
     const durationConfigs = {
-        'paid_demo': {
-            totalPrice: 2,
-            monthlyRate: 2,
-            cycleLabel: 'single report',
-            rateDetail: 'Single Report Pass • 1 Case Analysis',
-            cases: '1',
-            costPerCase: '₹2',
-            tierTitle: isPaidDemoUsed ? 'Paid Demo Plan (Already Claimed)' : 'Paid Demo Plan',
-            tierDesc: isPaidDemoUsed
-                ? 'One-time ₹2 demo pass has already been claimed on this account. Please select a standard subscription plan.'
-                : 'Single case analysis pass — complete deterministic statutory defect audit, 15-day cure window calculation & court drafting.',
-            badge: '<i class="fas fa-flask"></i> Paid Demo Plan',
-            btnLabel: isPaidDemoUsed ? 'Demo Pass Already Claimed (Select Standard Plan)' : 'Get Started with Paid Demo Plan (₹2 / single report)',
-            quota: 1
-        },
         1: {
             totalPrice: 499,
             monthlyRate: 499,
@@ -5330,25 +5289,9 @@ window.subscribeToSelectedModularPlan = async function () {
         return;
     }
 
-    const duration = window.selectedBillingDuration;
-    const isPaidDemo = (duration === 'paid_demo' || price === 2);
-    const isPaidDemoUsed = !!(window.currentUserQuota?.paid_demo_used || window.state?.userQuota?.paid_demo_used);
-
-    if (isPaidDemo && isPaidDemoUsed) {
-        if (window.ui && typeof window.ui.toast === 'function') {
-            window.ui.toast('⚠️ The ₹2 Paid Demo Plan has already been claimed once for this account/email. Please choose a standard plan.', 'warning');
-        } else if (window.showToast) {
-            window.showToast('⚠️ The ₹2 Paid Demo Plan has already been claimed once for this account/email. Please choose a standard plan.', 'warning');
-        }
-        window.setBillingDuration(1);
-        return;
-    }
-
-    const planName = isPaidDemo ? 'Paid Demo Plan' : 'Section 138 Plan';
-    const cases = isPaidDemo ? 1 : 999999;
-    const planDescription = isPaidDemo
-        ? 'JudiQ Paid Demo Plan — 1 Single Report Analysis · ₹2'
-        : `JudiQ Section 138 Plan — ${count} module${count > 1 ? 's' : ''} · ₹${price.toLocaleString('en-IN')}`;
+    const planName = 'Section 138 Plan';
+    const cases = 999999;
+    const planDescription = `JudiQ Section 138 Plan — ${count} module${count > 1 ? 's' : ''} · ₹${price.toLocaleString('en-IN')}`;
 
     const planPayload = {
         user_id: userId,
@@ -5422,9 +5365,7 @@ window.subscribeToSelectedModularPlan = async function () {
 
                 sessionStorage.removeItem('judiq_pending_checkout');
 
-                const celebrationMsg = isPaidDemo
-                    ? `🎉 Paid Demo Plan activated for ₹2! You have 1 full case analysis report ready.`
-                    : `🎉 Payment verified successfully! Plan activated. Welcome to JUDIQ AI.`;
+                const celebrationMsg = `🎉 Payment verified successfully! Plan activated. Welcome to JUDIQ AI.`;
                 if (window.ui && typeof window.ui.toast === 'function') {
                     window.ui.toast(celebrationMsg, 'success');
                 } else if (window.showToast) {
@@ -5453,9 +5394,7 @@ window.subscribeToSelectedModularPlan = async function () {
                     activated_at: new Date().toISOString()
                 }));
                 sessionStorage.removeItem('judiq_pending_checkout');
-                const celebrationMsg = isPaidDemo
-                    ? `🎉 Paid Demo Plan activated for ₹2! 1 case analysis report unlocked.`
-                    : `🎉 Payment verified! Workspace active with immediate effect.`;
+                const celebrationMsg = `🎉 Payment verified! Workspace active with immediate effect.`;
                 if (window.ui && typeof window.ui.toast === 'function') {
                     window.ui.toast(celebrationMsg, 'success');
                 }

@@ -6,21 +6,70 @@ from session import DatabaseManager
 
 client = TestClient(app)
 
-def test_free_demo_mode_restrictions():
-    """Verify Free Demo mode: allows pre-loaded demo case preview, blocks custom cases & drafts."""
+def test_free_demo_mode_3_reports_and_free_drafts():
+    """Verify Free Demo mode: 3 free reports for custom/demo cases, free drafts, quota exhaustion on 4th run."""
     uid = f"USR_FREE_DEMO_{uuid.uuid4().hex[:6]}"
     email = f"free_demo_{uuid.uuid4().hex[:6]}@lawfirm.in"
 
-    # 1. New user starts in Free Demo (0 quota)
+    # 1. New user starts in Free Demo with 3 free reports
     q = DatabaseManager.get_or_create_user_quota(uid, email)
-    assert q["monthly_report_limit"] == 0
-    assert q["remaining_reports"] == 0
+    assert q["monthly_report_limit"] == 3
+    assert q["remaining_reports"] == 3
+    assert q["reports_used_this_month"] == 0
+    assert q["is_active"] is True
+    assert q["plan_status"] == "ACTIVE"
 
-    # 2. Running a custom case without quota in Free Demo must be BLOCKED
-    custom_payload = {
+    # 2. Draft Studio (Word & PDF) is completely FREE and unblocked
+    draft_word_res = client.post("/api/v1/documents/draft-word", json={
         "user_id": uid,
         "email": email,
-        "case_description": "Custom non-demo cheque bounce dispute.",
+        "title": "Free_Notice_Draft",
+        "content": "Sample legal notice content for Section 138"
+    })
+    assert draft_word_res.status_code == 200, f"Draft Word must succeed freely, got {draft_word_res.status_code}"
+    assert len(draft_word_res.content) > 0
+
+    draft_pdf_res = client.post("/api/v1/documents/draft-pdf", json={
+        "user_id": uid,
+        "email": email,
+        "title": "Free_Notice_PDF",
+        "content": "Sample legal notice content in PDF format"
+    })
+    assert draft_pdf_res.status_code == 200, f"Draft PDF must succeed freely, got {draft_pdf_res.status_code}"
+
+    # Draft generation does not consume report quota
+    q_after_draft = DatabaseManager.get_or_create_user_quota(uid, email)
+    assert q_after_draft["remaining_reports"] == 3
+
+    # 3. User can run 3 Custom Case Analyses (Fully editable / custom payloads)
+    for i in range(1, 4):
+        custom_payload = {
+            "user_id": uid,
+            "email": email,
+            "case_description": f"Custom cheque bounce case number {i}.",
+            "cheque_amount": 100000 * i,
+            "cheque_date": "2026-05-01",
+            "dishonour_date": "2026-05-10",
+            "notice_date": "2026-05-20",
+            "recipient_received_date": "2026-05-25",
+            "complaint_date": "2026-06-15",
+            "complainant_type": "company",
+            "accused_type": "individual",
+            "is_demo_case": False
+        }
+        res = client.post("/api/v1/analyze", json=custom_payload)
+        assert res.status_code == 200, f"Custom analysis #{i} on Free Demo should succeed, got {res.status_code}: {res.text}"
+
+    # 4. Quota check after 3 analyses: 3 used, 0 remaining
+    q_used = DatabaseManager.get_or_create_user_quota(uid, email)
+    assert q_used["reports_used_this_month"] == 3
+    assert q_used["remaining_reports"] == 0
+
+    # 5. 4th analysis attempt is BLOCKED with QUOTA_EXCEEDED
+    fourth_payload = {
+        "user_id": uid,
+        "email": email,
+        "case_description": "Fourth analysis attempt exceeding free demo limit.",
         "cheque_amount": 500000,
         "cheque_date": "2026-05-01",
         "dishonour_date": "2026-05-10",
@@ -31,106 +80,12 @@ def test_free_demo_mode_restrictions():
         "accused_type": "individual",
         "is_demo_case": False
     }
-    custom_res = client.post("/api/v1/analyze", json=custom_payload)
-    assert custom_res.status_code == 403
-    assert custom_res.json()["error_code"] == "QUOTA_EXCEEDED"
-    assert "Free Demo only supports running pre-loaded demo cases" in custom_res.json()["error"]
+    res4 = client.post("/api/v1/analyze", json=fourth_payload)
+    assert res4.status_code == 403
+    assert res4.json()["error_code"] == "QUOTA_EXCEEDED"
+    assert "Free demo" in res4.json()["error"] or "limit reached" in res4.json()["error"]
 
-    # 3. Running a pre-loaded demo case in Free Demo must SUCCEED
-    demo_payload = {
-        "user_id": uid,
-        "email": email,
-        "case_id": "NI-DEMO-2026-001",
-        "case_title": "Section 138 NI Act Demo Case",
-        "case_description": "Cheque dishonoured due to funds insufficient. 15-day notice expired.",
-        "cheque_amount": 100000,
-        "cheque_date": "2026-05-01",
-        "dishonour_date": "2026-05-10",
-        "notice_date": "2026-05-20",
-        "recipient_received_date": "2026-05-25",
-        "complaint_date": "2026-06-15",
-        "complainant_type": "company",
-        "accused_type": "individual",
-        "is_demo_case": True
-    }
-    demo_res = client.post("/api/v1/analyze", json=demo_payload)
-    assert demo_res.status_code == 200, f"Demo case in Free Demo must succeed, got {demo_res.status_code}: {demo_res.text}"
-
-    # 4. Access to Draft Studio / draft generation must be BLOCKED in Free Demo
-    draft_res = client.post("/api/v1/documents/draft-word", json={
-        "user_id": uid,
-        "email": email,
-        "title": "Test_Draft",
-        "content": "Sample legal draft content"
-    })
-    assert draft_res.status_code == 403, f"Draft Studio must be blocked in Free Demo, got {draft_res.status_code}"
-
-
-def test_paid_demo_plan_lifecycle_and_one_time_enforcement():
-    """Verify ₹2 Paid Demo Plan gives 1 analysis, unlocks drafts, and is strictly 1-time per account."""
-    uid = f"USR_PAID_DEMO_{uuid.uuid4().hex[:6]}"
-    email = f"demo_advocate_{uuid.uuid4().hex[:6]}@lawfirm.in"
-
-    # 1. Activate Paid Demo Plan (₹2 for 1 single report analysis)
-    submit_res = client.post("/api/v1/admin/subscription/submit-plan", json={
-        "user_id": uid,
-        "email": email,
-        "plan_name": "Paid Demo Plan",
-        "selected_modules": ["s138"],
-        "monthly_price_inr": 2.0,
-        "requested_quota": 1,
-        "role": "law_firm",
-        "status": "PAID",
-        "razorpay_payment_id": f"pay_{uuid.uuid4().hex[:10]}"
-    })
-    assert submit_res.status_code == 200
-    data = submit_res.json()
-    assert data["status"] == "ACTIVE"
-    assert data["quota"]["monthly_report_limit"] == 1
-    assert data["quota"]["remaining_reports"] == 1
-    assert data["quota"]["paid_demo_used"] is True
-
-    # 2. Run 1st Custom Case Analysis — Must SUCCEED on Paid Demo Plan
-    analyze_payload = {
-        "user_id": uid,
-        "email": email,
-        "case_description": "Cheque dishonoured due to funds insufficient. 15-day notice expired.",
-        "cheque_amount": 100000,
-        "cheque_date": "2026-05-01",
-        "dishonour_date": "2026-05-10",
-        "notice_date": "2026-05-20",
-        "recipient_received_date": "2026-05-25",
-        "complaint_date": "2026-06-15",
-        "complainant_type": "company",
-        "accused_type": "individual",
-        "is_demo_case": False
-    }
-    res1 = client.post("/api/v1/analyze", json=analyze_payload)
-    assert res1.status_code == 200, f"1st analysis on Paid Demo plan should succeed, got {res1.status_code}: {res1.text}"
-
-    # 3. Quota exhausted after 1st analysis
-    q_after = DatabaseManager.get_or_create_user_quota(uid, email)
-    assert q_after["reports_used_this_month"] == 1
-    assert q_after["remaining_reports"] == 0
-    assert q_after["paid_demo_used"] is True
-
-    # 4. 2nd custom case analysis without renewing is BLOCKED
-    res2 = client.post("/api/v1/analyze", json=analyze_payload)
-    assert res2.status_code == 403
-    assert res2.json()["error_code"] == "QUOTA_EXCEEDED"
-
-    # 5. Attempting to purchase / claim Paid Demo Plan a 2nd time must be REJECTED (One-time per account)
-    second_demo_order = client.post("/api/v1/payments/create-order", json={
-        "amount": 200,
-        "user_id": uid,
-        "email": email,
-        "plan_name": "Paid Demo Plan",
-        "is_paid_demo": True
-    })
-    assert second_demo_order.status_code == 400
-    assert "already been claimed once" in second_demo_order.json()["detail"]
-
-    # 6. User can still purchase standard plan (e.g. ₹499 Section 138 Plan)
+    # 6. User can upgrade to a standard subscription plan (e.g. Section 138 Plan)
     std_sub = client.post("/api/v1/admin/subscription/submit-plan", json={
         "user_id": uid,
         "email": email,
@@ -145,3 +100,7 @@ def test_paid_demo_plan_lifecycle_and_one_time_enforcement():
     assert std_sub.status_code == 200
     assert std_sub.json()["quota"]["monthly_report_limit"] == 25
     assert std_sub.json()["quota"]["remaining_reports"] == 25
+
+    # 7. Analysis now SUCCEEDS again with renewed subscription
+    res_sub = client.post("/api/v1/analyze", json=fourth_payload)
+    assert res_sub.status_code == 200

@@ -128,22 +128,7 @@ async def create_order(payload: CreateOrderRequest) -> CreateOrderResponse:
 
     Creates a server-side order via the Razorpay Orders API and returns the
     order_id that the frontend needs to open the payment modal.
-    Enforces one-time redemption for the ₹2 Paid Demo Plan per account/email.
     """
-    from session import DatabaseManager
-
-    is_demo = (
-        payload.is_paid_demo or 
-        (payload.plan_name and "demo" in payload.plan_name.lower()) or 
-        payload.amount == 200
-    )
-    if is_demo and (payload.user_id or payload.email):
-        if DatabaseManager.has_user_used_paid_demo(payload.user_id or "", payload.email or ""):
-            raise HTTPException(
-                status_code=400,
-                detail="The ₹2 Paid Demo Plan has already been claimed once for this account or Gmail address. Please select a standard subscription plan."
-            )
-
     client = _get_razorpay_client()
 
     order_data = {

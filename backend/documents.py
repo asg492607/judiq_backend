@@ -57,28 +57,7 @@ def get_draft_history_query(case_id: str = Query(...), draft_type: str = Query(.
 @router.post("/draft-word")
 def generate_draft_word_endpoint(data: dict = Body(...)):
     from word_generator import WordGenerator
-    from session import DatabaseManager
     try:
-        user_id = (data.get("user_id") or "").strip()
-        email = (data.get("email") or "").strip()
-        role = (data.get("role") or "").strip()
-        
-        if not user_id or user_id in {"ANONYMOUS", "demo_user_123"}:
-            return JSONResponse(status_code=403, content={
-                "error": "Draft Studio access requires an active plan or Paid Demo Plan.",
-                "reason": "DRAFT_STUDIO_LOCKED",
-                "message": "Draft Studio access requires an active subscription or Paid Demo Plan."
-            })
-
-        quota_res = DatabaseManager.check_and_consume_report_quota(user_id, email, cost=1, role=role)
-        if not quota_res.get("allowed"):
-            return JSONResponse(status_code=403, content={
-                "error": "Draft Studio is exclusive to Paid Demo and Active Subscribers.",
-                "reason": quota_res.get("reason", "QUOTA_EXCEEDED"),
-                "message": "Draft Studio access requires an active subscription or Paid Demo Plan. Please activate the ₹2 Paid Demo Plan to unlock.",
-                "quota": quota_res.get("quota")
-            })
-
         title = data.get("title", "Legal_Draft")
         content = data.get("content", "")
         metadata = data.get("metadata", {})
@@ -94,28 +73,7 @@ def generate_draft_word_endpoint(data: dict = Body(...)):
 
 @router.post("/draft-pdf")
 def generate_draft_pdf(data: dict = Body(...)):
-    from session import DatabaseManager
     try:
-        user_id = (data.get("user_id") or "").strip()
-        email = (data.get("email") or "").strip()
-        role = (data.get("role") or "").strip()
-
-        if not user_id or user_id in {"ANONYMOUS", "demo_user_123"}:
-            return JSONResponse(status_code=403, content={
-                "error": "Draft Studio access requires an active plan or Paid Demo Plan.",
-                "reason": "DRAFT_STUDIO_LOCKED",
-                "message": "Draft Studio access requires an active subscription or Paid Demo Plan."
-            })
-
-        quota_res = DatabaseManager.check_and_consume_report_quota(user_id, email, cost=1, role=role)
-        if not quota_res.get("allowed"):
-            return JSONResponse(status_code=403, content={
-                "error": "Draft Studio is exclusive to Paid Demo and Active Subscribers.",
-                "reason": quota_res.get("reason", "QUOTA_EXCEEDED"),
-                "message": "Draft Studio access requires an active subscription or Paid Demo Plan. Please activate the ₹2 Paid Demo Plan to unlock.",
-                "quota": quota_res.get("quota")
-            })
-
         title = data.get("title", "Legal_Draft")
         content = data.get("content", "")
         metadata = data.get("metadata", {})
@@ -128,3 +86,4 @@ def generate_draft_pdf(data: dict = Body(...)):
     except Exception as e:
         logger.error(f"Draft PDF generation failed: {e}")
         return JSONResponse(status_code=500, content={"error": "Failed to generate draft PDF."})
+

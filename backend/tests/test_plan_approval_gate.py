@@ -58,7 +58,7 @@ def test_simulation_plan_approval_workflow():
     print(f"Blocked reason: {err.get('error_code')} - {err.get('error')}")
     assert "PENDING_ADMIN_APPROVAL" in err.get("error_code", "")
 
-    print("\n--- 4. Verify Document Draft is BLOCKED for Unapproved User ---")
+    print("\n--- 4. Verify Document Draft is Free and Accessible ---")
     draft_res = client.post("/api/v1/documents/draft-word", json={
         "user_id": test_user_id,
         "email": test_email,
@@ -66,8 +66,8 @@ def test_simulation_plan_approval_workflow():
         "content": "Sample notice draft"
     })
     print(f"Draft Word response status: {draft_res.status_code}")
-    assert draft_res.status_code == 403, f"Expected 403 Forbidden for draft generation, got {draft_res.status_code}: {draft_res.text}"
-    print("Draft generation successfully blocked.")
+    assert draft_res.status_code == 200, f"Expected 200 OK for free draft generation, got {draft_res.status_code}: {draft_res.text}"
+    print("Draft generation succeeded freely.")
 
     print("\n--- 5. Admin Inspects Pending Plans Queue ---")
     pending_res = client.get("/api/v1/admin/pending-plans", headers=headers)
