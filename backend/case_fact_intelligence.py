@@ -165,7 +165,9 @@ DOC_TYPE_SIGNATURES: Dict[str, List[str]] = {
     ],
     "EMAIL_EXCHANGE": [
         "email chain", "email exchange", "mailbox export", "from:", "to:",
-        "subject: re:", "sent:", "cc:", "bcc:", "fictional senders"
+        "subject: re:", "subject:", "re:", "fwd:", "sent:", "cc:", "bcc:",
+        "fictional senders", "mail", "gmail", "outlook", "email conversation",
+        "email thread", "correspondence"
     ],
     "OTHER": [],
 }
@@ -484,7 +486,7 @@ Return a JSON object with this exact structure. For each field:
 - "snippet": the exact text excerpt (max 120 chars) from which this was extracted, or null
 
 {
-  "doc_type_detected": "<one of: CHEQUE|BANK_MEMO|LEGAL_NOTICE|TRACKING_REPORT|AGREEMENT|COURT_ORDER|FIR|ITR|OTHER>",
+  "doc_type_detected": "<one of: SECTION_138_COMPLAINT|INVOICE_LEDGER|CHEQUE|BANK_MEMO|LEGAL_NOTICE|TRACKING_REPORT|AGREEMENT|EMAIL_EXCHANGE|COURT_ORDER|FIR|ITR|OTHER>",
   "complainant_name":     {"value": null, "confidence": 0.0, "page": null, "snippet": null},
   "accused_name":         {"value": null, "confidence": 0.0, "page": null, "snippet": null},
   "authorized_person":    {"value": null, "confidence": 0.0, "page": null, "snippet": null},
@@ -506,6 +508,7 @@ Return a JSON object with this exact structure. For each field:
   "notice_mode":          {"value": null, "confidence": 0.0, "page": null, "snippet": null},
   "notice_delivery_date": {"value": null, "confidence": 0.0, "page": null, "snippet": null},
   "notice_15day_clause":  {"value": null, "confidence": 0.0, "page": null, "snippet": null},
+  "agreement_date":       {"value": null, "confidence": 0.0, "page": null, "snippet": null},
   "transaction_date":     {"value": null, "confidence": 0.0, "page": null, "snippet": null},
   "invoice_date":         {"value": null, "confidence": 0.0, "page": null, "snippet": null},
   "part_payment_date":    {"value": null, "confidence": 0.0, "page": null, "snippet": null},
@@ -547,7 +550,10 @@ def extract_facts_with_llm(text: str, doc_type: str, filename: str, pages_data: 
         "  Example: '₹15,00,000' → 1500000 "
         "For dates: return in YYYY-MM-DD format where possible. "
         "  Example: '25th March, 2026' → '2026-03-25' "
-        "For doc_type_detected: classify based on document content AND the filename hint provided. "
+        "For doc_type_detected: classify based on document content AND filename. "
+        "IMPORTANT: An email conversation or mailbox export MUST be classified as EMAIL_EXCHANGE, never INVOICE_LEDGER. "
+        "For agreement execution dates: extract into agreement_date (do NOT put into transaction_date). "
+        "Only populate transaction_date when a specific debt/transaction date is established. "
         "Never guess — if a field is not clearly present, set value to null and confidence to 0.0. "
         "Extract party names exactly as written. For cheque amounts also capture the words form."
     )
@@ -1377,9 +1383,15 @@ def _deterministic_fact_extraction(text: str, doc_type: str) -> Dict[str, Any]:
         0.65 if prop_m else 0.0
     )
 
-    # ── IPC / BNS sections ────────────────────────────────────────────────────
+    # ── NI Act / IPC / BNS sections ───────────────────────────────────────────
+    ni_m = re.search(r'(?:section|s\.|sec\.)\s*(138|141|142|143|148)\b', t, re.IGNORECASE)
     ipc_m = re.search(r'(?:section|u/?s\.?|u/s|under)\s+(\d+(?:[A-Z])?(?:/\d+(?:[A-Z])?)*)', t)
-    result["ipc_section"] = _field(ipc_m.group(1) if ipc_m else None, 0.75 if ipc_m else 0.0)
+    if ni_m:
+        result["ipc_section"] = _field(ni_m.group(1), 0.85)
+    elif ipc_m:
+        result["ipc_section"] = _field(ipc_m.group(1), 0.75)
+    else:
+        result["ipc_section"] = _field(None, 0.0)
 
     # ── Incident date ─────────────────────────────────────────────────────────
     inc_date = _extract_date_near(text, ["incident", "offence", "offense", "occurred on", "happened on"])
@@ -1427,11 +1439,41 @@ FIELD_AUTHORITATIVE_TYPES: Dict[str, Set[str]] = {
     "notice_date":          {"LEGAL_NOTICE", "TRACKING_REPORT", "SECTION_138_COMPLAINT", "COMPLAINT"},
     "notice_delivery_date": {"TRACKING_REPORT", "LEGAL_NOTICE", "SECTION_138_COMPLAINT", "COMPLAINT"},
     "notice_mode":          {"LEGAL_NOTICE", "TRACKING_REPORT"},
+    "agreement_date":       {"AGREEMENT"},
     "transaction_date":     {"AGREEMENT"},
     "complainant_name":     {"LEGAL_NOTICE", "AGREEMENT", "INVOICE_LEDGER", "SECTION_138_COMPLAINT", "COMPLAINT", "CHEQUE"},
     "accused_name":         {"LEGAL_NOTICE", "AGREEMENT", "INVOICE_LEDGER", "SECTION_138_COMPLAINT", "COMPLAINT", "CHEQUE"},
     "bank_name":            {"CHEQUE", "BANK_MEMO", "LEGAL_NOTICE", "SECTION_138_COMPLAINT", "COMPLAINT"},
 }
+
+
+def _format_field_label(field: str, workflow_type: str = "cheque_bounce") -> str:
+    if field == "ipc_section":
+        return "NI Act Section" if workflow_type == "cheque_bounce" else "Penal Sections / Charges"
+    if field == "agreement_date":
+        return "Agreement Executed Date"
+    if field == "transaction_date":
+        return "Transaction Date"
+    custom_labels = {
+        "complainant_name": "Complainant",
+        "accused_name": "Accused",
+        "cheque_number": "Cheque Number",
+        "cheque_amount": "Cheque Amount",
+        "cheque_amount_words": "Cheque Amount in Words",
+        "cheque_date": "Cheque Date",
+        "bank_name": "Bank Name",
+        "dishonour_date": "Dishonour Date",
+        "dishonour_reason": "Dishonour Reason",
+        "memo_date": "Bank Memo Date",
+        "notice_date": "Legal Notice Date",
+        "notice_delivery_date": "Notice Delivery Date",
+        "notice_mode": "Notice Mode",
+        "invoice_date": "Invoice Date",
+        "part_payment_date": "Part Payment Date",
+        "filing_date": "Filing Date",
+        "case_number": "Case / Complaint Number",
+    }
+    return custom_labels.get(field, field.replace("_", " ").title())
 
 
 def _infer_type_from_facts(doc: "ExtractedDocument") -> str:
@@ -1641,7 +1683,7 @@ def detect_missing_facts(documents: List[ExtractedDocument], workflow_type: str)
             missing.append({
                 "field": field,
                 "required_for": req["required_for"],
-                "hint": f"Upload a document containing '{field.replace('_', ' ').title()}' or enter it manually in the wizard.",
+                "hint": f"Upload a document containing '{_format_field_label(field, workflow_type)}' or enter it manually in the wizard.",
             })
 
     return missing

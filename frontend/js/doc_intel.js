@@ -53,6 +53,7 @@ const CORE_SCHEMA_FIELDS = {
         { key: 'invoice_date',         label: 'Invoice Date',             defaultHint: 'Date of supply invoice' },
         { key: 'part_payment_date',    label: 'Part Payment Date',        defaultHint: 'Date part payment received' },
         { key: 'transaction_date',     label: 'Transaction Date',         defaultHint: 'Underlying transaction/debt date' },
+        { key: 'ipc_section',          label: 'NI Act Section',           defaultHint: 'Section 138 NI Act' },
         { key: 'filing_date',          label: 'Filing Date',              defaultHint: 'Court filing date' },
     ],
     sarfaesi: [
@@ -492,6 +493,54 @@ function _getAllUniqueFields() {
     return [...fields].filter(f => f !== 'all_dates_found' && f !== 'key_facts');
 }
 
+function _getFieldDisplayLabel(field, val) {
+    if (field === 'ipc_section') {
+        const valStr = String(val || '');
+        if (_workflowType === 'cheque_bounce' || valStr === '138' || valStr.includes('138')) {
+            return 'NI Act Section';
+        }
+        return 'Penal Sections / Charges';
+    }
+    if (field === 'agreement_date') {
+        return 'Agreement Executed Date';
+    }
+    if (field === 'transaction_date') {
+        return 'Transaction Date';
+    }
+    const labelMap = {
+        complainant_name: 'Complainant',
+        accused_name: 'Accused',
+        cheque_number: 'Cheque Number',
+        cheque_amount: 'Cheque Amount',
+        cheque_amount_words: 'Cheque Amount in Words',
+        cheque_date: 'Cheque Date',
+        bank_name: 'Bank Name',
+        dishonour_date: 'Dishonour Date',
+        dishonour_reason: 'Dishonour Reason',
+        memo_date: 'Bank Memo Date',
+        notice_date: 'Legal Notice Date',
+        notice_delivery_date: 'Notice Delivery Date',
+        notice_mode: 'Notice Mode',
+        notice_15day_clause: '15-Day Statutory Clause',
+        invoice_date: 'Invoice Date',
+        part_payment_date: 'Part Payment Date',
+        filing_date: 'Filing Date',
+        case_number: 'Case / Complaint Number',
+        complaint_number: 'Complaint Number',
+        fir_number: 'FIR Number',
+        incident_date: 'Incident Date',
+        outstanding_amount: 'Outstanding Amount',
+        npa_date: 'NPA Date',
+        property_description: 'Property Description',
+        authorized_person: 'Authorized Person / Signatory',
+        cheque_type: 'Cheque Type',
+        branch_name: 'Branch Name',
+        account_number: 'Account Number',
+        ifsc_code: 'IFSC Code'
+    };
+    return labelMap[field] || field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 function _renderFactsTable() {
     const fields = _getAllUniqueFields();
     if (!fields.length) return `<p class="di-empty">No facts extracted. Try uploading clearer document scans.</p>`;
@@ -511,16 +560,17 @@ function _renderFactsTable() {
         const isResolved = _resolvedContradictions.has(field);
         const activeConflict = isContradicted && !isResolved;
         const rowClass  = activeConflict ? 'di-fact-row di-fact-row--conflict' : 'di-fact-row';
-        const fieldLabel = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+        const currentVal = _verifiedFacts[field] !== undefined
+            ? _verifiedFacts[field]
+            : best.value;
+
+        const fieldLabel = _getFieldDisplayLabel(field, currentVal);
 
         // Multiple sources indicator
         const multiSrc = entries.length > 1
             ? `<span class="di-multi-src" title="${entries.length} sources found">${entries.length} sources</span>`
             : '';
-
-        const currentVal = _verifiedFacts[field] !== undefined
-            ? _verifiedFacts[field]
-            : best.value;
 
         let displayVal = currentVal !== null && currentVal !== undefined
             ? escapeHtml(String(currentVal))
@@ -600,7 +650,7 @@ function _renderContradictions() {
                     <span class="di-severity-badge di-severity-${isResolved ? 'resolved' : c.severity.toLowerCase()}">
                         ${isResolved ? 'RESOLVED ✓' : c.severity}
                     </span>
-                    <strong>${c.field.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase())}</strong>
+                    <strong>${_getFieldDisplayLabel(c.field)}</strong>
                     ${isResolved ? `<span class="di-resolved-tag">Approved: <strong>${escapeHtml(String(resolvedVal))}</strong></span>` : ''}
                 </div>
                 <p class="di-cc-desc">${escapeHtml(c.description)}</p>
@@ -632,7 +682,7 @@ function _acceptConflictVal(field, value) {
     _verifiedFacts[field] = value;
     _resolvedContradictions.add(field);
     _renderFactReviewStep();
-    if (ui && ui.toast) ui.toast(`Accepted '${value}' for ${field.replace(/_/g, ' ')}`, 'success');
+    if (ui && ui.toast) ui.toast(`Accepted '${value}' for ${_getFieldDisplayLabel(field)}`, 'success');
 }
 
 function _renderMissingPanel() {
@@ -653,10 +703,10 @@ function _renderMissingPanel() {
     }
 
     if (hasMissingFacts) {
-        html += `<div class="di-missing-group"><strong>Missing Facts:</strong><ul class="di-missing-list">
+        html += `<div class="di-missing-group"><strong>Missing Case Facts:</strong><ul class="di-missing-list">
             ${_missingFacts.map(f => `
                 <li class="di-missing-fact">
-                    <span class="di-missing-field">${escapeHtml(f.field.replace(/_/g, ' '))}</span>
+                    <span class="di-missing-pill">${escapeHtml(_getFieldDisplayLabel(f.field))}</span>
                     <span class="di-missing-for">Required for: ${escapeHtml(f.required_for)}</span>
                     <span class="di-missing-hint">${escapeHtml(f.hint || '')}</span>
                 </li>`).join('')}
@@ -693,7 +743,7 @@ function _showSourceDrawer(field) {
     if (!drawer || !title || !body) return;
 
     const entries = _allFacts[field] || [];
-    const fieldLabel = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const fieldLabel = _getFieldDisplayLabel(field);
     title.textContent = `Source Evidence: ${fieldLabel}`;
 
     if (!entries.length) {
