@@ -1,5 +1,5 @@
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from kb_manager import kb_manager
 from precedent_manager import precedent_manager
 logger = logging.getLogger(__name__)
@@ -421,20 +421,21 @@ class ReasoningEngine:
             }
         }
         for k, p in landmark_data.items():
-            if p["trigger"](case_data, concepts):
-                citation = p["citation"]
-                if citation not in seen_citations:
+            trigger_fn = p.get("trigger")
+            if callable(trigger_fn) and trigger_fn(case_data, concepts):
+                citation = str(p.get("citation", ""))
+                if citation and citation not in seen_citations:
                     seen_citations.add(citation)
                     safe_citation = citation.replace('/', '_').replace(' ', '_')
                     prec = {
-                        "concept":      p["concept"],
-                        "case":         p["case"],
+                        "concept":      str(p.get("concept", "")),
+                        "case":         str(p.get("case", "")),
                         "citation":     citation,
-                        "court":        p["court"],
-                        "principle":    p["principle"],
-                        "relevance":    p["relevance"],
-                        "domain":       p.get("domain", "General"),
-                        "link":         p.get("link", f"https://indiankanoon.org/search/?formInput={citation}"),
+                        "court":        str(p.get("court", "")),
+                        "principle":    str(p.get("principle", "")),
+                        "relevance":    float(p.get("relevance", 0.9)),
+                        "domain":       str(p.get("domain", "General")),
+                        "link":         str(p.get("link", f"https://indiankanoon.org/search/?formInput={citation}")),
                         "is_live":      True,
                         "document_url": f"/api/precedents/document/{safe_citation}"
                     }
@@ -532,19 +533,25 @@ class ReasoningEngine:
                     cond_fail.append(cond)
                 else:
                     cond_met.append(cond)
-            status = "SATISFIED" if not cond_fail else ("PARTIAL" if cond_met else "DEFECTIVE")
+            has_fatal = bool(case_data.get("fatal_defect"))
+            if has_fatal:
+                status = "BLOCKED"
+                finding_text = f"ANALYSIS BLOCKED: {case_data.get('fatal_defect')}. Statutory Section 138 ingredients cannot be affirmed on inverted chronology or unverified facts."
+            elif cond_fail:
+                status = "PARTIAL" if cond_met else "DEFECTIVE"
+                finding_text = f"Section 138 partially satisfied. Missing: {'; '.join(cond_fail)}."
+            else:
+                status = "SATISFIED"
+                finding_text = "All Section 138 statutory ingredients are satisfied. Case indicators support advocate review."
+
             interpretations.append({
                 "section":   "138",
                 "title":     sec138.get("title", "Dishonour of cheque"),
                 "status":    status,
-                "finding":   (
-                    "All Section 138 statutory ingredients are satisfied. Case indicators support advocate review."
-                    if status == "SATISFIED" else
-                    f"Section 138 partially satisfied. Missing: {'; '.join(cond_fail)}."
-                ),
+                "finding":   finding_text,
                 "punishment":    sec138.get("punishment", ""),
-                "conditions_met":    cond_met,
-                "conditions_failed": cond_fail,
+                "conditions_met":    cond_met if not has_fatal else [],
+                "conditions_failed": cond_fail if not has_fatal else [str(case_data.get("fatal_defect"))],
             })
         else:
             interpretations.append({
@@ -555,15 +562,20 @@ class ReasoningEngine:
                 "conditions_met": [], "conditions_failed": []
             })
         sec139 = kb_manager.get_ni_act_section("139")
+        has_fatal = bool(case_data.get("fatal_defect"))
         interpretations.append({
             "section": "139",
             "title":   sec139.get("title", "Presumption in favour of holder"),
-            "status":  "ACTIVE",
+            "status":  "BLOCKED" if has_fatal else "ACTIVE",
             "finding": (
-                "The statutory presumption under S.139 is active in your favour. "
-                "However, the accused does NOT have to prove beyond a reasonable doubt; they only need to raise a 'probable defense' on a preponderance of probabilities to shift the burden back to you."
-            ) if case_data.get("cheque_present") else (
-                "S.139 presumption is not invocable without a cheque instrument."
+                f"S.139 Presumption Blocked: Cannot be invoked while fatal issue persists ({case_data.get('fatal_defect')})."
+                if has_fatal else
+                (
+                    "The statutory presumption under S.139 is active in your favour. "
+                    "However, the accused does NOT have to prove beyond a reasonable doubt; they only need to raise a 'probable defense' on a preponderance of probabilities to shift the burden back to you."
+                    if case_data.get("cheque_present") else
+                    "S.139 presumption is not invocable without a cheque instrument."
+                )
             ),
             "interpretation": sec139.get("interpretation", ""),
         })
@@ -640,9 +652,9 @@ class ReasoningEngine:
             })
         if case_data.get("cheque_present"):
             story.append({
-                "stage": "Instrument Issuance",
-                "text": f"Cheque No. {case_data.get('cheque_number', 'N/A')} was issued by the accused towards discharge of liability.",
-                "status": "VERIFIED"
+                "stage": "Instrument Detection",
+                "text": f"Original cheque: Uploaded/document detected (Cheque No. {case_data.get('cheque_number', 'N/A')}). Subject to advocate verification.",
+                "status": "DOCUMENT_DETECTED"
             })
         else:
             story.append({
@@ -652,9 +664,9 @@ class ReasoningEngine:
             })
         if case_data.get("dishonour_memo"):
             story.append({
-                "stage": "Bank Dishonour",
-                "text": f"Cheque was presented and returned unpaid for '{case_data.get('dishonour_reason', 'Insufficient Funds')}'.",
-                "status": "VERIFIED"
+                "stage": "Bank Dishonour Memo",
+                "text": f"Bank memo: Document detected indicating '{case_data.get('dishonour_reason', 'Insufficient Funds')}'. Formal authentication pending advocate verification.",
+                "status": "DOCUMENT_DETECTED"
             })
         else:
             story.append({
@@ -664,9 +676,9 @@ class ReasoningEngine:
             })
         if case_data.get("notice_sent"):
             story.append({
-                "stage": "Demand Compliance",
-                "text": f"Statutory notice served on {case_data.get('notice_date', 'N/A')}. Demand for payment made.",
-                "status": "VERIFIED"
+                "stage": "Statutory Demand Notice",
+                "text": f"Notice: Notice document detected dated {case_data.get('notice_date', 'N/A')}. Legal service pending advocate verification.",
+                "status": "DOCUMENT_DETECTED"
             })
         else:
             story.append({
@@ -682,14 +694,14 @@ class ReasoningEngine:
             })
         return story
     @classmethod
-    def generate_reasoning_trail(cls, case_data: Dict, concepts: List[Dict], final_score: float = 0.0, engine_result: Dict = None) -> List[Dict]:
+    def generate_reasoning_trail(cls, case_data: Dict, concepts: List[Dict], final_score: float = 0.0, engine_result: Optional[Dict] = None) -> List[Dict]:
         trail: List[Dict] = []
         pillars = []
-        if case_data.get("cheque_present"): pillars.append("S.138 instrument verified")
-        if case_data.get("notice_sent"):    pillars.append("Demand notice complied")
-        if case_data.get("debt_proven"):    pillars.append("Enforceable debt established")
+        if case_data.get("cheque_present"): pillars.append("Original cheque: Document detected")
+        if case_data.get("notice_sent"):    pillars.append("Notice: Document detected")
+        if case_data.get("debt_proven"):    pillars.append("Debt proof: Document detected")
         trail.append({
-            "text": f"RULE-BASED AUDIT: Verified {len(pillars)}/3 statutory pillars. " + (f"Compliance confirmed: {', '.join(pillars)}." if pillars else "FATAL ERROR: No statutory pillars satisfied."),
+            "text": f"RULE-BASED AUDIT: Detected {len(pillars)}/3 core document milestones. " + (f"Milestones identified: {', '.join(pillars)}. Advocate verification required." if pillars else "FATAL ERROR: No statutory pillars satisfied."),
             "provenance": "STATUTORY",
             "confidence": 1.0,
             "authority": "The Negotiable Instruments Act, 1881"

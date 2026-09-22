@@ -22,21 +22,28 @@ if not DATABASE_URL:
 class DatabaseManager:
     _active_dialect = "sqlite"
     _pg_pool = None
+    _pg_disabled = False
 
     @classmethod
     def _get_pg_pool(cls):
+        if cls._pg_disabled:
+            return None
         if cls._pg_pool is None and DATABASE_URL and ("postgres" in DATABASE_URL or "postgresql" in DATABASE_URL):
             try:
                 import psycopg2.pool  # type: ignore[import-untyped]
                 cls._pg_pool = psycopg2.pool.ThreadedConnectionPool(
                     minconn=2,
                     maxconn=20,
-                    dsn=DATABASE_URL
+                    dsn=DATABASE_URL,
+                    connect_timeout=3
                 )
                 logger.info("🐘 Production PostgreSQL Connection Pool Initialized (maxconn=20).")
             except Exception as e:
                 logger.warning(f"⚠️ Failed to initialize PostgreSQL pool: {e}. Falling back to single connections.")
+                cls._pg_disabled = True
         return cls._pg_pool
+
+
 
     @classmethod
     def release_connection(cls, conn):
@@ -63,8 +70,8 @@ class DatabaseManager:
 
     @staticmethod
     def get_connection():
-        # Priority 1: Production PostgreSQL Database (if DATABASE_URL is configured)
-        if DATABASE_URL and ("postgres" in DATABASE_URL or "postgresql" in DATABASE_URL):
+        # Priority 1: Production PostgreSQL Database (if DATABASE_URL is configured and not disabled)
+        if not DatabaseManager._pg_disabled and DATABASE_URL and ("postgres" in DATABASE_URL or "postgresql" in DATABASE_URL):
             try:
                 import psycopg2  # type: ignore[import-untyped]
                 pool = DatabaseManager._get_pg_pool()
@@ -74,14 +81,16 @@ class DatabaseManager:
                     DatabaseManager._active_dialect = "postgres"
                     return conn
                 else:
-                    conn = psycopg2.connect(DATABASE_URL)
+                    conn = psycopg2.connect(DATABASE_URL, connect_timeout=3)
                     DatabaseManager._active_dialect = "postgres"
                     logger.info("📡 Production PostgreSQL Connected.")
                     return conn
             except ImportError:
                 logger.warning("⚠️ psycopg2 not installed. Falling back to local SQLite.")
+                DatabaseManager._pg_disabled = True
             except Exception as pg_err:
                 logger.warning(f"⚠️ Production PostgreSQL connection failed: {pg_err}. Falling back to local SQLite.")
+                DatabaseManager._pg_disabled = True
 
         # Priority 2: Local Development SQLite Database
         try:

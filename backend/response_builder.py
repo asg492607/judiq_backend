@@ -57,7 +57,7 @@ def _convert_to_lawyer_language(raw_trace: list) -> list:
                 seen.add(cleaned)
     return clean_trace
 def format_fatal_explanation(risk_key_or_msg: str) -> str:
-    msg_lower = str(risk_key_or_msg).lower()
+    msg_lower = risk_key_or_msg.lower()
     reason = risk_key_or_msg.replace("_", " ").title()
     statute = "Negotiable Instruments Act, 1881"
     precedent = "Relevant Landmark Precedent"
@@ -117,10 +117,11 @@ class ResponseBuilder:
             if case_data.get("witnesses_available"): strengths.append("Strength: Corroborative witness testimony available")
             if case_data.get("debt_proven"): strengths.append("Strength: Documented evidence establishing transaction/intent")
         else:
-            if case_data.get("cheque_present"):   strengths.append("Prerequisite: Negotiable instrument (cheque) secured")
-            if case_data.get("dishonour_memo"):   strengths.append("Prerequisite: Bank dishonour memo / return slip available")
-            if case_data.get("notice_sent"):      strengths.append("Prerequisite: Statutory demand notice served (S.138b)")
-            if case_data.get("debt_proven"):      strengths.append("Strength: Legally enforceable debt established via corroborative proof")
+            if case_data.get("cheque_present"):   strengths.append("Original cheque: Uploaded/document detected")
+            if case_data.get("dishonour_memo"):   strengths.append("Bank memo: Document detected")
+            if case_data.get("notice_sent"):      strengths.append("Notice: Notice document detected")
+            if case_data.get("notice_received") or case_data.get("notice_delivery_date"): strengths.append("Service evidence: Tracking/service evidence detected")
+            if case_data.get("debt_proven"):      strengths.append("Commercial debt: Transaction/agreement documents detected")
         for c in concepts:
             concept_name = c.get("concept", "")
             conf = c.get("confidence", 0)
@@ -213,7 +214,11 @@ class ResponseBuilder:
         has_fatal = any(r["severity"] == "FATAL" for r in top_3_risks)
         verdict = "STRONG CASE"
         risk_level = "LOW"                                                    
-        if has_fatal or score <= 25 or engine_result.get("verdict") == "DO NOT FILE":
+        if engine_result.get("verdict") == "FACTS NOT VERIFIED":
+            score = 0.0
+            verdict = "FACTS NOT VERIFIED"
+            risk_level = "CRITICAL"
+        elif has_fatal or score <= 25 or engine_result.get("verdict") == "DO NOT FILE":
             score = min(score, 25.0)
             verdict = "DO NOT FILE"
             risk_level = "CRITICAL"
@@ -224,8 +229,8 @@ class ResponseBuilder:
         current_sum = sum(c.get("impact", 0) for c in causality_map)
         diff = int(score - current_sum)
         if diff != 0:
-            if verdict == "DO NOT FILE" or score <= 25:
-                causality_map.append({"fact": "Fatal Defect Override", "impact": diff, "type": "negative", "rationale": "Case has fatal procedural/statutory defects."})
+            if verdict in ("DO NOT FILE", "FACTS NOT VERIFIED") or score <= 25:
+                causality_map.append({"fact": "Fatal Defect Override", "impact": diff, "type": "negative", "rationale": "Case has fatal procedural/statutory defects or unverified chronology."})
             else:
                 causality_map.append({"fact": "Judicial Adjustment & Calibration", "impact": diff, "type": "negative" if diff < 0 else "positive", "rationale": "Calibration for territorial jurisdiction and court rules."})
         suggestions = []
@@ -271,6 +276,17 @@ class ResponseBuilder:
         elif not is_criminal and not case_data.get("notice_sent"):
             recommended_action, decision_label, decision_detail = "SEND_NOTICE", "Send Legal Notice First", "Statutory demand notice (S.138b) has not been sent."
             next_steps = ["Draft and dispatch notice via RPAD", "Wait 15 days before filing"]
+        elif verdict == "FACTS NOT VERIFIED":
+            recommended_action, decision_label, decision_detail = (
+                "VERIFY_FACTS_FIRST",
+                "Analysis Blocked — Facts Not Verified",
+                f"Chronology inversion or unverified case facts detected: {case_data.get('fatal_defect', 'Milestone mismatch')}. Legal analysis and complaint drafting are blocked until advocate verification."
+            )
+            next_steps = [
+                "Reconcile chronological milestone dates in Fact Review",
+                "Verify cheque and commercial debt amounts against source documents",
+                "Complete advocate verification before initiating court analysis"
+            ]
         elif has_fatal or verdict == "DO NOT FILE":
             recommended_action, decision_label, decision_detail = "CONSIDER_SETTLEMENT", "Address Fatal Defects / Consider Settlement", "This case has fatal statutory/procedural defects."
             next_steps = ["Review notice/limitation timelines", "Consider strategic settlement or civil recovery suit"]

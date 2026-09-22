@@ -69,7 +69,7 @@ class BaseScoringEngine:
             cheque_type = "original" if is_original else "photocopy"
             cheque_points = PILLAR_CHEQUE_ORIGINAL if is_original else PILLAR_CHEQUE_PHOTOCOPY
             score_delta += cheque_points
-            trace.append(f"Instrument Admissibility: {cheque_type.title()} instrument verified (+{cheque_points}).")
+            trace.append(f"Original cheque: Uploaded/document detected ({cheque_type.title()}) (+{cheque_points}). Advocate verification required.")
             causality_map.append({"fact": f"Cheque ({cheque_type})", "impact": cheque_points, "type": "positive", "rationale": "Possession of the original instrument is foundational under S.138."})
         else:
             score_delta += PILLAR_CHEQUE_MISSING
@@ -84,7 +84,7 @@ class BaseScoringEngine:
                 causality_map.append({"fact": "Unsigned Bank Memo", "impact": PENALTY_UNSIGNED_MEMO, "type": "negative", "rationale": "Without bank stamp, S.146 presumption does not apply. Bank official must be summoned under S.311 CrPC."})
             else:
                 score_delta += PILLAR_MEMO_PRESENT
-                trace.append(f"Procedural Proof: Bank return memo authenticated (+{PILLAR_MEMO_PRESENT}).")
+                trace.append(f"Bank memo: Document detected (+{PILLAR_MEMO_PRESENT}). Advocate verification required.")
                 causality_map.append({"fact": "Bank Memo Presence", "impact": PILLAR_MEMO_PRESENT, "type": "positive", "rationale": "Formal proof of dishonour by the bank."})
         else:
             score_delta += PILLAR_MEMO_MISSING
@@ -102,7 +102,7 @@ class BaseScoringEngine:
                 causality_map.append({"fact": "Deemed Service", "impact": 0, "type": "neutral", "rationale": "Postal endorsement supports deemed service."})
             notice_points = PILLAR_NOTICE_VALID if within_30 else PILLAR_NOTICE_LATE
             score_delta += notice_points
-            trace.append(f"Statutory Compliance: S.138(b) Demand Notice served (+{notice_points}).")
+            trace.append(f"Notice: Notice document detected (+{notice_points}). Service verification required.")
             causality_map.append({"fact": "S.138(b) Notice Compliance", "impact": notice_points, "type": "positive", "rationale": "Statutory notice window is a core maintainability pillar."})
             if not within_30:
                 causality_map.append({"fact": "Notice Delay", "impact": -18, "type": "negative", "rationale": "Notice sent beyond 30 days of dishonour."})

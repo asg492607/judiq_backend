@@ -68,6 +68,20 @@ def scan_fatal_defects(case_data, contradictions, adversarial_result, limitation
     fatal_reason = ""
     if case_data.get("fatal_defect"):
         return True, str(case_data.get("fatal_defect"))
+
+    # 1. Chronology Sanity Check (NI Act sequence verification)
+    try:
+        from chronology_engine import ChronologyEngine
+        chrono_res = ChronologyEngine.validate_ni_act_chronology(case_data)
+        if not chrono_res.is_valid:
+            return True, f"Chronology Inversion / Impossible Sequence: {chrono_res.errors[0]}"
+    except Exception as e:
+        logger.error(f"[ENGINE] Chronology validation failed: {e}")
+
+    # 2. Fact Verification Check (Mandatory advocate verification)
+    if case_data.get("facts_verified") is False or case_data.get("lawyer_verified") is False:
+        return True, "Mandatory fact-review stage incomplete: Facts not verified by advocate."
+
     if "analysis_nodes" in adversarial_result:
         for node in adversarial_result["analysis_nodes"]:
             if node.get("severity") == "FATAL":
@@ -112,8 +126,19 @@ class JudiQEngine:
         case_type_clean = (case_data.get("case_type") or "").strip().lower()
         if case_type_clean in ("criminal", "ipc", "bns", "crpc", "bnss", "sarfaesi", "drt", "securitisation", "composite", "multi_track", "multitrack"):
             logger.warning(f"[JUDIQ] Requested non-138 domain engine '{case_type_clean}'. Section 138 NI Act is the active engine.")
-            raise ValueError(f"The '{case_type_clean}' litigation engine is disabled in this Section 138 NI Act release. Only Section 138 Negotiable Instruments Act (Cheque Bounce) Litigation Intelligence is active.")
+        # Mandatory Step 0: Chronology Sanity & Fact Verification Pre-Check
+        try:
+            from chronology_engine import ChronologyEngine
+            chrono_res = ChronologyEngine.validate_ni_act_chronology(case_data)
+            case_data["chronology_validation"] = chrono_res.to_dict()
+            if not chrono_res.is_valid:
+                case_data["fatal_defect"] = f"Chronology Inversion: {chrono_res.errors[0]}"
+                logger.warning(f"[ENGINE] Case flagged with chronology violation: {chrono_res.errors[0]}")
+        except Exception as e:
+            logger.error(f"[ENGINE] Chronology pre-validation failed: {e}")
 
+        if case_data.get("facts_verified") is False or case_data.get("lawyer_verified") is False:
+            case_data["fatal_defect"] = case_data.get("fatal_defect") or "Mandatory fact-review stage incomplete: Facts not verified by advocate."
 
         doc_intel = registry.get("document_intelligence")
         verification_flags = _safe_call(
@@ -384,8 +409,20 @@ class JudiQEngine:
         )
         if is_fatal:
             case_data["fatal_defect"] = fatal_reason
-            final_score = min(final_score, 25.0)
-            judicially_adjusted_score = min(judicially_adjusted_score, 25.0)
+            is_unverified = "chronology" in fatal_reason.lower() or "unverified" in fatal_reason.lower() or "fact" in fatal_reason.lower()
+            if is_unverified:
+                final_score = 0.0
+                judicially_adjusted_score = 0.0
+                scoring_result["score"] = 0.0
+                scoring_result["final_score"] = 0.0
+                scoring_result["verdict"] = "FACTS NOT VERIFIED"
+                scoring_result["status"] = "BLOCKED"
+                case_data["verdict"] = "FACTS NOT VERIFIED"
+                case_data["analysis_status"] = f"BLOCKED — {fatal_reason}"
+            else:
+                final_score = min(final_score, 25.0)
+                judicially_adjusted_score = min(judicially_adjusted_score, 25.0)
+                scoring_result["verdict"] = "DO NOT FILE"
         draft_engine = registry.get("draft")
         from draft_engine import decide_draft_type
         if is_fatal:
@@ -407,8 +444,10 @@ class JudiQEngine:
             context="DecisionSupportEngine.outcome"
         )
         if is_fatal:
-            outcome_prediction = {"prediction": f"DO NOT FILE - {fatal_reason}", "probability": "0%"}
-            scoring_result["verdict"] = "DO NOT FILE"
+            is_unverified = "chronology" in fatal_reason.lower() or "unverified" in fatal_reason.lower() or "fact" in fatal_reason.lower()
+            verdict_label = "FACTS NOT VERIFIED" if is_unverified else "DO NOT FILE"
+            outcome_prediction = {"prediction": f"{verdict_label} — {fatal_reason}", "probability": "0%"}
+            scoring_result["verdict"] = verdict_label
         translated_verdict = _safe_call(
             decision_engine.translate_verdict, scoring_result.get("verdict", "MODERATE"), case_data.get("target_lang", "hindi"),
             fallback="à¤®à¤œà¤¬à¥‚à¤¤ à¤®à¤¾à¤®à¤²à¤¾",

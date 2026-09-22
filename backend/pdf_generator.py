@@ -2,7 +2,7 @@ import os
 import logging
 from datetime import datetime
 from io import BytesIO
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 import re
 import hashlib
 
@@ -59,7 +59,7 @@ class PDFGenerator:
                 title="JUDIQ Legal Analysis Report",
                 author="JUDIQ AI Legal Intelligence"
             )
-            elements = []
+            elements: list[Any] = []
             styles = getSampleStyleSheet()
 
             # ── styles ────────────────────────────────────────────────────
@@ -109,19 +109,32 @@ class PDFGenerator:
             score = analysis_result.get('score', 0)
             verdict = analysis_result.get('verdict', 'Unknown')
             risk_level = analysis_result.get('risk_level', 'Unknown')
-            if score >= 70:
-                score_color = colors.HexColor(_C_GREEN)
-            elif score >= 40:
-                score_color = colors.HexColor(_C_AMBER)
-            else:
-                score_color = colors.HexColor(_C_RED)
+            status = analysis_result.get('status', '')
+            fatal_defect = analysis_result.get('fatal_defect') or analysis_result.get('failure_point')
+            is_blocked = verdict == 'FACTS NOT VERIFIED' or status == 'BLOCKED' or 'chronology' in str(fatal_defect).lower()
 
-            summary_data = [
-                ['Case Score:', f"{score}/100"],
-                ['Case Merit Assessment:', verdict],
-                ['Risk Level:', risk_level],
-                ['Generated:', datetime.now().strftime('%d %B %Y, %H:%M:%S')]
-            ]
+            if is_blocked:
+                score_color = colors.HexColor(_C_RED)
+                summary_data = [
+                    ['Case Assessment Status:', 'FACTS NOT VERIFIED'],
+                    ['Analysis Status:', f"BLOCKED — {fatal_defect or 'Resolve critical facts & chronology'}"],
+                    ['Procedural Gating:', 'Mandatory advocate verification required before filing/drafting.'],
+                    ['Generated:', datetime.now().strftime('%d %B %Y, %H:%M:%S')]
+                ]
+            else:
+                if score >= 70:
+                    score_color = colors.HexColor(_C_GREEN)
+                elif score >= 40:
+                    score_color = colors.HexColor(_C_AMBER)
+                else:
+                    score_color = colors.HexColor(_C_RED)
+
+                summary_data = [
+                    ['Case Score:', f"{score}/100"],
+                    ['Case Merit Assessment:', verdict],
+                    ['Risk Level:', risk_level],
+                    ['Generated:', datetime.now().strftime('%d %B %Y, %H:%M:%S')]
+                ]
             summary_table = Table(summary_data, colWidths=[2 * inch, 4.5 * inch])
             summary_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (0, -1), colors.HexColor(_C_TABLE_HDR)),
@@ -141,7 +154,7 @@ class PDFGenerator:
             # ── decision ──────────────────────────────────────────────────
             decision = analysis_result.get('decision', {})
             if decision:
-                decision_block = [Paragraph("Strategic Assessment & Priorities", heading_style), Spacer(1, 0.1 * inch)]
+                decision_block: list[Any] = [Paragraph("Strategic Assessment & Priorities", heading_style), Spacer(1, 0.1 * inch)]
                 decision_label = decision.get('decision_label', 'Review Case')
                 decision_detail = decision.get('detail', '')
                 decision_block.append(Paragraph(f"<b>{decision_label}</b>", subheading_style))
@@ -216,28 +229,32 @@ class PDFGenerator:
             elif isinstance(legal_analysis, list):
                 reasoning_lines = legal_analysis
             if reasoning_lines:
-                re_elements = [Paragraph("Legal Reasoning", heading_style), Spacer(1, 0.1 * inch)]
+                re_elements: list[Any] = [Paragraph("Legal Reasoning", heading_style), Spacer(1, 0.1 * inch)]
                 for reason in reasoning_lines:
                     re_elements.append(Paragraph(f"\u2192 {reason if isinstance(reason, str) else str(reason)}", body_style))
                     re_elements.append(Spacer(1, 0.05 * inch))
                 re_elements.append(Spacer(1, 0.2 * inch))
                 elements.append(KeepTogether(re_elements))
 
-            # ── defence strategy ──────────────────────────────────────────
+            # ── defence strategy / potential issues ──────────────────────────
             defences = analysis_result.get('defence_strategy', [])
             if defences:
-                elements.append(Paragraph("Predicted Defence Strategies", heading_style))
-                elements.append(Spacer(1, 0.1 * inch))
-                defence_data = [['Argument', 'Probability', 'Strength']]
-                for defence in defences[:5]:
+                elements.append(Paragraph("Potential Defence Issues Identified", heading_style))
+                elements.append(Paragraph("<i>Identified legal defence vulnerabilities and evidence requiring review (Qualitative Assessment):</i>", body_style))
+                elements.append(Spacer(1, 0.08 * inch))
+                defence_data: list[list[Any]] = [['Potential Defence Argument', 'Evidence Requiring Review', 'Rebuttal / Counter-Strategy']]
+                for defence in defences[:6]:
                     if not isinstance(defence, dict):
                         continue
+                    arg = defence.get('argument') or defence.get('defence') or defence.get('title') or 'Defence Strategy'
+                    trigger = defence.get('trigger_reason') or defence.get('evidence_gap') or 'Underlying transaction and instrument documentation'
+                    rebuttal = defence.get('rebuttal') or defence.get('counter_strategy') or 'Verify banking statements and contemporaneous records'
                     defence_data.append([
-                        Paragraph(defence.get('argument', 'N/A'), body_style),
-                        f"{defence.get('success_probability', 0)}%",
-                        Paragraph(defence.get('strength', 'N/A'), body_style)
+                        Paragraph(f"<b>{arg}</b>", body_style),
+                        Paragraph(str(trigger), body_style),
+                        Paragraph(str(rebuttal), body_style)
                     ])
-                defence_table = Table(defence_data, colWidths=[3.5 * inch, 1.2 * inch, 1.3 * inch])
+                defence_table = Table(defence_data, colWidths=[2.2 * inch, 2.1 * inch, 2.2 * inch])
                 defence_table.setStyle(TableStyle([
                     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(_C_TABLE_HDR)),
                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -257,8 +274,8 @@ class PDFGenerator:
             semantic = analysis_result.get('semantic_analysis', {})
             concepts = semantic.get('concepts_detected', [])
             if concepts:
-                concept_elements = [Paragraph("Legal Concepts Detected", heading_style), Spacer(1, 0.1 * inch)]
-                concept_data = [['Concept', 'Confidence', 'Impact']]
+                concept_elements: list[Any] = [Paragraph("Legal Concepts Detected", heading_style), Spacer(1, 0.1 * inch)]
+                concept_data: list[list[Any]] = [['Concept', 'Confidence', 'Impact']]
                 for concept in concepts[:8]:
                     if not isinstance(concept, dict):
                         continue
@@ -365,7 +382,7 @@ class PDFGenerator:
     # generate_draft_pdf  – formatted legal draft with cover page
     # ──────────────────────────────────────────────────────────────────────
     @staticmethod
-    def generate_draft_pdf(title: str, content: str, metadata: dict = None) -> bytes:
+    def generate_draft_pdf(title: str, content: str, metadata: Optional[dict] = None) -> bytes:
         """
         Generate a professional legal draft PDF from raw text with a dynamic Cover Page.
         """
@@ -392,7 +409,7 @@ class PDFGenerator:
                 topMargin=1 * inch, bottomMargin=1 * inch,
                 title=title, author="JUDIQ Legal Drafts"
             )
-            elements = []
+            elements: list[Any] = []
             styles = getSampleStyleSheet()
 
             # ── cover styles ──────────────────────────────────────────────
@@ -588,7 +605,7 @@ class PDFGenerator:
                 elif isinstance(legal_analysis, list):
                     reasoning_lines = legal_analysis
                 if reasoning_lines:
-                    re_els = [Bookmark("Legal Reasoning", 0), Paragraph("Legal Reasoning", heading_style_d), Spacer(1, 0.1 * inch)]
+                    re_els: list[Any] = [Bookmark("Legal Reasoning", 0), Paragraph("Legal Reasoning", heading_style_d), Spacer(1, 0.1 * inch)]
                     for reason in reasoning_lines:
                         re_els.append(Paragraph(f"\u2192 {reason if isinstance(reason, str) else str(reason)}", body_style))
                         re_els.append(Spacer(1, 0.05 * inch))
@@ -600,7 +617,7 @@ class PDFGenerator:
                     elements.append(Bookmark("Predicted Defence Strategies", 0))
                     elements.append(Paragraph("Predicted Defence Strategies", heading_style_d))
                     elements.append(Spacer(1, 0.1 * inch))
-                    defence_data = [['Argument', 'Probability', 'Strength']]
+                    defence_data: list[list[Any]] = [['Argument', 'Probability', 'Strength']]
                     for defence in defences_full[:5]:
                         if not isinstance(defence, dict):
                             continue
@@ -629,8 +646,8 @@ class PDFGenerator:
                 semantic = analysis_result.get('semantic_analysis', {})
                 concepts = semantic.get('concepts_detected', [])
                 if concepts:
-                    concept_elements = [Bookmark("Semantic Analysis", 0), Paragraph("Legal Concepts Detected", heading_style_d), Spacer(1, 0.1 * inch)]
-                    concept_data = [['Concept', 'Confidence', 'Impact']]
+                    concept_elements: list[Any] = [Bookmark("Semantic Analysis", 0), Paragraph("Legal Concepts Detected", heading_style_d), Spacer(1, 0.1 * inch)]
+                    concept_data: list[list[Any]] = [['Concept', 'Confidence', 'Impact']]
                     for concept in concepts[:8]:
                         if not isinstance(concept, dict):
                             continue

@@ -1,7 +1,7 @@
 import logging
 import re
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from jinja2 import Environment, FileSystemLoader
 import os
 logger = logging.getLogger(__name__)
@@ -146,7 +146,7 @@ def verify_s138_timeline_for_draft(case_data: Dict[str, Any]) -> Dict[str, Any]:
     notice_received_date = case_data.get("notice_received_date") or case_data.get("noticeReceivedDate") or case_data.get("notice_delivery_date")
     filing_date = case_data.get("filing_date") or case_data.get("filingDate")
 
-    res = {
+    res: Dict[str, Any] = {
         "is_cheque_valid": True,
         "is_notice_valid": True,
         "is_complaint_timely": True,
@@ -675,7 +675,7 @@ def generate_defence_strategy(case_data: Dict, concepts: List[Dict], score: int)
     if len(defences_identified) > 1:
         synthesis = "COMPOSITE DEFENCE STRATEGY:\nThe Accused has a multi-tiered defence. We will primarily challenge the existence of the legally enforceable debt, whilst simultaneously disputing the mechanics of the cheque's execution. This dual-pronged attack forces the Complainant to prove both the financial transaction and the instrument's integrity beyond reasonable doubt."
         defences_identified.insert(0, synthesis)
-    defences_text = "\n".join([f"   {i+1}. {d}" if not str(d).startswith("COMPOSITE") else f"   {d}" for i, d in enumerate(defences_identified)]) if defences_identified else "   (To be determined based on full case facts)"
+    defences_text = "\n".join([f"   {i+1}. {d}" if not d.startswith("COMPOSITE") else f"   {d}" for i, d in enumerate(defences_identified)]) if defences_identified else "   (To be determined based on full case facts)"
     arguments_text = "\n\n".join([f"   {i+1}. {a}" for i, a in enumerate(legal_arguments)]) if legal_arguments else "   (Legal arguments to be elaborated based on specific case documents)"
     hdr = _header("DEFENCE STRATEGY BRIEF — SECTION 138 NI ACT")
 
@@ -1069,7 +1069,7 @@ Date: {today}
 COUNSEL FOR THE APPLICANT
 """
 
-def generate_fir_draft(case_data: Dict, concepts: List[Dict] = None) -> str:
+def generate_fir_draft(case_data: Dict, concepts: Optional[List[Dict]] = None) -> str:
     today, amount_str = _case_meta(case_data)
     complainant = case_data.get("complainant_name") or "________ (Complainant Name)"
     accused = case_data.get("accused_name") or "________ (Accused Person)"
@@ -1128,9 +1128,20 @@ class DraftEngine:
         offensive_drafts = ["LEGAL_NOTICE", "COMPLAINT", "FIR_DRAFT"]
         is_offensive = draft_type in offensive_drafts
         has_fatal_defect = case_data.get("fatal_defect")
-        if is_offensive and (score < 40 or has_fatal_defect):
-            reason = has_fatal_defect if has_fatal_defect else "Survivability score below 40."
-            return f"DRAFT GENERATION BLOCKED.\n\nReason: {reason}\n\nJudiQ refuses to generate {draft_type} due to critical strategic or procedural defects that make the filing legally untenable or frivolous. Please review the Executive Summary."
+        facts_unverified = case_data.get("facts_verified") is False or case_data.get("lawyer_verified") is False
+        if has_fatal_defect or facts_unverified or (is_offensive and score < 40):
+            reason = has_fatal_defect or ("Mandatory advocate fact verification incomplete" if facts_unverified else "Case merit score below minimum drafting threshold")
+            return (
+                "LEGAL DOCUMENT DRAFTING BLOCKED: UNVERIFIED FACTS & CHRONOLOGY INVERSION DETECTED\n"
+                "================================================================================\n"
+                f"Blocking Reason: {reason}\n\n"
+                "Mandatory Safeguard Rule: Extracted facts containing chronology inversions, stray fees,\n"
+                "or unverified values cannot enter court pleadings, legal complaints, or statutory notices.\n\n"
+                "Action Required by Advocate:\n"
+                "1. Verify and reconcile chronological milestones (Cheque date, Dishonour date, Notice date).\n"
+                "2. Confirm exact cheque and debt amounts from verified commercial instruments.\n"
+                "3. Re-run analysis after advocate verification to generate court-ready drafts."
+            )
         tone = case_data.get("draft_tone", "standard")
         if draft_type == "FIR_DRAFT":
             draft_out = generate_fir_draft(case_data, concepts)
@@ -1200,7 +1211,7 @@ class DraftEngine:
         return _clean_draft_text(draft_out)
 def generate_settlement_draft(case_data: Dict, score: int) -> str:
     return "MEMORANDUM OF SETTLEMENT\n\nThis memorandum of settlement is generated based on the case facts. A formal mediator or counsel should review the terms."
-def generate_fir_draft(case_data: Dict, concepts: List[Dict] = None) -> str:
+def generate_fir_draft(case_data: Dict, concepts: Optional[List[Dict]] = None) -> str:
     today, amount_str = _case_meta(case_data)
     informant = case_data.get("complainant_name") or case_data.get("informant_name") or "________ (Informant Name)"
     informant_addr = case_data.get("complainant_address") or "________ (Address)"
