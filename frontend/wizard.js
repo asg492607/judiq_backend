@@ -106,23 +106,47 @@ export function populateAllInputs() {
                     val = caseData['amount'];
                 } else if (field.name === 'amount' && caseData['debt_amount'] !== undefined) {
                     val = caseData['debt_amount'];
+                } else if (field.name === 'notice_received_date' && caseData['notice_delivery_date'] !== undefined) {
+                    val = caseData['notice_delivery_date'];
                 }
             }
-            if (val !== undefined && val !== null) {
-                if (el.tagName === 'SELECT') {
+            if (val !== undefined && val !== null && val !== '') {
+                if (el.type === 'date') {
+                    // HTML5 date inputs require strictly YYYY-MM-DD
+                    if (typeof val === 'string') {
+                        const dmy = val.trim().match(/^(\d{1,2})[./\-](\d{1,2})[./\-](\d{4})$/);
+                        if (dmy) {
+                            val = `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`;
+                        } else {
+                            const ymd = val.trim().match(/^(\d{4})[./\-](\d{1,2})[./\-](\d{1,2})$/);
+                            if (ymd) {
+                                val = `${ymd[1]}-${ymd[2].padStart(2, '0')}-${ymd[3].padStart(2, '0')}`;
+                            }
+                        }
+                    }
+                    el.value = val;
+                } else if (el.type === 'number') {
+                    // HTML5 number inputs reject currency symbols and commas
+                    if (typeof val === 'string') {
+                        const numStr = val.replace(/[^0-9.]/g, '');
+                        if (numStr) val = numStr;
+                    }
+                    el.value = val;
+                } else if (el.tagName === 'SELECT') {
                     let matched = false;
+                    const valStr = String(val).trim().toLowerCase();
                     for (let i = 0; i < el.options.length; i++) {
                         const optVal = el.options[i].value;
-                        if (String(optVal).toLowerCase() === String(val).toLowerCase()) {
+                        if (String(optVal).toLowerCase() === valStr) {
                             el.selectedIndex = i;
                             matched = true;
                             break;
                         }
                     }
                     if (!matched) {
+                        // Substring / fuzzy match
                         for (let i = 0; i < el.options.length; i++) {
                             const optVal = el.options[i].value.toLowerCase();
-                            const valStr = String(val).toLowerCase();
                             if ((valStr === 'true' || valStr === '1' || valStr === 'yes') && optVal.startsWith('yes')) {
                                 el.selectedIndex = i;
                                 matched = true;
@@ -131,7 +155,7 @@ export function populateAllInputs() {
                                 el.selectedIndex = i;
                                 matched = true;
                                 break;
-                            } else if (valStr && optVal.includes(valStr)) {
+                            } else if (valStr && (optVal.includes(valStr) || valStr.includes(optVal))) {
                                 el.selectedIndex = i;
                                 matched = true;
                                 break;
@@ -144,10 +168,16 @@ export function populateAllInputs() {
                 } else {
                     el.value = val;
                 }
+
+                // Trigger change/input events for listeners
+                try {
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                } catch (_) {}
             }
         });
     });
 }
+window.populateAllInputs = populateAllInputs;
 
 export function renderWizardStep() {
     const steps = getCurrentSteps();
@@ -425,14 +455,21 @@ function saveCurrentStepValues() {
     if (!step) return;
     step.fields.forEach(field => {
         const el = document.getElementById(field.name);
-        if (el && window.state?.caseData) window.state.caseData[field.name] = el.value;
+        if (el && window.state?.caseData) {
+            const val = el.value;
+            if (val !== undefined && val !== '') {
+                window.state.caseData[field.name] = val;
+            } else if (window.state.caseData[field.name] === undefined) {
+                window.state.caseData[field.name] = '';
+            }
+        }
     });
 }
 
-window.submitCase = async () => {
-    const stepIdx = window.state.currentStep - 1;
+window.submitCase = async (skipValidation = false) => {
+    const stepIdx = (window.state?.currentStep || 1) - 1;
     const form = document.getElementById(`stepForm_${stepIdx}`);
-    if (form && !form.checkValidity()) {
+    if (!skipValidation && form && !form.checkValidity()) {
         form.reportValidity();
         return;
     }

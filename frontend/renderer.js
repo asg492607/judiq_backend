@@ -138,8 +138,8 @@ export function displayDefences(defences) {
                             <span class="defence-metric"><i class="fas fa-chart-pie"></i> Metric: ${targetCat}</span>
                         </div>
                     </div>
-                    <div class="defence-probability-badge">
-                        ${probability}%
+                    <div class="defence-probability-badge ${strength}" style="font-size: 0.8rem; padding: 0.3rem 0.6rem; font-weight: 600;">
+                        <i class="fas fa-exclamation-triangle"></i> Review Required
                     </div>
                 </div>
                 ${defence.trigger_reason ? `<p class="defence-details"><strong>Triggered by:</strong> ${escapeHtml(String(defence.trigger_reason))}</p>` : ''}

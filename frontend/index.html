@@ -20,7 +20,7 @@
     <!-- Favicon removed until official logo is finalized -->
     <link rel="icon" href="data:,">
     <!-- Stylesheet loaded first to prevent Flash of Unstyled Content (FOUC) -->
-    <link rel="stylesheet" href="styles.css?v=45">
+    <link rel="stylesheet" href="styles.css?v=46">
     <link
         href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -1178,10 +1178,16 @@
                         <button class="btn btn-sm btn-primary" onclick="window.switchScreen('caseWizardScreen')">
                             <i class="fas fa-plus"></i> New S.138 Case
                         </button>
+                        <button class="btn btn-sm btn-doc-intel" onclick="window.openDocIntelPanel()"
+                                title="Extract case facts automatically from uploaded legal documents">
+                            <i class="fas fa-file-upload"></i> Upload &amp; Extract Docs
+                        </button>
+
                         <button class="btn btn-sm btn-outline" onclick="window.showDraftStudio()">
                             <i class="fas fa-file-contract"></i> Draft Studio
                         </button>
                     </div>
+
                 </div>
 
                 <!-- Action Cards Grid -->
@@ -1422,6 +1428,10 @@
                             title="Skip wizard and run analysis immediately with current data">
                             <i class="fas fa-search"></i> Analyse Now
                         </button>
+                        <button id="smartFillBtn" class="btn btn-outline" onclick="window.openDocIntelPanel()"
+                            title="Extract case facts automatically from uploaded legal documents">
+                            <i class="fas fa-magic"></i> Smart Fill from Docs
+                        </button>
                         <button id="nextBtn" class="btn btn-primary" onclick="nextStep()">
                             Next <i class="fas fa-arrow-right"></i>
                         </button>
@@ -1430,6 +1440,29 @@
                             <span class="btn-loader"></span>
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- DOCUMENT & CASE FACT INTELLIGENCE MODAL                        -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div id="docIntelModal" class="di-modal-overlay hidden" role="dialog" aria-modal="true"
+             aria-label="Document &amp; Case Fact Intelligence">
+            <div class="di-modal-panel">
+                <div class="di-modal-header">
+                    <div class="di-modal-brand">
+                        <i class="fas fa-file-search"></i>
+                        <span>Document &amp; Case Fact Intelligence</span>
+                        <span class="di-modal-sub">JudiQ AI</span>
+                    </div>
+                    <button class="di-modal-close" onclick="window.closeDocIntelPanel()"
+                            aria-label="Close Document Intelligence panel">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="docIntelContent" class="di-modal-body">
+                    <!-- Dynamically rendered by doc_intel.js -->
                 </div>
             </div>
         </div>

@@ -858,8 +858,91 @@ export const api = {
             body: JSON.stringify({ password })
         });
         try { return await response.json(); } catch (e) { throw new Error("Failed to verify report password."); }
-    }
+    },
+
+    // ── Document & Case Fact Intelligence ────────────────────────────────────
+
+    /**
+     * Upload documents → OCR → per-document fact extraction.
+     * @param {FormData} formData — files[], doc_types (csv), workflow_type
+     */
+    async docIntelExtract(formData) {
+        // NOTE: Do NOT set Content-Type — browser sets multipart boundary automatically
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/doc-intel/extract`, {
+            method: 'POST',
+            body: formData,
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.detail || `Document extraction failed (${response.status})`);
+        }
+        return response.json();
+    },
+
+    /**
+     * Cross-document analysis: contradictions, missing facts/docs, timeline.
+     * @param {string} sessionId
+     * @param {string} workflowType
+     */
+    async docIntelAnalyze(sessionId, workflowType = 'cheque_bounce') {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/doc-intel/analyze`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: sessionId, workflow_type: workflowType }),
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.detail || `Analysis failed (${response.status})`);
+        }
+        return response.json();
+    },
+
+    /**
+     * Submit lawyer-verified facts.
+     * @param {string} sessionId
+     * @param {Object} verifiedFacts — field → corrected value
+     */
+    async docIntelVerify(sessionId, verifiedFacts, resolvedContradictions = []) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/doc-intel/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                session_id: sessionId,
+                verified_facts: verifiedFacts,
+                resolved_contradictions: resolvedContradictions,
+            }),
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.detail || `Verification failed (${response.status})`);
+        }
+        return response.json();
+    },
+
+    /**
+     * Generate case story from VERIFIED facts only (never from raw extraction).
+     * @param {string} sessionId
+     * @param {Object} verifiedFacts
+     * @param {string} workflowType
+     */
+    async docIntelCaseStory(sessionId, verifiedFacts, workflowType = 'cheque_bounce') {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/doc-intel/case-story`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                session_id: sessionId,
+                verified_facts: verifiedFacts,
+                workflow_type: workflowType,
+            }),
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.detail || `Case story generation failed (${response.status})`);
+        }
+        return response.json();
+    },
 };
+
 
 
 
