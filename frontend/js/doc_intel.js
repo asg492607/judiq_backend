@@ -1340,14 +1340,16 @@ function _applyToWizard(autoAnalyze = false) {
 
     const filledCount = Object.keys(cd).filter(k => cd[k] !== undefined && cd[k] !== null && cd[k] !== '').length;
 
-    // Chronology Sanity Enforcement
-    const chronoErrors = _validateChronology(cd);
-    if (chronoErrors.length > 0) {
-        if (ui?.toast) ui.toast(`⚠️ Chronology Inversion: ${chronoErrors[0]}`, 'warning');
-        if (autoAnalyze) {
-            alert(`⚠️ Chronology Sanity Check Blocked:\n\n${chronoErrors.join('\n')}\n\nPlease review and reconcile these dates in the Fact Review screen before proceeding to legal analysis.`);
-            return;
-        }
+    // Verification Gate: Ensure lawyer resolves conflicting facts before analysis
+    const vStatus = _computeStatus();
+    cd.verification_status = vStatus.isFullyVerified ? 'VERIFIED' : 'UNVERIFIED';
+    cd.unresolved_contradictions_count = vStatus.unresolvedCount;
+    cd.missing_facts_count = vStatus.missingCount;
+
+    if (!vStatus.isFullyVerified && autoAnalyze && vStatus.unresolvedCount > 0) {
+        if (ui?.toast) ui.toast(`⚠️ Verification Gate: ${vStatus.unresolvedCount} unresolved contradiction(s) must be resolved.`, 'warning');
+        alert(`⚠️ Verification Gate Active (Legal Analysis Blocked):\n\nThere are ${vStatus.unresolvedCount} unresolved document contradiction(s) detected across uploaded case documents.\n\nPer legal drafting integrity rules, the advocate must verify and select the canonical value for each conflicting fact before conclusive legal analysis and complaint drafting can proceed.`);
+        return;
     }
 
     if (autoAnalyze) {

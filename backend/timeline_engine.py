@@ -67,7 +67,8 @@ class TimelineEngine:
         if presentation_date:
             days_from_cheque = days_between(cheque_date, presentation_date)
             status = "success" if days_from_cheque is not None and 0 <= days_from_cheque <= 92 else "error"
-            steps.append({"milestone": "Cheque Presented", "date": presentation_date, "status": status, "details": f"Presented to bank. Validity: {days_from_cheque} days."})
+            pres_detail = "Presented to bank for encashment." if status == "success" else "Presented to bank for encashment (exceeds 3-month statutory validity window)."
+            steps.append({"milestone": "Cheque Presented", "date": presentation_date, "status": status, "details": pres_detail})
         if dishonour_date:
             steps.append({"milestone": "Cheque Dishonoured", "date": dishonour_date, "status": "error", "details": f"Reason: {case_data.get('dishonour_reason', 'Funds Insufficient')}"})
         if notice_date:

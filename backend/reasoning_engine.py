@@ -653,7 +653,7 @@ class ReasoningEngine:
         if case_data.get("cheque_present"):
             story.append({
                 "stage": "Instrument Detection",
-                "text": f"Original cheque: Uploaded/document detected (Cheque No. {case_data.get('cheque_number', 'N/A')}). Subject to advocate verification.",
+                "text": f"Cheque image/document detected (Cheque No. {case_data.get('cheque_number', 'N/A')}) — advocate verification required.",
                 "status": "DOCUMENT_DETECTED"
             })
         else:
@@ -697,7 +697,7 @@ class ReasoningEngine:
     def generate_reasoning_trail(cls, case_data: Dict, concepts: List[Dict], final_score: float = 0.0, engine_result: Optional[Dict] = None) -> List[Dict]:
         trail: List[Dict] = []
         pillars = []
-        if case_data.get("cheque_present"): pillars.append("Original cheque: Document detected")
+        if case_data.get("cheque_present"): pillars.append("Cheque image/document: Document detected")
         if case_data.get("notice_sent"):    pillars.append("Notice: Document detected")
         if case_data.get("debt_proven"):    pillars.append("Debt proof: Document detected")
         trail.append({

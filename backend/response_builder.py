@@ -117,7 +117,7 @@ class ResponseBuilder:
             if case_data.get("witnesses_available"): strengths.append("Strength: Corroborative witness testimony available")
             if case_data.get("debt_proven"): strengths.append("Strength: Documented evidence establishing transaction/intent")
         else:
-            if case_data.get("cheque_present"):   strengths.append("Original cheque: Uploaded/document detected")
+            if case_data.get("cheque_present"):   strengths.append("Cheque image/document detected — advocate verification required")
             if case_data.get("dishonour_memo"):   strengths.append("Bank memo: Document detected")
             if case_data.get("notice_sent"):      strengths.append("Notice: Notice document detected")
             if case_data.get("notice_received") or case_data.get("notice_delivery_date"): strengths.append("Service evidence: Tracking/service evidence detected")

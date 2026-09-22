@@ -249,10 +249,9 @@ def generate_legal_notice(case_data: Dict, tone: str = "standard") -> str:
         transaction_nature = purpose[:100]
     transaction_nature = transaction_nature.rstrip('.')
     amount_val = _safe_float(case_data.get("cheque_amount") or case_data.get("amount") or 0)
-    loan_via_bank = str(case_data.get("loan_via_bank", "yes")).lower()
-    is_cash = loan_via_bank not in ("yes", "true", "1")
-    if amount_val > 150000 and is_cash:
-        transaction_nature += f". My client specifically asserts possessing sufficient source of funds to the tune of {amount_str} at the time of the transaction, advanced from accumulated personal savings/agricultural income, fully satisfying their financial capacity"
+    verified_funds = case_data.get("financial_capacity_evidence") or case_data.get("source_of_funds")
+    if verified_funds:
+        transaction_nature += f". My client specifically asserts possessing sufficient source of funds to the tune of {amount_str} at the time of the transaction, as substantiated by {verified_funds}"
     
     timeline_res = verify_s138_timeline_for_draft(case_data)
     audit_header = format_timeline_audit_report(timeline_res)
@@ -313,8 +312,10 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "[Complainant Name]"
     complainant_addr = case_data.get("complainant_address") or case_data.get("complainantAddress") or "[Complainant Address]"
     complainant_type = case_data.get("complainant_type", "Individual")
-    c_phone = case_data.get("complainant_phone") or case_data.get("complainantPhone") or case_data.get("phone")
-    c_email = case_data.get("complainant_email") or case_data.get("complainantEmail") or case_data.get("email")
+    # STRICT DATA INTEGRITY: Only verified case facts or explicit complainant fields.
+    # Never leak app user / login account email (e.g. from session or case_data["email"]) into legal drafts.
+    c_phone = case_data.get("complainant_phone") or case_data.get("complainantPhone")
+    c_email = case_data.get("complainant_email") or case_data.get("complainantEmail")
     if c_phone and c_email:
         complainant_contact_line = f"Contact: {c_phone} | Email: {c_email}"
     elif c_phone:
@@ -403,10 +404,11 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
     else:
         debt_pleading = f"The Complainant states that the Accused is indebted to the Complainant for a sum of {amount_str} arising from {transaction_nature}. The said debt is legally enforceable and constitutes a valid liability under law."
     amount_val = _safe_float(case_data.get("cheque_amount") or case_data.get("amount") or 0)
-    loan_via_bank = str(case_data.get("loan_via_bank", "yes")).lower()
-    is_cash = loan_via_bank not in ("yes", "true", "1")
-    if amount_val > 150000 and is_cash:
-        debt_pleading += f" It is specifically averred that the Complainant possessed sufficient source of funds to the tune of {amount_str} at the time of the transaction, which was advanced from accumulated personal savings/agricultural income, and the Complainant has the requisite financial capacity, fully satisfying the legal mandate of 'Basalingappa v. Mudibasappa'."
+    verified_funds = case_data.get("financial_capacity_evidence") or case_data.get("source_of_funds")
+    if verified_funds:
+        debt_pleading += f" It is specifically averred that the Complainant possessed sufficient source of funds to the tune of {amount_str} at the time of the transaction, which is substantiated by {verified_funds}, satisfying the legal mandate of 'Basalingappa v. Mudibasappa'."
+    elif amount_val > 150000 and str(case_data.get("loan_via_bank", "yes")).lower() not in ("yes", "true", "1"):
+        debt_pleading += " [Financial capacity evidence: NOT ESTABLISHED FROM UPLOADED DOCUMENTS — Advocate verification required to specify and substantiate documentary source of funds per Basalingappa v. Mudibasappa]."
     dynamic_rebuttal = ""
     failure_point = str(case_data.get("failure_point_injected", "")).lower()
     if "signature" in failure_point or "handwriting" in failure_point:
@@ -467,12 +469,14 @@ def generate_complaint(case_data: Dict, concepts: List[Dict], tone: str = "stand
 
     transaction_date = case_data.get("transaction_date") or case_data.get("transactionDate") or "[Transaction Date]"
     presentation_date = case_data.get("presentation_date") or case_data.get("presentationDate") or "[Presentation Date]"
-    notice_received_date = case_data.get("notice_received_date") or case_data.get("noticeReceivedDate") or "[Notice Delivery Date]"
+    # Canonical notice delivery date across all complaint modules
+    canonical_delivery = case_data.get("notice_delivery_date") or case_data.get("notice_received_date") or case_data.get("noticeReceivedDate") or "[Notice Delivery Date]"
+    notice_received_date = canonical_delivery
     filing_date = case_data.get("filing_date") or case_data.get("filingDate") or "[Filing Date]"
 
     expiry_phrase = "which expired upon lapse of the statutory 15-day window"
     try:
-        n_recv = case_data.get("notice_received_date") or case_data.get("noticeReceivedDate") or case_data.get("notice_delivery_date")
+        n_recv = canonical_delivery
         n_sent = case_data.get("notice_date") or case_data.get("noticeDate")
         base_d_str = n_recv or n_sent
         if base_d_str and "Date" not in str(base_d_str) and not str(base_d_str).startswith("[") and not str(base_d_str).startswith("_"):
@@ -615,7 +619,7 @@ RESPECTFULLY SHOWETH:
 6. PRESENTATION AND DISHONOUR:
    The Complainant duly presented the said cheque for encashment through its banker. However, the said cheque was returned/dishonoured on {dishonour_date} with the bank memo citing "{dishonour_reason}", thereby constituting an offence under Section 138 of the NI Act, 1881.
 7. STATUTORY DEMAND NOTICE AND ACCUSED'S DEFAULT:
-   As mandated under Section 138(b) of the NI Act, 1881, the Complainant sent a legal demand notice dated {notice_date} to the Accused at their correct and known address via Registered Post (AD)/Speed Post, demanding payment of the cheque amount of {amount_str} within 15 days of receipt of the notice. The notice was duly served/deemed to be served upon the Accused. Despite receipt/deemed receipt of the notice, the Accused failed to make the payment of the cheque amount within the statutory period of 15 days, {expiry_phrase}. The Accused has thus committed an offence punishable under Section 138 of the Negotiable Instruments Act, 1881. {delay_para} {dynamic_rebuttal}
+   As mandated under Section 138(b) of the NI Act, 1881, the Complainant sent a legal demand notice dated {notice_date} to the Accused at their correct and known address via Registered Post (AD)/Speed Post, demanding payment of the cheque amount of {amount_str} within 15 days of receipt of the notice. The notice was duly served/deemed to be served upon the Accused on {canonical_delivery}. Despite receipt/deemed receipt of the notice, the Accused failed to make the payment of the cheque amount within the statutory period of 15 days, {expiry_phrase}. The Accused has thus committed an offence punishable under Section 138 of the Negotiable Instruments Act, 1881. {delay_para} {dynamic_rebuttal}
 8. JURISDICTION:
    This Honourable Court has territorial jurisdiction to entertain and try this Complaint as the cheque in question was presented for encashment at {bank_full}, which is situated within the territorial limits of this Court, as per the law laid down by the Honourable Supreme Court in Dashrath Rupsingh Rathod vs. State of Maharashtra.
 9. PRAYER:
@@ -626,8 +630,8 @@ RESPECTFULLY SHOWETH:
    (d) On conviction, sentence the Accused to imprisonment for the maximum term and/or impose a fine of twice the cheque amount to meet the ends of justice; and
    (e) Pass such other order(s) as this Honourable Court may deem fit in the interest of justice.
 LIST OF ANNEXURES:
-ANNEXURE-A: Original Board Resolution / Letter of Authority (If applicable)
-ANNEXURE-B: Original Dishonoured Cheque No. {cheque_no}
+ANNEXURE-A: Board Resolution / Letter of Authority (If applicable)
+ANNEXURE-B: Cheque No. {cheque_no} (Copy annexed herewith; original instrument to be produced at trial)
 ANNEXURE-C: Original Bank Dishonour Memo dated {dishonour_date}
 ANNEXURE-D: Office Copy of Legal Demand Notice dated {notice_date}
 ANNEXURE-E: Original Postal Receipt and A.D. Card / Tracking Report

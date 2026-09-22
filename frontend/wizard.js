@@ -496,9 +496,13 @@ window.submitCase = async (skipValidation = false) => {
         const rawPayload = { 
             ...window.state.caseData, 
             user_id: userId,
-            email: userEmail,
+            user_email: userEmail,
             role: userRole
         };
+        // Strict guard: ensure app login account email never pollutes case facts / complainant email
+        if (rawPayload.email && rawPayload.email === userEmail && !window.state?.caseData?.complainant_email) {
+            delete rawPayload.email;
+        }
         const payload = sanitizePayload(rawPayload);
         const result = await api.analyze(payload);
         window.state.analysisResult = result;

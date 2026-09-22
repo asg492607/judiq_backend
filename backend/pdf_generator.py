@@ -130,7 +130,8 @@ class PDFGenerator:
                     score_color = colors.HexColor(_C_RED)
 
                 summary_data = [
-                    ['Case Score:', f"{score}/100"],
+                    ['Assessment Metric:', 'Analytical indicators identified'],
+                    ['Preliminary Indicator:', f"{score}/100 (Subject to advocate verification)"],
                     ['Case Merit Assessment:', verdict],
                     ['Risk Level:', risk_level],
                     ['Generated:', datetime.now().strftime('%d %B %Y, %H:%M:%S')]

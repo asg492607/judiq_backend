@@ -2056,8 +2056,15 @@ export function renderResults(data) {
     const verdictDescEl = document.getElementById("verdictDescription");
     const cynicalBadge = document.getElementById("cynicalModeBadge");
 
-    if (verdictTitleEl) verdictTitleEl.textContent = verdict;
-    if (verdictDescEl) verdictDescEl.textContent = getVerdictDescription(score);
+    const isUnverified = data.verification_status === 'UNVERIFIED' || data.verification_status === 'REQUIRES_ADVOCATE_VERIFICATION';
+    if (verdictTitleEl) {
+        verdictTitleEl.textContent = isUnverified ? `${verdict} (Analytical Indicators Identified)` : verdict;
+    }
+    if (verdictDescEl) {
+        verdictDescEl.textContent = isUnverified 
+            ? "Analytical indicators identified — Subject to advocate evidentiary verification before formal court filing."
+            : getVerdictDescription(score);
+    }
     
     if (cynicalBadge) {
         const isCynical = score < 65 || (data.reasoning_trace || []).some(t => String(t).includes('CYNICAL'));

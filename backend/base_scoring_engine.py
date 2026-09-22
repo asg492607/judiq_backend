@@ -69,13 +69,13 @@ class BaseScoringEngine:
             cheque_type = "original" if is_original else "photocopy"
             cheque_points = PILLAR_CHEQUE_ORIGINAL if is_original else PILLAR_CHEQUE_PHOTOCOPY
             score_delta += cheque_points
-            trace.append(f"Original cheque: Uploaded/document detected ({cheque_type.title()}) (+{cheque_points}). Advocate verification required.")
-            causality_map.append({"fact": f"Cheque ({cheque_type})", "impact": cheque_points, "type": "positive", "rationale": "Possession of the original instrument is foundational under S.138."})
+            trace.append(f"Cheque image/document detected — advocate verification required (+{cheque_points}).")
+            causality_map.append({"fact": f"Cheque ({cheque_type})", "impact": cheque_points, "type": "positive", "rationale": "Possession of the instrument is foundational under S.138."})
         else:
             score_delta += PILLAR_CHEQUE_MISSING
-            case_data["fatal_defect"] = case_data.get("fatal_defect") or "Missing Original Cheque"
+            case_data["fatal_defect"] = case_data.get("fatal_defect") or "Missing Cheque Document"
             trace.append(f"FATAL ERROR: Primary instrument missing ({PILLAR_CHEQUE_MISSING} impact).")
-            causality_map.append({"fact": "Missing Original Cheque", "impact": PILLAR_CHEQUE_MISSING, "type": "negative", "rationale": "S.138 requires the instrument itself."})
+            causality_map.append({"fact": "Missing Cheque Document", "impact": PILLAR_CHEQUE_MISSING, "type": "negative", "rationale": "S.138 requires the instrument itself."})
         if memo:
             memo_signed_str = case_data.get("memo_signed", "")
             if "Unsigned" in memo_signed_str:
@@ -114,9 +114,11 @@ class BaseScoringEngine:
         compliance_pct = (sum([1 for p in [cheque, memo, notice, debt] if p]) / 4.0) * 100
         if debt:
             debt_points = PILLAR_DEBT_PROVEN
-            if amount > 100000 and not case_data.get("agreement_registered"):
+            # Strictly rely on verified facts: commercial agreements are not compulsorily registrable
+            # unless creating/extinguishing rights in immovable property under S.17 Registration Act.
+            if case_data.get("agreement_compulsorily_registrable") and case_data.get("agreement_registered") is False:
                 debt_points -= 9
-                trace.append("Evidentiary Risk: High-value agreement lacks registration (-9 impact).")
+                trace.append("Evidentiary Risk: Agreement requires statutory registration under Section 17 Registration Act (-9 impact). Status: Needs advocate verification.")
             score_delta += debt_points
             trace.append(f"Liability Authentication: Enforceable debt proof established (+{debt_points}).")
             causality_map.append({"fact": "Debt Liability Proof", "impact": debt_points, "type": "positive", "rationale": "S.139 presumption is stronger with corroborative debt proof."})
