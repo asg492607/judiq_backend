@@ -30,3 +30,5 @@ prometheus-client>=0.17.0
 httpx>=0.24.0
 groq>=0.4.0
 razorpay>=1.4.0
+pdf2image>=1.17.0
+pymupdf>=1.23.0

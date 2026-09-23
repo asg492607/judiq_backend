@@ -353,30 +353,36 @@ def _ocr_win_media(file_bytes: bytes) -> str:
 
 def _ocr_scanned_pdf(file_bytes: bytes) -> Tuple[str, List[Dict], str]:
     """Convert scanned PDF pages to images, then OCR each page."""
-    # Method 1: Try PyMuPDF (fitz) page rendering + Windows Media OCR / pytesseract
+    # Method 1: Try PyMuPDF (fitz) direct text extraction + page rendering
     try:
         import fitz
         doc = fitz.open(stream=file_bytes, filetype="pdf")
         pages_data = []
         full_text_parts = []
         for i, page in enumerate(doc, start=1):
-            pix = page.get_pixmap(dpi=150)
-            png_bytes = pix.tobytes("png")
-            page_text = ""
-            try:
-                import pytesseract
-                from PIL import Image
-                img = Image.open(io.BytesIO(png_bytes))
-                page_text = pytesseract.image_to_string(img, lang="eng").strip()
-            except Exception:
-                pass
+            # 1a. Check direct text stream first
+            page_text = (page.get_text() or "").strip()
+            # 1b. If page has no text layer, render pixmap for OCR
             if not page_text:
-                page_text = _ocr_win_media(png_bytes)
+                try:
+                    pix = page.get_pixmap(dpi=150)
+                    png_bytes = pix.tobytes("png")
+                    try:
+                        import pytesseract
+                        from PIL import Image
+                        img = Image.open(io.BytesIO(png_bytes))
+                        page_text = pytesseract.image_to_string(img, lang="eng").strip()
+                    except Exception:
+                        pass
+                    if not page_text:
+                        page_text = _ocr_win_media(png_bytes)
+                except Exception as pix_err:
+                    logger.debug(f"PyMuPDF pixmap OCR error: {pix_err}")
             pages_data.append({"page_num": i, "text": page_text})
             full_text_parts.append(page_text)
         full_text = "\n".join(full_text_parts)
         if len(full_text.strip()) > 30:
-            return full_text, pages_data, "pymupdf+win_ocr"
+            return full_text, pages_data, "pymupdf"
     except Exception as e:
         logger.debug(f"PyMuPDF scanned OCR attempt: {e}")
 
@@ -396,8 +402,8 @@ def _ocr_scanned_pdf(file_bytes: bytes) -> Tuple[str, List[Dict], str]:
         full_text = "\n".join(full_text_parts)
         return full_text, pages_data, "pdf2image+tesseract"
     except Exception as e:
-        logger.warning(f"Scanned PDF OCR failed: {e}")
-        return "", [], "pdf2image_error"
+        logger.info(f"pdf2image fallback skipped or unavailable: {e}")
+        return "", [], "pdf2image_unavailable"
 
 
 def _ocr_image(file_bytes: bytes) -> Tuple[str, List[Dict], str]:
@@ -525,12 +531,51 @@ Return a JSON object with this exact structure. For each field:
 """
 
 
-def extract_facts_with_llm(text: str, doc_type: str, filename: str, pages_data: List[Dict]) -> Dict[str, Any]:
+def extract_facts_with_llm(
+    text: str,
+    doc_type: str,
+    filename: str,
+    pages_data: List[Dict],
+    file_bytes: Optional[bytes] = None,
+    mime_type: Optional[str] = None
+) -> Dict[str, Any]:
     """
     Extract structured facts from OCR text using Groq or Gemini LLM.
+    If OCR text is empty/sparse and file bytes are available (image/PDF),
+    utilizes Gemini multimodal extraction directly.
     Falls back to regex-based deterministic extraction if no LLM available.
     """
     from llm_engine import _invoke_llm, LLM_AVAILABLE
+    import base64
+
+    # Prepare multimodal inline data if OCR text is sparse
+    inline_data = None
+    clean_mime = (mime_type or "").lower().split(";")[0].strip()
+    if file_bytes and (not text or len(text.strip()) < 40):
+        if clean_mime in ("image/jpeg", "image/png", "image/webp", "image/tiff", "application/pdf") or \
+           filename.lower().endswith((".jpg", ".jpeg", ".png", ".webp", ".pdf")):
+            if not clean_mime or clean_mime == "application/octet-stream":
+                if filename.lower().endswith(".pdf"):
+                    clean_mime = "application/pdf"
+                elif filename.lower().endswith((".jpg", ".jpeg")):
+                    clean_mime = "image/jpeg"
+                elif filename.lower().endswith(".png"):
+                    clean_mime = "image/png"
+            # Cap at 8MB to prevent network bloat
+            if len(file_bytes) <= 8 * 1024 * 1024:
+                try:
+                    inline_data = {
+                        "mime_type": clean_mime or "application/pdf",
+                        "data": base64.b64encode(file_bytes).decode("utf-8")
+                    }
+                    logger.info(f"Multimodal payload prepared for '{filename}' ({clean_mime}, {len(file_bytes)} bytes)")
+                except Exception as b64_err:
+                    logger.debug(f"Failed to prepare multimodal payload: {b64_err}")
+
+    # If OCR text is completely empty and no multimodal data exists, fail-fast to deterministic
+    if not text.strip() and not inline_data:
+        logger.info(f"Skipping LLM for '{filename}': OCR text is empty and multimodal is unavailable.")
+        return _deterministic_fact_extraction("", doc_type)
 
     # Compose page-indexed text for the prompt — send up to 6000 chars per page
     page_context = ""
@@ -539,7 +584,7 @@ def extract_facts_with_llm(text: str, doc_type: str, filename: str, pages_data: 
             page_text = (p.get('text') or '').strip()
             if page_text:
                 page_context += f"\n[PAGE {p['page_num']}]\n{page_text[:6000]}\n"
-    if not page_context:
+    if not page_context and text:
         page_context = text[:6000]
 
     system_prompt = (
@@ -582,7 +627,8 @@ def extract_facts_with_llm(text: str, doc_type: str, filename: str, pages_data: 
             max_tokens=3000,
             temperature=0.0,
             expect_json=True,
-            system_prompt=system_prompt
+            system_prompt=system_prompt,
+            inline_data=inline_data
         )
         if result and isinstance(result, dict):
             # Overlay with deterministic results for fields LLM missed
@@ -2094,8 +2140,15 @@ async def extract_facts(
 
         logger.info(f"Processing '{filename}' → doc_type={doc_type}, OCR={ocr_result['method']}, chars={ocr_result['char_count']}")
 
-        # LLM fact extraction (with comprehensive deterministic fallback)
-        raw_facts = extract_facts_with_llm(full_text, doc_type, filename, pages_data)
+        # LLM fact extraction (with multimodal capability and comprehensive deterministic fallback)
+        raw_facts = extract_facts_with_llm(
+            full_text,
+            doc_type,
+            filename,
+            pages_data,
+            file_bytes=content,
+            mime_type=mime
+        )
 
         # Build structured confidence / snippet maps
         fact_confidences: Dict[str, float] = {}

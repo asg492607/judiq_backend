@@ -61,9 +61,10 @@ def _call_gemini_rest(
     temperature: float,
     expect_json: bool,
     api_key: str,
-    model: str
+    model: str,
+    inline_data: Optional[Dict[str, str]] = None
 ) -> Optional[str]:
-    """Call Gemini REST API directly using standard urllib with automatic retry."""
+    """Call Gemini REST API directly using standard urllib with automatic retry and multimodal support."""
     import urllib.request
     import time
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
@@ -74,29 +75,40 @@ def _call_gemini_rest(
     if expect_json:
         gen_config["responseMimeType"] = "application/json"
 
+    parts: List[Dict[str, Any]] = []
+    if prompt:
+        parts.append({"text": prompt})
+    if inline_data and "data" in inline_data and "mime_type" in inline_data:
+        parts.append({
+            "inlineData": {
+                "mimeType": inline_data["mime_type"],
+                "data": inline_data["data"]
+            }
+        })
+
     payload: Dict[str, Any] = {
-        "contents": [{"parts": [{"text": prompt}]}],
+        "contents": [{"parts": parts}],
         "generationConfig": gen_config,
     }
     if sys_msg:
         payload["systemInstruction"] = {"parts": [{"text": sys_msg}]}
 
     data = json.dumps(payload).encode("utf-8")
-    for attempt in range(3):
+    for attempt in range(2):
         try:
             req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
-            with urllib.request.urlopen(req, timeout=40) as resp:
+            with urllib.request.urlopen(req, timeout=15) as resp:
                 res = json.loads(resp.read().decode("utf-8"))
                 candidates = res.get("candidates", [])
                 if candidates:
-                    parts = candidates[0].get("content", {}).get("parts", [])
-                    for p in parts:
+                    cand_parts = candidates[0].get("content", {}).get("parts", [])
+                    for p in cand_parts:
                         if "text" in p and p["text"].strip():
                             return p["text"].strip()
                 return None
         except Exception as e:
-            if attempt < 2 and ("503" in str(e) or "500" in str(e) or "timeout" in str(e).lower()):
-                time.sleep(1.5 * (attempt + 1))
+            if attempt < 1 and ("503" in str(e) or "500" in str(e) or "timeout" in str(e).lower()):
+                time.sleep(0.8)
                 continue
             raise e
     return None
@@ -108,10 +120,12 @@ def _invoke_llm(
     temperature: float = 0.2,
     expect_json: bool = False,
     fallback_value: Any = None,
-    system_prompt: Optional[str] = None
+    system_prompt: Optional[str] = None,
+    inline_data: Optional[Dict[str, str]] = None
 ) -> Any:
     """
     Routes to the active LLM provider (Groq primary, Gemini secondary).
+    If inline_data is present (multimodal image/PDF), routes directly to Gemini.
     Returns fallback_value on any failure or if no LLM is configured.
     """
     global _groq_client, LLM_AVAILABLE, LLM_PROVIDER
@@ -143,8 +157,8 @@ def _invoke_llm(
     )
     sys_msg = system_prompt or default_system
 
-    # ── Groq path ─────────────────────────────────────────────────────────────
-    if LLM_PROVIDER == "groq" and _groq_client:
+    # ── Groq path (used only if no multimodal inline_data is required) ────────
+    if not inline_data and LLM_PROVIDER == "groq" and _groq_client:
         try:
             messages = [
                 {"role": "system", "content": sys_msg},
@@ -174,7 +188,7 @@ def _invoke_llm(
             if not os.environ.get("GEMINI_API_KEY"):
                 return fallback_value
 
-    # ── Gemini path (direct REST) ─────────────────────────────────────────────
+    # ── Gemini path (direct REST, supports text + multimodal inline_data) ─────
     gemini_key = os.environ.get("GEMINI_API_KEY", GEMINI_API_KEY).strip()
     gemini_model = os.environ.get("GEMINI_MODEL", GEMINI_MODEL).strip()
     if gemini_key:
@@ -187,6 +201,7 @@ def _invoke_llm(
                 expect_json=expect_json,
                 api_key=gemini_key,
                 model=gemini_model,
+                inline_data=inline_data,
             )
             if not result_text:
                 return fallback_value
