@@ -5,6 +5,7 @@ import { renderResults } from './renderer.js?v=14';
 
 let isWizardInitialized = false;
 let currentCaseType = null;
+let _isPopulatingInputs = false;
 
 export function resetWizardInit() {
     isWizardInitialized = false;

@@ -1,7 +1,7 @@
 import { supabaseConfig, roleActions, wizardSteps } from '../config.js?v=55';
 import { api } from '../api.js?v=55';
 import { ui, switchScreen } from '../ui.js?v=55';
-import { renderWizardStep, resetWizardInit, normalizeCaseFacts, populateAllInputs } from '../wizard.js?v=55';
+import { renderWizardStep, resetWizardInit, normalizeCaseFacts, populateAllInputs } from '../wizard.js?v=56';
 import { renderResults, switchResultTab } from '../renderer.js?v=55';
 import { DRAFT_TYPES, formatDraftDate, numberToWords } from '../draft_templates.js?v=52';
 import { escapeHtml } from './modules/utils.js?v=52';
