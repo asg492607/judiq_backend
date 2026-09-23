@@ -300,16 +300,23 @@ WORKFLOW_REQUIRED_DOCS: Dict[str, List[Dict[str, str]]] = {
 
 
 def _ocr_native_pdf(file_bytes: bytes) -> Tuple[str, List[Dict], str]:
-    """Extract text from a native (text-layer) PDF using pdfplumber."""
+    """Extract text from a native (text-layer) PDF using pdfplumber.
+
+    Speed notes:
+    - Capped at 6 pages (legal docs rarely need more for fact extraction).
+    - Blank / near-blank pages are skipped immediately.
+    """
     try:
         import pdfplumber
         pages_data = []
         full_text_parts = []
         with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-            max_pages = min(len(pdf.pages), 12)
+            max_pages = min(len(pdf.pages), 6)  # was 12 — 6 is enough for legal docs
             for i in range(max_pages):
                 page = pdf.pages[i]
                 page_text = page.extract_text() or ""
+                if len(page_text.strip()) < 10:  # skip virtually blank pages fast
+                    continue
                 pages_data.append({"page_num": i + 1, "text": page_text})
                 full_text_parts.append(page_text)
         full_text = "\n".join(full_text_parts)
@@ -355,20 +362,28 @@ def _ocr_win_media(file_bytes: bytes) -> str:
 
 
 def _ocr_scanned_pdf(file_bytes: bytes) -> Tuple[str, List[Dict], str]:
-    """Convert scanned PDF pages to images, then OCR each page."""
+    """Convert scanned PDF pages to images, then OCR each page.
+
+    Speed notes:
+    - PyMuPDF render DPI lowered 150→120 (still crisp, ~36% fewer pixels).
+    - Page cap: 4 pages max (covers all standard legal doc types).
+    - pdf2image fallback also capped at 4 pages.
+    """
     # Method 1: Try PyMuPDF (fitz) direct text extraction + page rendering
     try:
         import fitz
         doc = fitz.open(stream=file_bytes, filetype="pdf")
         pages_data = []
         full_text_parts = []
-        for i, page in enumerate(doc, start=1):
+        max_pages = min(len(doc), 4)  # cap at 4 pages — fast path
+        for i in range(max_pages):
+            page = doc[i]
             # 1a. Check direct text stream first
             page_text = (page.get_text() or "").strip()
             # 1b. If page has no text layer, render pixmap for OCR
             if not page_text:
                 try:
-                    pix = page.get_pixmap(dpi=150)
+                    pix = page.get_pixmap(dpi=120)  # was 150 — 120 is fast enough
                     png_bytes = pix.tobytes("png")
                     try:
                         import pytesseract
@@ -381,8 +396,9 @@ def _ocr_scanned_pdf(file_bytes: bytes) -> Tuple[str, List[Dict], str]:
                         page_text = _ocr_win_media(png_bytes)
                 except Exception as pix_err:
                     logger.debug(f"PyMuPDF pixmap OCR error: {pix_err}")
-            pages_data.append({"page_num": i, "text": page_text})
-            full_text_parts.append(page_text)
+            if page_text.strip():  # skip blank pages
+                pages_data.append({"page_num": i + 1, "text": page_text})
+                full_text_parts.append(page_text)
         full_text = "\n".join(full_text_parts)
         if len(full_text.strip()) > 30:
             return full_text, pages_data, "pymupdf"
@@ -395,7 +411,7 @@ def _ocr_scanned_pdf(file_bytes: bytes) -> Tuple[str, List[Dict], str]:
         import pytesseract
         from PIL import Image
 
-        images = convert_from_bytes(file_bytes, dpi=150, first_page=1, last_page=6)
+        images = convert_from_bytes(file_bytes, dpi=120, first_page=1, last_page=4)  # was dpi=150, last=6
         pages_data = []
         full_text_parts = []
         for i, img in enumerate(images, start=1):
@@ -410,16 +426,23 @@ def _ocr_scanned_pdf(file_bytes: bytes) -> Tuple[str, List[Dict], str]:
 
 
 def _ocr_image(file_bytes: bytes) -> Tuple[str, List[Dict], str]:
-    """OCR a raw image file (JPEG, PNG, WEBP)."""
+    """OCR a raw image file (JPEG, PNG, WEBP).
+
+    Speed notes:
+    - Only upscale if image is < 800px on the short side (was 1000).
+    - Use BILINEAR instead of LANCZOS for resize (3× faster, imperceptible difference for OCR).
+    """
     try:
         import pytesseract
         from PIL import Image
 
         image = Image.open(io.BytesIO(file_bytes))
-        if image.width < 1000 or image.height < 1000:
-            scale = max(1000 / image.width, 1000 / image.height)
+        min_dim = min(image.width, image.height)
+        if min_dim < 800:  # was 1000 — 800 is still fine for Tesseract
+            scale = 800 / min_dim
             new_size = (int(image.width * scale), int(image.height * scale))
-            resample_filter = getattr(getattr(Image, "Resampling", None), "LANCZOS", 1)
+            # BILINEAR is ~3× faster than LANCZOS for OCR pre-processing
+            resample_filter = getattr(getattr(Image, "Resampling", None), "BILINEAR", 2)
             image = image.resize(new_size, resample_filter)
         text = pytesseract.image_to_string(image, lang="eng").strip()
         if text:
@@ -580,15 +603,16 @@ def extract_facts_with_llm(
         logger.info(f"Skipping LLM for '{filename}': OCR text is empty and multimodal is unavailable.")
         return _deterministic_fact_extraction("", doc_type)
 
-    # Compose page-indexed text for the prompt — send up to 6000 chars per page
+    # Compose page-indexed text for the prompt — send up to 3500 chars per page
+    # (was 6000 / 8 pages — reduced to cut LLM input tokens and latency)
     page_context = ""
     if pages_data:
-        for p in pages_data[:8]:  # max 8 pages
+        for p in pages_data[:5]:  # max 5 pages (covers all standard legal docs)
             page_text = (p.get('text') or '').strip()
             if page_text:
-                page_context += f"\n[PAGE {p['page_num']}]\n{page_text[:6000]}\n"
+                page_context += f"\n[PAGE {p['page_num']}]\n{page_text[:3500]}\n"
     if not page_context and text:
-        page_context = text[:6000]
+        page_context = text[:5000]
 
     system_prompt = (
         "You are a Senior Indian Legal Document Analyst with 20+ years of experience. "
@@ -627,7 +651,7 @@ def extract_facts_with_llm(
     if LLM_AVAILABLE:
         result = _invoke_llm(
             prompt,
-            max_tokens=3000,
+            max_tokens=1800,  # was 3000 — schema output rarely exceeds 900 tokens
             temperature=0.0,
             expect_json=True,
             system_prompt=system_prompt,
@@ -2112,18 +2136,24 @@ async def extract_facts(
     doc_type_hints = [dt.strip().upper() for dt in (doc_types or "").split(",") if dt.strip()]
 
     session_id = f"DI-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:8].upper()}"
-    file_items = []
-    for idx, file in enumerate(files):
-        mime = file.content_type or "application/octet-stream"
-        if mime not in ALLOWED_MIMES:
-            logger.warning(f"Unsupported MIME '{mime}' for '{file.filename}' — attempting anyway.")
 
+    # ── Fast concurrent file read ──────────────────────────────────────────────
+    # Read all uploaded files concurrently instead of sequentially, removing
+    # sequential await overhead when multiple files are uploaded at once.
+    import asyncio as _asyncio
+    async def _read_file(idx, file):
         content = await file.read()
-        if len(content) == 0:
-            logger.warning(f"Empty file uploaded: {file.filename}")
-            continue
+        return idx, file.filename or f"document_{idx+1}", content, file.content_type or "application/octet-stream"
 
-        filename = file.filename or f"document_{idx+1}"
+    read_results = await _asyncio.gather(*[_read_file(i, f) for i, f in enumerate(files)])
+
+    file_items = []
+    for idx, filename, content, mime in read_results:
+        if mime not in ALLOWED_MIMES:
+            logger.warning(f"Unsupported MIME '{mime}' for '{filename}' — attempting anyway.")
+        if len(content) == 0:
+            logger.warning(f"Empty file uploaded: {filename}")
+            continue
         doc_hint = doc_type_hints[idx] if idx < len(doc_type_hints) else ""
         file_items.append((idx, filename, content, mime, doc_hint))
 
@@ -2132,7 +2162,6 @@ async def extract_facts(
         ocr_result = run_ocr_pipeline(content, mime, filename)
         full_text = ocr_result["text"]
         pages_data = ocr_result["pages"]
-        page_count = ocr_result["page_count"]
         ocr_method = ocr_result["method"]
 
         if doc_hint and doc_hint in DOC_TYPE_SIGNATURES and doc_hint != "OTHER":
@@ -2140,7 +2169,7 @@ async def extract_facts(
         else:
             doc_type = classify_document(filename, full_text)
 
-        logger.info(f"Processing '{filename}' → doc_type={doc_type}, OCR={ocr_result['method']}, chars={ocr_result['char_count']}")
+        logger.info(f"Processing '{filename}' → doc_type={doc_type}, OCR={ocr_method}, chars={ocr_result['char_count']}")
 
         raw_facts = extract_facts_with_llm(
             full_text,
@@ -2153,7 +2182,8 @@ async def extract_facts(
         return (idx, filename, content, mime, doc_type, ocr_result, raw_facts)
 
     import concurrent.futures
-    max_workers = min(len(file_items), 4) if file_items else 1
+    # Increase max workers: each doc is IO-bound (OCR + LLM network call)
+    max_workers = min(len(file_items), 6) if file_items else 1  # was 4
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         processed_results = list(executor.map(_process_single_doc, file_items))
 

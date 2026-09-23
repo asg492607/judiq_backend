@@ -131,7 +131,7 @@ def update_client(
     if not before:
         raise HTTPException(status_code=404, detail=f"Client {client_id} not found")
 
-    updates = {k: v for k, v in payload.dict().items() if v is not None}
+    updates = {k: v for k, v in payload.model_dump().items() if v is not None}
     res = DatabaseManager.cms_update_client(client_id=client_id, updates=updates)
     if not res.get("success"):
         raise HTTPException(status_code=500, detail=res.get("error", "Failed to update client"))

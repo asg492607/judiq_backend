@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JudiQ AI — User Guide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap');
+
+    :root {
+      --black: #0d0d0d;
+      --dark:  #1a1a1a;
+      --mid:   #444;
+      --light: #888;
+      --rule:  #ccc;
+      --bg:    #ffffff;
+      --paper: #fafafa;
+    }
+
+    body {
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--black);
+      font-size: 14px;
+      line-height: 1.7;
+      padding: 48px 24px;
+    }
+
+    /* ── Page wrapper ─────────────────────────────────────────── */
+    .page {
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ───────────────────────────────────────────────── */
+    header {
+      border-bottom: 2px solid var(--black);
+      padding-bottom: 20px;
+      margin-bottom: 32px;
+    }
+
+    .product-name {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--black);
+    }
+
+    .product-tagline {
+      font-size: 12px;
+      color: var(--mid);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .doc-meta {
+      margin-top: 12px;
+      font-size: 11.5px;
+      color: var(--light);
+    }
+
+    /* ── Section ──────────────────────────────────────────────── */
+    section {
+      margin-bottom: 36px;
+    }
+
+    section + section {
+      border-top: 1px solid var(--rule);
+      padding-top: 28px;
+    }
+
+    h2 {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      color: var(--black);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    h2 .sec-num {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: var(--light);
+      text-transform: uppercase;
+      min-width: 28px;
+    }
+
+    h3 {
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--dark);
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: var(--dark);
+      margin-bottom: 10px;
+    }
+
+    /* ── Definition list (What Is) ────────────────────────────── */
+    .def-grid {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 8px 20px;
+      margin-top: 4px;
+    }
+
+    .def-label {
+      font-weight: 600;
+      font-size: 12.5px;
+      color: var(--black);
+      padding-top: 2px;
+    }
+
+    .def-value {
+      font-size: 13px;
+      color: var(--mid);
+      border-left: 2px solid var(--rule);
+      padding-left: 14px;
+    }
+
+    /* ── Feature table ────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      margin-top: 4px;
+    }
+
+    thead tr {
+      border-bottom: 1.5px solid var(--black);
+    }
+
+    th {
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--mid);
+      padding: 6px 10px 8px 0;
+    }
+
+    td {
+      padding: 9px 10px 9px 0;
+      vertical-align: top;
+      color: var(--dark);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    td:first-child {
+      font-weight: 500;
+      white-space: nowrap;
+      color: var(--black);
+      width: 200px;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    /* ── Ordered steps ────────────────────────────────────────── */
+    .steps {
+      counter-reset: step;
+      list-style: none;
+    }
+
+    .steps li {
+      counter-increment: step;
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 0 14px;
+      margin-bottom: 14px;
+      align-items: start;
+    }
+
+    .steps li::before {
+      content: counter(step);
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 18px;
+      color: var(--rule);
+      font-weight: 600;
+      line-height: 1.4;
+      text-align: right;
+    }
+
+    .step-body strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--black);
+      margin-bottom: 2px;
+    }
+
+    .step-body span {
+      font-size: 12.5px;
+      color: var(--mid);
+    }
+
+    /* ── Tier table ───────────────────────────────────────────── */
+    .tier-table td:first-child { width: 140px; }
+
+    /* ── Notice box ───────────────────────────────────────────── */
+    .notice {
+      border: 1px solid var(--black);
+      padding: 14px 18px;
+      margin-top: 8px;
+      font-size: 12.5px;
+      color: var(--dark);
+      background: var(--paper);
+    }
+
+    .notice strong {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--black);
+      margin-bottom: 5px;
+    }
+
+    /* ── FAQ ──────────────────────────────────────────────────── */
+    .faq-item {
+      margin-bottom: 14px;
+    }
+
+    .faq-q {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--black);
+      margin-bottom: 3px;
+    }
+
+    .faq-a {
+      font-size: 12.5px;
+      color: var(--mid);
+    }
+
+    /* ── Footer ───────────────────────────────────────────────── */
+    footer {
+      border-top: 2px solid var(--black);
+      margin-top: 40px;
+      padding-top: 16px;
+      font-size: 11px;
+      color: var(--light);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Header ─────────────────────────────────────────────── -->
+  <header>
+    <div class="product-name">JudiQ AI</div>
+    <div class="product-tagline">Legal Intelligence Platform — User Guide</div>
+    <div class="doc-meta">Version 1.0 &nbsp;&bull;&nbsp; For Professional and Internal Use &nbsp;&bull;&nbsp; September 2026</div>
+  </header>
+
+  <!-- ── 1. What Is JudiQ AI ────────────────────────────────── -->
+  <section>
+    <h2><span class="sec-num">01</span>What Is JudiQ AI</h2>
+    <p>
+      JudiQ AI is a specialised legal intelligence platform designed for lawyers, litigators,
+      and legal professionals practicing in Indian courts. It automates case analysis, legal
+      drafting, and document intelligence under the Negotiable Instruments Act, SARFAESI Act,
+      Bharatiya Nyaya Sanhita, CPC, and CrPC.
+    </p>
+    <div class="def-grid">
+      <div class="def-label">Primary Jurisdiction</div>
+      <div class="def-value">Courts of India — Magistrate, District, High Court, and Supreme Court</div>
+
+      <div class="def-label">Core Technology</div>
+      <div class="def-value">Gemini AI (Google) with deterministic legal rule engine fallback</div>
+
+      <div class="def-label">Supported Statutes</div>
+      <div class="def-value">NI Act 1881, SARFAESI Act 2002, BNS 2023, CPC 1908, CrPC / BNSS</div>
+
+      <div class="def-label">Supported Languages</div>
+      <div class="def-value">English (all tiers), Marathi and Hindi (Standard Plan and above)</div>
+
+      <div class="def-label">Access Mode</div>
+      <div class="def-value">Web application — no installation required</div>
+    </div>
+  </section>
+
+  <!-- ── 2. Why Use JudiQ AI ────────────────────────────────── -->
+  <section>
+    <h2><span class="sec-num">02</span>Why Use JudiQ AI</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Problem in Practice</th>
+          <th>How JudiQ AI Addresses It</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Manual case strength assessment is time-consuming</td>
+          <td>Automated Case Readiness Score (0–100) with statutory checklist in seconds</td>
+        </tr>
+        <tr>
+          <td>Drafting legal notices and applications from scratch</td>
+          <td>Instant court-grade drafts — Legal Notice, Section 143A Application, Written Statement, Vakalatnama</td>
+        </tr>
+        <tr>
+          <td>Extracting key facts from case documents</td>
+          <td>AI document intelligence extracts parties, amounts, dates, and defects from uploaded PDFs and images</td>
+        </tr>
+        <tr>
+          <td>Preparing Marathi or Hindi drafts for lower courts</td>
+          <td>Gemini-powered translation with authentic court terminology for Bombay HC and District Court format</td>
+        </tr>
+        <tr>
+          <td>Tracking multiple client cases and their status</td>
+          <td>Built-in Client Management System with case docket auto-creation on upload</td>
+        </tr>
+        <tr>
+          <td>Locating applicable precedents quickly</td>
+          <td>Curated Supreme Court precedent database with relevance classification — BINDING / HIGHLY RELEVANT / DISTINGUISHABLE</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── 3. Platform Structure ──────────────────────────────── -->
+  <section>
+    <h2><span class="sec-num">03</span>Platform Structure</h2>
+    <p>JudiQ AI is organised into the following functional modules, accessible from the main dashboard:</p>
+
+    <h3>Analysis Engines</h3>
+    <table>
+      <thead>
+        <tr><th>Module</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Section 138 / NI Act Engine</td>
+          <td>Full statutory audit for cheque bounce cases — limitation, notice validity, demand amount, court jurisdiction</td>
+        </tr>
+        <tr>
+          <td>SARFAESI Engine</td>
+          <td>Analysis of bank recovery actions under SARFAESI Act 2002 — Section 13(2) notices, DRT proceedings</td>
+        </tr>
+        <tr>
+          <td>Criminal Defense Engine</td>
+          <td>BNS / CrPC case risk profiling, bail strategy, and charge assessment</td>
+        </tr>
+        <tr>
+          <td>Civil CPC Engine</td>
+          <td>Civil suit analysis — jurisdiction, limitation, plaint requirements, and interim relief eligibility</td>
+        </tr>
+        <tr>
+          <td>Counsel Intel Engine</td>
+          <td>Strategic litigation intelligence — opposing counsel patterns, forum selection, settlement probability</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Supporting Tools</h3>
+    <table>
+      <thead>
+        <tr><th>Tool</th><th>Function</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Document Intelligence</td>
+          <td>Upload cheques, return memos, and legal notices. AI extracts all key facts and auto-creates a case docket.</td>
+        </tr>
+        <tr>
+          <td>Legal Draft Studio</td>
+          <td>Generate, preview, download (PDF / Word), and print court-ready drafts in English, Marathi, or Hindi.</td>
+        </tr>
+        <tr>
+          <td>Case Chat</td>
+          <td>Conversational legal assistant that answers questions in the context of a specific loaded case file.</td>
+        </tr>
+        <tr>
+          <td>Client Management System</td>
+          <td>Create and track client profiles, case dockets, and matter history.</td>
+        </tr>
+        <tr>
+          <td>Precedent Library</td>
+          <td>Searchable Supreme Court and High Court judgments with applicability classification.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── 4. How to Use JudiQ AI ─────────────────────────────── -->
+  <section>
+    <h2><span class="sec-num">04</span>How to Use JudiQ AI</h2>
+
+    <h3>Recommended Workflow — Document Upload Route (Fastest)</h3>
+    <ol class="steps">
+      <li>
+        <div class="step-body">
+          <strong>Register or Sign In</strong>
+          <span>Create an account or log in with your existing credentials. Free Tier is activated automatically upon registration.</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Upload Case Documents</strong>
+          <span>Click "Upload &amp; Extract Docs" from the dashboard. Upload cheque images, return memos, demand notices, or any relevant PDF. The AI extracts all facts automatically and creates a case docket.</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Review Extracted Facts</strong>
+          <span>Verify the extracted party names, amounts, dates, and statutory defects in the Document Intelligence panel. Correct any inaccuracies using the Manual Case Entry form.</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Run Case Analysis</strong>
+          <span>Select the appropriate engine (e.g., Section 138 for cheque bounce). The system generates a Case Readiness Score, strength indicators, risk flags, and applicable precedents.</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Generate Legal Drafts</strong>
+          <span>Open the Legal Draft Studio. Select the draft type (Legal Notice, Application 143A, Written Statement, etc.) and language. Download as PDF or Word document.</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Use Case Chat</strong>
+          <span>Open Case Chat for the loaded matter. Ask specific legal questions in the context of your case facts. The assistant uses your case data as its reference.</span>
+        </div>
+      </li>
+    </ol>
+
+    <h3>Alternative Workflow — Manual Case Entry</h3>
+    <p>
+      If documents are unavailable, click "Manual Case Entry" from the dashboard and complete the
+      step-by-step intake wizard. All fields correspond to standard court document requirements.
+      Once submitted, the system runs the analysis engine automatically.
+    </p>
+  </section>
+
+  <!-- ── 5. Access Tiers ─────────────────────────────────────── -->
+  <section>
+    <h2><span class="sec-num">05</span>Access Tiers &amp; Quotas</h2>
+    <table class="tier-table">
+      <thead>
+        <tr>
+          <th>Tier</th>
+          <th>Reports</th>
+          <th>Drafts</th>
+          <th>Languages</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Free Tier</td>
+          <td>5 lifetime</td>
+          <td>1 per draft type, lifetime</td>
+          <td>English only</td>
+          <td>No charge</td>
+        </tr>
+        <tr>
+          <td>Standard — 1 Month</td>
+          <td>10 per month</td>
+          <td>Unlimited</td>
+          <td>English, Marathi, Hindi</td>
+          <td>Rs. 999</td>
+        </tr>
+        <tr>
+          <td>Standard — 3 Months</td>
+          <td>30 total</td>
+          <td>Unlimited</td>
+          <td>English, Marathi, Hindi</td>
+          <td>Rs. 2,699</td>
+        </tr>
+        <tr>
+          <td>Standard — 6 Months</td>
+          <td>60 total</td>
+          <td>Unlimited</td>
+          <td>English, Marathi, Hindi</td>
+          <td>Rs. 4,999</td>
+        </tr>
+        <tr>
+          <td>Standard — 12 Months</td>
+          <td>120 total</td>
+          <td>Unlimited</td>
+          <td>English, Marathi, Hindi</td>
+          <td>Rs. 8,999</td>
+        </tr>
+        <tr>
+          <td>Single Report Top-Up</td>
+          <td>+1 on demand</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Rs. 149 per report</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="notice">
+      <strong>Note</strong>
+      Monthly quotas reset on the billing anniversary date. Free Tier quotas are lifetime and
+      do not reset. Single report top-ups increment the available quota without resetting
+      reports already consumed.
+    </div>
+  </section>
+
+  <!-- ── 6. Frequently Asked Questions ─────────────────────── -->
+  <section>
+    <h2><span class="sec-num">06</span>Frequently Asked Questions</h2>
+
+    <div class="faq-item">
+      <div class="faq-q">Can I use JudiQ AI without uploading any documents?</div>
+      <div class="faq-a">Yes. The Manual Case Entry wizard accepts all inputs without requiring document uploads. However, document upload is faster and reduces the risk of data entry errors.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Are the legal drafts ready for court submission?</div>
+      <div class="faq-a">Drafts are formatted to standard Indian court conventions. It is recommended that a qualified advocate reviews and signs all documents prior to filing.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">How is my case data stored?</div>
+      <div class="faq-a">Case data is stored in an encrypted PostgreSQL database. Each account's data is isolated and accessible only to the authenticated user.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">What happens when my monthly report quota is exhausted?</div>
+      <div class="faq-a">You will be prompted to either purchase a Rs. 149 single report top-up or upgrade to the next plan tier. No existing case data is deleted.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Is Marathi or Hindi drafting available on the Free Tier?</div>
+      <div class="faq-a">No. Multilingual drafting (Marathi and Hindi) requires the Standard Monthly Plan (Rs. 999 per month) or higher.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Which court formats are supported?</div>
+      <div class="faq-a">Drafts follow Bombay High Court and subordinate District Court formatting conventions for Marathi matters, and standard national court formatting for English and Hindi drafts.</div>
+    </div>
+  </section>
+
+  <!-- ── Footer ──────────────────────────────────────────────── -->
+  <footer>
+    <span>JudiQ AI — Confidential Internal Document</span>
+    <span>Aixynz Technologies Pvt. Ltd. &nbsp;&bull;&nbsp; September 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>
