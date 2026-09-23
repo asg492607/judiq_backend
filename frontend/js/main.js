@@ -242,7 +242,45 @@ function setupAuthListeners() {
     if (heroLoginBtn) heroLoginBtn.addEventListener('click', () => window.showLogin());
 
     const heroGetStartedBtn = document.getElementById('heroGetStartedBtn');
-    if (heroGetStartedBtn) heroGetStartedBtn.addEventListener('click', () => window.showRegister());
+    if (heroGetStartedBtn) {
+        heroGetStartedBtn.addEventListener('click', () => {
+            const currentUser = (window.state && window.state.currentUser) || 
+                (typeof window.supabaseClient !== 'undefined' && window.supabaseClient.auth && window.supabaseClient.auth.user && window.supabaseClient.auth.user());
+            if (currentUser || localStorage.getItem('judiq_token')) {
+                window.switchScreen('dashboardScreen');
+                setTimeout(() => {
+                    if (typeof window.openDocIntelPanel === 'function') {
+                        window.openDocIntelPanel();
+                    }
+                }, 200);
+            } else {
+                window.state = window.state || {};
+                window.state.postAuthScreen = 'dashboardScreen';
+                window.state.openDocIntelOnAuth = true;
+                if (typeof window.showRegister === 'function') {
+                    window.showRegister();
+                } else {
+                    switchScreen('registerScreen');
+                }
+            }
+        });
+    }
+
+    window.handleHeroManualEntry = () => {
+        const currentUser = (window.state && window.state.currentUser) || 
+            (typeof window.supabaseClient !== 'undefined' && window.supabaseClient.auth && window.supabaseClient.auth.user && window.supabaseClient.auth.user());
+        if (currentUser || localStorage.getItem('judiq_token')) {
+            window.startCaseAnalysis();
+        } else {
+            window.state = window.state || {};
+            window.state.postAuthScreen = 'caseWizardScreen';
+            if (typeof window.showRegister === 'function') {
+                window.showRegister();
+            } else {
+                switchScreen('registerScreen');
+            }
+        }
+    };
 
     const mobileNavLoginBtn = document.getElementById('mobileNavLoginBtn');
     if (mobileNavLoginBtn) mobileNavLoginBtn.addEventListener('click', () => { window.toggleMobileNav(false); window.showLogin(); });
@@ -801,6 +839,15 @@ function renderDashboard() {
     const activeTab = document.getElementById('tab_domain_ni') || document.getElementById('tab_domain_all');
     if (activeTab) activeTab.classList.add('active');
 
+    if (window.state && window.state.openDocIntelOnAuth) {
+        window.state.openDocIntelOnAuth = false;
+        setTimeout(() => {
+            if (typeof window.openDocIntelPanel === 'function') {
+                window.openDocIntelPanel();
+            }
+        }, 250);
+    }
+
     // Domain badge in dashboard nav
     const dashNav = document.querySelector('#dashboardScreen .nav-brand');
     if (dashNav) {
@@ -1085,15 +1132,15 @@ function renderDashboard() {
                     <h3>Quick Actions</h3>
                 </div>
                 <div class="domain-actions-grid" style="grid-column:1/-1;">
-                    <div class="domain-action-card domain-action-card--ni" onclick="startCaseAnalysis({case_type:'Cheque Bounce'})">
-                        <div class="dac-icon dac-icon--ni"><i class="fas fa-search"></i></div>
-                        <div class="dac-title">Analyse S.138 Case</div>
-                        <div class="dac-sub">Run adversarial weakness scan — Limitation, Notice, Instrument, Debt</div>
-                    </div>
-                    <div class="domain-action-card domain-action-card--ni domain-action-card--doc-intel" onclick="window.openDocIntelPanel()">
-                        <div class="dac-icon dac-icon--doc-intel"><i class="fas fa-file-upload"></i></div>
-                        <div class="dac-title">Upload &amp; Extract Docs</div>
+                    <div class="domain-action-card domain-action-card--ni domain-action-card--doc-intel" onclick="window.openDocIntelPanel()" style="border: 2px solid rgba(99,102,241,0.5); background: rgba(99,102,241,0.06);">
+                        <div class="dac-icon dac-icon--doc-intel" style="color:#6366f1;"><i class="fas fa-file-arrow-up"></i></div>
+                        <div class="dac-title" style="color:#818cf8; font-weight:800;">📄 Upload &amp; Extract Docs First (Fast)</div>
                         <div class="dac-sub">OCR Bank Memos, Cheques &amp; Notices, cross-match facts, detect contradictions and auto-fill.</div>
+                    </div>
+                    <div class="domain-action-card domain-action-card--ni" onclick="startCaseAnalysis({case_type:'Cheque Bounce'})">
+                        <div class="dac-icon dac-icon--ni"><i class="fas fa-keyboard"></i></div>
+                        <div class="dac-title">✍️ Manual Case Entry</div>
+                        <div class="dac-sub">Run adversarial weakness scan step-by-step — Limitation, Notice, Instrument, Debt.</div>
                     </div>
                     <div class="domain-action-card domain-action-card--ni" onclick="window.openCaseRagChat(window.state?.caseData || {}, window.state?.docIntel || {})" style="border: 2px solid rgba(79,70,229,0.35); background: rgba(79,70,229,0.04);">
                         <div class="dac-icon" style="color:#4f46e5;"><i class="fas fa-robot"></i></div>

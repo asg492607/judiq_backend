@@ -141,12 +141,15 @@
                     <p>Adversarial litigation simulation, automated statutory defect detection, and institutional
                         courtroom strategy for top-tier law firms and in-house counsel.</p>
                     <div class="hero-actions">
-                        <button id="heroGetStartedBtn" class="btn btn-primary btn-large"><i
-                                class="fas fa-scale-balanced"></i> Start Case Analysis</button>
-                        <a href="#strategySimulatorSection" class="btn btn-outline btn-large hero-sim-btn"><i
-                                class="fas fa-sliders"></i> Test Live Simulator</a>
-                        <button id="heroLoginBtn" class="btn btn-text btn-large"><i
-                                class="fas fa-arrow-right-to-bracket"></i> Sign In</button>
+                        <button id="heroGetStartedBtn" class="btn btn-primary btn-large">
+                            <i class="fas fa-file-arrow-up"></i> Upload Docs &amp; Analyze
+                        </button>
+                        <button id="heroManualEntryBtn" class="btn btn-outline btn-large" onclick="window.handleHeroManualEntry()">
+                            <i class="fas fa-keyboard"></i> Manual Case Entry
+                        </button>
+                        <a href="#strategySimulatorSection" class="btn btn-text btn-large hero-sim-btn">
+                            <i class="fas fa-sliders"></i> Test Live Simulator
+                        </a>
                     </div>
                     <div class="hero-badges-row">
                         <span class="hero-mini-badge"><i class="fas fa-check-circle"></i> Section 138 NI Act
@@ -1201,12 +1204,13 @@
                             Synchronized</span>
                     </div>
                     <div class="engine-status-actions">
-                        <button class="btn btn-sm btn-primary" onclick="window.switchScreen('caseWizardScreen')">
-                            <i class="fas fa-plus"></i> New S.138 Case
-                        </button>
-                        <button class="btn btn-sm btn-doc-intel" onclick="window.openDocIntelPanel()"
+                        <button class="btn btn-sm btn-primary btn-doc-intel" onclick="window.openDocIntelPanel()"
                                 title="Extract case facts automatically from uploaded legal documents">
-                            <i class="fas fa-file-upload"></i> Upload &amp; Extract Docs
+                            <i class="fas fa-file-upload"></i> Upload &amp; Extract Docs First
+                        </button>
+                        <button class="btn btn-sm btn-outline" onclick="window.switchScreen('caseWizardScreen')"
+                                title="Enter case details manually step-by-step">
+                            <i class="fas fa-keyboard"></i> Manual Case Entry
                         </button>
                         <button class="btn btn-sm btn-outline" onclick="window.openCaseRagChat(window.state?.caseData || {}, window.state?.docIntel || {})"
                                 title="Open AI Legal Co-Counsel Workspace">
@@ -1441,6 +1445,23 @@
 
                     <!-- Validation Feedback -->
                     <div id="wizardValidationFeedback" class="wizard-validation hidden"></div>
+
+                    <!-- Upload First vs Manual Input Smart Card -->
+                    <div class="wizard-intake-mode-card" id="wizardIntakeModeCard">
+                        <div class="wim-content">
+                            <div class="wim-icon"><i class="fas fa-file-arrow-up"></i></div>
+                            <div class="wim-text">
+                                <h4>Have Case Documents? Upload Them First</h4>
+                                <p>Upload Cheques, Return Memos, and Legal Notices. JudiQ AI auto-extracts dates, amounts, parties, and statutory defects automatically.</p>
+                            </div>
+                        </div>
+                        <div class="wim-actions">
+                            <button type="button" class="btn btn-primary" onclick="window.openDocIntelPanel()">
+                                <i class="fas fa-magic"></i> Upload &amp; Auto-Extract
+                            </button>
+                            <span class="wim-or">or enter details manually below</span>
+                        </div>
+                    </div>
 
                     <!-- Step Forms Container -->
                     <div id="wizardStepsContainer" class="wizard-steps"></div>
