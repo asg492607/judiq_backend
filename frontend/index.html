@@ -738,8 +738,6 @@
                     </div>
                 </div>
             </section>
-                </div>
-            </section>
 
             <section id="faqSection" class="faq-section reveal-on-scroll">
                 <div class="section-heading">
@@ -2207,10 +2205,10 @@
                         <p id="draftFormSubtitle">All fields will be used to generate your draft</p>
                     </div>
                     <div class="draft-form-body" id="draftFormBody"></div>
-                    <div class="draft-form-actions" style="display: flex; gap: 1rem; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
-                        <div style="display:inline-flex;align-items:center;gap:0.5rem;">
-                            <label for="initialDraftLangSelect" style="font-size:0.85rem;color:var(--gray-300);margin:0;"><i class="fas fa-language"></i> Court Language:</label>
-                            <select id="initialDraftLangSelect" class="form-control" style="width:auto;padding:0.4rem 0.75rem;font-size:0.85rem;background:var(--slate-800);color:#fff;border:1px solid var(--slate-700);border-radius:6px;cursor:pointer;">
+                    <div class="draft-form-actions">
+                        <div class="draft-lang-select-group">
+                            <label for="initialDraftLangSelect"><i class="fas fa-language"></i> Court Language:</label>
+                            <select id="initialDraftLangSelect" class="form-control">
                                 <option value="en" selected>English (Court Standard)</option>
                                 <option value="mr">Marathi (मराठी न्यायालयीन)</option>
                                 <option value="hi">Hindi (हिंदी विधिक प्रारूप)</option>
@@ -2233,31 +2231,26 @@
                         <p>Review, edit, copy or download your court-ready document</p>
                     </div>
                     <div class="draft-output-toolbar">
-                        <button class="btn btn-outline" onclick="copyGeneratedDraft()">
-                            <i class="fas fa-copy"></i> Copy
-                        </button>
-                        <button class="btn btn-outline" onclick="downloadGeneratedDraft()">
-                            <i class="fas fa-download"></i> Download
-                        </button>
-                        <button class="btn btn-outline" onclick="printGeneratedDraft()">
-                            <i class="fas fa-print"></i> Print
-                        </button>
-                        <div class="draft-lang-picker-wrap" style="display:inline-flex;align-items:center;gap:0.4rem;background:rgba(30,41,59,0.8);border:1px solid rgba(99,102,241,0.35);padding:0.35rem 0.75rem;border-radius:8px;">
-                            <label for="draftLanguageSelect" style="font-size:0.8rem;color:#a5b4fc;font-weight:600;margin:0;"><i class="fas fa-language"></i> Language:</label>
-                            <select id="draftLanguageSelect" style="background:transparent;color:#fff;border:none;font-size:0.82rem;font-weight:600;outline:none;cursor:pointer;" onchange="window.handleDraftLanguageChange(this.value)">
-                                <option value="en" selected style="background:#1e293b;color:#fff;">English (Court Standard)</option>
-                                <option value="mr" style="background:#1e293b;color:#fff;">Marathi (मराठी न्यायालयीन)</option>
-                                <option value="hi" style="background:#1e293b;color:#fff;">Hindi (हिंदी विधिक प्रारूप)</option>
+                        <div class="draft-export-btns">
+                            <button class="btn btn-outline" onclick="copyGeneratedDraft()">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                            <button class="btn btn-outline" onclick="downloadGeneratedDraft()">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                            <button class="btn btn-outline" onclick="printGeneratedDraft()">
+                                <i class="fas fa-print"></i> Print
+                            </button>
+                        </div>
+                        <div class="draft-lang-picker-wrap">
+                            <label for="draftLanguageSelect"><i class="fas fa-language"></i> Language:</label>
+                            <select id="draftLanguageSelect" onchange="window.handleDraftLanguageChange(this.value)">
+                                <option value="en" selected>English (Court Standard)</option>
+                                <option value="mr">Marathi (मराठी न्यायालयीन)</option>
+                                <option value="hi">Hindi (हिंदी विधिक प्रारूप)</option>
                             </select>
                         </div>
-                        <div class="dashboard-header-right u-is-117">
-                            <div class="kb-status-badge u-is-51">
-                                <div class="pulse-indicator u-is-52"></div>
-                                <div>
-                                    <div class="u-is-53">Knowledge Base</div>
-                                    <div class="u-is-54">Updated: 1 September 2026 (Live)</div>
-                                </div>
-                            </div>
+                        <div class="draft-toolbar-actions">
                             <button class="btn btn-primary" onclick="startNewAnalysis()">
                                 <i class="fas fa-plus"></i> New Analysis
                             </button>

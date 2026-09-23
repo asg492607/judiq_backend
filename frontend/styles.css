@@ -16576,4 +16576,410 @@ body {
     box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55) !important;
 }
 
+/* ============================================================================
+   22. MOBILE VIEW & TOUCH RESPONSIVE ENHANCEMENTS (PRICING, DRAFTING, NAVBAR)
+   ============================================================================ */
+
+/* Quota Text Responsive Helpers */
+.quota-compact {
+    display: none;
+}
+.quota-full {
+    display: inline;
+}
+
+/* Base Free Tier Banner */
+.free-tier-banner {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: var(--radius-xl, 14px);
+    padding: 1.15rem 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    transition: all 0.2s ease;
+}
+[data-theme='light'] .free-tier-banner {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Draft Form Actions */
+.draft-form-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+.draft-lang-select-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.draft-lang-select-group label {
+    font-size: 0.85rem;
+    color: var(--gray-300);
+    margin: 0;
+    white-space: nowrap;
+    font-weight: 600;
+}
+[data-theme='light'] .draft-lang-select-group label {
+    color: var(--gray-700);
+}
+.draft-lang-select-group select {
+    width: auto;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.85rem;
+    background: var(--slate-800, #1e293b);
+    color: #ffffff;
+    border: 1px solid var(--slate-700, #334155);
+    border-radius: 8px;
+    cursor: pointer;
+}
+[data-theme='light'] .draft-lang-select-group select {
+    background: #ffffff;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+/* Draft Output Toolbar */
+.draft-output-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    background: var(--gray-100);
+    border-bottom: 1px solid var(--gray-200);
+    border-radius: 12px 12px 0 0;
+    flex-wrap: wrap;
+}
+[data-theme='dark'] .draft-output-toolbar {
+    background: rgba(15, 23, 42, 0.6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.draft-export-btns {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.draft-lang-picker-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    padding: 0.4rem 0.85rem;
+    border-radius: 8px;
+}
+[data-theme='light'] .draft-lang-picker-wrap {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+.draft-lang-picker-wrap label {
+    font-size: 0.8rem;
+    color: #a5b4fc;
+    font-weight: 600;
+    margin: 0;
+    white-space: nowrap;
+}
+[data-theme='light'] .draft-lang-picker-wrap label {
+    color: #4f46e5;
+}
+.draft-lang-picker-wrap select {
+    background: transparent;
+    color: #ffffff;
+    border: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+}
+[data-theme='light'] .draft-lang-picker-wrap select {
+    color: #0f172a;
+}
+.draft-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Tablet & Mobile Media Queries */
+@media (max-width: 900px) {
+    .pricing-configurator-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.75rem !important;
+        margin-top: 1.5rem !important;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Responsive Quota Text switch */
+    .quota-full {
+        display: none !important;
+    }
+    .quota-compact {
+        display: inline !important;
+    }
+
+    /* Top Nav on Mobile */
+    .top-nav {
+        padding: 0.5rem 0.75rem !important;
+        min-height: 50px !important;
+        gap: 0.4rem !important;
+    }
+    .nav-brand {
+        font-size: 1rem !important;
+    }
+    .nav-brand i {
+        font-size: 1.25rem !important;
+    }
+    .nav-user {
+        gap: 0.35rem !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-end !important;
+    }
+    .user-quota-pill {
+        padding: 0.25rem 0.55rem !important;
+        font-size: 0.72rem !important;
+        border-radius: 999px !important;
+    }
+    .user-email-text,
+    .user-menu span#userEmail {
+        display: none !important;
+    }
+    .admin-portal-btn span {
+        display: none !important;
+    }
+    .admin-portal-btn {
+        padding: 0.35rem 0.55rem !important;
+    }
+    .user-menu {
+        gap: 0.25rem !important;
+    }
+    .user-menu .btn {
+        padding: 0.35rem 0.5rem !important;
+        font-size: 0.72rem !important;
+    }
+
+    /* Free Tier Banner */
+    .free-tier-banner {
+        padding: 1rem !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.85rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+    .free-tier-banner > div:first-child {
+        width: 100% !important;
+    }
+    .free-tier-banner .badge {
+        align-self: flex-start !important;
+        font-size: 0.75rem !important;
+    }
+
+    /* Billing Cycle Tabs (4-grid layout) */
+    .billing-cycle-selector {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.45rem !important;
+        padding: 0.4rem !important;
+    }
+    .billing-cycle-tab {
+        padding: 0.65rem 0.35rem !important;
+        font-size: 0.8rem !important;
+        min-height: 48px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    .billing-cycle-tab span {
+        display: block !important;
+        font-size: 0.72rem !important;
+        margin-top: 2px !important;
+        opacity: 0.9 !important;
+    }
+
+    /* Plan Metrics on mobile */
+    .plan-metrics-row {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 0.35rem !important;
+        padding: 0.65rem 0.25rem !important;
+    }
+    .plan-metric-col .metric-label {
+        font-size: 0.65rem !important;
+    }
+    .plan-metric-col .metric-value {
+        font-size: 0.85rem !important;
+    }
+
+    /* Report Top-up card */
+    .report-topup-card {
+        padding: 0.85rem !important;
+        margin-top: 1rem !important;
+    }
+    .report-topup-card button {
+        min-height: 44px !important;
+        font-size: 0.82rem !important;
+    }
+
+    /* Draft Form Actions */
+    .draft-form-actions {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.75rem !important;
+        width: 100% !important;
+    }
+    .draft-lang-select-group {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        box-sizing: border-box !important;
+    }
+    .draft-lang-select-group select {
+        flex: 1 !important;
+        max-width: 60% !important;
+        min-height: 42px !important;
+    }
+    .draft-form-actions .btn-primary {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 0.85rem 1rem !important;
+        min-height: 48px !important;
+        font-size: 0.95rem !important;
+    }
+
+    /* Draft Output Toolbar */
+    .draft-output-toolbar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.65rem !important;
+        padding: 0.85rem 0.75rem !important;
+    }
+    .draft-export-btns {
+        width: 100% !important;
+        display: flex !important;
+        gap: 0.4rem !important;
+    }
+    .draft-export-btns .btn {
+        flex: 1 1 0 !important;
+        min-height: 42px !important;
+        justify-content: center !important;
+        font-size: 0.8rem !important;
+        padding: 0.5rem 0.25rem !important;
+    }
+    .draft-lang-picker-wrap {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0.55rem 0.75rem !important;
+        min-height: 44px !important;
+    }
+    .draft-lang-picker-wrap select {
+        flex: 1 !important;
+        text-align: right !important;
+        direction: rtl;
+    }
+    .draft-lang-picker-wrap select option {
+        direction: ltr;
+    }
+    .draft-toolbar-actions {
+        width: 100% !important;
+    }
+    .draft-toolbar-actions .btn {
+        width: 100% !important;
+        min-height: 44px !important;
+        justify-content: center !important;
+    }
+    .draft-output-textarea {
+        min-height: 380px !important;
+        font-size: 0.9rem !important;
+        padding: 0.85rem !important;
+        line-height: 1.6 !important;
+    }
+
+    /* Shared Report Mobile Grids */
+    .report-executive-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.25rem !important;
+        margin-bottom: 1.75rem !important;
+    }
+    .report-strengths-risks-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.25rem !important;
+        margin-bottom: 1.75rem !important;
+    }
+    .report-parties-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+    }
+
+    /* Admin Litigators Table & Toolbar on Mobile */
+    .u-is-154 {
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.5rem !important;
+    }
+    .u-is-154 .search-input-wrapper {
+        width: 100% !important;
+    }
+    .u-is-154 input,
+    .u-is-154 select,
+    .u-is-154 button {
+        width: 100% !important;
+        min-height: 42px !important;
+        justify-content: center !important;
+    }
+    .admin-filter-pills-strip {
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-bottom: 0.5rem !important;
+        scrollbar-width: thin;
+    }
+    .admin-filter-pill {
+        flex-shrink: 0 !important;
+    }
+
+    /* Modals Responsive */
+    .modal-container,
+    .modal-content {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        margin: 0.75rem auto !important;
+        padding: 1.25rem 0.85rem !important;
+    }
+}
+
+/* Extra small devices (iPhone SE, Galaxy fold, width <= 400px) */
+@media (max-width: 400px) {
+    .plan-metrics-row {
+        grid-template-columns: 1fr !important;
+        gap: 0.5rem !important;
+        text-align: center !important;
+    }
+    .billing-cycle-selector {
+        grid-template-columns: 1fr !important;
+    }
+    .draft-export-btns .btn {
+        font-size: 0.74rem !important;
+        padding: 0.4rem 0.2rem !important;
+    }
+}
+
+
 

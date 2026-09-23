@@ -842,11 +842,16 @@ function renderDashboard() {
     // Update User Monthly Quota Pill
     const pill = document.getElementById('userQuotaPill');
     const qText = document.getElementById('userQuotaText');
+    const setQuotaLabel = (fullText, compactText) => {
+        if (!qText) return;
+        qText.innerHTML = `<span class="quota-full">${fullText}</span><span class="quota-compact">${compactText}</span>`;
+    };
+
     if (isAdmin && pill && qText) {
-        qText.textContent = `Unlimited Reports (Admin Access)`;
+        setQuotaLabel('Unlimited Reports (Admin Access)', 'Admin: ∞');
         pill.style.display = 'inline-flex';
     } else if (isSpecialUser && pill && qText) {
-        qText.textContent = `Unlimited Reports (⭐ Special Access)`;
+        setQuotaLabel('Unlimited Reports (⭐ Special Access)', '⭐ Unlimited');
         pill.style.display = 'inline-flex';
     }
 
@@ -858,12 +863,12 @@ function renderDashboard() {
                 const isSpec = q.role === 'special_unlimited' || q.plan_name === 'Special Unlimited Access' || isSpecialUser;
                 if (pill && qText) {
                     if (isAdmin || q.role === 'admin') {
-                        qText.textContent = `Unlimited Reports (Admin Access)`;
+                        setQuotaLabel('Unlimited Reports (Admin Access)', 'Admin: ∞');
                     } else if (isSpec || q.monthly_report_limit === -1) {
-                        qText.textContent = `Unlimited Reports (⭐ Special Access)`;
+                        setQuotaLabel('Unlimited Reports (⭐ Special Access)', '⭐ Unlimited');
                         if (adminBtn) adminBtn.style.display = 'none';
                     } else {
-                        qText.textContent = `${q.remaining_reports}/${q.monthly_report_limit} Reports`;
+                        setQuotaLabel(`${q.remaining_reports}/${q.monthly_report_limit} Reports`, `${q.remaining_reports}/${q.monthly_report_limit}`);
                     }
                     pill.style.display = 'inline-flex';
                 }
@@ -6143,7 +6148,7 @@ window.renderSharedReportView = (data) => {
         </div>
 
         <!-- Executive Score & Parties Grid -->
-        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-bottom: 2.5rem;">
+        <div class="report-executive-grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-bottom: 2.5rem;">
             <!-- Viability Card -->
             <div style="border: 2px solid ${scoreColor}; border-radius: 0.75rem; padding: 1.5rem; text-align: center; background: rgba(255, 255, 255, 0.9); box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
                 <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 0.5rem;">Viability Rating</div>
@@ -6160,7 +6165,7 @@ window.renderSharedReportView = (data) => {
                 <div style="font-size: 0.75rem; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 0.85rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.4rem;">
                     Key Matter Particulars
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.85rem; font-size: 0.85rem;">
+                <div class="report-parties-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.85rem; font-size: 0.85rem;">
                     <div>
                         <span style="color: #64748b; display: block; font-size: 0.72rem; font-weight: 600;">COMPLAINANT / PAYEE:</span>
                         <strong style="color: #0f172a;">${escapeHtml(complainant)}</strong>
@@ -6200,7 +6205,7 @@ window.renderSharedReportView = (data) => {
         </div>
 
         <!-- Two Column Strengths & Vulnerabilities -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem;">
+        <div class="report-strengths-risks-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem;">
             <!-- Strengths -->
             <div style="border: 1px solid #bbf7d0; background: #f0fdf4; border-radius: 0.75rem; padding: 1.25rem 1.5rem;">
                 <h4 style="margin: 0 0 0.85rem 0; font-size: 0.95rem; font-weight: 800; color: #166534; display: flex; align-items: center; gap: 0.4rem;">
