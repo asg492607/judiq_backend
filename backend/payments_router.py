@@ -83,11 +83,11 @@ class VerifyPaymentRequest(BaseModel):
     razorpay_signature: str
     user_id: Optional[str] = None
     email: Optional[str] = None
-    plan: Optional[str] = "section_138"
-    plan_name: Optional[str] = "Section 138 Plan"
+    plan: Optional[str] = "standard"
+    plan_name: Optional[str] = "Standard Monthly Plan"
     modules: Optional[list] = None
-    quota: Optional[int] = 25
-    amount: Optional[float] = 499.0
+    quota: Optional[int] = 10
+    amount: Optional[float] = 999.0
 
 
 class VerifyPaymentResponse(BaseModel):
@@ -219,19 +219,35 @@ async def verify_payment(payload: VerifyPaymentRequest) -> VerifyPaymentResponse
             if not target_uid and target_email:
                 target_uid = f"USR_{target_email.split('@')[0].upper()}"
 
+            is_topup = (
+                (payload.plan_name and ("topup" in payload.plan_name.lower() or "single" in payload.plan_name.lower())) or 
+                payload.plan in ("single_report", "topup_report") or 
+                (payload.amount is not None and abs(payload.amount - 149.0) < 0.01)
+            )
             is_paid_demo = (
                 (payload.plan_name and "demo" in payload.plan_name.lower()) or 
                 payload.plan == "paid_demo" or 
                 (payload.quota == 1 and payload.amount == 2.0)
             )
-            allocated_quota = 1 if is_paid_demo else (payload.quota if (payload.quota and payload.quota > 0) else 25)
-            plan_name = "Paid Demo Plan" if is_paid_demo else (payload.plan_name or "Section 138 Plan")
+
+            if is_topup:
+                allocated_quota = payload.quota if (payload.quota and payload.quota > 0) else 1
+                plan_name = "Single Report Top-up"
+                plan_price = payload.amount or 149.0
+            elif is_paid_demo:
+                allocated_quota = 1
+                plan_name = "Paid Demo Plan"
+                plan_price = 2.0
+            else:
+                allocated_quota = payload.quota if (payload.quota and payload.quota > 0) else 10
+                plan_name = payload.plan_name or "Standard Monthly Plan"
+                plan_price = payload.amount or 999.0
 
             activated_quota = DatabaseManager.submit_subscription_plan(
                 user_id=target_uid,
                 email=target_email,
                 selected_modules=payload.modules or ["s138"],
-                monthly_price_inr=payload.amount or (2.0 if is_paid_demo else 499.0),
+                monthly_price_inr=plan_price,
                 requested_quota=allocated_quota,
                 role="law_firm",
                 status="ACTIVE",
@@ -239,7 +255,7 @@ async def verify_payment(payload: VerifyPaymentRequest) -> VerifyPaymentResponse
                 plan_name=plan_name,
                 paid_demo_used=1 if is_paid_demo else None
             )
-            logger.info("Subscription activated immediately without admin approval for user=%s (%s), plan=%s", target_uid, target_email, plan_name)
+            logger.info("Subscription activated immediately without admin approval for user=%s (%s), plan=%s (Rs.%.2f)", target_uid, target_email, plan_name, plan_price)
         except ValueError as ve:
             logger.warning("Subscription activation rejected: %s", ve)
             raise HTTPException(status_code=400, detail=str(ve))

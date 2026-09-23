@@ -29,6 +29,7 @@ from typing import Dict, Any, List, Optional, Tuple, Set
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Request, Depends
 from pydantic import BaseModel, Field
 from security import get_current_user_optional
+from session import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -2190,17 +2191,76 @@ async def extract_facts(
         )
         extracted_documents.append(doc_obj)
 
+    # Automatically synthesize extracted facts to register case in cases_v2
+    creditor_name = ""
+    debtor_name = ""
+    case_amount = ""
+    for doc in extracted_documents:
+        for fname, fentry in (doc.facts or {}).items():
+            val = fentry.get("value") if isinstance(fentry, dict) else fentry
+            if not val:
+                continue
+            s_val = str(val).strip()
+            if not s_val or s_val.lower() in ("null", "none", "unknown"):
+                continue
+            if fname in ("payee_name", "complainant_name", "creditor_name", "applicant_name", "lender_name") and not creditor_name:
+                creditor_name = s_val
+            elif fname in ("drawer_name", "accused_name", "debtor_name", "respondent_name", "borrower_name") and not debtor_name:
+                debtor_name = s_val
+            elif fname in ("cheque_amount", "loan_amount", "claimed_amount", "amount", "total_outstanding") and not case_amount:
+                case_amount = s_val
+
+    first_filename = files[0].filename if files and files[0].filename else "Document"
+    if creditor_name and debtor_name:
+        case_name = f"{creditor_name} vs {debtor_name}"
+    elif creditor_name:
+        case_name = f"{creditor_name} - Matter"
+    elif debtor_name:
+        case_name = f"In re: {debtor_name}"
+    else:
+        clean_fn = re.sub(r'\.[a-zA-Z0-9]+$', '', first_filename).replace('_', ' ').replace('-', ' ').title()
+        case_name = f"{clean_fn} - Auto Docket"
+
+    actual_user = user_id or "ANONYMOUS"
+    now_dt = datetime.now()
+    case_id = f"CSE-{now_dt.strftime('%Y-%m')}-{uuid.uuid4().hex[:6].upper()}"
+
+    try:
+        creditor_dict = {"name": creditor_name} if creditor_name else {}
+        debtor_dict = {"name": debtor_name} if debtor_name else {}
+        fin_dict = {"amount": case_amount} if case_amount else {}
+        DatabaseManager.cms_create_case(
+            case_id=case_id,
+            user_id=actual_user,
+            case_name=case_name,
+            case_type=workflow_type or "section_138",
+            priority="medium",
+            description=f"Auto-created case from {len(extracted_documents)} uploaded document(s). Primary doc: {first_filename}",
+            tags=["auto-created", workflow_type],
+            creditor_data=creditor_dict,
+            debtor_data=debtor_dict,
+            financial_data=fin_dict,
+            access_level="private"
+        )
+        logger.info(f"Auto-created case {case_id} ('{case_name}') for user '{actual_user}'")
+    except Exception as e:
+        logger.error(f"Failed to auto-create case in cms_create_case: {e}")
+
     # Store in session
     _sessions[session_id] = {
         "documents": extracted_documents,
         "workflow_type": workflow_type,
         "created_at": datetime.now().isoformat(),
         "verified_facts": None,
+        "case_id": case_id,
+        "case_name": case_name,
     }
 
     return {
         "success": True,
         "session_id": session_id,
+        "case_id": case_id,
+        "case_name": case_name,
         "workflow_type": workflow_type,
         "documents_processed": len(extracted_documents),
         "documents": [doc.model_dump() for doc in extracted_documents],

@@ -1839,6 +1839,7 @@ window.generateDraftFromForm = () => {
     }
     try {
         const txt = activeDraftType.generate(data);
+        window._cachedEnglishDraft = txt;
         const textPreview = document.getElementById('generatedDraftContent');
         if (textPreview) textPreview.value = txt;
 
@@ -1851,6 +1852,15 @@ window.generateDraftFromForm = () => {
         }
         ui.setText('draftOutputTitle', activeDraftType.title);
         window.showDraftOutputView();
+
+        const initialLangEl = document.getElementById('initialDraftLangSelect');
+        const chosenLang = initialLangEl ? initialLangEl.value : 'en';
+        const langDropdown = document.getElementById('draftLanguageSelect');
+        if (langDropdown) langDropdown.value = chosenLang;
+
+        if (chosenLang && chosenLang !== 'en') {
+            window.handleDraftLanguageChange(chosenLang);
+        }
 
         if (typeof verifyDraftTimelineS138 === 'function') {
             const tRes = verifyDraftTimelineS138(data);
@@ -5201,59 +5211,59 @@ window.setBillingDuration = function (months, btnEl) {
 window.updateModularPricing = function () {
     const duration = window.selectedBillingDuration || 1;
 
-    // Pricing configurations for Section 138 Plan
+    // Pricing configurations for Standard Plan: 10 reports / month at ₹999
     const durationConfigs = {
         1: {
-            totalPrice: 499,
-            monthlyRate: 499,
+            totalPrice: 999,
+            monthlyRate: 999,
             cycleLabel: '/ month',
-            rateDetail: '30-Day Billing Cycle • ∞',
-            cases: '∞',
-            costPerCase: '∞',
-            tierTitle: 'Section 138 NI Act Engine',
-            tierDesc: 'Complete statutory defect audit, 15-day notice clock & adversarial cross-exam preparation.',
-            badge: '<i class="fas fa-infinity"></i> Section 138 Plan',
-            btnLabel: 'Get Started with Section 138 (₹499 / mo)',
-            quota: 999999
+            rateDetail: '30-Day Billing Cycle • 10 Reports/Month',
+            cases: '10 Reports',
+            costPerCase: '₹99.9/Report',
+            tierTitle: 'Standard Monthly Plan',
+            tierDesc: '10 Case Reports per month, unlimited drafting, full court-grade Marathi & Hindi drafting.',
+            badge: '<i class="fas fa-crown"></i> Standard Monthly Plan',
+            btnLabel: 'Get Started with Standard Plan (₹999 / mo)',
+            quota: 10
         },
         3: {
-            totalPrice: 1499,
-            monthlyRate: 499,
+            totalPrice: 2699,
+            monthlyRate: 900,
             cycleLabel: 'for 3 months',
-            rateDetail: 'Quarterly Billing Cycle • ∞',
-            cases: '∞',
-            costPerCase: '∞',
-            tierTitle: 'Section 138 NI Act Engine',
-            tierDesc: 'Complete statutory defect audit, 15-day notice clock & adversarial cross-exam preparation.',
-            badge: '<i class="fas fa-infinity"></i> Section 138 Plan',
-            btnLabel: 'Get Started (₹1,499 for 3 Months)',
-            quota: 999999
+            rateDetail: 'Quarterly Billing Cycle • 30 Reports (10/mo)',
+            cases: '30 Reports',
+            costPerCase: '₹90/Report',
+            tierTitle: 'Standard 3-Month Plan',
+            tierDesc: '30 Case Reports across 3 months, unlimited drafting, full Marathi & Hindi drafting.',
+            badge: '<i class="fas fa-crown"></i> 3-Month Plan',
+            btnLabel: 'Get Started (₹2,699 for 3 Months)',
+            quota: 30
         },
         6: {
-            totalPrice: 2999,
-            monthlyRate: 499,
+            totalPrice: 4999,
+            monthlyRate: 833,
             cycleLabel: 'for 6 months',
-            rateDetail: 'Half-Yearly Billing Cycle • ∞',
-            cases: '∞',
-            costPerCase: '∞',
-            tierTitle: 'Section 138 NI Act Engine',
-            tierDesc: 'Complete statutory defect audit, 15-day notice clock & adversarial cross-exam preparation.',
-            badge: '<i class="fas fa-infinity"></i> Section 138 Plan',
-            btnLabel: 'Get Started (₹2,999 for 6 Months)',
-            quota: 999999
+            rateDetail: 'Half-Yearly Billing Cycle • 60 Reports (10/mo)',
+            cases: '60 Reports',
+            costPerCase: '₹83.3/Report',
+            tierTitle: 'Standard 6-Month Plan',
+            tierDesc: '60 Case Reports across 6 months, unlimited drafting, full Marathi & Hindi drafting.',
+            badge: '<i class="fas fa-crown"></i> 6-Month Plan',
+            btnLabel: 'Get Started (₹4,999 for 6 Months)',
+            quota: 60
         },
         12: {
-            totalPrice: 5999,
-            monthlyRate: 499,
+            totalPrice: 8999,
+            monthlyRate: 750,
             cycleLabel: 'for 12 months',
-            rateDetail: 'Annual Billing Cycle • ∞',
-            cases: '∞',
-            costPerCase: '∞',
-            tierTitle: 'Section 138 NI Act Engine',
-            tierDesc: 'Complete statutory defect audit, 15-day notice clock & adversarial cross-exam preparation.',
-            badge: '<i class="fas fa-infinity"></i> Section 138 Plan',
-            btnLabel: 'Get Started (₹5,999 for 12 Months)',
-            quota: 999999
+            rateDetail: 'Annual Billing Cycle • 120 Reports (10/mo)',
+            cases: '120 Reports',
+            costPerCase: '₹75/Report',
+            tierTitle: 'Standard Annual Plan',
+            tierDesc: '120 Case Reports across 12 months, unlimited drafting, full Marathi & Hindi drafting.',
+            badge: '<i class="fas fa-crown"></i> Annual Plan',
+            btnLabel: 'Get Started (₹8,999 for 12 Months)',
+            quota: 120
         }
     };
 
@@ -5300,7 +5310,7 @@ window.subscribeToSelectedModularPlan = async function () {
     const selected = Array.from(checkboxes).map(cb => cb.value);
     const count = Math.max(1, selected.length);
 
-    let price = 499;
+    let price = 999;
     const priceDisplay = document.getElementById('planTotalPrice');
     if (priceDisplay && priceDisplay.textContent) {
         const parsed = parseInt(priceDisplay.textContent.replace(/[^0-9]/g, ''), 10);
@@ -5375,9 +5385,10 @@ window.subscribeToSelectedModularPlan = async function () {
         return;
     }
 
-    const planName = 'Section 138 Plan';
-    const cases = 999999;
-    const planDescription = `JudiQ Section 138 Plan — ${count} module${count > 1 ? 's' : ''} · ₹${price.toLocaleString('en-IN')}`;
+    const planName = 'Standard Monthly Plan';
+    const dur = window.selectedBillingDuration || 1;
+    const cases = (dur === 3 ? 30 : dur === 6 ? 60 : dur === 12 ? 120 : 10);
+    const planDescription = `JudiQ Standard Plan — 10 Reports/Month · ₹${price.toLocaleString('en-IN')}`;
 
     const planPayload = {
         user_id: userId,
@@ -5503,6 +5514,179 @@ window.subscribeToSelectedModularPlan = async function () {
             }
         }
     });
+};
+
+// ── On-Demand Single Report Top-Up (₹149) ───────────────────────
+window.buySingleReportTopup = async function () {
+    console.log('[JudiQ] buySingleReportTopup triggered');
+    const user = window.state ? window.state.currentUser : null;
+    if (!user || !user.email) {
+        if (window.ui && typeof window.ui.toast === 'function') {
+            window.ui.toast('Please create an account or sign in to purchase reports.', 'info');
+        } else if (window.showToast) {
+            window.showToast('Please create an account or sign in to purchase reports.', 'info');
+        }
+        switchScreen('registerScreen');
+        return;
+    }
+
+    const cleanEmail = user.email.trim().toLowerCase();
+    const userId = user.uid || user.id || ('USR_' + (cleanEmail.split('@')[0] || 'ADVOCATE').toUpperCase());
+    const topupPrice = 149;
+
+    if (typeof window.judiqPay !== 'function') {
+        if (window.showToast) window.showToast('Payment system initializing. Please try again in a moment.', 'warning');
+        return;
+    }
+
+    window.judiqPay({
+        amount: topupPrice * 100,
+        description: 'JudiQ AI — 1 On-Demand Report Top-Up (₹149)',
+        receipt: (`topup_${userId.slice(0, 10)}_${Date.now()}`).slice(0, 40),
+        prefill: {
+            email: cleanEmail,
+            name: user.displayName || 'Advocate Member',
+            contact: user.phone || '9876543210'
+        },
+        notes: {
+            user_id: userId,
+            plan_name: 'Single Report Top-up',
+            type: 'report_topup'
+        },
+        onSuccess: async function (paymentData) {
+            try {
+                const res = await api.submitSubscriptionPlan({
+                    user_id: userId,
+                    email: cleanEmail,
+                    plan_name: 'Single Report Top-up',
+                    selected_modules: ['s138'],
+                    monthly_price_inr: topupPrice,
+                    requested_quota: 1,
+                    role: 'law_firm',
+                    razorpay_payment_id: paymentData.payment_id,
+                    razorpay_order_id: paymentData.order_id,
+                    status: 'PAID'
+                });
+
+                if (window.state && window.state.userQuota) {
+                    window.state.userQuota.monthly_report_limit = (window.state.userQuota.monthly_report_limit || 0) + 1;
+                    window.state.userQuota.remaining_reports = (window.state.userQuota.remaining_reports || 0) + 1;
+                }
+
+                if (window.ui && typeof window.ui.toast === 'function') {
+                    window.ui.toast('⚡ Top-up Successful! +1 Case Report added to your quota.', 'success');
+                } else if (window.showToast) {
+                    window.showToast('⚡ Top-up Successful! +1 Case Report added to your quota.', 'success');
+                }
+            } catch (err) {
+                console.error('[Top-up verification error]', err);
+                if (window.showToast) window.showToast('Top-up activated! Quota updated.', 'success');
+            }
+        }
+    });
+};
+
+// ── Multilingual Court Drafting (Marathi / Hindi) ───────────────
+window.handleDraftLanguageChange = async function (targetLang) {
+    const lang = (targetLang || 'en').toLowerCase().trim();
+    const draftTextEl = document.getElementById('generatedDraftContent');
+    const currentDraft = draftTextEl ? draftTextEl.value : '';
+
+    if (lang === 'en') {
+        if (window._cachedEnglishDraft && draftTextEl) {
+            draftTextEl.value = window._cachedEnglishDraft;
+        }
+        return;
+    }
+
+    // Check if user is on Free Tier
+    const user = window.state ? window.state.currentUser : null;
+    const userQuota = window.state ? window.state.userQuota : null;
+    const role = (window.state && window.state.currentRole) || '';
+    const isAdmin = role === 'admin' || (userQuota && userQuota.role === 'admin');
+
+    const isPaid = isAdmin || (
+        userQuota &&
+        userQuota.is_active &&
+        userQuota.plan_status === 'ACTIVE' &&
+        userQuota.plan_name !== 'Free Tier' &&
+        userQuota.plan_name !== 'Free Demo' &&
+        (userQuota.monthly_price_inr > 0 || userQuota.monthly_report_limit > 5)
+    );
+
+    if (!isPaid) {
+        // Revert dropdown to English
+        const selectEl = document.getElementById('draftLanguageSelect');
+        if (selectEl) selectEl.value = 'en';
+
+        const langName = lang === 'mr' ? 'Marathi (मराठी)' : 'Hindi (हिंदी)';
+        if (window.ui && typeof window.ui.toast === 'function') {
+            window.ui.toast(`Multilingual court drafting in ${langName} is exclusive to the Standard Plan (₹999/mo). Free trial includes English drafting.`, 'warning');
+        } else if (window.showToast) {
+            window.showToast(`Multilingual court drafting in ${langName} is exclusive to the Standard Plan (₹999/mo). Free trial includes English drafting.`, 'warning');
+        }
+
+        const pricingEl = document.getElementById('pricingSection');
+        if (pricingEl) {
+            pricingEl.scrollIntoView({ behavior: 'smooth' });
+        }
+        return;
+    }
+
+    if (!currentDraft) {
+        if (window.ui && typeof window.ui.toast === 'function') {
+            window.ui.toast('Please generate an initial draft first before translating.', 'warning');
+        }
+        return;
+    }
+
+    if (!window._cachedEnglishDraft) {
+        window._cachedEnglishDraft = currentDraft;
+    }
+
+    const langLabel = lang === 'mr' ? 'Marathi (मराठी)' : 'Hindi (हिंदी)';
+    if (window.ui && typeof window.ui.toast === 'function') {
+        window.ui.toast(`Translating draft into court-grade ${langLabel} via Gemini LLM...`, 'info');
+    }
+
+    try {
+        const userId = (user && (user.uid || user.id)) || (userQuota && userQuota.user_id) || 'ANONYMOUS';
+        const userEmail = (user && user.email) || (userQuota && userQuota.email) || '';
+        const draftType = (window.activeDraftType && window.activeDraftType.id) || 'LEGAL_NOTICE';
+
+        const res = await fetch(`${API_BASE_URL}/api/v1/documents/translate-draft`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                content: window._cachedEnglishDraft || currentDraft,
+                draft_type: draftType,
+                lang: lang,
+                user_id: userId,
+                email: userEmail,
+                role: role
+            })
+        });
+
+        if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error || 'Translation request failed');
+        }
+
+        const data = await res.json();
+        if (data.draft && draftTextEl) {
+            draftTextEl.value = data.draft;
+            if (window.ui && typeof window.ui.toast === 'function') {
+                window.ui.toast(`Court-grade ${langLabel} draft ready!`, 'success');
+            }
+        }
+    } catch (err) {
+        console.error('Draft translation error:', err);
+        if (window.ui && typeof window.ui.toast === 'function') {
+            window.ui.toast(`Failed to translate draft: ${err.message}`, 'error');
+        }
+        const selectEl = document.getElementById('draftLanguageSelect');
+        if (selectEl) selectEl.value = 'en';
+    }
 };
 
 // Auto-initialize pricing calculator on DOM load

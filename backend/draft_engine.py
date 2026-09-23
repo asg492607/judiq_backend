@@ -1206,7 +1206,22 @@ class DraftEngine:
         else:
             draft_out = generate_legal_opinion(case_data, score, concepts)
 
-        lang = str(case_data.get("language") or case_data.get("lang") or "").lower()
+        lang = str(case_data.get("language") or case_data.get("lang") or "").lower().strip()
+        user_id = case_data.get("user_id") or ""
+        email = case_data.get("email") or ""
+        role = case_data.get("role") or ""
+
+        # Language restriction: Free trial users only get English. Marathi & Hindi require Standard Plan.
+        if lang in ["mr", "marathi", "hi", "hindi", "gu", "gujarati"]:
+            try:
+                from session import DatabaseManager
+                q_res = DatabaseManager.check_and_consume_draft_quota(user_id=user_id, email=email, draft_type=draft_type, lang=lang, role=role)
+                if not q_res.get("language_allowed", True):
+                    logger.warning(f"User '{user_id}' on Free Tier attempted multilingual draft ({lang}). Enforcing English-only.")
+                    lang = "en"
+            except Exception as e:
+                logger.warning(f"Quota check in draft engine skipped: {e}")
+
         if lang in ["mr", "marathi"]:
             draft_out = _format_marathi_draft(draft_out, draft_type, case_data)
         elif lang in ["hi", "hindi"]:
@@ -2101,7 +2116,54 @@ AUTHORIZED OFFICER, {bank}
 
 
 def _format_marathi_draft(draft_text: str, draft_type: str, case_data: Dict) -> str:
-    """Formats and translates legal draft into official Marathi (मराठी) legal structure."""
+    """
+    Translates and formats legal draft into court-grade Marathi (मराठी)
+    using Gemini API / LLM with formal Bombay High Court and District Court terminology,
+    falling back to statutory deterministic templates if LLM is unavailable.
+    """
+    # 1. High-fidelity Gemini LLM translation
+    try:
+        from llm_engine import _invoke_llm
+        prompt = (
+            f"You are a Senior Advocate practicing before the Bombay High Court and District Courts in Maharashtra.\n"
+            f"Translate and draft the following complete {draft_type} court pleading into formal, authoritative, court-grade Marathi (मराठी कायदेशीर मसुदा).\n\n"
+            f"MANDATORY LEGAL MARATHI VOCABULARY:\n"
+            f"- Complainant: तक्रारदार\n"
+            f"- Accused: आरोपी / सामाईक\n"
+            f"- Plaintiff / Defendant: वादी / प्रतिवादी\n"
+            f"- Dishonour of Cheque: धनादेश अनादर\n"
+            f"- Insufficient Funds: खात्यात अपुरी रक्कम\n"
+            f"- Account Closed: खाते बंद\n"
+            f"- Section 138: कलम १३८, परक्राम्य संलेख / दस्तऐवज अधिनियम १८८१ (Negotiable Instruments Act, 1881)\n"
+            f"- Statutory Demand Notice: वैधानिक मागणी नोटीस\n"
+            f"- Interim Compensation: अंतरिम भरपाई (कलम १४३-अ)\n"
+            f"- Court of Judicial Magistrate First Class: मा. प्रथम वर्ग न्यायदंडाधिकारी न्यायालय\n"
+            f"- Verification / Affidavit: प्रतिज्ञापत्र / सत्यता पडताळणी\n\n"
+            f"FORMATTING INSTRUCTIONS:\n"
+            f"1. Produce a complete, court-ready document in Marathi from heading to verification.\n"
+            f"2. Maintain numbered paragraphs, prayer clause (दाद / विनंती), and advocate signature line.\n"
+            f"3. Strictly preserve all numerical data: monetary amounts (₹), dates, cheque numbers, and party names.\n"
+            f"4. Do NOT output explanations, introductory text, or markdown code fences (```). Output ONLY the raw Marathi draft.\n\n"
+            f"ENGLISH DRAFT TO TRANSLATE:\n{draft_text}"
+        )
+        system_prompt = (
+            "You are an elite bilingual legal counsel and translator for Maharashtra District Courts and Bombay High Court. "
+            "Translate pleadings into formal, statutory Marathi legal text."
+        )
+        translated = _invoke_llm(
+            prompt=prompt,
+            system_prompt=system_prompt,
+            max_tokens=3500,
+            temperature=0.1
+        )
+        if translated and isinstance(translated, str) and len(translated.strip()) > 100:
+            if re.search(r'[\u0900-\u097F]', translated):
+                logger.info(f"Generated court-grade Marathi draft via Gemini LLM for {draft_type}")
+                return translated.strip()
+    except Exception as e:
+        logger.warning(f"Gemini LLM Marathi translation encountered error: {e}. Using deterministic fallback.")
+
+    # 2. Statutory deterministic Marathi fallback
     today, amount_str = _case_meta(case_data)
     complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (तक्रारदार नाव)"
     accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (आरोपी नाव)"
@@ -2155,7 +2217,54 @@ def _format_marathi_draft(draft_text: str, draft_type: str, case_data: Dict) -> 
 
 
 def _format_hindi_draft(draft_text: str, draft_type: str, case_data: Dict) -> str:
-    """Formats and translates legal draft into official Hindi (हिंदी) legal structure."""
+    """
+    Translates and formats legal draft into court-grade Hindi (हिंदी विधिक प्रारूप)
+    using Gemini API / LLM with formal District Court and High Court terminology,
+    falling back to statutory deterministic templates if LLM is unavailable.
+    """
+    # 1. High-fidelity Gemini LLM translation
+    try:
+        from llm_engine import _invoke_llm
+        prompt = (
+            f"You are a Senior Advocate practicing before District Courts and High Courts in India.\n"
+            f"Translate and draft the following complete {draft_type} court pleading into formal, authoritative, court-grade Hindi (हिंदी विधिक प्रारूप).\n\n"
+            f"MANDATORY LEGAL HINDI VOCABULARY:\n"
+            f"- Complainant: परिवादी / शिकायतकर्ता\n"
+            f"- Accused: अभियुक्त / विपक्षी\n"
+            f"- Plaintiff / Defendant: वादी / प्रतिवादी\n"
+            f"- Dishonour of Cheque: चेक अनादर\n"
+            f"- Insufficient Funds: खाते में अपर्याप्त राशि\n"
+            f"- Account Closed: खाता बंद\n"
+            f"- Section 138: धारा 138, पराक्रम्य लिखत अधिनियम 1881 (Negotiable Instruments Act, 1881)\n"
+            f"- Statutory Demand Notice: विधिक मांग नोटिस\n"
+            f"- Interim Compensation: अंतरिम प्रतिकर / मुआवजा (धारा 143A)\n"
+            f"- Court of Judicial Magistrate First Class: न्यायालय न्यायिक मजिस्ट्रेट प्रथम श्रेणी\n"
+            f"- Verification / Affidavit: शपथपत्र / सत्यापन\n\n"
+            f"FORMATTING INSTRUCTIONS:\n"
+            f"1. Produce a complete, court-ready document in Hindi from title to verification.\n"
+            f"2. Maintain numbered paragraphs, prayer clause (प्रार्थना), and advocate signature line.\n"
+            f"3. Strictly preserve all numerical data: monetary amounts (₹), dates, cheque numbers, and party names.\n"
+            f"4. Do NOT output explanations, introductory text, or markdown code fences (```). Output ONLY the raw Hindi draft.\n\n"
+            f"ENGLISH DRAFT TO TRANSLATE:\n{draft_text}"
+        )
+        system_prompt = (
+            "You are an elite bilingual legal counsel and translator for Indian District Courts and High Courts. "
+            "Translate pleadings into formal, statutory Hindi legal text."
+        )
+        translated = _invoke_llm(
+            prompt=prompt,
+            system_prompt=system_prompt,
+            max_tokens=3500,
+            temperature=0.1
+        )
+        if translated and isinstance(translated, str) and len(translated.strip()) > 100:
+            if re.search(r'[\u0900-\u097F]', translated):
+                logger.info(f"Generated court-grade Hindi draft via Gemini LLM for {draft_type}")
+                return translated.strip()
+    except Exception as e:
+        logger.warning(f"Gemini LLM Hindi translation encountered error: {e}. Using deterministic fallback.")
+
+    # 2. Statutory deterministic Hindi fallback
     today, amount_str = _case_meta(case_data)
     complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (शिकायतकर्ता का नाम)"
     accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (अभियुक्त का नाम)"

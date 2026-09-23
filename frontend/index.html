@@ -505,20 +505,36 @@
             <section id="pricingSection" class="pricing-section reveal-on-scroll">
                 <div class="section-heading">
                     <div class="legal-seal-badge u-is-28">
-                        <i class="fas fa-tags"></i> Transparent Modular Subscriptions
+                        <i class="fas fa-tags"></i> Transparent Case Intelligence Plans
                     </div>
-                    <h2>Pay Only For What You Practice</h2>
-                    <p>Build your specialized litigation intelligence subscription. <strong>₹499 / month</strong> for
-                        Section 138 NI Act (<strong>∞</strong>).</p>
+                    <h2>Pay Per Report &amp; Case Intelligence</h2>
+                    <p>Professional litigation intelligence priced per case submitted for analysis. Standard Plan includes <strong>10 Reports / month at ₹999</strong>.</p>
+                </div>
+
+                <!-- Free Tier Lifetime Banner -->
+                <div class="free-tier-banner" style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 12px; padding: 1.1rem 1.5rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.85rem;">
+                        <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 1rem; color: #f8fafc;">Free Tier (Once for Lifetime)</div>
+                            <div style="font-size: 0.84rem; color: #94a3b8;">5 Comprehensive Case Reports for Lifetime • 1 Draft of Each Type • English Court Pleadings</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 0.4rem 0.85rem; border-radius: 999px; font-size: 0.82rem; font-weight: 600;">
+                            <i class="fas fa-check"></i> Free Lifetime Access
+                        </span>
+                    </div>
                 </div>
 
                 <div class="pricing-configurator-grid">
                     <!-- Left: Modular Selection Cards -->
                     <div class="pricing-modules-selection">
                         <div class="modules-selection-header">
-                            <span class="selection-title"><i class="fas fa-cubes"></i> Select Legal Engines /
-                                Modules</span>
-                            <span class="selection-rate-tag">₹499 / month (∞)</span>
+                            <span class="selection-title"><i class="fas fa-cubes"></i> Select Legal Engines / Modules</span>
+                            <span class="selection-rate-tag">₹999 / month (10 Reports)</span>
                         </div>
 
                         <div class="modules-checkbox-grid">
@@ -535,7 +551,7 @@
                                     </div>
                                     <div class="module-quota-pill"
                                         style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35); font-weight: 700; font-size: 0.95rem;">
-                                        Active • ∞</div>
+                                        Active • 10 Reports/mo</div>
                                 </div>
                             </label>
 
@@ -629,53 +645,56 @@
                     <!-- Right: Live Plan Summary & Checkout Card -->
                     <div class="pricing-summary-card">
                         <div class="plan-summary-header">
-                            <div id="planTypeBadge" class="plan-type-badge"><i class="fas fa-infinity"></i> Section 138 Plan</div>
-                            <h3 id="planTierTitle">Section 138 NI Act Engine</h3>
-                            <p id="planTierDesc">Complete statutory defect audit, 15-day notice clock &amp; adversarial
-                                cross-exam preparation.</p>
+                            <div id="planTypeBadge" class="plan-type-badge"><i class="fas fa-crown"></i> Standard Monthly Plan</div>
+                            <h3 id="planTierTitle">Standard Monthly Plan</h3>
+                            <p id="planTierDesc">10 Case Analyses &amp; Reports per month, unlimited drafting, full court-grade Marathi &amp; Hindi drafting.</p>
                         </div>
 
                         <!-- Billing Cycle & Plan Selector (1M, 3M, 6M, 12M) -->
                         <div class="billing-cycle-selector">
                             <button type="button" class="billing-cycle-tab active"
-                                onclick="setBillingDuration(1, this)">1 Month<span>₹499</span></button>
+                                onclick="setBillingDuration(1, this)">1 Month<span>₹999</span></button>
                             <button type="button" class="billing-cycle-tab" onclick="setBillingDuration(3, this)">3
-                                Months<span>₹1,499</span></button>
+                                Months<span>₹2,699</span></button>
                             <button type="button" class="billing-cycle-tab" onclick="setBillingDuration(6, this)">6
-                                Months<span>₹2,999</span></button>
+                                Months<span>₹4,999</span></button>
                             <button type="button" class="billing-cycle-tab" onclick="setBillingDuration(12, this)">12
-                                Months<span>₹5,999</span></button>
+                                Months<span>₹8,999</span></button>
                         </div>
 
                         <div class="plan-calculation-box">
                             <div class="plan-price-display">
                                 <span class="currency-symbol">₹</span>
-                                <span id="planTotalPrice" class="price-number">499</span>
+                                <span id="planTotalPrice" class="price-number">999</span>
                                 <span id="planPriceCycle" class="price-cycle">/ month</span>
                             </div>
-                            <div id="planRateDetail" class="plan-rate-detail">30-Day Billing Cycle • ∞</div>
+                            <div id="planRateDetail" class="plan-rate-detail">30-Day Billing Cycle • 10 Reports/Month</div>
 
                             <div class="plan-metrics-row">
                                 <div class="plan-metric-col">
-                                    <span class="metric-label">Case Quota</span>
-                                    <span id="planTotalCases" class="metric-value" style="font-size: 1.4rem;">∞</span>
+                                    <span class="metric-label">Report Quota</span>
+                                    <span id="planTotalCases" class="metric-value" style="font-size: 1.4rem;">10 Reports</span>
                                 </div>
                                 <div class="plan-metric-col">
                                     <span class="metric-label">Engine Access</span>
                                     <span id="planTotalModules" class="metric-value">Section 138</span>
                                 </div>
                                 <div class="plan-metric-col">
-                                    <span class="metric-label">Analysis Limit</span>
+                                    <span class="metric-label">Drafting Access</span>
                                     <span id="planCostPerAnalysis" class="metric-value"
-                                        style="font-size: 1.4rem;">∞</span>
+                                        style="font-size: 1.4rem;">Unlimited</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="plan-features-list">
                             <div class="plan-feature-item">
-                                <i class="fas fa-infinity" style="color: #10b981;"></i>
-                                <span><strong>Case Analyses &amp; Filings: ∞</strong></span>
+                                <i class="fas fa-file-invoice" style="color: #10b981;"></i>
+                                <span><strong>10 Full Case Intelligence Reports / Month</strong></span>
+                            </div>
+                            <div class="plan-feature-item">
+                                <i class="fas fa-language" style="color: #6366f1;"></i>
+                                <span><strong>Court-Grade Marathi &amp; Hindi Drafting (Gemini LLM)</strong></span>
                             </div>
                             <div class="plan-feature-item">
                                 <i class="fas fa-check-circle"></i>
@@ -691,24 +710,34 @@
                             </div>
                             <div class="plan-feature-item">
                                 <i class="fas fa-check-circle"></i>
-                                <span>Multi-Lingual Output (English, Hindi, Marathi, Gujarati)</span>
-                            </div>
-                            <div class="plan-feature-item">
-                                <i class="fas fa-check-circle"></i>
                                 <span>AES-256 Confidentiality &amp; DPDP Act 2023 Compliance</span>
                             </div>
                         </div>
 
                         <button id="subscribeModularPlanBtn" class="btn btn-primary btn-full subscribe-plan-btn"
                             onclick="subscribeToSelectedModularPlan()">
-                            <i class="fas fa-lock"></i> <span id="subscribeBtnLabel">Get Started with Section 138 (₹499
-                                / mo)</span>
+                            <i class="fas fa-lock"></i> <span id="subscribeBtnLabel">Get Started with Standard Plan (₹999 / mo)</span>
                         </button>
-                        <div class="plan-guarantee-note">
-                            <i class="fas fa-shield-check"></i> Instant activation • Full access to Section 138
-                            statutory engine • No lock-in
+
+                        <!-- On-Demand Top-Up Box -->
+                        <div class="report-topup-card" style="margin-top: 1.25rem; padding: 1rem; border-radius: 12px; background: rgba(99, 102, 241, 0.08); border: 1px dashed rgba(99, 102, 241, 0.4); text-align: center;">
+                            <div style="font-weight: 700; font-size: 0.95rem; color: #818cf8; margin-bottom: 0.25rem;">
+                                <i class="fas fa-bolt"></i> Need Extra Reports?
+                            </div>
+                            <p style="font-size: 0.8rem; color: #94a3b8; margin: 0 0 0.75rem 0;">
+                                Quota exhausted? Pay on-demand ₹149 per report at any time.
+                            </p>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="window.buySingleReportTopup()" style="width: 100%; border-color: #6366f1; color: #a5b4fc; font-weight: 600; padding: 0.5rem 1rem;">
+                                <i class="fas fa-plus-circle"></i> Buy 1 Additional Report for ₹149
+                            </button>
+                        </div>
+
+                        <div class="plan-guarantee-note" style="margin-top: 1rem;">
+                            <i class="fas fa-shield-check"></i> Instant activation • Standard monthly renewal • No lock-in
                         </div>
                     </div>
+                </div>
+            </section>
                 </div>
             </section>
 
@@ -2178,7 +2207,15 @@
                         <p id="draftFormSubtitle">All fields will be used to generate your draft</p>
                     </div>
                     <div class="draft-form-body" id="draftFormBody"></div>
-                    <div class="draft-form-actions">
+                    <div class="draft-form-actions" style="display: flex; gap: 1rem; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
+                        <div style="display:inline-flex;align-items:center;gap:0.5rem;">
+                            <label for="initialDraftLangSelect" style="font-size:0.85rem;color:var(--gray-300);margin:0;"><i class="fas fa-language"></i> Court Language:</label>
+                            <select id="initialDraftLangSelect" class="form-control" style="width:auto;padding:0.4rem 0.75rem;font-size:0.85rem;background:var(--slate-800);color:#fff;border:1px solid var(--slate-700);border-radius:6px;cursor:pointer;">
+                                <option value="en" selected>English (Court Standard)</option>
+                                <option value="mr">Marathi (मराठी न्यायालयीन)</option>
+                                <option value="hi">Hindi (हिंदी विधिक प्रारूप)</option>
+                            </select>
+                        </div>
                         <button class="btn btn-primary btn-lg" onclick="generateDraftFromForm()">
                             <i class="fas fa-magic"></i> Generate Draft
                         </button>
@@ -2205,6 +2242,14 @@
                         <button class="btn btn-outline" onclick="printGeneratedDraft()">
                             <i class="fas fa-print"></i> Print
                         </button>
+                        <div class="draft-lang-picker-wrap" style="display:inline-flex;align-items:center;gap:0.4rem;background:rgba(30,41,59,0.8);border:1px solid rgba(99,102,241,0.35);padding:0.35rem 0.75rem;border-radius:8px;">
+                            <label for="draftLanguageSelect" style="font-size:0.8rem;color:#a5b4fc;font-weight:600;margin:0;"><i class="fas fa-language"></i> Language:</label>
+                            <select id="draftLanguageSelect" style="background:transparent;color:#fff;border:none;font-size:0.82rem;font-weight:600;outline:none;cursor:pointer;" onchange="window.handleDraftLanguageChange(this.value)">
+                                <option value="en" selected style="background:#1e293b;color:#fff;">English (Court Standard)</option>
+                                <option value="mr" style="background:#1e293b;color:#fff;">Marathi (मराठी न्यायालयीन)</option>
+                                <option value="hi" style="background:#1e293b;color:#fff;">Hindi (हिंदी विधिक प्रारूप)</option>
+                            </select>
+                        </div>
                         <div class="dashboard-header-right u-is-117">
                             <div class="kb-status-badge u-is-51">
                                 <div class="pulse-indicator u-is-52"></div>

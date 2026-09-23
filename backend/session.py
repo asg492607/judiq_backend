@@ -279,12 +279,18 @@ class DatabaseManager:
                 ("approved_by", "TEXT"),
                 ("approved_at", "TEXT"),
                 ("paid_demo_used", "INTEGER DEFAULT 0"),
-                ("plan_name", "TEXT DEFAULT 'Free Demo'")
+                ("plan_name", "TEXT DEFAULT 'Free Tier'"),
+                ("drafts_used", "TEXT DEFAULT '{}'")
             ]:
                 try:
                     cursor.execute(f"ALTER TABLE user_quotas ADD COLUMN {col} {col_type}")
+                    conn.commit()
                 except Exception:
-                    pass
+                    if conn:
+                        try:
+                            conn.rollback()
+                        except Exception:
+                            pass
 
             cursor.execute(f"""
                 CREATE TABLE IF NOT EXISTS bank_recovery_audits (
@@ -1181,7 +1187,7 @@ class DatabaseManager:
                 DatabaseManager.release_connection(conn)
 
     @staticmethod
-    def get_or_create_user_quota(user_id: str, email: str = "", role: str = "law_firm", default_limit: int = 3) -> dict:
+    def get_or_create_user_quota(user_id: str, email: str = "", role: str = "law_firm", default_limit: int = 5) -> dict:
         conn = None
         try:
             from security import is_admin_user
@@ -1222,26 +1228,37 @@ class DatabaseManager:
             current_month = datetime.now().strftime("%Y-%m")
             now_iso = datetime.now().isoformat()
 
+            # Ensure drafts_used column exists without failing transaction
+            try:
+                cursor.execute(f"ALTER TABLE user_quotas ADD COLUMN drafts_used TEXT DEFAULT '{{}}'")
+                conn.commit()
+            except Exception:
+                if conn:
+                    try:
+                        conn.rollback()
+                    except Exception:
+                        pass
+
             cursor.execute(f"""
                 SELECT user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at,
-                       plan_status, selected_modules, monthly_price_inr, requested_quota, approved_by, approved_at, paid_demo_used, plan_name
+                       plan_status, selected_modules, monthly_price_inr, requested_quota, approved_by, approved_at, paid_demo_used, plan_name, drafts_used
                 FROM user_quotas
                 WHERE user_id = {p}
             """, (user_id,))
             row = cursor.fetchone()
 
             if not row:
-                # Every new demo user receives 3 free reports by default
-                is_explicit_provision = (default_limit != 3 and default_limit > 0)
-                init_limit = default_limit if is_explicit_provision else 3
+                # Every new demo user receives 5 free lifetime reports by default
+                is_explicit_provision = (default_limit != 5 and default_limit > 0)
+                init_limit = default_limit if is_explicit_provision else 5
                 init_status = "APPROVED" if is_explicit_provision else "ACTIVE"
                 init_active = 1
 
                 cursor.execute(f"""
                     INSERT INTO user_quotas
-                    (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota, paid_demo_used, plan_name)
-                    VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, 0.0, {p}, 0, 'Free Demo')
-                """, (user_id, email, role, init_limit, current_month, init_active, now_iso, now_iso, init_status, json.dumps(["s138"]), max(3, init_limit)))
+                    (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota, paid_demo_used, plan_name, drafts_used)
+                    VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, 0.0, {p}, 0, 'Free Tier', '{{}}')
+                """, (user_id, email, role, init_limit, current_month, init_active, now_iso, now_iso, init_status, json.dumps(["s138"]), max(5, init_limit)))
                 conn.commit()
                 return {
                     "user_id": user_id,
@@ -1257,11 +1274,12 @@ class DatabaseManager:
                     "plan_status": init_status,
                     "selected_modules": ["s138"],
                     "monthly_price_inr": 0.0,
-                    "requested_quota": max(3, init_limit),
+                    "requested_quota": max(5, init_limit),
                     "approved_by": None,
                     "approved_at": None,
                     "paid_demo_used": False,
-                    "plan_name": "Free Demo"
+                    "plan_name": "Free Tier",
+                    "drafts_used": {}
                 }
 
             # If existing user, check if month period rolled over
@@ -1277,7 +1295,12 @@ class DatabaseManager:
             approved_by = row[13] if len(row) > 13 else ""
             approved_at = row[14] if len(row) > 14 else ""
             paid_demo_used = bool(row[15]) if len(row) > 15 and row[15] is not None else False
-            plan_name = str(row[16]) if len(row) > 16 and row[16] else ("Paid Demo Plan" if (int(db_limit) == 1 and paid_demo_used) else "Free Demo")
+            plan_name = str(row[16]) if len(row) > 16 and row[16] else ("Paid Demo Plan" if (int(db_limit) == 1 and paid_demo_used) else "Free Tier")
+            raw_drafts = row[17] if len(row) > 17 and row[17] else "{}"
+            try:
+                drafts_used = json.loads(raw_drafts) if isinstance(raw_drafts, str) else (raw_drafts or {})
+            except Exception:
+                drafts_used = {}
 
             # Check if existing DB record is admin
             if db_role == "admin" or is_admin_user(db_user_id, db_email, db_role):
@@ -1299,17 +1322,28 @@ class DatabaseManager:
                     "approved_by": approved_by or "SYSTEM",
                     "approved_at": approved_at or now_iso,
                     "paid_demo_used": False,
-                    "plan_name": "Unlimited Admin"
+                    "plan_name": "Unlimited Admin",
+                    "drafts_used": {}
                 }
 
+            is_free_tier = plan_name in ("Free Tier", "Free Demo") or (float(monthly_price or 0) == 0.0 and int(db_limit or 0) <= 5)
             if db_period != current_month:
-                db_used = 0
-                cursor.execute(f"""
-                    UPDATE user_quotas
-                    SET reports_used_this_month = 0, current_month_period = {p}, updated_at = {p}
-                    WHERE user_id = {p}
-                """, (current_month, now_iso, user_id))
-                conn.commit()
+                # Free Tier reports are LIFETIME once — do NOT reset reports_used_this_month
+                if not is_free_tier:
+                    db_used = 0
+                    cursor.execute(f"""
+                        UPDATE user_quotas
+                        SET reports_used_this_month = 0, current_month_period = {p}, updated_at = {p}
+                        WHERE user_id = {p}
+                    """, (current_month, now_iso, user_id))
+                    conn.commit()
+                else:
+                    cursor.execute(f"""
+                        UPDATE user_quotas
+                        SET current_month_period = {p}, updated_at = {p}
+                        WHERE user_id = {p}
+                    """, (current_month, now_iso, user_id))
+                    conn.commit()
 
             # Update email or role if provided and changed
             if email and email != db_email:
@@ -1339,7 +1373,8 @@ class DatabaseManager:
                 "approved_by": approved_by,
                 "approved_at": approved_at,
                 "paid_demo_used": paid_demo_used,
-                "plan_name": plan_name
+                "plan_name": plan_name,
+                "drafts_used": drafts_used
             }
         except Exception as e:
             logger.error(f"Error in get_or_create_user_quota: {e}")
@@ -1352,10 +1387,12 @@ class DatabaseManager:
                 "remaining_reports": default_limit,
                 "current_month_period": datetime.now().strftime("%Y-%m"),
                 "is_active": True,
-                "plan_status": "APPROVED",
+                "plan_status": "ACTIVE",
                 "selected_modules": ["s138"],
-                "monthly_price_inr": 500.0,
-                "requested_quota": default_limit
+                "monthly_price_inr": 0.0,
+                "requested_quota": default_limit,
+                "plan_name": "Free Tier",
+                "drafts_used": {}
             }
         finally:
             if conn:
@@ -1444,7 +1481,7 @@ class DatabaseManager:
             return {
                 "allowed": False,
                 "reason": "PAYMENT_REQUIRED",
-                "message": "Subscription required. Please activate a Section 138 plan (₹499/mo) to unlock case analyses and court drafting.",
+                "message": "Subscription required. Please activate the Standard Monthly Plan (₹999/mo) or pay ₹149 for an individual report.",
                 "quota": quota
             }
 
@@ -1453,11 +1490,11 @@ class DatabaseManager:
 
         # -1 represents unlimited reports
         if limit != -1 and (used + cost) > limit:
-            is_free_demo = (quota.get("plan_name") == "Free Demo" or limit <= 3)
+            is_free_tier = (quota.get("plan_name") in ("Free Tier", "Free Demo") or limit <= 5)
             msg = (
-                f"Free demo case analysis limit reached ({used}/{limit} reports used). Please subscribe to a standard plan to continue analyzing cases."
-                if is_free_demo
-                else f"Monthly case analysis quota limit reached ({used}/{limit} reports used). Please request a plan increase in the Admin Control Center."
+                f"Free tier lifetime limit reached ({used}/{limit} reports used). Please subscribe to the Standard Monthly Plan (₹999 for 10 reports/mo) or pay ₹149 for an additional report."
+                if is_free_tier
+                else f"Monthly case analysis quota limit reached ({used}/{limit} reports used). Upgrade your plan or pay ₹149 for an additional report."
             )
             return {
                 "allowed": False,
@@ -1500,6 +1537,90 @@ class DatabaseManager:
                 DatabaseManager.release_connection(conn)
 
     @staticmethod
+    def check_and_consume_draft_quota(user_id: str, email: str = "", draft_type: str = "LEGAL_NOTICE", lang: str = "en", role: str = "") -> dict:
+        """
+        Enforces draft quota rules:
+        - Free Tier: strictly 1 draft of each type for lifetime, strictly English-only (no multilingual).
+        - Standard Plan / Paid Plan / Top-up: unlimited drafts in all supported languages (English, Marathi, Hindi).
+        - Admin: unlimited bypass.
+        """
+        try:
+            from security import is_admin_user
+        except Exception:
+            def is_admin_user(u="", e="", r=""):  # type: ignore[misc]
+                return (r or "").lower() == "admin" or "admin" in (e or "").lower() or "aixynz" in (e or "").lower()
+
+        if role == "admin" or is_admin_user(user_id, email, role):
+            return {"allowed": True, "reason": "ADMIN_BYPASS", "language_allowed": True}
+
+        quota = DatabaseManager.get_or_create_user_quota(user_id, email, role)
+        if quota.get("role") == "admin" or is_admin_user(quota.get("user_id", ""), quota.get("email", ""), quota.get("role", "")):
+            return {"allowed": True, "reason": "ADMIN_BYPASS", "language_allowed": True}
+
+        is_paid = (
+            quota.get("plan_status") in ("ACTIVE", "PAID", "APPROVED") and
+            quota.get("is_active") and
+            (quota.get("plan_name") not in ("Free Tier", "Free Demo") or quota.get("monthly_price_inr", 0) > 0 or quota.get("monthly_report_limit", 0) > 5)
+        )
+
+        clean_lang = (lang or "en").lower().strip()
+        is_multilingual = clean_lang in ("mr", "marathi", "hi", "hindi", "gu", "gujarati")
+
+        # 1. Free tier language restriction: English ONLY
+        if not is_paid and is_multilingual:
+            return {
+                "allowed": False,
+                "reason": "MULTILINGUAL_LOCKED",
+                "message": "Multilingual court drafting (Marathi / Hindi) is an exclusive feature of the Standard Plan (₹999/mo). Free trial is in court English only.",
+                "language_allowed": False,
+                "quota": quota
+            }
+
+        # 2. Paid users get unlimited drafting
+        if is_paid:
+            return {"allowed": True, "reason": "PAID_ACTIVE", "language_allowed": True, "quota": quota}
+
+        # 3. Free tier draft type limit: 1 draft of each type lifetime
+        draft_key = (draft_type or "GENERAL").upper().strip()
+        drafts_used = quota.get("drafts_used") or {}
+        if not isinstance(drafts_used, dict):
+            drafts_used = {}
+
+        used_count = int(drafts_used.get(draft_key, 0))
+        if used_count >= 1:
+            friendly_name = draft_key.replace('_', ' ').title()
+            return {
+                "allowed": False,
+                "reason": "DRAFT_LIMIT_REACHED",
+                "message": f"Free tier includes 1 draft of each type for lifetime. You have already generated a {friendly_name} draft. Please upgrade to Standard Monthly Plan (₹999/mo) or pay ₹149 for an additional report to unlock more drafts.",
+                "language_allowed": False,
+                "quota": quota
+            }
+
+        # Record draft consumption for Free Tier
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            drafts_used[draft_key] = used_count + 1
+            now_iso = datetime.now().isoformat()
+            cursor.execute(f"""
+                UPDATE user_quotas
+                SET drafts_used = {p}, updated_at = {p}
+                WHERE user_id = {p}
+            """, (json.dumps(drafts_used), now_iso, user_id))
+            conn.commit()
+            quota["drafts_used"] = drafts_used
+            return {"allowed": True, "reason": "FREE_TIER_FIRST_DRAFT", "language_allowed": True, "quota": quota}
+        except Exception as e:
+            logger.error(f"Error updating drafts_used in check_and_consume_draft_quota: {e}")
+            return {"allowed": True, "reason": "FALLBACK_ALLOWED", "language_allowed": True, "quota": quota}
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    @staticmethod
     def submit_subscription_plan(
         user_id: str,
         email: str,
@@ -1516,6 +1637,7 @@ class DatabaseManager:
         Registers or updates a user subscription plan.
         If status is 'ACTIVE' or razorpay_payment_id is provided, activates the account immediately.
         Enforces one-time redemption for Paid Demo Plan per account/email.
+        Supports single report top-up (₹149).
         """
         conn = None
         try:
@@ -1525,6 +1647,29 @@ class DatabaseManager:
             current_month = datetime.now().strftime("%Y-%m")
             now_iso = datetime.now().isoformat()
             modules_json = json.dumps(selected_modules)
+
+            # Top-up logic for ₹149 single report
+            is_topup = (
+                (plan_name and ("topup" in plan_name.lower() or "single" in plan_name.lower())) or 
+                (abs(monthly_price_inr - 149.0) < 0.01)
+            )
+
+            if is_topup:
+                topup_qty = max(1, requested_quota or 1)
+                cursor.execute(f"SELECT monthly_report_limit, plan_name FROM user_quotas WHERE user_id = {p}", (user_id,))
+                cur_row = cursor.fetchone()
+                cur_limit = int(cur_row[0]) if cur_row and cur_row[0] is not None else 5
+                new_limit = cur_limit + topup_qty
+                cursor.execute(f"""
+                    UPDATE user_quotas
+                    SET monthly_report_limit = {p}, is_active = 1, plan_status = 'ACTIVE', updated_at = {p}
+                    WHERE user_id = {p}
+                """, (new_limit, now_iso, user_id))
+                conn.commit()
+                res = DatabaseManager.get_or_create_user_quota(user_id, email)
+                if isinstance(res, dict):
+                    res["success"] = True
+                return res
 
             is_paid_demo = (
                 (plan_name and "demo" in plan_name.lower()) or 
@@ -1545,9 +1690,10 @@ class DatabaseManager:
 
             is_active_flag = 1 if (status in ("ACTIVE", "PAID", "APPROVED") or razorpay_payment_id) else 0
             plan_status_val = "ACTIVE" if is_active_flag else "PENDING_APPROVAL"
-            report_limit = (requested_quota if requested_quota > 0 else 25) if is_active_flag else 0
+            # Default standard monthly report limit is 10
+            report_limit = (requested_quota if requested_quota > 0 else 10) if is_active_flag else 0
             demo_flag = 1 if is_paid_demo else 0
-            plan_name_val = plan_name or ("Paid Demo Plan" if is_paid_demo else "Section 138 Plan")
+            plan_name_val = plan_name or ("Paid Demo Plan" if is_paid_demo else "Standard Monthly Plan")
 
             cursor.execute(f"SELECT user_id FROM user_quotas WHERE user_id = {p}", (user_id,))
             exists = cursor.fetchone()
@@ -1571,7 +1717,10 @@ class DatabaseManager:
                 """, (user_id, email, role, report_limit, current_month, is_active_flag, now_iso, now_iso, plan_status_val, modules_json, monthly_price_inr, requested_quota, demo_flag, plan_name_val))
             
             conn.commit()
-            return DatabaseManager.get_or_create_user_quota(user_id, email)
+            res = DatabaseManager.get_or_create_user_quota(user_id, email)
+            if isinstance(res, dict):
+                res["success"] = True
+            return res
         except Exception as e:
             logger.error(f"Error submitting subscription plan: {e}")
             raise e
