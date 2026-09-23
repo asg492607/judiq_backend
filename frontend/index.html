@@ -1228,7 +1228,12 @@
 
                 <!-- Recent Cases Section -->
                 <div class="recent-section">
-                    <h3>Recent Activity</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin-bottom: 0;">Recent Activity</h3>
+                        <button class="btn btn-sm btn-text" onclick="window.clearCaseHistory()" style="color: var(--gray-500); font-size: 0.8rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer;" title="Clear recent cases from this browser">
+                            <i class="fas fa-trash-alt"></i> Clear Activity
+                        </button>
+                    </div>
                     <div id="recentCases" class="recent-cases"></div>
                 </div>
             </div>
@@ -5250,7 +5255,7 @@
     <script src="js/modules/razorpay_checkout.js?v=30"></script>
 
     <!-- Main Application Script (ES6 Module) -->
-    <script type="module" src="js/main.js?v=56"></script>
+    <script type="module" src="js/main.js?v=57"></script>
 </body>
 
 </html>

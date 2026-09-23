@@ -928,7 +928,25 @@ function renderDashboard() {
     // Domain-specific stats and actions
     const grid = document.getElementById('actionCardsGrid');
     if (grid) {
-        const allCases = JSON.parse(localStorage.getItem('judiq_recent_cases_v1') || '[]');
+        const currentUser = window.state.currentUser;
+        const currentUid = currentUser ? String(currentUser.uid || currentUser.id || '').toLowerCase() : null;
+        const currentEmail = currentUser?.email ? currentUser.email.toLowerCase().trim() : null;
+
+        let rawCases = [];
+        try {
+            rawCases = JSON.parse(localStorage.getItem('judiq_recent_cases_v1') || '[]');
+        } catch (_) { }
+
+        // Filter cases strictly belonging to the active user (anonymous demo cases do not bleed into logged-in accounts)
+        const allCases = rawCases.filter(c => {
+            if (!currentUid && !currentEmail) {
+                return !c.user_id || c.user_id === 'ANONYMOUS';
+            }
+            const cUid = String(c.user_id || '').toLowerCase().trim();
+            const cEmail = String(c.user_email || c.email || '').toLowerCase().trim();
+            return (currentUid && cUid === currentUid) || 
+                   (currentEmail && (cUid === currentEmail || cEmail === currentEmail));
+        });
 
         if (domain === 'composite') {
             const domainCases = allCases.filter(c => c.domain === 'composite' || (c.case_data && String(c.case_data.case_type).toLowerCase().includes('composite')));
@@ -1383,7 +1401,17 @@ window.loadRecentCases = async () => {
 
         // 2. Overwrite / merge with local cases (which contain full details)
         localCases.forEach(c => {
-            if (c.user_id === 'ANONYMOUS' || c.user_id === userId) {
+            let isUserCase = false;
+            if (userId === 'ANONYMOUS') {
+                isUserCase = !c.user_id || c.user_id === 'ANONYMOUS';
+            } else {
+                const cUid = String(c.user_id || '').toLowerCase().trim();
+                const cEmail = String(c.user_email || c.email || '').toLowerCase().trim();
+                const userEmail = (window.state.currentUser?.email || '').toLowerCase().trim();
+                const uIdLower = String(userId).toLowerCase().trim();
+                isUserCase = (cUid === uIdLower) || (userEmail && (cUid === userEmail || cEmail === userEmail));
+            }
+            if (isUserCase) {
                 const existing = casesMap.get(c.id);
                 casesMap.set(c.id, {
                     ...existing,
@@ -1576,11 +1604,48 @@ window.deleteCaseFromHistory = async (caseId, event) => {
         }
 
         ui.toast('Case successfully removed from history.', 'success');
+        if (typeof renderDashboard === 'function') renderDashboard();
         window.loadRecentCases();
     } catch (err) {
         console.error('Failed to delete case:', err);
         ui.toast('Error deleting case.', 'error');
+        if (typeof renderDashboard === 'function') renderDashboard();
         window.loadRecentCases();
+    }
+};
+
+window.clearCaseHistory = () => {
+    if (!confirm('Are you sure you want to clear your recent case history from this device?')) {
+        return;
+    }
+    const currentUser = window.state.currentUser;
+    const currentUid = currentUser ? String(currentUser.uid || currentUser.id || '').toLowerCase() : null;
+    const currentEmail = currentUser?.email ? currentUser.email.toLowerCase().trim() : null;
+
+    let localCases = [];
+    try {
+        localCases = JSON.parse(localStorage.getItem('judiq_recent_cases_v1') || '[]');
+    } catch (_) { }
+
+    if (!currentUid && !currentEmail) {
+        // Clear all anonymous cases
+        localCases = localCases.filter(c => c.user_id && c.user_id !== 'ANONYMOUS');
+    } else {
+        // Clear cases belonging to this user
+        localCases = localCases.filter(c => {
+            const cUid = String(c.user_id || '').toLowerCase().trim();
+            const cEmail = String(c.user_email || c.email || '').toLowerCase().trim();
+            const isUserCase = (currentUid && cUid === currentUid) || 
+                               (currentEmail && (cUid === currentEmail || cEmail === currentEmail));
+            return !isUserCase;
+        });
+    }
+
+    localStorage.setItem('judiq_recent_cases_v1', JSON.stringify(localCases));
+    if (typeof renderDashboard === 'function') renderDashboard();
+    if (typeof window.loadRecentCases === 'function') window.loadRecentCases();
+    if (window.ui && typeof window.ui.toast === 'function') {
+        window.ui.toast('Case history cleared.', 'info');
     }
 };
 
