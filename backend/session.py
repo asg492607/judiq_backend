@@ -1326,6 +1326,30 @@ class DatabaseManager:
                     "drafts_used": {}
                 }
 
+            # Check if existing DB record is special unlimited (all tool access, no limits, no admin panel)
+            if db_role in ("special_unlimited", "vip_unlimited") or plan_name in ("Special Unlimited Access", "Special Unlimited"):
+                return {
+                    "user_id": db_user_id,
+                    "email": db_email or email,
+                    "role": "special_unlimited",
+                    "monthly_report_limit": -1,
+                    "reports_used_this_month": int(db_used or 0),
+                    "remaining_reports": 999999,
+                    "current_month_period": db_period,
+                    "is_active": True,
+                    "created_at": db_created,
+                    "updated_at": db_updated,
+                    "plan_status": "ACTIVE",
+                    "selected_modules": ["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"],
+                    "monthly_price_inr": 0.0,
+                    "requested_quota": -1,
+                    "approved_by": approved_by or "ADMIN",
+                    "approved_at": approved_at or now_iso,
+                    "paid_demo_used": False,
+                    "plan_name": "Special Unlimited Access",
+                    "drafts_used": drafts_used
+                }
+
             is_free_tier = plan_name in ("Free Tier", "Free Demo") or (float(monthly_price or 0) == 0.0 and int(db_limit or 0) <= 5)
             if db_period != current_month:
                 # Free Tier reports are LIFETIME once — do NOT reset reports_used_this_month
@@ -1485,6 +1509,24 @@ class DatabaseManager:
                 "quota": quota
             }
 
+        # Special Unlimited User Bypass: full access with no limit (strictly non-admin)
+        if (
+            quota.get("role") in ("special_unlimited", "vip_unlimited") or 
+            quota.get("plan_name") in ("Special Unlimited Access", "Special Unlimited") or 
+            quota.get("monthly_report_limit") == -1
+        ):
+            return {
+                "allowed": True,
+                "reason": "SPECIAL_UNLIMITED_BYPASS",
+                "quota": {
+                    **quota,
+                    "monthly_report_limit": -1,
+                    "remaining_reports": 999999,
+                    "is_active": True,
+                    "plan_status": "ACTIVE"
+                }
+            }
+
         limit = quota["monthly_report_limit"]
         used = quota["reports_used_this_month"]
 
@@ -1557,10 +1599,29 @@ class DatabaseManager:
         if quota.get("role") == "admin" or is_admin_user(quota.get("user_id", ""), quota.get("email", ""), quota.get("role", "")):
             return {"allowed": True, "reason": "ADMIN_BYPASS", "language_allowed": True}
 
+        # Special unlimited user - full multilingual and unlimited drafts across all draft types
+        if (
+            quota.get("role") in ("special_unlimited", "vip_unlimited") or 
+            quota.get("plan_name") in ("Special Unlimited Access", "Special Unlimited") or 
+            quota.get("monthly_report_limit") == -1
+        ):
+            return {
+                "allowed": True,
+                "reason": "SPECIAL_UNLIMITED_ACTIVE",
+                "language_allowed": True,
+                "quota": quota
+            }
+
         is_paid = (
             quota.get("plan_status") in ("ACTIVE", "PAID", "APPROVED") and
             quota.get("is_active") and
-            (quota.get("plan_name") not in ("Free Tier", "Free Demo") or quota.get("monthly_price_inr", 0) > 0 or quota.get("monthly_report_limit", 0) > 5)
+            (
+                quota.get("plan_name") not in ("Free Tier", "Free Demo") or 
+                quota.get("monthly_price_inr", 0) > 0 or 
+                quota.get("monthly_report_limit", 0) > 5 or
+                quota.get("monthly_report_limit") == -1 or
+                quota.get("role") in ("special_unlimited", "vip_unlimited")
+            )
         )
 
         clean_lang = (lang or "en").lower().strip()
@@ -1826,10 +1887,12 @@ class DatabaseManager:
         selected_modules: Optional[list] = None,
         monthly_price_inr: float = 500.0,
         plan_status: str = "APPROVED",
-        approved_by: Optional[str] = None
+        approved_by: Optional[str] = None,
+        plan_name: Optional[str] = None
     ) -> dict:
         """
         Creates or updates a litigator account with full subscription parameters.
+        Supports special_unlimited roles with unlimited reports, all tools, and no admin access.
         """
         conn = None
         try:
@@ -1838,10 +1901,22 @@ class DatabaseManager:
             p = DatabaseManager.get_dialect_placeholder()
             now_iso = datetime.now().isoformat()
             current_month = datetime.now().strftime("%Y-%m")
+
+            # Special Unlimited configuration
+            if role in ("special_unlimited", "vip_unlimited") or plan_name in ("Special Unlimited Access", "Special Unlimited"):
+                role = "special_unlimited"
+                monthly_limit = -1
+                monthly_price_inr = 0.0
+                plan_status = "APPROVED"
+                plan_name = "Special Unlimited Access"
+                if not selected_modules:
+                    selected_modules = ["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"]
+
             mods = selected_modules or ["s138"]
             mods_json = json.dumps(mods)
-            is_active = 1 if plan_status == "APPROVED" else 0
-            approved_at = now_iso if plan_status == "APPROVED" else None
+            is_active = 1 if plan_status in ("APPROVED", "ACTIVE") else 0
+            approved_at = now_iso if plan_status in ("APPROVED", "ACTIVE") else None
+            resolved_plan_name = plan_name or ("Special Unlimited Access" if role == "special_unlimited" else "Standard Monthly Plan")
 
             cursor.execute(f"SELECT user_id FROM user_quotas WHERE user_id = {p}", (user_id,))
             exists = cursor.fetchone()
@@ -1851,24 +1926,24 @@ class DatabaseManager:
                     UPDATE user_quotas
                     SET email = {p}, role = {p}, monthly_report_limit = {p},
                         selected_modules = {p}, monthly_price_inr = {p}, plan_status = {p},
-                        is_active = {p}, approved_by = {p}, approved_at = {p}, updated_at = {p}
+                        is_active = {p}, approved_by = {p}, approved_at = {p}, updated_at = {p},
+                        plan_name = {p}
                     WHERE user_id = {p}
-                """, (email, role, monthly_limit, mods_json, monthly_price_inr, plan_status, is_active, approved_by, approved_at, now_iso, user_id))
+                """, (email, role, monthly_limit, mods_json, monthly_price_inr, plan_status, is_active, approved_by, approved_at, now_iso, resolved_plan_name, user_id))
             else:
                 cursor.execute(f"""
                     INSERT INTO user_quotas (
                         user_id, email, role, monthly_report_limit, reports_used_this_month,
                         current_month_period, is_active, created_at, updated_at,
                         plan_status, selected_modules, monthly_price_inr, requested_quota,
-                        approved_by, approved_at
-                    ) VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+                        approved_by, approved_at, plan_name
+                    ) VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
                 """, (
                     user_id, email, role, monthly_limit, current_month, is_active,
                     now_iso, now_iso, plan_status, mods_json, monthly_price_inr,
-                    monthly_limit, approved_by, approved_at
+                    monthly_limit, approved_by, approved_at, resolved_plan_name
                 ))
             conn.commit()
-
 
             return DatabaseManager.get_or_create_user_quota(user_id, email)
         except Exception as e:

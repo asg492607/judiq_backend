@@ -819,17 +819,21 @@ function renderDashboard() {
     const userId = (currentUser && currentUser.uid ? String(currentUser.uid) : '').toLowerCase().trim();
     const savedRole = (currentUser && localStorage.getItem(`judiq_role_${currentUser.uid}`)) || (window.state && window.state.currentRole) || '';
     const adminBtn = document.getElementById('adminPortalBtn');
-    const isAdmin = savedRole === 'admin' ||
+    const isSpecialUser = savedRole === 'special_unlimited' || 
+        (window.state && window.state.userQuota && window.state.userQuota.role === 'special_unlimited') ||
+        (window.state && window.state.userQuota && window.state.userQuota.plan_name === 'Special Unlimited Access');
+
+    const isAdmin = !isSpecialUser && (
+        savedRole === 'admin' ||
         savedRole === 'administrator' ||
         userEmail.includes('aixynztechnologies') ||
         userId.includes('aixynztechnologies') ||
-        userEmail.includes('admin') ||
-        userId.includes('admin') ||
-        userEmail.startsWith('admin') ||
-        userId.startsWith('admin') ||
+        (userEmail.includes('admin') && !isSpecialUser) ||
+        (userId.includes('admin') && !isSpecialUser) ||
         (window.state && window.state.currentRole === 'admin') ||
-        !!localStorage.getItem('judiq_admin_jwt') ||
-        (window.state && window.state.userQuota && window.state.userQuota.role === 'admin');
+        (!!localStorage.getItem('judiq_admin_jwt') && !isSpecialUser) ||
+        (window.state && window.state.userQuota && window.state.userQuota.role === 'admin')
+    );
 
     if (adminBtn) {
         adminBtn.style.display = isAdmin ? 'inline-flex' : 'none';
@@ -841,6 +845,9 @@ function renderDashboard() {
     if (isAdmin && pill && qText) {
         qText.textContent = `Unlimited Reports (Admin Access)`;
         pill.style.display = 'inline-flex';
+    } else if (isSpecialUser && pill && qText) {
+        qText.textContent = `Unlimited Reports (⭐ Special Access)`;
+        pill.style.display = 'inline-flex';
     }
 
     if (currentUser && typeof api !== 'undefined' && api.getUserQuota) {
@@ -848,9 +855,13 @@ function renderDashboard() {
         api.getUserQuota(uid, userEmail).then(res => {
             if (res && res.success && res.quota) {
                 const q = res.quota;
+                const isSpec = q.role === 'special_unlimited' || q.plan_name === 'Special Unlimited Access' || isSpecialUser;
                 if (pill && qText) {
-                    if (isAdmin || q.monthly_report_limit === -1 || q.role === 'admin') {
+                    if (isAdmin || q.role === 'admin') {
                         qText.textContent = `Unlimited Reports (Admin Access)`;
+                    } else if (isSpec || q.monthly_report_limit === -1) {
+                        qText.textContent = `Unlimited Reports (⭐ Special Access)`;
+                        if (adminBtn) adminBtn.style.display = 'none';
                     } else {
                         qText.textContent = `${q.remaining_reports}/${q.monthly_report_limit} Reports`;
                     }
@@ -3979,6 +3990,15 @@ window.switchAdminTab = (tabName) => {
 window.openAdminPortal = async () => {
     const user = window.state.currentUser;
     const userEmail = (user && user.email ? user.email : 'aixynztechnologies').toLowerCase().trim();
+    const savedRole = (user && localStorage.getItem(`judiq_role_${user.uid}`)) || (window.state && window.state.currentRole) || '';
+    const isSpecialUser = savedRole === 'special_unlimited' || 
+        (window.state && window.state.userQuota && window.state.userQuota.role === 'special_unlimited');
+
+    if (isSpecialUser) {
+        if (window.ui) window.ui.toast('Access Denied: Special accounts have full tool access, but no administrative dashboard access.', 'warning');
+        showDashboard();
+        return;
+    }
 
     const adminEmailEl = document.getElementById('adminSessionEmail');
     if (adminEmailEl) adminEmailEl.textContent = userEmail;
@@ -4186,13 +4206,15 @@ window.renderAdminUsersTable = (users) => {
 
     const roleAvatarGradients = {
         'admin': 'linear-gradient(135deg, #4f46e5, #06b6d4)',
+        'special_unlimited': 'linear-gradient(135deg, #f59e0b, #d97706)',
         'enterprise': 'linear-gradient(135deg, #0284c7, #0369a1)',
         'law_firm': 'linear-gradient(135deg, #8b5cf6, #6366f1)',
         'citizen': 'linear-gradient(135deg, #10b981, #059669)'
     };
 
     tbody.innerHTML = users.map(u => {
-        const isUnlimited = u.monthly_report_limit === -1;
+        const isSpecial = u.role === 'special_unlimited' || u.plan_name === 'Special Unlimited Access';
+        const isUnlimited = u.monthly_report_limit === -1 || isSpecial;
         const used = u.reports_used_this_month || 0;
         const limit = isUnlimited ? '∞' : u.monthly_report_limit;
         const remaining = isUnlimited ? '∞' : Math.max(0, u.monthly_report_limit - used);
@@ -4200,18 +4222,20 @@ window.renderAdminUsersTable = (users) => {
         const isWarning = pct >= 80;
 
         const email = u.email || 'Anonymous Litigator';
-        const initials = email.substring(0, 2).toUpperCase();
-        const avatarBg = roleAvatarGradients[u.role] || 'linear-gradient(135deg, #64748b, #475569)';
+        const initials = isSpecial ? '⭐' : email.substring(0, 2).toUpperCase();
+        const avatarBg = roleAvatarGradients[u.role] || (isSpecial ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'linear-gradient(135deg, #64748b, #475569)');
 
         const statusBadge = u.is_active
             ? `<span class="status-badge-active" title="Account active and verified"><i class="fas fa-circle-check"></i> Active</span>`
             : `<span class="status-badge-suspended" title="Account suspended"><i class="fas fa-circle-xmark"></i> Suspended</span>`;
 
-        const planStatusBadge = u.plan_status === 'APPROVED'
-            ? `<span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981; font-weight: 700; font-size: 0.7rem; margin-top: 3px; display: inline-flex; align-items: center; gap: 0.25rem;"><i class="fas fa-check-circle"></i> Approved</span>`
-            : (u.plan_status === 'PENDING_APPROVAL'
-                ? `<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #d97706; font-weight: 700; font-size: 0.7rem; margin-top: 3px; display: inline-flex; align-items: center; gap: 0.25rem;"><i class="fas fa-hourglass-half"></i> Pending Plan</span>`
-                : `<span class="badge" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; font-weight: 700; font-size: 0.7rem; margin-top: 3px; display: inline-flex; align-items: center; gap: 0.25rem;"><i class="fas fa-ban"></i> Rejected</span>`);
+        const planStatusBadge = isSpecial
+            ? `<span class="badge" style="background: rgba(245, 158, 11, 0.18); color: #d97706; font-weight: 800; font-size: 0.7rem; margin-top: 3px; display: inline-flex; align-items: center; gap: 0.25rem;"><i class="fas fa-crown"></i> Special Unlimited</span>`
+            : (u.plan_status === 'APPROVED'
+                ? `<span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981; font-weight: 700; font-size: 0.7rem; margin-top: 3px; display: inline-flex; align-items: center; gap: 0.25rem;"><i class="fas fa-check-circle"></i> Approved</span>`
+                : (u.plan_status === 'PENDING_APPROVAL'
+                    ? `<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #d97706; font-weight: 700; font-size: 0.7rem; margin-top: 3px; display: inline-flex; align-items: center; gap: 0.25rem;"><i class="fas fa-hourglass-half"></i> Pending Plan</span>`
+                    : `<span class="badge" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; font-weight: 700; font-size: 0.7rem; margin-top: 3px; display: inline-flex; align-items: center; gap: 0.25rem;"><i class="fas fa-ban"></i> Rejected</span>`));
 
         const modules = Array.isArray(u.selected_modules) ? u.selected_modules : ['s138'];
         const moduleBadges = modules.slice(0, 3).map(m => {
@@ -4223,7 +4247,7 @@ window.renderAdminUsersTable = (users) => {
             `;
         }).join('') + (modules.length > 3 ? `<span style="font-size: 0.7rem; color: var(--gray-500); font-weight: 700; margin-left: 2px;">+${modules.length - 3}</span>` : '');
 
-        const priceText = u.monthly_price_inr ? `₹${Number(u.monthly_price_inr).toLocaleString('en-IN')}/mo` : '₹500/mo';
+        const priceText = isSpecial ? 'Free (Special)' : (u.monthly_price_inr ? `₹${Number(u.monthly_price_inr).toLocaleString('en-IN')}/mo` : '₹500/mo');
         const createdDate = u.created_at ? new Date(u.created_at).toLocaleDateString() : '';
 
         return `
@@ -4252,6 +4276,7 @@ window.renderAdminUsersTable = (users) => {
                 </td>
                 <td>
                     <select id="adminRole_${u.user_id}" style="padding: 0.35rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--gray-50); font-size: 0.8rem; font-weight: 700; color: var(--gray-800); width: 100%;">
+                        <option value="special_unlimited" ${u.role === 'special_unlimited' ? 'selected' : ''}>⭐ Special User (Unlimited, No Admin)</option>
                         <option value="law_firm" ${u.role === 'law_firm' ? 'selected' : ''}>Law Firm / Chamber</option>
                         <option value="enterprise" ${u.role === 'enterprise' ? 'selected' : ''}>Enterprise Legal</option>
                         <option value="citizen" ${u.role === 'citizen' ? 'selected' : ''}>Independent Litigator</option>
@@ -4986,14 +5011,60 @@ window.loadAdminPendingPlans = async () => {
 
 let adminCachedSecurityLogs = [];
 
-window.openCreateLitigatorModal = () => {
+window.openCreateLitigatorModal = (isSpecial = false) => {
     const modal = document.getElementById('createLitigatorModal');
     if (modal) modal.classList.remove('hidden');
+
+    const titleEl = document.getElementById('createLitigatorModalTitle');
+    const descEl = document.getElementById('createLitigatorModalDesc');
+
+    if (isSpecial) {
+        if (titleEl) titleEl.innerHTML = '<i class="fas fa-crown text-amber-500"></i> Provision Special User';
+        if (descEl) descEl.textContent = 'Grant full tool access with no limits (all legal engines, reports, drafts) — Strictly No Admin Access';
+        const roleSelect = document.getElementById('newLitigatorRole');
+        if (roleSelect) roleSelect.value = 'special_unlimited';
+        const limitInput = document.getElementById('newLitigatorLimit');
+        if (limitInput) limitInput.value = '-1';
+        const priceInput = document.getElementById('newLitigatorPrice');
+        if (priceInput) priceInput.value = '0';
+        const statusSelect = document.getElementById('newLitigatorStatus');
+        if (statusSelect) statusSelect.value = 'APPROVED';
+        document.querySelectorAll('input[name="newLitigatorEngines"]').forEach(cb => cb.checked = true);
+    } else {
+        if (titleEl) titleEl.textContent = 'Provision Litigator Account';
+        if (descEl) descEl.textContent = 'Onboard an advocate, law firm, or enterprise client';
+    }
+};
+
+window.openCreateSpecialUserModal = () => {
+    window.openCreateLitigatorModal(true);
 };
 
 window.closeCreateLitigatorModal = () => {
     const modal = document.getElementById('createLitigatorModal');
     if (modal) modal.classList.add('hidden');
+};
+
+window.handleLitigatorRoleChange = () => {
+    const roleSelect = document.getElementById('newLitigatorRole');
+    if (!roleSelect) return;
+    const role = roleSelect.value;
+    const limitInput = document.getElementById('newLitigatorLimit');
+    const priceInput = document.getElementById('newLitigatorPrice');
+    const statusSelect = document.getElementById('newLitigatorStatus');
+
+    if (role === 'special_unlimited') {
+        if (limitInput) limitInput.value = '-1';
+        if (priceInput) priceInput.value = '0';
+        if (statusSelect) statusSelect.value = 'APPROVED';
+        document.querySelectorAll('input[name="newLitigatorEngines"]').forEach(cb => cb.checked = true);
+    } else if (role === 'citizen') {
+        if (limitInput && limitInput.value === '-1') limitInput.value = '10';
+        if (priceInput && priceInput.value === '0') priceInput.value = '999';
+    } else if (role === 'law_firm') {
+        if (limitInput && limitInput.value === '-1') limitInput.value = '25';
+        if (priceInput && priceInput.value === '0') priceInput.value = '1500';
+    }
 };
 
 window.submitCreateLitigator = async (e) => {
@@ -5003,31 +5074,44 @@ window.submitCreateLitigator = async (e) => {
     const email = document.getElementById('newLitigatorEmail').value.trim();
     const role = document.getElementById('newLitigatorRole').value;
     const limit = parseInt(document.getElementById('newLitigatorLimit').value, 10);
-    const price = parseFloat(document.getElementById('newLitigatorPrice').value) || 500.0;
+    const price = parseFloat(document.getElementById('newLitigatorPrice').value) || 0.0;
     const planStatus = document.getElementById('newLitigatorStatus').value || 'APPROVED';
-    const userId = 'LIT_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+    const isSpecial = role === 'special_unlimited';
+    const prefix = isSpecial ? 'SPL_' : 'LIT_';
+    const userId = prefix + Math.random().toString(36).substring(2, 10).toUpperCase();
 
     const engineCheckboxes = document.querySelectorAll('input[name="newLitigatorEngines"]:checked');
-    const selectedEngines = Array.from(engineCheckboxes).map(cb => cb.value);
+    let selectedEngines = Array.from(engineCheckboxes).map(cb => cb.value);
+    if (isSpecial) {
+        selectedEngines = ["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"];
+    }
 
     try {
-        const res = await api.createLitigatorAccount({
+        const payload = {
             user_id: userId,
             email: email,
             role: role,
-            monthly_limit: isNaN(limit) ? 25 : limit,
+            monthly_limit: isSpecial ? -1 : (isNaN(limit) ? 25 : limit),
             selected_modules: selectedEngines.length > 0 ? selectedEngines : ['s138'],
-            monthly_price_inr: price,
-            plan_status: planStatus
-        }, adminAuthToken);
+            monthly_price_inr: isSpecial ? 0.0 : price,
+            plan_status: planStatus,
+            plan_name: isSpecial ? 'Special Unlimited Access' : 'Standard Monthly Plan'
+        };
+
+        const res = isSpecial 
+            ? await api.createSpecialUserAccount({ email: email, user_id: userId }, adminAuthToken)
+            : await api.createLitigatorAccount(payload, adminAuthToken);
 
         if (res && res.success) {
-            if (window.ui) window.ui.toast(`Litigator account ${email} provisioned successfully!`, 'success');
+            const successMsg = isSpecial 
+                ? `⭐ Special User ${email} created! Unlimited full tool access granted (No Admin Dashboard).`
+                : `Litigator account ${email} provisioned successfully!`;
+            if (window.ui) window.ui.toast(successMsg, 'success');
             window.closeCreateLitigatorModal();
             document.getElementById('createLitigatorForm').reset();
             await window.loadAdminPortalData();
         } else {
-            if (window.ui) window.ui.toast(res.detail || 'Failed to create litigator account', 'error');
+            if (window.ui) window.ui.toast(res.detail || res.message || 'Failed to create account', 'error');
         }
     } catch (err) {
         if (window.ui) window.ui.toast('Account creation error: ' + err.message, 'error');

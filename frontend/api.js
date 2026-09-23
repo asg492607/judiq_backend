@@ -516,6 +516,18 @@ export const api = {
         try { return await response.json(); } catch (e) { throw new Error("Failed to create litigator account."); }
     },
 
+    async createSpecialUserAccount(data, token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/users/create-special`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to create special user account."); }
+    },
+
     async getSystemHealth(token) {
         const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/system/health`, {
             headers: { 'Authorization': `Bearer ${token}` }

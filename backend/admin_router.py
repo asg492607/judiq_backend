@@ -345,11 +345,19 @@ def get_admin_bank_audits(limit: int = Query(50), admin: dict = Depends(require_
 class CreateUserRequest(BaseModel):
     user_id: str = Field(..., description="Unique User ID / UID")
     email: str = Field(..., description="Litigator Email Address")
-    role: str = Field("law_firm", description="Plan/Role (law_firm, enterprise, citizen, admin)")
+    role: str = Field("law_firm", description="Plan/Role (law_firm, enterprise, citizen, special_unlimited, admin)")
     monthly_limit: int = Field(25, description="Monthly Report Limit (-1 for unlimited)")
     selected_modules: Optional[list] = Field(default_factory=lambda: ["s138"], description="Subscribed Modular Engines")
     monthly_price_inr: Optional[float] = Field(500.0, description="Monthly price rate in INR")
     plan_status: Optional[str] = Field("APPROVED", description="Approval Status (APPROVED, PENDING_APPROVAL)")
+    plan_name: Optional[str] = Field(None, description="Optional custom plan name")
+
+
+class CreateSpecialUserRequest(BaseModel):
+    email: str = Field(..., description="Special User Email Address")
+    user_id: Optional[str] = Field(None, description="Optional custom User ID / UID")
+    name: Optional[str] = Field(None, description="Optional litigator or chambers name")
+    notes: Optional[str] = Field(None, description="Optional administrative notes")
 
 
 class BulkBonusRequest(BaseModel):
@@ -381,6 +389,16 @@ def create_litigator_account(req: CreateUserRequest = Body(...), admin: dict = D
     Directly provisions a new litigator account with customized quota, role, modules, and pricing.
     """
     admin_email = admin.get("email", "aixynztechnologies")
+    
+    # Auto-tune special unlimited role
+    if req.role in ("special_unlimited", "vip_unlimited"):
+        req.monthly_limit = -1
+        req.monthly_price_inr = 0.0
+        req.plan_status = "APPROVED"
+        req.plan_name = "Special Unlimited Access"
+        if not req.selected_modules:
+            req.selected_modules = ["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"]
+
     quota = DatabaseManager.create_or_update_full_user(
         user_id=req.user_id.strip(),
         email=req.email.strip(),
@@ -389,10 +407,41 @@ def create_litigator_account(req: CreateUserRequest = Body(...), admin: dict = D
         selected_modules=req.selected_modules or ["s138"],
         monthly_price_inr=req.monthly_price_inr or 500.0,
         plan_status=req.plan_status or "APPROVED",
-        approved_by=admin_email if (req.plan_status or "APPROVED") == "APPROVED" else None
+        approved_by=admin_email if (req.plan_status or "APPROVED") == "APPROVED" else None,
+        plan_name=req.plan_name
     )
-    logger.info(f"[ADMIN] Admin {admin_email} provisioned litigator account {req.user_id} ({req.email})")
+    logger.info(f"[ADMIN] Admin {admin_email} provisioned account {req.user_id} ({req.email}) with role {req.role}")
     return {"success": True, "quota": quota, "message": f"Account provisioned for {req.email}."}
+
+
+@router.post("/users/create-special", tags=["Admin Control"])
+def create_special_unlimited_user(req: CreateSpecialUserRequest = Body(...), admin: dict = Depends(require_admin)):
+    """
+    Directly provisions a Special User account with unlimited full access to ALL legal AI tools,
+    reports, drafts, and multilingual engines with NO quota limits, but STRICTLY NO admin dashboard access.
+    """
+    import secrets
+    admin_email = admin.get("email", "aixynztechnologies")
+    uid = (req.user_id or f"SPL_{secrets.token_hex(4).upper()}").strip()
+    clean_email = req.email.strip().lower()
+
+    quota = DatabaseManager.create_or_update_full_user(
+        user_id=uid,
+        email=clean_email,
+        role="special_unlimited",
+        monthly_limit=-1,
+        selected_modules=["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"],
+        monthly_price_inr=0.0,
+        plan_status="APPROVED",
+        approved_by=admin_email,
+        plan_name="Special Unlimited Access"
+    )
+    logger.info(f"[ADMIN] Admin {admin_email} provisioned SPECIAL UNLIMITED account {uid} ({clean_email})")
+    return {
+        "success": True,
+        "quota": quota,
+        "message": f"Special Unlimited account provisioned for {clean_email}. This user has full tool access with no limits, and strictly no administrative privileges."
+    }
 
 
 

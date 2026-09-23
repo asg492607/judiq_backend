@@ -2545,6 +2545,9 @@
                                 <button class="btn btn-sm btn-primary u-is-160" onclick="openCreateLitigatorModal()">
                                     <i class="fas fa-user-plus"></i> <span>Add Litigator</span>
                                 </button>
+                                <button class="btn btn-sm" onclick="openCreateSpecialUserModal()" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; font-weight: 700; box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35);" title="Create Special User with unlimited full access to all legal AI tools and strictly no admin dashboard">
+                                    <i class="fas fa-crown"></i> <span>Add Special User</span>
+                                </button>
                             </div>
                         </div>
 
@@ -3130,8 +3133,8 @@
                             <i class="fas fa-user-plus"></i>
                         </div>
                         <div>
-                            <h3 class="u-is-242">Provision Litigator Account</h3>
-                            <p class="u-is-243">Onboard an advocate, law firm, or enterprise client</p>
+                            <h3 class="u-is-242" id="createLitigatorModalTitle">Provision Litigator Account</h3>
+                            <p class="u-is-243" id="createLitigatorModalDesc">Onboard an advocate, law firm, or enterprise client</p>
                         </div>
                     </div>
                     <button class="u-is-244" onclick="closeCreateLitigatorModal()">&times;</button>
@@ -3150,8 +3153,10 @@
                             <div>
                                 <label class="u-is-246">Role / Plan Designation</label>
                                 <select id="newLitigatorRole" class="bank-input-select u-is-247"
+                                    onchange="handleLitigatorRoleChange()"
                                     aria-label="Role / Plan Designation" title="Role / Plan Designation">
-                                    <option value="law_firm">Law Firm / Chamber</option>
+                                    <option value="special_unlimited">⭐ Special User (Unlimited Full Access, No Admin)</option>
+                                    <option value="law_firm" selected>Law Firm / Chamber</option>
                                     <option value="enterprise">Enterprise Legal Cell</option>
                                     <option value="citizen">Independent Litigator</option>
                                     <option value="admin">System Administrator</option>
