@@ -1,7 +1,7 @@
 import { supabaseConfig, roleActions, wizardSteps } from '../config.js?v=55';
 import { api } from '../api.js?v=55';
 import { ui, switchScreen } from '../ui.js?v=55';
-import { renderWizardStep, resetWizardInit, normalizeCaseFacts, populateAllInputs } from '../wizard.js?v=56';
+import { renderWizardStep, resetWizardInit, normalizeCaseFacts, populateAllInputs, flattenDemoData } from '../wizard.js?v=57';
 import { renderResults, switchResultTab } from '../renderer.js?v=55';
 import { DRAFT_TYPES, formatDraftDate, numberToWords } from '../draft_templates.js?v=52';
 import { escapeHtml } from './modules/utils.js?v=52';
@@ -27,6 +27,7 @@ import { caseRagWorkspace } from './modules/case_rag_chat.js?v=55';
 window.normalizeCaseFacts = normalizeCaseFacts;
 window.populateAllInputs = populateAllInputs;
 window.resetWizardInit = resetWizardInit;
+window.flattenDemoData = flattenDemoData;
 
 import { store } from './modules/store.js?v=14';
 
@@ -4041,9 +4042,9 @@ window.toggleMobileNav = (forceState) => {
 /**
  * Demo Case Loaders with Instant Preset Population
  */
-window.loadDemoCase = () => {
+window.loadDemoCase = (preset) => {
     if (typeof window.loadSampleCaseData === 'function') {
-        window.loadSampleCaseData(window.SAMPLE_NI_ACT_PRESET);
+        window.loadSampleCaseData(preset || window.SAMPLE_NI_ACT_PRESET);
     }
 };
 

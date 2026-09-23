@@ -13,6 +13,36 @@ export function resetWizardInit() {
 }
 window.resetWizardInit = resetWizardInit;
 
+export function flattenDemoData(data) {
+    if (!data || typeof data !== 'object') return {};
+    const flat = { ...data };
+    if (data.parties && typeof data.parties === 'object') {
+        if (data.parties.complainant) flat.complainant = data.parties.complainant;
+        if (data.parties.accused) flat.accused = data.parties.accused;
+        if (data.parties.court_name) flat.court_name = data.parties.court_name;
+    }
+    if (data.financials && typeof data.financials === 'object') {
+        if (data.financials.cheque_amount) flat.cheque_amount = data.financials.cheque_amount;
+        if (data.financials.debt_amount) flat.debt_amount = data.financials.debt_amount;
+        if (data.financials.amount) flat.amount = data.financials.amount;
+    }
+    if (data.cheque && typeof data.cheque === 'object') {
+        if (data.cheque.cheque_number) flat.cheque_number = data.cheque.cheque_number;
+        if (data.cheque.cheque_date) flat.cheque_date = data.cheque.cheque_date;
+        if (data.cheque.cheque_amount) flat.cheque_amount = data.cheque.cheque_amount;
+    }
+    if (data.dishonour && typeof data.dishonour === 'object') {
+        if (data.dishonour.dishonour_date) flat.dishonour_date = data.dishonour.dishonour_date;
+        if (data.dishonour.dishonour_reason) flat.dishonour_reason = data.dishonour.dishonour_reason;
+    }
+    if (data.notice && typeof data.notice === 'object') {
+        if (data.notice.notice_date) flat.notice_date = data.notice.notice_date;
+        if (data.notice.delivery_date) flat.notice_delivery_date = data.notice.delivery_date;
+    }
+    return flat;
+}
+window.flattenDemoData = flattenDemoData;
+
 export function unwrapFactValue(val) {
     if (val === undefined || val === null) return '';
     if (Array.isArray(val)) {
@@ -869,6 +899,8 @@ export const SAMPLE_COMPOSITE_PRESET = {
 };
 
 export const SAMPLE_CASE_PRESET = SAMPLE_NI_ACT_PRESET;
+export const SAMPLE_CASE_DATA = SAMPLE_NI_ACT_PRESET;
+window.SAMPLE_CASE_DATA = SAMPLE_NI_ACT_PRESET;
 
 window.loadSampleCaseData = (forcedPreset = null) => {
     const domain = (window.state?.userDomain || 'all').toLowerCase();
@@ -877,11 +909,40 @@ window.loadSampleCaseData = (forcedPreset = null) => {
     let preset = SAMPLE_NI_ACT_PRESET;
     let label = 'Section 138';
 
+    if (typeof forcedPreset === 'string') {
+        const fp = forcedPreset.toLowerCase();
+        if (fp.includes('sarfaesi')) {
+            forcedPreset = SAMPLE_SARFAESI_PRESET;
+        } else if (fp.includes('composite') || fp.includes('multi')) {
+            forcedPreset = SAMPLE_COMPOSITE_PRESET;
+        } else if (fp.includes('criminal') || fp.includes('bns')) {
+            forcedPreset = SAMPLE_CRIMINAL_PRESET;
+        } else if (fp.includes('civil')) {
+            forcedPreset = SAMPLE_CIVIL_PRESET;
+        } else {
+            forcedPreset = SAMPLE_NI_ACT_PRESET;
+        }
+    }
+
     if (forcedPreset && typeof forcedPreset === 'object') {
-        preset = flattenDemoData(forcedPreset);
+        preset = (typeof flattenDemoData === 'function')
+            ? flattenDemoData(forcedPreset)
+            : (typeof window.flattenDemoData === 'function' ? window.flattenDemoData(forcedPreset) : { ...forcedPreset });
         label = preset.case_type || 'Custom';
+    } else if (domain === 'composite' || activeCaseType.includes('composite') || activeCaseType.includes('multi')) {
+        preset = SAMPLE_COMPOSITE_PRESET;
+        label = 'Multi-Track Composite';
+    } else if (domain === 'sarfaesi' || activeCaseType.includes('sarfaesi')) {
+        preset = SAMPLE_SARFAESI_PRESET;
+        label = 'SARFAESI Enforcement';
+    } else if (domain === 'criminal' || activeCaseType.includes('criminal')) {
+        preset = SAMPLE_CRIMINAL_PRESET;
+        label = 'Criminal Defense / BNS';
+    } else if (domain === 'civil' || activeCaseType.includes('civil')) {
+        preset = SAMPLE_CIVIL_PRESET;
+        label = 'Civil Litigation';
     } else {
-        preset = SAMPLE_CASE_DATA;
+        preset = SAMPLE_NI_ACT_PRESET;
         label = 'Section 138 NI Act';
     }
 
@@ -948,7 +1009,7 @@ window.SAMPLE_CRIMINAL_PRESET = SAMPLE_CRIMINAL_PRESET;
 window.SAMPLE_CIVIL_PRESET = SAMPLE_CIVIL_PRESET;
 window.SAMPLE_COMPOSITE_PRESET = SAMPLE_COMPOSITE_PRESET;
 
-window.loadDemoCase = () => window.loadSampleCaseData(SAMPLE_NI_ACT_PRESET);
+window.loadDemoCase = (preset = SAMPLE_NI_ACT_PRESET) => window.loadSampleCaseData(preset || SAMPLE_NI_ACT_PRESET);
 window.loadSarfaesiDemoCase = () => window.loadSampleCaseData(SAMPLE_SARFAESI_PRESET);
 window.loadCompositeDemoCase = () => window.loadSampleCaseData(SAMPLE_COMPOSITE_PRESET);
 window.loadCriminalDemoCase = () => window.loadSampleCaseData(SAMPLE_CRIMINAL_PRESET);

@@ -8,8 +8,8 @@
     "size_kb": 147.59
   },
   "wizard.js": {
-    "sri_integrity": "sha384-/xkAfcYUtCqORDw7DnYVxfDoAi05j6octjoCH1RiVv++zQzGwNWoBKR/Zeph2P1l",
-    "size_kb": 42.89
+    "sri_integrity": "sha384-PcuQd3iKu/q5IlZYtQ6/fa1p19sWDb9M+EGEKNn94UviJBvk6fq9B/zhqp/CCmWd",
+    "size_kb": 46.11
   },
   "api.js": {
     "sri_integrity": "sha384-caDBO4jncgePNaSmdUSVzqmPb3m51VLc+yynpwoN3rZjMSPrdkwq8GZq3q6CHqdV",
@@ -20,8 +20,8 @@
     "size_kb": 63.37
   },
   "js/main.js": {
-    "sri_integrity": "sha384-Sk4XtLgx7YC4+53VYdkHcPNExoGzZG+6KfqzgLsZWtkZHglqOS8Osy3bnDWyNMq3",
-    "size_kb": 306.33
+    "sri_integrity": "sha384-GIZprRKGq9O44IBpJKKZOORm465I/ZJcMu1bOik0NvO+MrRcEa1J6rQtYw7MHnzy",
+    "size_kb": 306.41
   },
   "js/modules/store.js": {
     "sri_integrity": "sha384-q2enoYfjzs35HSKZkZlyAYrvISAW2qHpGMUyOBeLSlfUVoiR7fLvg5yzgqSKdxRF",
