@@ -135,8 +135,14 @@ def extract_clean_citations(doc_intel: Optional[Dict[str, Any]] = None, facts: O
 class GeminiCaseRAGService:
     @staticmethod
     def _call_gemini_api(prompt: str, sys_instruction: str, max_tokens: int = 2048, temperature: float = 0.2) -> Optional[str]:
-        api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-        if not api_key:
+        try:
+            from llm_engine import get_all_gemini_api_keys
+            api_keys = get_all_gemini_api_keys()
+        except Exception:
+            k = os.environ.get("GEMINI_API_KEY", "").strip()
+            api_keys = [k] if k else []
+
+        if not api_keys:
             return None
 
         # Prioritize fast, high-availability models with generous free-tier quotas
@@ -153,37 +159,38 @@ class GeminiCaseRAGService:
         # Deduplicate while preserving precedence
         candidate_models = list(dict.fromkeys(models_to_try))
 
-        for model in candidate_models:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-            payload = {
-                "contents": [{"parts": [{"text": prompt}]}],
-                "systemInstruction": {"parts": [{"text": sys_instruction}]},
-                "generationConfig": {
-                    "maxOutputTokens": max_tokens,
-                    "temperature": temperature
+        for key_idx, api_key in enumerate(api_keys):
+            for model in candidate_models:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+                payload = {
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "systemInstruction": {"parts": [{"text": sys_instruction}]},
+                    "generationConfig": {
+                        "maxOutputTokens": max_tokens,
+                        "temperature": temperature
+                    }
                 }
-            }
-            data = json.dumps(payload).encode("utf-8")
-            req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
-            try:
-                with urllib.request.urlopen(req, timeout=25) as resp:
-                    res = json.loads(resp.read().decode("utf-8"))
-                    candidates = res.get("candidates", [])
-                    if candidates:
-                        parts = candidates[0].get("content", {}).get("parts", [])
-                        texts = [p.get("text", "") for p in parts if "text" in p]
-                        answer = "".join(texts).strip()
-                        if answer:
-                            logger.info(f"Gemini RAG generated successfully via model '{model}'.")
-                            return answer
-            except urllib.error.HTTPError as he:
-                logger.warning(f"Gemini API model '{model}' HTTP error {he.code}: {he.reason}. Trying next cascade model...")
-                continue
-            except Exception as e:
-                logger.warning(f"Gemini API model '{model}' failed ({e}). Trying next cascade model...")
-                continue
+                data = json.dumps(payload).encode("utf-8")
+                req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+                try:
+                    with urllib.request.urlopen(req, timeout=25) as resp:
+                        res = json.loads(resp.read().decode("utf-8"))
+                        candidates = res.get("candidates", [])
+                        if candidates:
+                            parts = candidates[0].get("content", {}).get("parts", [])
+                            texts = [p.get("text", "") for p in parts if "text" in p]
+                            answer = "".join(texts).strip()
+                            if answer:
+                                logger.info(f"Gemini RAG generated successfully via model '{model}' with key #{key_idx+1}.")
+                                return answer
+                except urllib.error.HTTPError as he:
+                    logger.warning(f"Gemini API key #{key_idx+1} model '{model}' HTTP error {he.code}: {he.reason}. Trying next...")
+                    continue
+                except Exception as e:
+                    logger.warning(f"Gemini API key #{key_idx+1} model '{model}' failed ({e}). Trying next...")
+                    continue
 
-        logger.warning("All Gemini candidate models failed or rate-limited; falling back to local legal intelligence engine.")
+        logger.warning("All Gemini candidate models and fallback keys failed or rate-limited; falling back to local legal intelligence engine.")
         return None
 
     @staticmethod

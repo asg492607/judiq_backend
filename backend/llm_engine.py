@@ -24,7 +24,40 @@ logger = logging.getLogger(__name__)
 GROQ_API_KEY   = os.environ.get("GROQ_API_KEY", "").strip()
 GROQ_MODEL     = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile").strip()
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+GEMINI_API_KEY_FALLBACK_1 = os.environ.get("GEMINI_API_KEY_FALLBACK_1", "").strip()
+GEMINI_API_KEY_FALLBACK_2 = os.environ.get("GEMINI_API_KEY_FALLBACK_2", "").strip()
 GEMINI_MODEL   = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash").strip()
+
+def get_all_gemini_api_keys() -> List[str]:
+    """
+    Returns an ordered list of unique Gemini API keys with multi-tier fallback:
+    1. GEMINI_API_KEY (Primary - Project 814800896448)
+    2. GEMINI_API_KEY_FALLBACK_1 (Fallback 2 - Project 373334282792)
+    3. GEMINI_API_KEY_FALLBACK_2 (Fallback 3 - Project 572035810567)
+    4. Any additional keys specified in comma-separated GEMINI_API_KEYS
+    """
+    keys: List[str] = []
+
+    k1 = os.environ.get("GEMINI_API_KEY", GEMINI_API_KEY).strip()
+    if k1:
+        keys.append(k1)
+
+    k2 = os.environ.get("GEMINI_API_KEY_FALLBACK_1", GEMINI_API_KEY_FALLBACK_1).strip()
+    if k2:
+        keys.append(k2)
+
+    k3 = os.environ.get("GEMINI_API_KEY_FALLBACK_2", GEMINI_API_KEY_FALLBACK_2).strip()
+    if k3:
+        keys.append(k3)
+
+    k_list = os.environ.get("GEMINI_API_KEYS", "").strip()
+    if k_list:
+        for k in k_list.split(","):
+            clean_k = k.strip()
+            if clean_k and clean_k not in keys:
+                keys.append(clean_k)
+
+    return list(dict.fromkeys(keys))
 
 _groq_client   = None
 _gemini_model  = None
@@ -44,11 +77,12 @@ if GROQ_API_KEY:
     except Exception as e:
         logger.warning(f"⚠️ Groq init failed: {e}.")
 
-# ── Secondary: Gemini (used when Groq unavailable) ─────────────────────────
-if not LLM_AVAILABLE and GEMINI_API_KEY:
+# ── Secondary: Gemini (used when Groq unavailable or for multimodal / multi-key fallback)
+gemini_keys_available = get_all_gemini_api_keys()
+if not LLM_AVAILABLE and gemini_keys_available:
     LLM_AVAILABLE = True
     LLM_PROVIDER  = "gemini"
-    logger.info(f"⚡ Gemini LLM Engine activated via REST using model: {GEMINI_MODEL}")
+    logger.info(f"⚡ Gemini LLM Engine activated with {len(gemini_keys_available)} pooled keys using model: {GEMINI_MODEL}")
 
 if not LLM_AVAILABLE:
     logger.info("ℹ️ Running in 100% Deterministic mode. Set GROQ_API_KEY or GEMINI_API_KEY to activate LLM.")
@@ -188,39 +222,44 @@ def _invoke_llm(
             if not os.environ.get("GEMINI_API_KEY"):
                 return fallback_value
 
-    # ── Gemini path (direct REST, supports text + multimodal inline_data) ─────
-    gemini_key = os.environ.get("GEMINI_API_KEY", GEMINI_API_KEY).strip()
+    # ── Gemini path (direct REST, supports text + multimodal inline_data with multi-key pool fallback) ─────
+    gemini_keys = get_all_gemini_api_keys()
     gemini_model = os.environ.get("GEMINI_MODEL", GEMINI_MODEL).strip()
-    if gemini_key:
-        try:
-            result_text = _call_gemini_rest(
-                prompt=prompt,
-                sys_msg=sys_msg,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                expect_json=expect_json,
-                api_key=gemini_key,
-                model=gemini_model,
-                inline_data=inline_data,
-            )
-            if not result_text:
-                return fallback_value
+    if gemini_keys:
+        for idx, key in enumerate(gemini_keys):
+            try:
+                result_text = _call_gemini_rest(
+                    prompt=prompt,
+                    sys_msg=sys_msg,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    expect_json=expect_json,
+                    api_key=key,
+                    model=gemini_model,
+                    inline_data=inline_data,
+                )
+                if not result_text:
+                    logger.warning(f"Gemini API key #{idx+1} returned empty response, trying next fallback key...")
+                    continue
 
-            if expect_json:
-                clean = result_text.strip()
-                if clean.startswith("```"):
-                    clean = "\n".join(clean.split("\n")[1:])
-                if clean.endswith("```"):
-                    clean = clean[:-3]
-                try:
-                    return json.loads(clean.strip())
-                except json.JSONDecodeError:
-                    logger.warning("Gemini response was not valid JSON, returning fallback.")
-                    return fallback_value
-            return result_text
-        except Exception as err:
-            logger.warning(f"Gemini REST invocation failed ({err}), falling back to deterministic result.")
-            return fallback_value
+                if expect_json:
+                    clean = result_text.strip()
+                    if clean.startswith("```"):
+                        clean = "\n".join(clean.split("\n")[1:])
+                    if clean.endswith("```"):
+                        clean = clean[:-3]
+                    try:
+                        return json.loads(clean.strip())
+                    except json.JSONDecodeError:
+                        logger.warning(f"Gemini key #{idx+1} response was not valid JSON, trying fallback key.")
+                        continue
+                return result_text
+            except Exception as err:
+                logger.warning(f"Gemini REST key #{idx+1} invocation failed ({err}), trying next fallback key...")
+                continue
+
+        logger.warning("All Gemini REST fallback API keys failed, falling back to deterministic result.")
+        return fallback_value
 
     return fallback_value
 

@@ -31,8 +31,12 @@ services:
         value: aixynztechnologies,aixynztechnologies@gmail.com,aixynztechnologies@judiq.ai
       - key: GEMINI_API_KEY
         sync: false
+      - key: GEMINI_API_KEY_FALLBACK_1
+        sync: false
+      - key: GEMINI_API_KEY_FALLBACK_2
+        sync: false
       - key: GEMINI_MODEL
-        value: gemini-2.5-flash
+        value: gemini-3.6-flash
       - key: GROQ_API_KEY
         sync: false
       - key: CORS_ORIGINS
