@@ -10,7 +10,7 @@
  * Exports: initDocIntel(), window.openDocIntelPanel(), window.closeDocIntelPanel()
  */
 
-import { api } from '../api.js?v=14';
+import { api } from '../api.js?v=15';
 import { ui, switchScreen } from '../ui.js?v=14';
 import { escapeHtml } from './modules/utils.js?v=14';
 

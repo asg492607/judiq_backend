@@ -1,5 +1,5 @@
 import { supabaseConfig, roleActions, wizardSteps } from '../config.js?v=55';
-import { api } from '../api.js?v=55';
+import { api } from '../api.js?v=56';
 import { ui, switchScreen } from '../ui.js?v=55';
 import { renderWizardStep, resetWizardInit, normalizeCaseFacts, populateAllInputs, flattenDemoData } from '../wizard.js?v=57';
 import { renderResults, switchResultTab } from '../renderer.js?v=55';
@@ -21,7 +21,7 @@ import { initClientManager } from './client_manager.js?v=52';
 import { initDocumentLibrary } from './document_library.js?v=52';
 import { initDraftWorkflow } from './draft_workflow_ui.js?v=52';
 import { initCmsAnalytics } from './analytics_charts.js?v=52';
-import { initDocIntel } from './doc_intel.js?v=54';
+import { initDocIntel } from './doc_intel.js?v=55';
 import { caseRagWorkspace } from './modules/case_rag_chat.js?v=55';
 
 window.normalizeCaseFacts = normalizeCaseFacts;

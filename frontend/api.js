@@ -60,10 +60,12 @@ export async function fetchWithRetry(url, options = {}, maxRetries = 3, baseDela
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
             const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 90000); // 90s timeout
+            const timeoutMs = options.timeout || 90000;
+            const timeout = setTimeout(() => controller.abort(), timeoutMs);
             let response;
             try {
-                response = await fetch(url, { ...options, signal: controller.signal });
+                const { timeout: _customTimeout, ...fetchOpts } = options;
+                response = await fetch(url, { ...fetchOpts, signal: controller.signal });
             } finally {
                 clearTimeout(timeout);
             }
@@ -104,7 +106,8 @@ export async function fetchWithRetry(url, options = {}, maxRetries = 3, baseDela
         } catch (err) {
             lastError = err;
             if (err.name === 'AbortError') {
-                throw new Error('Request timed out after 90 seconds.');
+                const secs = Math.round((options.timeout || 90000) / 1000);
+                throw new Error(`Request timed out after ${secs} seconds.`);
             }
             const isNetworkOrCors = !err.status || err.message?.includes('fetch') || err.message?.includes('network');
             const retryable = isNetworkOrCors || err.status === 408 || err.status === 429 || err.status >= 500;
@@ -958,6 +961,7 @@ export const api = {
         const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/doc-intel/extract`, {
             method: 'POST',
             body: formData,
+            timeout: 180000,
         });
         if (!response.ok) {
             const err = await response.json().catch(() => ({}));
@@ -976,6 +980,7 @@ export const api = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ session_id: sessionId, workflow_type: workflowType }),
+            timeout: 120000,
         });
         if (!response.ok) {
             const err = await response.json().catch(() => ({}));

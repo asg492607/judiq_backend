@@ -12,15 +12,15 @@
     "size_kb": 46.11
   },
   "api.js": {
-    "sri_integrity": "sha384-caDBO4jncgePNaSmdUSVzqmPb3m51VLc+yynpwoN3rZjMSPrdkwq8GZq3q6CHqdV",
-    "size_kb": 50.59
+    "sri_integrity": "sha384-FcSxIBaPy8Wweaf/aEcYdIuVgXo1mQWN3biJ+pJfe0uQShpH0OwCmgc+1rMu2jMj",
+    "size_kb": 50.85
   },
   "draft_templates.js": {
     "sri_integrity": "sha384-eHIIxnnZFrBQIflzYMISVOZbPPu1OJanwJwtlxVPKzeXFpoLN53rOqUZfG6GNFXR",
     "size_kb": 63.37
   },
   "js/main.js": {
-    "sri_integrity": "sha384-GIZprRKGq9O44IBpJKKZOORm465I/ZJcMu1bOik0NvO+MrRcEa1J6rQtYw7MHnzy",
+    "sri_integrity": "sha384-dPkRw2i43abKR4zil/ZHzmh801j+SK6fah/KPljk1CwKnhU2i84uCTvv4Q9cTv0B",
     "size_kb": 306.41
   },
   "js/modules/store.js": {

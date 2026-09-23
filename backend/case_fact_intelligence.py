@@ -306,9 +306,11 @@ def _ocr_native_pdf(file_bytes: bytes) -> Tuple[str, List[Dict], str]:
         pages_data = []
         full_text_parts = []
         with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-            for i, page in enumerate(pdf.pages, start=1):
+            max_pages = min(len(pdf.pages), 12)
+            for i in range(max_pages):
+                page = pdf.pages[i]
                 page_text = page.extract_text() or ""
-                pages_data.append({"page_num": i, "text": page_text})
+                pages_data.append({"page_num": i + 1, "text": page_text})
                 full_text_parts.append(page_text)
         full_text = "\n".join(full_text_parts)
         return full_text, pages_data, "pdfplumber"
@@ -393,7 +395,7 @@ def _ocr_scanned_pdf(file_bytes: bytes) -> Tuple[str, List[Dict], str]:
         import pytesseract
         from PIL import Image
 
-        images = convert_from_bytes(file_bytes, dpi=200)
+        images = convert_from_bytes(file_bytes, dpi=150, first_page=1, last_page=6)
         pages_data = []
         full_text_parts = []
         for i, img in enumerate(images, start=1):
@@ -2110,8 +2112,7 @@ async def extract_facts(
     doc_type_hints = [dt.strip().upper() for dt in (doc_types or "").split(",") if dt.strip()]
 
     session_id = f"DI-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:8].upper()}"
-    extracted_documents: List[ExtractedDocument] = []
-
+    file_items = []
     for idx, file in enumerate(files):
         mime = file.content_type or "application/octet-stream"
         if mime not in ALLOWED_MIMES:
@@ -2123,25 +2124,24 @@ async def extract_facts(
             continue
 
         filename = file.filename or f"document_{idx+1}"
+        doc_hint = doc_type_hints[idx] if idx < len(doc_type_hints) else ""
+        file_items.append((idx, filename, content, mime, doc_hint))
 
-        # OCR
+    def _process_single_doc(item):
+        idx, filename, content, mime, doc_hint = item
         ocr_result = run_ocr_pipeline(content, mime, filename)
         full_text = ocr_result["text"]
         pages_data = ocr_result["pages"]
         page_count = ocr_result["page_count"]
         ocr_method = ocr_result["method"]
 
-        # Document type:
-        # Priority 1: user-provided hint (e.g. from the UI dropdown)
-        # Priority 2: hybrid classifier (filename + OCR text)
-        if idx < len(doc_type_hints) and doc_type_hints[idx] in DOC_TYPE_SIGNATURES and doc_type_hints[idx] != "OTHER":
-            doc_type = doc_type_hints[idx]
+        if doc_hint and doc_hint in DOC_TYPE_SIGNATURES and doc_hint != "OTHER":
+            doc_type = doc_hint
         else:
             doc_type = classify_document(filename, full_text)
 
         logger.info(f"Processing '{filename}' → doc_type={doc_type}, OCR={ocr_result['method']}, chars={ocr_result['char_count']}")
 
-        # LLM fact extraction (with multimodal capability and comprehensive deterministic fallback)
         raw_facts = extract_facts_with_llm(
             full_text,
             doc_type,
@@ -2150,6 +2150,20 @@ async def extract_facts(
             file_bytes=content,
             mime_type=mime
         )
+        return (idx, filename, content, mime, doc_type, ocr_result, raw_facts)
+
+    import concurrent.futures
+    max_workers = min(len(file_items), 4) if file_items else 1
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        processed_results = list(executor.map(_process_single_doc, file_items))
+
+    processed_results.sort(key=lambda x: x[0])
+
+    extracted_documents: List[ExtractedDocument] = []
+    for (idx, filename, content, mime, doc_type, ocr_result, raw_facts) in processed_results:
+        full_text = ocr_result["text"]
+        page_count = ocr_result["page_count"]
+        ocr_method = ocr_result["method"]
 
         # Build structured confidence / snippet maps
         fact_confidences: Dict[str, float] = {}

@@ -128,24 +128,19 @@ def _call_gemini_rest(
         payload["systemInstruction"] = {"parts": [{"text": sys_msg}]}
 
     data = json.dumps(payload).encode("utf-8")
-    for attempt in range(2):
-        try:
-            req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                res = json.loads(resp.read().decode("utf-8"))
-                candidates = res.get("candidates", [])
-                if candidates:
-                    cand_parts = candidates[0].get("content", {}).get("parts", [])
-                    for p in cand_parts:
-                        if "text" in p and p["text"].strip():
-                            return p["text"].strip()
-                return None
-        except Exception as e:
-            if attempt < 1 and ("503" in str(e) or "500" in str(e) or "timeout" in str(e).lower()):
-                time.sleep(0.8)
-                continue
-            raise e
-    return None
+    try:
+        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=12) as resp:
+            res = json.loads(resp.read().decode("utf-8"))
+            candidates = res.get("candidates", [])
+            if candidates:
+                cand_parts = candidates[0].get("content", {}).get("parts", [])
+                for p in cand_parts:
+                    if "text" in p and p["text"].strip():
+                        return p["text"].strip()
+            return None
+    except Exception as e:
+        raise e
 
 
 def _invoke_llm(
@@ -224,41 +219,50 @@ def _invoke_llm(
 
     # ── Gemini path (direct REST, supports text + multimodal inline_data with multi-key pool fallback) ─────
     gemini_keys = get_all_gemini_api_keys()
-    gemini_model = os.environ.get("GEMINI_MODEL", GEMINI_MODEL).strip()
+    configured_model = os.environ.get("GEMINI_MODEL", GEMINI_MODEL).strip()
+    candidate_models = list(dict.fromkeys([
+        m for m in [
+            "gemini-3.5-flash-lite",
+            "gemini-3.1-flash-lite",
+            "gemini-flash-latest",
+            configured_model,
+        ] if m
+    ]))
+
     if gemini_keys:
         for idx, key in enumerate(gemini_keys):
-            try:
-                result_text = _call_gemini_rest(
-                    prompt=prompt,
-                    sys_msg=sys_msg,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                    expect_json=expect_json,
-                    api_key=key,
-                    model=gemini_model,
-                    inline_data=inline_data,
-                )
-                if not result_text:
-                    logger.warning(f"Gemini API key #{idx+1} returned empty response, trying next fallback key...")
+            for model_name in candidate_models:
+                try:
+                    result_text = _call_gemini_rest(
+                        prompt=prompt,
+                        sys_msg=sys_msg,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                        expect_json=expect_json,
+                        api_key=key,
+                        model=model_name,
+                        inline_data=inline_data,
+                    )
+                    if not result_text:
+                        continue
+
+                    if expect_json:
+                        clean = result_text.strip()
+                        if clean.startswith("```"):
+                            clean = "\n".join(clean.split("\n")[1:])
+                        if clean.endswith("```"):
+                            clean = clean[:-3]
+                        try:
+                            return json.loads(clean.strip())
+                        except json.JSONDecodeError:
+                            logger.warning(f"Gemini key #{idx+1} model '{model_name}' response was not valid JSON, trying fallback...")
+                            continue
+                    return result_text
+                except Exception as err:
+                    logger.warning(f"Gemini REST key #{idx+1} model '{model_name}' failed ({err}), trying next fallback...")
                     continue
 
-                if expect_json:
-                    clean = result_text.strip()
-                    if clean.startswith("```"):
-                        clean = "\n".join(clean.split("\n")[1:])
-                    if clean.endswith("```"):
-                        clean = clean[:-3]
-                    try:
-                        return json.loads(clean.strip())
-                    except json.JSONDecodeError:
-                        logger.warning(f"Gemini key #{idx+1} response was not valid JSON, trying fallback key.")
-                        continue
-                return result_text
-            except Exception as err:
-                logger.warning(f"Gemini REST key #{idx+1} invocation failed ({err}), trying next fallback key...")
-                continue
-
-        logger.warning("All Gemini REST fallback API keys failed, falling back to deterministic result.")
+        logger.warning("All Gemini REST fallback API keys and models failed, falling back to deterministic result.")
         return fallback_value
 
     return fallback_value
