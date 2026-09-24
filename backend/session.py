@@ -1327,7 +1327,7 @@ class DatabaseManager:
                 }
 
             # Check if existing DB record is special unlimited (all tool access, no limits, no admin panel)
-            if db_role in ("special_unlimited", "vip_unlimited") or plan_name in ("Special Unlimited Access", "Special Unlimited"):
+            if db_role in ("special_unlimited", "vip_unlimited") or plan_name in ("Special Unlimited Access", "Special Unlimited", "Institutional Counsel Plan"):
                 return {
                     "user_id": db_user_id,
                     "email": db_email or email,
@@ -1346,7 +1346,7 @@ class DatabaseManager:
                     "approved_by": approved_by or "ADMIN",
                     "approved_at": approved_at or now_iso,
                     "paid_demo_used": False,
-                    "plan_name": "Special Unlimited Access",
+                    "plan_name": "Institutional Counsel Plan",
                     "drafts_used": drafts_used
                 }
 
@@ -1512,7 +1512,7 @@ class DatabaseManager:
         # Special Unlimited User Bypass: full access with no limit (strictly non-admin)
         if (
             quota.get("role") in ("special_unlimited", "vip_unlimited") or 
-            quota.get("plan_name") in ("Special Unlimited Access", "Special Unlimited") or 
+            quota.get("plan_name") in ("Special Unlimited Access", "Special Unlimited", "Institutional Counsel Plan") or 
             quota.get("monthly_report_limit") == -1
         ):
             return {
@@ -1602,7 +1602,7 @@ class DatabaseManager:
         # Special unlimited user - full multilingual and unlimited drafts across all draft types
         if (
             quota.get("role") in ("special_unlimited", "vip_unlimited") or 
-            quota.get("plan_name") in ("Special Unlimited Access", "Special Unlimited") or 
+            quota.get("plan_name") in ("Special Unlimited Access", "Special Unlimited", "Institutional Counsel Plan") or 
             quota.get("monthly_report_limit") == -1
         ):
             return {
@@ -1903,12 +1903,12 @@ class DatabaseManager:
             current_month = datetime.now().strftime("%Y-%m")
 
             # Special Unlimited configuration
-            if role in ("special_unlimited", "vip_unlimited") or plan_name in ("Special Unlimited Access", "Special Unlimited"):
+            if role in ("special_unlimited", "vip_unlimited") or plan_name in ("Special Unlimited Access", "Special Unlimited", "Institutional Counsel Plan"):
                 role = "special_unlimited"
                 monthly_limit = -1
                 monthly_price_inr = 0.0
                 plan_status = "APPROVED"
-                plan_name = "Special Unlimited Access"
+                plan_name = "Institutional Counsel Plan"
                 if not selected_modules:
                     selected_modules = ["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"]
 
@@ -1916,7 +1916,7 @@ class DatabaseManager:
             mods_json = json.dumps(mods)
             is_active = 1 if plan_status in ("APPROVED", "ACTIVE") else 0
             approved_at = now_iso if plan_status in ("APPROVED", "ACTIVE") else None
-            resolved_plan_name = plan_name or ("Special Unlimited Access" if role == "special_unlimited" else "Standard Monthly Plan")
+            resolved_plan_name = plan_name or ("Institutional Counsel Plan" if role == "special_unlimited" else "Standard Monthly Plan")
 
             cursor.execute(f"SELECT user_id FROM user_quotas WHERE user_id = {p}", (user_id,))
             exists = cursor.fetchone()

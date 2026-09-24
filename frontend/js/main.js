@@ -869,7 +869,7 @@ function renderDashboard() {
     const adminBtn = document.getElementById('adminPortalBtn');
     const isSpecialUser = savedRole === 'special_unlimited' || 
         (window.state && window.state.userQuota && window.state.userQuota.role === 'special_unlimited') ||
-        (window.state && window.state.userQuota && window.state.userQuota.plan_name === 'Special Unlimited Access');
+        (window.state && window.state.userQuota && (window.state.userQuota.plan_name === 'Special Unlimited Access' || window.state.userQuota.plan_name === 'Institutional Counsel Plan'));
 
     const isAdmin = !isSpecialUser && (
         savedRole === 'admin' ||
@@ -898,9 +898,8 @@ function renderDashboard() {
     if (isAdmin && pill && qText) {
         setQuotaLabel('Unlimited Reports (Admin Access)', 'Admin: ∞');
         pill.style.display = 'inline-flex';
-    } else if (isSpecialUser && pill && qText) {
-        setQuotaLabel('Unlimited Reports (⭐ Special Access)', '⭐ Unlimited');
-        pill.style.display = 'inline-flex';
+    } else if (isSpecialUser && pill) {
+        pill.style.display = 'none';
     }
 
     if (currentUser && typeof api !== 'undefined' && api.getUserQuota) {
@@ -908,17 +907,18 @@ function renderDashboard() {
         api.getUserQuota(uid, userEmail).then(res => {
             if (res && res.success && res.quota) {
                 const q = res.quota;
-                const isSpec = q.role === 'special_unlimited' || q.plan_name === 'Special Unlimited Access' || isSpecialUser;
+                const isSpec = q.role === 'special_unlimited' || q.plan_name === 'Special Unlimited Access' || q.plan_name === 'Institutional Counsel Plan' || isSpecialUser;
                 if (pill && qText) {
                     if (isAdmin || q.role === 'admin') {
                         setQuotaLabel('Unlimited Reports (Admin Access)', 'Admin: ∞');
+                        pill.style.display = 'inline-flex';
                     } else if (isSpec || q.monthly_report_limit === -1) {
-                        setQuotaLabel('Unlimited Reports (⭐ Special Access)', '⭐ Unlimited');
+                        pill.style.display = 'none';
                         if (adminBtn) adminBtn.style.display = 'none';
                     } else {
                         setQuotaLabel(`${q.remaining_reports}/${q.monthly_report_limit} Reports`, `${q.remaining_reports}/${q.monthly_report_limit}`);
+                        pill.style.display = 'inline-flex';
                     }
-                    pill.style.display = 'inline-flex';
                 }
             }
         }).catch(err => {
@@ -1225,8 +1225,25 @@ function renderDashboard() {
 
     const roleBadge = document.getElementById('userRoleBadge');
     if (roleBadge) {
-        roleBadge.textContent = role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-        roleBadge.className = `user-role-badge role-${role}`;
+        if (role === 'special_unlimited' || isSpecialUser) {
+            const savedProfileStr = window.state.currentUser ? localStorage.getItem(`judiq_profile_${window.state.currentUser.uid}`) : null;
+            let profileRole = '';
+            if (savedProfileStr) {
+                try { profileRole = JSON.parse(savedProfileStr).role; } catch (_) {}
+            }
+            if (profileRole && profileRole !== 'special_unlimited') {
+                roleBadge.style.display = '';
+                roleBadge.textContent = profileRole.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                roleBadge.className = `user-role-badge role-${profileRole}`;
+            } else {
+                roleBadge.style.display = 'none';
+                roleBadge.textContent = '';
+            }
+        } else {
+            roleBadge.style.display = '';
+            roleBadge.textContent = role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            roleBadge.className = `user-role-badge role-${role}`;
+        }
     }
 
     // Personalization header greeting updates
