@@ -21,8 +21,8 @@ import { initClientManager } from './client_manager.js?v=52';
 import { initDocumentLibrary } from './document_library.js?v=52';
 import { initDraftWorkflow } from './draft_workflow_ui.js?v=52';
 import { initCmsAnalytics } from './analytics_charts.js?v=52';
-import { initDocIntel } from './doc_intel.js?v=55';
-import { caseRagWorkspace } from './modules/case_rag_chat.js?v=55';
+import { initDocIntel } from './doc_intel.js?v=60';
+import { caseRagWorkspace } from './modules/case_rag_chat.js?v=60';
 
 window.normalizeCaseFacts = normalizeCaseFacts;
 window.populateAllInputs = populateAllInputs;

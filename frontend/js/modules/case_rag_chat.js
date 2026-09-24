@@ -839,20 +839,21 @@ export class CaseRagChatWorkspace {
             });
             this.removeTypingIndicator();
 
+            this.chatHistory = [];
             if (res.all_facts && typeof res.all_facts === 'object' && Object.keys(res.all_facts).length > 0) {
                 this.docIntel = this.docIntel || {};
-                this.docIntel.all_facts = { ...(this.docIntel.all_facts || {}), ...res.all_facts };
+                this.docIntel.all_facts = { ...res.all_facts };
             }
             if (res.case_data && typeof res.case_data === 'object' && Object.keys(res.case_data).length > 0) {
-                this.caseData = { ...(this.caseData || {}), ...res.case_data };
+                this.caseData = { ...this.caseData, ...res.case_data };
             }
             if (res.active_facts && typeof res.active_facts === 'object' && Object.keys(res.active_facts).length > 0) {
-                this.caseData = { ...(this.caseData || {}), ...res.active_facts };
+                this.caseData = { ...this.caseData, ...res.active_facts };
             }
             if (window.state) {
-                window.state.caseData = { ...(window.state.caseData || {}), ...(this.caseData || {}) };
+                window.state.caseData = { ...this.caseData };
                 if (this.docIntel) {
-                    window.state.docIntel = { ...(window.state.docIntel || {}), ...this.docIntel };
+                    window.state.docIntel = { ...this.docIntel };
                 }
             }
 

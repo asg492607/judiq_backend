@@ -1,14 +1,16 @@
 """
 JudiQ AI — LLM Engine & Deterministic Reasoning Router
-Gemini-powered inference with multi-key, multi-model fallback cascade and
-100% deterministic rule-based Indian legal analytics as the final safety net.
+======================================================
+Dual-provider inference (Groq ultra-fast primary + Gemini multi-key multimodal cascade)
+with 100% deterministic rule-based Indian legal analytics as the final safety net.
 """
 
 import os
 import json
+import time
 import logging
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Set
 
 try:
     from dotenv import load_dotenv
@@ -20,19 +22,33 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-# Environment & Gemini configuration
+# Environment & Provider configuration
+GROQ_API_KEY              = os.environ.get("GROQ_API_KEY", "").strip()
+GROQ_MODEL                = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile").strip()
 GEMINI_API_KEY            = os.environ.get("GEMINI_API_KEY", "").strip()
 GEMINI_API_KEY_FALLBACK_1 = os.environ.get("GEMINI_API_KEY_FALLBACK_1", "").strip()
 GEMINI_API_KEY_FALLBACK_2 = os.environ.get("GEMINI_API_KEY_FALLBACK_2", "").strip()
 GEMINI_MODEL              = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash").strip()
 
+# In-memory circuit-breaker / quarantine for permanently failing keys (e.g. 403 Forbidden)
+_quarantined_gemini_keys: Set[str] = set()
+
+_groq_client = None
+if GROQ_API_KEY:
+    try:
+        from groq import Groq
+        _groq_client = Groq(api_key=GROQ_API_KEY)
+        logger.info("⚡ Groq LLM Engine activated as primary fast-path.")
+    except Exception as _g_err:
+        logger.debug(f"Groq initialization skipped: {_g_err}")
+
 
 def get_all_gemini_api_keys() -> List[str]:
     """
     Returns an ordered list of unique Gemini API keys with multi-tier fallback:
-    1. GEMINI_API_KEY          (Primary   - Project 814800896448)
-    2. GEMINI_API_KEY_FALLBACK_1 (Fallback - Project 373334282792)
-    3. GEMINI_API_KEY_FALLBACK_2 (Fallback - Project 572035810567)
+    1. GEMINI_API_KEY            (Primary)
+    2. GEMINI_API_KEY_FALLBACK_1 (Fallback 1)
+    3. GEMINI_API_KEY_FALLBACK_2 (Fallback 2)
     4. Any additional keys in comma-separated GEMINI_API_KEYS env var
     """
     keys: List[str] = []
@@ -56,17 +72,7 @@ def get_all_gemini_api_keys() -> List[str]:
     return keys
 
 
-LLM_AVAILABLE = False
-
-gemini_keys_available = get_all_gemini_api_keys()
-if gemini_keys_available:
-    LLM_AVAILABLE = True
-    logger.info(
-        f"Gemini LLM Engine activated with {len(gemini_keys_available)} "
-        f"pooled key(s) using model: {GEMINI_MODEL}"
-    )
-else:
-    logger.info("Running in 100% Deterministic mode. Set GEMINI_API_KEY to activate LLM.")
+LLM_AVAILABLE = bool(_groq_client or get_all_gemini_api_keys())
 
 
 def _call_gemini_rest(
@@ -79,7 +85,7 @@ def _call_gemini_rest(
     model: str,
     inline_data: Optional[Dict[str, str]] = None,
 ) -> Optional[str]:
-    """Call Gemini REST API directly via urllib with multimodal support."""
+    """Call Gemini REST API directly via urllib with multimodal support and snappy timeout."""
     import urllib.request
 
     url = (
@@ -115,7 +121,8 @@ def _call_gemini_rest(
     req = urllib.request.Request(
         url, data=data, headers={"Content-Type": "application/json"}
     )
-    with urllib.request.urlopen(req, timeout=12) as resp:
+    # Snappy 8-second timeout so stalled calls fail fast to fallback keys
+    with urllib.request.urlopen(req, timeout=8) as resp:
         res = json.loads(resp.read().decode("utf-8"))
         candidates = res.get("candidates", [])
         if candidates:
@@ -136,18 +143,12 @@ def _invoke_llm(
     inline_data: Optional[Dict[str, str]] = None,
 ) -> Any:
     """
-    Invokes Gemini with multi-key, multi-model fallback cascade.
-    Returns fallback_value on any failure or if no keys are configured.
+    Invokes LLM with dual-engine fallback:
+      1. Groq (ultra-fast ~300ms for text extraction)
+      2. Gemini cascade (with key quarantine and rapid model fallback)
+      3. Deterministic safety net
     """
-    global LLM_AVAILABLE
-
-    # Runtime activation if keys were injected after module load
-    if not LLM_AVAILABLE:
-        if get_all_gemini_api_keys():
-            LLM_AVAILABLE = True
-            logger.info("Gemini LLM Engine activated at runtime.")
-        else:
-            return fallback_value
+    global LLM_AVAILABLE, _groq_client
 
     default_system = (
         "You are JudiQ AI, an elite legal intelligence system specialized in Indian Law "
@@ -156,21 +157,69 @@ def _invoke_llm(
     )
     sys_msg = system_prompt or default_system
 
-    gemini_keys = get_all_gemini_api_keys()
-    configured_model = os.environ.get("GEMINI_MODEL", GEMINI_MODEL).strip()
-    candidate_models = list(dict.fromkeys([
-        m for m in [
-            "gemini-2.0-flash",
-            "gemini-2.0-flash-lite",
-            "gemini-1.5-flash",
-            configured_model,
-        ] if m
-    ]))
+    # Dynamic Groq client initialization if env key was added at runtime
+    if not _groq_client and os.environ.get("GROQ_API_KEY", "").strip():
+        try:
+            from groq import Groq
+            _groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY", "").strip())
+            LLM_AVAILABLE = True
+        except Exception:
+            pass
 
+    # ── Path 1: Groq fast-path (text-only, ultra-fast 300ms inference) ─────────
+    if not inline_data and _groq_client:
+        try:
+            messages = [
+                {"role": "system", "content": sys_msg},
+                {"role": "user", "content": prompt}
+            ]
+            kwargs: Dict[str, Any] = {
+                "model": GROQ_MODEL,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "timeout": 6.0,
+            }
+            if expect_json:
+                kwargs["response_format"] = {"type": "json_object"}
+
+            resp = _groq_client.chat.completions.create(**kwargs)
+            res_content = resp.choices[0].message.content
+            if res_content and res_content.strip():
+                if expect_json:
+                    clean = res_content.strip()
+                    if clean.startswith("```"):
+                        clean = "\n".join(clean.split("\n")[1:])
+                    if clean.endswith("```"):
+                        clean = clean[:-3]
+                    try:
+                        return json.loads(clean.strip())
+                    except json.JSONDecodeError:
+                        logger.debug("Groq returned non-JSON, falling to Gemini cascade.")
+                else:
+                    return res_content.strip()
+        except Exception as groq_err:
+            logger.debug(f"Groq fast-path bypassed ({groq_err}), switching to Gemini cascade.")
+
+    # ── Path 2: Gemini multi-key cascade with key quarantine ─────────────────
+    gemini_keys = get_all_gemini_api_keys()
     if not gemini_keys:
         return fallback_value
 
+    configured_model = os.environ.get("GEMINI_MODEL", GEMINI_MODEL).strip()
+    # Ensure ONLY real, valid models are called in descending speed order
+    candidate_models: List[str] = []
+    for m in ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", configured_model]:
+        if m and m not in candidate_models and not m.startswith("gemini-3."):
+            candidate_models.append(m)
+    if not candidate_models:
+        candidate_models = ["gemini-2.0-flash", "gemini-1.5-flash"]
+
     for idx, key in enumerate(gemini_keys):
+        # Skip quarantined broken keys (e.g. 403 Forbidden) instantly with 0ms delay
+        if key in _quarantined_gemini_keys:
+            continue
+
         for model_name in candidate_models:
             try:
                 result_text = _call_gemini_rest(
@@ -184,9 +233,6 @@ def _invoke_llm(
                     inline_data=inline_data,
                 )
                 if not result_text:
-                    logger.warning(
-                        f"Gemini key #{idx+1} model '{model_name}' returned empty output, trying next..."
-                    )
                     continue
 
                 if expect_json:
@@ -199,33 +245,38 @@ def _invoke_llm(
                         return json.loads(clean.strip())
                     except json.JSONDecodeError:
                         logger.warning(
-                            f"Gemini key #{idx+1} model '{model_name}' returned non-JSON, trying next..."
+                            f"Gemini key #{idx+1} model '{model_name}' non-JSON, trying next..."
                         )
                         continue
 
-                logger.info(f"Gemini generated successfully via model '{model_name}' with key #{idx+1}.")
                 return result_text
 
             except Exception as err:
-                logger.warning(
-                    f"Gemini key #{idx+1} model '{model_name}' failed ({err}), trying next..."
-                )
+                err_str = str(err)
+                # Quarantine permanent 403 Forbidden keys immediately
+                if "403" in err_str or "Forbidden" in err_str:
+                    _quarantined_gemini_keys.add(key)
+                    logger.warning(
+                        f"Gemini key #{idx+1} permanently quarantined (403 Forbidden). Bypassing for future calls."
+                    )
+                    break  # don't test other models on a 403 forbidden key
+
+                logger.debug(f"Gemini key #{idx+1} model '{model_name}' attempt failed: {err}")
                 continue
 
-    logger.warning("All Gemini keys and models exhausted - falling back to deterministic result.")
     return fallback_value
 
 
-# ---------------------------------------------------------------------------
+# ─────────────────────────────────────────────────────────────────────────────
 # Public API
-# ---------------------------------------------------------------------------
+# ─────────────────────────────────────────────────────────────────────────────
 
 def generate_executive_summary(
     score: int, weaknesses: List[str], strengths: List[str], case_data: Dict[str, Any]
 ) -> str:
     """
     Generates a strategic litigation assessment executive summary.
-    Computes a deterministic baseline and optionally enhances it with Gemini.
+    Computes a deterministic baseline and optionally enhances it with LLM.
     """
     role      = str(case_data.get("client_role", "Complainant")).title()
     case_type = case_data.get("case_type", "Cheque Bounce")
@@ -283,7 +334,7 @@ def enhance_legal_draft(
     """
     Polishes legal drafts for courtroom presentation.
     In deterministic mode, returns the structured base template.
-    With Gemini active, refines language for forensic precision.
+    With LLM active, refines language for forensic precision.
     """
     if not base_draft:
         return ""
@@ -302,7 +353,7 @@ def enhance_legal_draft(
 def extract_fact_graph(text: str) -> Dict[str, Any]:
     """
     Extracts entity-relationship fact topology from case description.
-    Uses Gemini structured JSON extraction when available; otherwise provides a deterministic template.
+    Uses LLM structured JSON extraction when available; otherwise provides a deterministic template.
     """
     fallback = {
         "entities": ["Complainant", "Accused", "Bank"],
@@ -357,395 +408,5 @@ def analyze_precedent_relationships(
             p["llm_reasoning"] = (
                 "Opposing counsel may attempt to distinguish this based on specific factual variances."
             )
-
-    return precedents
-
-
-import os
-import json
-import logging
-from pathlib import Path
-from typing import Dict, Any, List, Optional
-
-try:
-    from dotenv import load_dotenv
-    _base_dir = Path(__file__).resolve().parent
-    load_dotenv(_base_dir.parent / ".env")
-    load_dotenv(_base_dir / ".env")
-except ImportError:
-    pass
-
-logger = logging.getLogger(__name__)
-
-# Environment & Groq / Gemini configuration
-GROQ_API_KEY   = os.environ.get("GROQ_API_KEY", "").strip()
-GROQ_MODEL     = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile").strip()
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
-GEMINI_API_KEY_FALLBACK_1 = os.environ.get("GEMINI_API_KEY_FALLBACK_1", "").strip()
-GEMINI_API_KEY_FALLBACK_2 = os.environ.get("GEMINI_API_KEY_FALLBACK_2", "").strip()
-GEMINI_MODEL   = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash").strip()
-
-def get_all_gemini_api_keys() -> List[str]:
-    """
-    Returns an ordered list of unique Gemini API keys with multi-tier fallback:
-    1. GEMINI_API_KEY (Primary - Project 814800896448)
-    2. GEMINI_API_KEY_FALLBACK_1 (Fallback 2 - Project 373334282792)
-    3. GEMINI_API_KEY_FALLBACK_2 (Fallback 3 - Project 572035810567)
-    4. Any additional keys specified in comma-separated GEMINI_API_KEYS
-    """
-    keys: List[str] = []
-
-    k1 = os.environ.get("GEMINI_API_KEY", GEMINI_API_KEY).strip()
-    if k1:
-        keys.append(k1)
-
-    k2 = os.environ.get("GEMINI_API_KEY_FALLBACK_1", GEMINI_API_KEY_FALLBACK_1).strip()
-    if k2:
-        keys.append(k2)
-
-    k3 = os.environ.get("GEMINI_API_KEY_FALLBACK_2", GEMINI_API_KEY_FALLBACK_2).strip()
-    if k3:
-        keys.append(k3)
-
-    k_list = os.environ.get("GEMINI_API_KEYS", "").strip()
-    if k_list:
-        for k in k_list.split(","):
-            clean_k = k.strip()
-            if clean_k and clean_k not in keys:
-                keys.append(clean_k)
-
-    return list(dict.fromkeys(keys))
-
-_groq_client   = None
-_gemini_model  = None
-LLM_AVAILABLE  = False
-LLM_PROVIDER   = "none"  # "groq" | "gemini" | "none"
-
-# ── Primary: Groq ──────────────────────────────────────────────────────────
-if GROQ_API_KEY:
-    try:
-        from groq import Groq
-        _groq_client = Groq(api_key=GROQ_API_KEY)
-        LLM_AVAILABLE = True
-        LLM_PROVIDER  = "groq"
-        logger.info(f"⚡ Groq LLM Engine activated using model: {GROQ_MODEL}")
-    except ImportError:
-        logger.warning("⚠️ 'groq' package not installed. Run 'pip install groq'.")
-    except Exception as e:
-        logger.warning(f"⚠️ Groq init failed: {e}.")
-
-# ── Secondary: Gemini (used when Groq unavailable or for multimodal / multi-key fallback)
-gemini_keys_available = get_all_gemini_api_keys()
-if not LLM_AVAILABLE and gemini_keys_available:
-    LLM_AVAILABLE = True
-    LLM_PROVIDER  = "gemini"
-    logger.info(f"⚡ Gemini LLM Engine activated with {len(gemini_keys_available)} pooled keys using model: {GEMINI_MODEL}")
-
-if not LLM_AVAILABLE:
-    logger.info("ℹ️ Running in 100% Deterministic mode. Set GROQ_API_KEY or GEMINI_API_KEY to activate LLM.")
-
-
-def _call_gemini_rest(
-    prompt: str,
-    sys_msg: str,
-    max_tokens: int,
-    temperature: float,
-    expect_json: bool,
-    api_key: str,
-    model: str,
-    inline_data: Optional[Dict[str, str]] = None
-) -> Optional[str]:
-    """Call Gemini REST API directly using standard urllib with automatic retry and multimodal support."""
-    import urllib.request
-    import time
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-    gen_config: Dict[str, Any] = {
-        "maxOutputTokens": max(max_tokens, 2048),
-        "temperature": temperature,
-    }
-    if expect_json:
-        gen_config["responseMimeType"] = "application/json"
-
-    parts: List[Dict[str, Any]] = []
-    if prompt:
-        parts.append({"text": prompt})
-    if inline_data and "data" in inline_data and "mime_type" in inline_data:
-        parts.append({
-            "inlineData": {
-                "mimeType": inline_data["mime_type"],
-                "data": inline_data["data"]
-            }
-        })
-
-    payload: Dict[str, Any] = {
-        "contents": [{"parts": parts}],
-        "generationConfig": gen_config,
-    }
-    if sys_msg:
-        payload["systemInstruction"] = {"parts": [{"text": sys_msg}]}
-
-    data = json.dumps(payload).encode("utf-8")
-    try:
-        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=12) as resp:
-            res = json.loads(resp.read().decode("utf-8"))
-            candidates = res.get("candidates", [])
-            if candidates:
-                cand_parts = candidates[0].get("content", {}).get("parts", [])
-                for p in cand_parts:
-                    if "text" in p and p["text"].strip():
-                        return p["text"].strip()
-            return None
-    except Exception as e:
-        raise e
-
-
-def _invoke_llm(
-    prompt: str,
-    max_tokens: int = 1000,
-    temperature: float = 0.2,
-    expect_json: bool = False,
-    fallback_value: Any = None,
-    system_prompt: Optional[str] = None,
-    inline_data: Optional[Dict[str, str]] = None
-) -> Any:
-    """
-    Routes to the active LLM provider (Groq primary, Gemini secondary).
-    If inline_data is present (multimodal image/PDF), routes directly to Gemini.
-    Returns fallback_value on any failure or if no LLM is configured.
-    """
-    global _groq_client, LLM_AVAILABLE, LLM_PROVIDER
-
-    # Dynamic runtime activation for Groq / Gemini
-    if not LLM_AVAILABLE:
-        runtime_groq = os.environ.get("GROQ_API_KEY", "").strip()
-        runtime_gemini = os.environ.get("GEMINI_API_KEY", "").strip()
-        if runtime_groq and not _groq_client:
-            try:
-                from groq import Groq
-                _groq_client = Groq(api_key=runtime_groq)
-                LLM_AVAILABLE = True
-                LLM_PROVIDER  = "groq"
-                logger.info("⚡ Groq LLM Engine activated at runtime.")
-            except Exception:
-                pass
-        if not LLM_AVAILABLE and runtime_gemini:
-            LLM_AVAILABLE = True
-            LLM_PROVIDER  = "gemini"
-            logger.info("⚡ Gemini LLM Engine activated at runtime.")
-        if not LLM_AVAILABLE:
-            return fallback_value
-
-    default_system = (
-        "You are JudiQ AI, an elite legal intelligence system specialized in Indian Law "
-        "(Negotiable Instruments Act, SARFAESI Act, Bharatiya Nyaya Sanhita, CPC, and CrPC). "
-        "Provide precise, authoritative legal analysis adhering to Supreme Court of India precedents."
-    )
-    sys_msg = system_prompt or default_system
-
-    # ── Groq path (used only if no multimodal inline_data is required) ────────
-    if not inline_data and LLM_PROVIDER == "groq" and _groq_client:
-        try:
-            messages = [
-                {"role": "system", "content": sys_msg},
-                {"role": "user",   "content": prompt}
-            ]
-            kwargs: Dict[str, Any] = {
-                "model":       GROQ_MODEL,
-                "messages":    messages,
-                "max_tokens":  max_tokens,
-                "temperature": temperature,
-            }
-            if expect_json:
-                kwargs["response_format"] = {"type": "json_object"}
-
-            response = _groq_client.chat.completions.create(**kwargs)
-            raw_content = response.choices[0].message.content
-            # Groq can return None content when it produces an empty/blocked completion
-            if not raw_content:
-                logger.warning("Groq returned empty/None content, falling through to Gemini fallback.")
-                raise ValueError("Groq returned empty model output")
-            result_text = raw_content.strip()
-            if not result_text:
-                raise ValueError("Groq returned blank model output")
-
-            if expect_json:
-                try:
-                    return json.loads(result_text)
-                except json.JSONDecodeError:
-                    logger.warning("Groq response was not valid JSON, trying Gemini fallback.")
-                    raise ValueError("Groq returned non-JSON response")
-            return result_text
-        except Exception as err:
-            logger.warning(f"Groq invocation failed ({err}), trying Gemini fallback.")
-            # Always attempt Gemini fallback regardless of env var presence
-
-    # ── Gemini path (direct REST, supports text + multimodal inline_data with multi-key pool fallback) ─────
-    gemini_keys = get_all_gemini_api_keys()
-    configured_model = os.environ.get("GEMINI_MODEL", GEMINI_MODEL).strip()
-    candidate_models = list(dict.fromkeys([
-        m for m in [
-            "gemini-3.5-flash-lite",
-            "gemini-3.1-flash-lite",
-            "gemini-flash-latest",
-            configured_model,
-        ] if m
-    ]))
-
-    if gemini_keys:
-        for idx, key in enumerate(gemini_keys):
-            for model_name in candidate_models:
-                try:
-                    result_text = _call_gemini_rest(
-                        prompt=prompt,
-                        sys_msg=sys_msg,
-                        max_tokens=max_tokens,
-                        temperature=temperature,
-                        expect_json=expect_json,
-                        api_key=key,
-                        model=model_name,
-                        inline_data=inline_data,
-                    )
-                    if not result_text:
-                        continue
-
-                    if expect_json:
-                        clean = result_text.strip()
-                        if clean.startswith("```"):
-                            clean = "\n".join(clean.split("\n")[1:])
-                        if clean.endswith("```"):
-                            clean = clean[:-3]
-                        try:
-                            return json.loads(clean.strip())
-                        except json.JSONDecodeError:
-                            logger.warning(f"Gemini key #{idx+1} model '{model_name}' response was not valid JSON, trying fallback...")
-                            continue
-                    return result_text
-                except Exception as err:
-                    logger.warning(f"Gemini REST key #{idx+1} model '{model_name}' failed ({err}), trying next fallback...")
-                    continue
-
-        logger.warning("All Gemini REST fallback API keys and models failed, falling back to deterministic result.")
-        return fallback_value
-
-    return fallback_value
-
-
-
-def generate_executive_summary(score: int, weaknesses: List[str], strengths: List[str], case_data: Dict[str, Any]) -> str:
-    """
-    Generates a strategic litigation assessment executive summary.
-    Computes a deterministic baseline and optionally enhances it with Groq LLM if active.
-    """
-    role = str(case_data.get('client_role', 'Complainant')).title()
-    case_type = case_data.get('case_type', 'Cheque Bounce')
-    amount = case_data.get("cheque_amount") or case_data.get("amount") or "an unspecified amount"
-
-    if score >= 75:
-        verdict = "This case presents a highly favorable strategic posture."
-        risk_profile = "The core statutory requirements appear fully satisfied, presenting minimal fatal risks."
-    elif score >= 45:
-        verdict = "This case presents a moderate strategic posture with actionable vulnerabilities."
-        risk_profile = "While primary statutory elements exist, there are evidentiary gaps that opposing counsel will actively target."
-    elif score > 0:
-        verdict = "This case carries significant litigation risk and low survivability."
-        risk_profile = "Critical statutory pillars or evidentiary proofs are currently defective or entirely missing."
-    else:
-        verdict = "This case is legally unmaintainable in its current configuration."
-        risk_profile = "A fatal defect (e.g., limitation expiry, invalid notice amount, or missing corporate officers) mandates immediate strategic reassessment to avoid penalties or malicious prosecution claims."
-
-    deterministic_summary = f"As Counsel for the {role} in this {case_type} matter (Amount: Rs. {amount}), our deterministic audit yields a Case Readiness Score of {score}/100. {verdict}\n\n"
-    if strengths and score > 0:
-        deterministic_summary += f"Our primary strategic advantages include: {', '.join(strengths[:3])}. "
-    if weaknesses:
-        deterministic_summary += f"{risk_profile} Immediate attention is required to cure the following defects: {', '.join(weaknesses[:3])}."
-    elif score == 0:
-        deterministic_summary += f"{risk_profile}"
-
-    deterministic_summary = deterministic_summary.strip()
-
-    if not LLM_AVAILABLE:
-        return deterministic_summary
-
-    prompt = (
-        f"Enhance this executive case summary for court presentation while strictly preserving all facts, numbers, and score:\n"
-        f"Role: {role}, Case Type: {case_type}, Amount: Rs. {amount}, Score: {score}/100\n"
-        f"Strengths: {', '.join(strengths)}\n"
-        f"Weaknesses: {', '.join(weaknesses)}\n\n"
-        f"Draft summary:\n{deterministic_summary}"
-    )
-    llm_res = _invoke_llm(prompt, max_tokens=600, temperature=0.3, fallback_value=deterministic_summary)
-    return llm_res or deterministic_summary
-
-
-def enhance_legal_draft(base_draft: str, draft_type: str, case_data: Dict[str, Any], tone: str = "Standard") -> str:
-    """
-    Polishes legal drafts for courtroom presentation.
-    In deterministic mode, returns the structured base template.
-    With Groq LLM active, refines language for forensic precision.
-    """
-    if not base_draft:
-        return ""
-
-    if not LLM_AVAILABLE:
-        return base_draft.strip()
-
-    prompt = (
-        f"Refine and enhance the following Indian legal draft ({draft_type}) in a {tone} tone. "
-        f"Strictly maintain formal legal terminology, Indian court formatting conventions, "
-        f"and all factual data:\n\n{base_draft}"
-    )
-    enhanced = _invoke_llm(prompt, max_tokens=2500, temperature=0.2, fallback_value=base_draft.strip())
-    return enhanced or base_draft.strip()
-
-
-def extract_fact_graph(text: str) -> Dict[str, Any]:
-    """
-    Extracts entity-relationship fact topology from case description.
-    Uses Groq structured JSON extraction when available; otherwise provides deterministic template.
-    """
-    fallback = {
-        "entities": ["Complainant", "Accused", "Bank"],
-        "relationships": [
-            {"source": "Complainant", "target": "Accused", "relation": "Disputed Transaction"},
-            {"source": "Accused", "target": "Bank", "relation": "Cheque Drawer"}
-        ],
-        "contradictions": [],
-        "timeline_complexity": "Medium"
-    }
-
-    if not LLM_AVAILABLE or not text:
-        return fallback
-
-    prompt = (
-        f"Extract a legal fact graph from the following case narrative. "
-        f"Return a JSON object with keys 'entities' (list of strings), "
-        f"'relationships' (list of {{source, target, relation}}), "
-        f"'contradictions' (list of strings), and 'timeline_complexity' ('Low' | 'Medium' | 'High'):\n\n{text}"
-    )
-    result = _invoke_llm(prompt, max_tokens=1000, expect_json=True, fallback_value=fallback)
-    if isinstance(result, dict) and "entities" in result and "relationships" in result:
-        return result
-    return fallback
-
-
-def analyze_precedent_relationships(case_data: Dict[str, Any], precedents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Classifies precedent applicability into BINDING, HIGHLY RELEVANT, or DISTINGUISHABLE.
-    """
-    if not precedents:
-        return []
-
-    for idx, p in enumerate(precedents):
-        score = p.get("relevance", 0.0)
-        if score >= 0.90:
-            p["relationship"] = "BINDING"
-            p["llm_reasoning"] = f"Directly applicable landmark judgment establishing strict liability for {p.get('concept', 'this issue')}."
-        elif score >= 0.70:
-            p["relationship"] = "HIGHLY RELEVANT"
-            p["llm_reasoning"] = "Provides strong persuasive authority regarding the statutory interpretation of this specific dispute."
-        else:
-            p["relationship"] = "DISTINGUISHABLE"
-            p["llm_reasoning"] = "Opposing counsel may attempt to distinguish this based on specific factual variances."
 
     return precedents

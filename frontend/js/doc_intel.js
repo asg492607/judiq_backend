@@ -34,7 +34,7 @@ window._openCaseRagFromDocIntel = () => {
     closeDocIntelPanel();
     const docFacts = _allFacts || {};
     const wizardFacts = (window.state && window.state.caseData) ? window.state.caseData : {};
-    const merged = { ...docFacts, ...wizardFacts };
+    const merged = { ...wizardFacts, ...docFacts };
     if (typeof window.openCaseRagChat === 'function') {
         window.openCaseRagChat(merged, {
             all_facts: _allFacts,
@@ -175,6 +175,17 @@ function _detectWorkflowType() {
 // ─── Panel Open / Close ────────────────────────────────────────────────────────
 export function openDocIntelPanel() {
     _detectWorkflowType();
+    _pendingFiles = [];
+    _extractedDocs = [];
+    _allFacts = {};
+    _contradictions = [];
+    _missingFacts = [];
+    _missingDocs = [];
+    _timeline = [];
+    _verifiedFacts = {};
+    if (_resolvedContradictions && typeof _resolvedContradictions.clear === 'function') {
+        _resolvedContradictions.clear();
+    }
     const modal = document.getElementById('docIntelModal');
     if (!modal) return;
     modal.classList.remove('hidden');
@@ -399,13 +410,15 @@ window._diExtract = async () => {
         _missingDocs    = analyzeResult.missing_documents || [];
         _timeline       = analyzeResult.timeline || [];
 
-        // Immediately attach contradictions and facts to caseData and window.state
+        // Reset caseData and docIntel completely for this NEW upload — no stale facts bleed in!
         window._docIntelContradictions = _contradictions;
         if (!window.state) window.state = {};
-        if (!window.state.caseData) window.state.caseData = {};
 
+        const freshCaseId = extractResult.case_id || _sessionId;
+        window.state.caseId = freshCaseId;
         window.state.docIntel = {
             session_id: _sessionId,
+            case_id: freshCaseId,
             all_facts: _allFacts,
             contradictions: _contradictions,
             missing_facts: _missingFacts,
@@ -413,15 +426,22 @@ window._diExtract = async () => {
             timeline: _timeline,
             documents: _extractedDocs
         };
-        window.state.caseId = _sessionId;
 
-        // Copy high confidence extracted facts into caseData
+        // Initialize completely fresh caseData for this new docket (wiping out old case values)
+        window.state.caseData = {
+            case_id: freshCaseId,
+            case_name: extractResult.case_name || 'New Docket',
+            workflow_type: _workflowType,
+            created_at: new Date().toISOString()
+        };
+
+        // Copy ONLY fresh extracted facts into caseData
         for (const [k, v] of Object.entries(_allFacts)) {
             if (v !== undefined && v !== null && v !== '') {
                 window.state.caseData[k] = v;
             }
         }
-        window.state.caseData.case_id = _sessionId;
+        window.state.caseData.case_id = freshCaseId;
         window.state.caseData.cross_document_contradictions = _contradictions.map(c => ({
             issue: c.field ? `Contradiction in ${_getFieldDisplayLabel(c.field)}` : (c.issue || 'Document Contradiction'),
             field: c.field,
@@ -431,6 +451,15 @@ window._diExtract = async () => {
             values: c.values || []
         }));
         window.state.caseData.contradictions = window.state.caseData.cross_document_contradictions;
+
+        // Reset the Case RAG Chat so it's fresh for this new upload with ZERO lingering old chat messages or facts
+        if (window.caseRagWorkspace) {
+            window.caseRagWorkspace.chatHistory = [];
+            window.caseRagWorkspace.caseData = { ...window.state.caseData };
+            window.caseRagWorkspace.docIntel = { ...window.state.docIntel };
+            const chatBody = document.getElementById('ragChatBody');
+            if (chatBody) chatBody.innerHTML = '';
+        }
 
         // Persist intake to Recent Activity
         if (typeof window.saveCaseToHistory === 'function') {

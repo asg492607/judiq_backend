@@ -369,13 +369,16 @@ def _ocr_scanned_pdf(file_bytes: bytes) -> Tuple[str, List[Dict], str]:
     - Page cap: 4 pages max (covers all standard legal doc types).
     - pdf2image fallback also capped at 4 pages.
     """
-    # Method 1: Try PyMuPDF (fitz) direct text extraction + page rendering
+    # Method 1: Try PyMuPDF (pymupdf) direct text extraction + page rendering
     try:
-        import fitz
+        try:
+            import pymupdf as fitz
+        except ImportError:
+            import fitz
         doc = fitz.open(stream=file_bytes, filetype="pdf")
         pages_data = []
         full_text_parts = []
-        max_pages = min(len(doc), 4)  # cap at 4 pages — fast path
+        max_pages = min(len(doc), 3)  # cap at 3 pages for high speed
         for i in range(max_pages):
             page = doc[i]
             # 1a. Check direct text stream first
@@ -383,7 +386,7 @@ def _ocr_scanned_pdf(file_bytes: bytes) -> Tuple[str, List[Dict], str]:
             # 1b. If page has no text layer, render pixmap for OCR
             if not page_text:
                 try:
-                    pix = page.get_pixmap(dpi=120)  # was 150 — 120 is fast enough
+                    pix = page.get_pixmap(dpi=100)  # 100 dpi is fast and legible
                     png_bytes = pix.tobytes("png")
                     try:
                         import pytesseract
@@ -2182,11 +2185,14 @@ async def extract_facts(
         return (idx, filename, content, mime, doc_type, ocr_result, raw_facts)
 
     import concurrent.futures
-    # Increase max workers: each doc is IO-bound (OCR + LLM network call)
-    max_workers = min(len(file_items), 6) if file_items else 1  # was 4
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        processed_results = list(executor.map(_process_single_doc, file_items))
+    max_workers = min(len(file_items), 4) if file_items else 1
+    loop = _asyncio.get_running_loop()
 
+    def _execute_batch():
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            return list(executor.map(_process_single_doc, file_items))
+
+    processed_results = await loop.run_in_executor(None, _execute_batch)
     processed_results.sort(key=lambda x: x[0])
 
     extracted_documents: List[ExtractedDocument] = []
