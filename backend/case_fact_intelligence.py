@@ -569,7 +569,7 @@ def extract_facts_with_llm(
     mime_type: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Extract structured facts from OCR text using Groq or Gemini LLM.
+    Extract structured facts from OCR text using Gemini LLM.
     If OCR text is empty/sparse and file bytes are available (image/PDF),
     utilizes Gemini multimodal extraction directly.
     Falls back to regex-based deterministic extraction if no LLM available.

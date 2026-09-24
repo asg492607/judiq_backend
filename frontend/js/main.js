@@ -5376,7 +5376,7 @@ window.performAdminCacheClear = async () => {
 
 window.saveAdminLlmSettings = () => {
     const selected = document.querySelector('input[name="adminLlmModel"]:checked');
-    const model = selected ? selected.value : 'groq';
+    const model = selected ? selected.value : 'gemini';
     localStorage.setItem('judiq_admin_llm_model', model);
     if (window.ui) window.ui.toast(`AI Copilot Layer configured to: ${model.toUpperCase()}`, 'success');
 };

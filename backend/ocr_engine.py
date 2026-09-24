@@ -148,7 +148,7 @@ class OCREngine:
                     result["warning"] = "Could not verify delivery status."
                     result["verification_confidence"] = 0.30
         except Exception as e:
-            logger.error(f"Groq API Error in Document Intelligence: {str(e)}")
+            logger.error(f"LLM API Error in Document Intelligence: {str(e)}")
             result["is_verified"] = len(extracted_text.strip()) > 10
             result["verification_confidence"] = 0.50
         return result

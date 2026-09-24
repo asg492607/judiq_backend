@@ -5,7 +5,7 @@ Integration tests for JudiQEngine.analyze_case().
 
 Design decisions:
 - `llm_disabled` fixture patches llm_engine.LLM_AVAILABLE to False so tests
-  run fully deterministically in CI without any Groq API key.
+  run fully deterministically in CI without any external LLM API key.
 - All assertions are structural (key presence) or numeric (score thresholds).
   No string matching against reasoning_trace or draft content — those are
   presentation details that change frequently and produce brittle tests.

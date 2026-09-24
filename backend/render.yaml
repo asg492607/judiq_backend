@@ -36,9 +36,7 @@ services:
       - key: GEMINI_API_KEY_FALLBACK_2
         sync: false
       - key: GEMINI_MODEL
-        value: gemini-3.6-flash
-      - key: GROQ_API_KEY
-        sync: false
+        value: gemini-2.0-flash
       - key: CORS_ORIGINS
         value: https://judiq-ai.netlify.app,https://judiq.netlify.app,https://cheque-bounce-ragbased.onrender.com,https://asg492607.github.io
       - key: DEBUG

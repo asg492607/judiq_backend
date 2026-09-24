@@ -463,7 +463,7 @@ def get_system_health(admin: dict = Depends(require_admin)):
         "database": "CONNECTED (SQLite / PostgreSQL Pool)",
         "active_engines": ["NI_ACT_138", "SARFAESI_DRT_2002", "CRIMINAL_DEFENSE_BNS", "MCA21_PORTAL_VERIFIER"],
         "memory_percent": mem_pct,
-        "llm_copilot": "GROQ_LLAMA_3_3_70B",
+        "llm_copilot": "GEMINI_2_0_FLASH",
         "timestamp": datetime.now().isoformat()
     }
 

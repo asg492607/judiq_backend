@@ -1,8 +1,8 @@
 """
 JudiQ AI — LLM Engine & Deterministic Reasoning Router
 ======================================================
-Dual-provider inference (Groq ultra-fast primary + Gemini multi-key multimodal cascade)
-with 100% deterministic rule-based Indian legal analytics as the final safety net.
+Gemini multi-key multimodal cascade with 100% deterministic
+rule-based Indian legal analytics as the final safety net.
 """
 
 import os
@@ -23,8 +23,6 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 # Environment & Provider configuration
-GROQ_API_KEY              = os.environ.get("GROQ_API_KEY", "").strip()
-GROQ_MODEL                = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile").strip()
 GEMINI_API_KEY            = os.environ.get("GEMINI_API_KEY", "").strip()
 GEMINI_API_KEY_FALLBACK_1 = os.environ.get("GEMINI_API_KEY_FALLBACK_1", "").strip()
 GEMINI_API_KEY_FALLBACK_2 = os.environ.get("GEMINI_API_KEY_FALLBACK_2", "").strip()
@@ -32,15 +30,6 @@ GEMINI_MODEL              = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash").s
 
 # In-memory circuit-breaker / quarantine for permanently failing keys (e.g. 403 Forbidden)
 _quarantined_gemini_keys: Set[str] = set()
-
-_groq_client = None
-if GROQ_API_KEY:
-    try:
-        from groq import Groq
-        _groq_client = Groq(api_key=GROQ_API_KEY)
-        logger.info("⚡ Groq LLM Engine activated as primary fast-path.")
-    except Exception as _g_err:
-        logger.debug(f"Groq initialization skipped: {_g_err}")
 
 
 def get_all_gemini_api_keys() -> List[str]:
@@ -72,7 +61,7 @@ def get_all_gemini_api_keys() -> List[str]:
     return keys
 
 
-LLM_AVAILABLE = bool(_groq_client or get_all_gemini_api_keys())
+LLM_AVAILABLE = bool(get_all_gemini_api_keys())
 
 
 def _call_gemini_rest(
@@ -143,63 +132,16 @@ def _invoke_llm(
     inline_data: Optional[Dict[str, str]] = None,
 ) -> Any:
     """
-    Invokes LLM with dual-engine fallback:
-      1. Groq (ultra-fast ~300ms for text extraction)
-      2. Gemini cascade (with key quarantine and rapid model fallback)
-      3. Deterministic safety net
+    Invokes LLM with Gemini multi-key cascade and deterministic safety net:
+      1. Gemini cascade (with key quarantine and rapid model fallback)
+      2. Deterministic safety net
     """
-    global LLM_AVAILABLE, _groq_client
-
     default_system = (
         "You are JudiQ AI, an elite legal intelligence system specialized in Indian Law "
         "(Negotiable Instruments Act, SARFAESI Act, Bharatiya Nyaya Sanhita, CPC, and CrPC). "
         "Provide precise, authoritative legal analysis adhering to Supreme Court of India precedents."
     )
     sys_msg = system_prompt or default_system
-
-    # Dynamic Groq client initialization if env key was added at runtime
-    if not _groq_client and os.environ.get("GROQ_API_KEY", "").strip():
-        try:
-            from groq import Groq
-            _groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY", "").strip())
-            LLM_AVAILABLE = True
-        except Exception:
-            pass
-
-    # ── Path 1: Groq fast-path (text-only, ultra-fast 300ms inference) ─────────
-    if not inline_data and _groq_client:
-        try:
-            messages = [
-                {"role": "system", "content": sys_msg},
-                {"role": "user", "content": prompt}
-            ]
-            kwargs: Dict[str, Any] = {
-                "model": GROQ_MODEL,
-                "messages": messages,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-                "timeout": 6.0,
-            }
-            if expect_json:
-                kwargs["response_format"] = {"type": "json_object"}
-
-            resp = _groq_client.chat.completions.create(**kwargs)
-            res_content = resp.choices[0].message.content
-            if res_content and res_content.strip():
-                if expect_json:
-                    clean = res_content.strip()
-                    if clean.startswith("```"):
-                        clean = "\n".join(clean.split("\n")[1:])
-                    if clean.endswith("```"):
-                        clean = clean[:-3]
-                    try:
-                        return json.loads(clean.strip())
-                    except json.JSONDecodeError:
-                        logger.debug("Groq returned non-JSON, falling to Gemini cascade.")
-                else:
-                    return res_content.strip()
-        except Exception as groq_err:
-            logger.debug(f"Groq fast-path bypassed ({groq_err}), switching to Gemini cascade.")
 
     # ── Path 2: Gemini multi-key cascade with key quarantine ─────────────────
     gemini_keys = get_all_gemini_api_keys()
