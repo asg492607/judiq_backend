@@ -3,7 +3,7 @@ import re
 from typing import Dict, Any
 from llm_engine import _invoke_llm, LLM_AVAILABLE
 logger = logging.getLogger(__name__)
-MODEL = "llama-3.1-8b-instant"
+
 class OCREngine:
     REASON_MAP = {
         "Insufficient Funds": [
@@ -33,7 +33,7 @@ class OCREngine:
     }
     @classmethod
     def analyze_document(cls, extracted_text: str, doc_type: str, user_claimed_reason: str = "") -> Dict[str, Any]:
-        result = {
+        result: Dict[str, Any] = {
             "is_verified": False,
             "detected_reasons": [],
             "extracted_dates": [],
