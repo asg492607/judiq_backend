@@ -2163,57 +2163,16 @@ def _format_marathi_draft(draft_text: str, draft_type: str, case_data: Dict) -> 
     except Exception as e:
         logger.warning(f"Gemini LLM Marathi translation encountered error: {e}. Using deterministic fallback.")
 
-    # 2. Statutory deterministic Marathi fallback
-    today, amount_str = _case_meta(case_data)
-    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (तक्रारदार नाव)"
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (आरोपी नाव)"
-    cheque_no = case_data.get("cheque_number") or case_data.get("chequeNumber") or "________"
-
-    marathi_header = "=" * 70 + f"\nकायदेशीर मसुदा (मराठी): {draft_type}\n" + "=" * 70 + "\n\n"
-
-    if draft_type == "LEGAL_NOTICE":
-        return marathi_header + f"""दिनांक: {today}
-
-प्रति,
-{accused}
-पत्ता: ________ (आरोपीचा पत्ता)
-
-विषय: कलम १३८ वाटाघाटीयोग्य दस्तऐवज कायदा १८८१ (Negotiable Instruments Act, 1881) अन्वये कायदेशीर मागणी नोटीस.
-
-आमचे अशील {complainant} यांच्या सूचनेनुसार व निर्देशांनुसार आम्ही तुम्हाला खालीलप्रमाणे कायदेशीर मागणी नोटीस पाठवत आहोत:
-
-१. आमचे अशील {complainant} आणि तुमच्यामध्ये झालेल्या कायदेशीर व्यवहारापोटी तुम्ही रक्कम {amount_str} चा चेक क्रमांक {cheque_no} जारी केला होता.
-
-२. सदर चेक आमच्या अशिलांनी बँकेत भरणा केला असता, बँक रिटर्न मेमोद्वारे "खात्यात अपुरी रक्कम" / "खाते बंद" या कारणास्तव अनादरित (बाऊन्स) झाला.
-
-३. या नोटीसद्वारे तुम्हाला अंतिम १५ दिवसांची मुदत देण्यात येत आहे. ही नोटीस मिळाल्यापासून १५ दिवसांच्या आत थकीत रक्कम {amount_str} आमच्या अशिलांस अदा करावी.
-
-४. मुदतीत रक्कम न दिल्यास तुमच्याविरुद्ध मा. न्यायदंडाधिकारी न्यायालयात कलम १३८ अन्वये फौजदारी खटला दाखल केला जाईल, ज्याची संपूर्ण जबाबदारी तुमची राहील.
-
-आपला नम्र,
-अ‍ॅडव्होकेट (अशीलांतर्फे)
-"""
-    elif draft_type == "APPLICATION_143A":
-        return marathi_header + f"""मा. ज्युडिशियल मॅजिस्ट्रेट प्रथम वर्ग न्यायालय
-तक्रार अर्ज क्रमांक: ________ / २०२६
-
-{complainant} -- तक्रारदार
-विरुद्ध
-{accused} -- आरोपी
-
-विषय: कलम १४३अ वाटाघाटीयोग्य दस्तऐवज कायदा १८८१ अन्वये २०% अंतरिम भरपाई मिळण्याबाबत अर्ज.
-
-अर्जदार / तक्रारदार खालीलप्रमाणे विनंती अर्ज सादर करतात:
-
-१. प्रस्तुत खटला कलम १३८ अन्वये दाखल करण्यात आला असून, आरोपीविरुद्ध नोटीस स्पष्ट करण्यात आली आहे.
-२. कलम १४३अ मधील वैधानिक तरतुदीनुसार तक्रारदारास चेक रकमेच्या २०% पर्यंत अंतरिम भरपाई मिळण्याचा कायदेशीर अधिकार आहे.
-३. करीता मा. न्यायालयाने आरोपीस चेक रक्कम {amount_str} च्या २०% रक्कम अंतरिम भरपाई म्हणून जमा करण्याचा आदेश द्यावा.
-
-दिनांक: {today}
-अर्जदार / तक्रारदारांतर्फे अ‍ॅडव्होकेट
-"""
-    else:
-        return marathi_header + f"मराठी कायदेशीर मसुदा संरचना:\n\n{draft_text}\n\n[टीप: सदर मसुदा मराठी भाषेत कायदेशीर तरतुदींसह सिद्ध करण्यात आला आहे.]"
+    # 2. Comprehensive, lawyer-verified statutory deterministic Marathi fallback
+    try:
+        from multilingual_drafts import format_multilingual_draft
+        return format_multilingual_draft(draft_type, "mr", case_data, draft_text)
+    except Exception as ex:
+        logger.error(f"Multilingual Marathi fallback error: {ex}")
+        today, amount_str = _case_meta(case_data)
+        complainant = case_data.get("complainant_name") or "________ (तक्रारदार)"
+        accused = case_data.get("accused_name") or "________ (आरोपी)"
+        return f"कायदेशीर मसुदा (मराठी) — {draft_type}\n\nदिनांक: {today}\nतक्रारदार: {complainant}\nविरुद्ध\nआरोपी: {accused}\n\n{draft_text}"
 
 
 def _format_hindi_draft(draft_text: str, draft_type: str, case_data: Dict) -> str:
@@ -2264,60 +2223,15 @@ def _format_hindi_draft(draft_text: str, draft_type: str, case_data: Dict) -> st
     except Exception as e:
         logger.warning(f"Gemini LLM Hindi translation encountered error: {e}. Using deterministic fallback.")
 
-    # 2. Statutory deterministic Hindi fallback
-    today, amount_str = _case_meta(case_data)
-    complainant = case_data.get("complainant_name") or case_data.get("complainantName") or "________ (शिकायतकर्ता का नाम)"
-    accused = case_data.get("accused_name") or case_data.get("accusedName") or "________ (अभियुक्त का नाम)"
-    cheque_no = case_data.get("cheque_number") or case_data.get("chequeNumber") or "________"
-
-    hindi_header = "=" * 70 + f"\nकानूनी प्रारूप (हिंदी): {draft_type}\n" + "=" * 70 + "\n\n"
-
-    if draft_type == "LEGAL_NOTICE":
-        return hindi_header + f"""दिनांक: {today}
-
-सेवा में,
-{accused}
-पता: ________ (अभियुक्त का पता)
-
-विषय: धारा 138 पराक्रम्य लिखित अधिनियम, 1881 (Negotiable Instruments Act, 1881) के तहत विधिक मांग नोटिस।
-
-महोदय/महोदया,
-
-हमारे पक्षकार {complainant} के निर्देशानुसार एवं उनकी ओर से हम आपको निम्नलिखित विधिक नोटिस प्रेषित करते हैं:
-
-1. हमारे पक्षकार {complainant} और आपके मध्य हुए वैध व्यावसायिक लेन-देन के एवज में आपने राशि {amount_str} का चेक संख्या {cheque_no} जारी किया था।
-
-2. उक्त चेक को जब हमारे पक्षकार द्वारा बैंक में प्रस्तुत किया गया, तो बैंक मेमो द्वारा "खाते में अपर्याप्त राशि" / "खाता बंद" के कारण अनादरित (बाउंस) कर दिया गया।
-
-3. इस विधिक नोटिस के माध्यम से आपको अंतिम 15 दिनों का समय दिया जाता है। इस नोटिस की प्राप्ति से 15 दिनों के भीतर बकाया राशि {amount_str} हमारे पक्षकार को अदा करें।
-
-4. यदि नियत समय में राशि का भुगतान नहीं किया जाता है, तो आपके विरुद्ध माननीय न्यायिक मजिस्ट्रेट न्यायालय में धारा 138 के तहत आपराधिक परिवाद पत्र दाखिल किया जाएगा।
-
-भवदीय,
-अधिवक्ता (पक्षकार की ओर से)
-"""
-    elif draft_type == "APPLICATION_143A":
-        return hindi_header + f"""न्यायालय माननीय न्यायिक मजिस्ट्रेट प्रथम श्रेणी
-आपराधिक परिवाद संख्या: ________ / 2026
-
-{complainant} -- शिकायतकर्ता
-बनाम
-{accused} -- अभियुक्त
-
-विषय: धारा 143A पराक्रम्य लिखित अधिनियम, 1881 के तहत 20% अंतरिम मुआवजा दिलाए जाने हेतु प्रार्थना पत्र।
-
-महोदय,
-
-शिकायतकर्ता/आवेदक की ओर से विनम्र निवेदन निम्नलिखित है:
-
-1. प्रस्तुत परिवाद धारा 138 एनआई एक्ट के तहत विचाराधीन है तथा अभियुक्त के विरुद्ध नोटिस स्पष्ट किया जा चुका है।
-2. धारा 143A के कानूनी प्रावधानों के अनुसार शिकायतकर्ता चेक राशि का 20% तक अंतरिम मुआवजा पाने का विधिक हकदार है।
-3. अतः माननीय न्यायालय से प्रार्थना है कि अभियुक्त को आदेशित किया जाए कि वह चेक राशि {amount_str} का 20% अंतरिम मुआवजे के रूप में न्यायालय में जमा करे।
-
-दिनांक: {today}
-अधिवक्ता (शिकायतकर्ता की ओर से)
-"""
-    else:
-        return hindi_header + f"हिंदी कानूनी प्रारूप संरचना:\n\n{draft_text}\n\n[टिप्पणी: यह प्रारूप हिंदी भाषा में विधिक प्रावधानों के साथ तैयार किया गया है।]"
+    # 2. Comprehensive, lawyer-verified statutory deterministic Hindi fallback
+    try:
+        from multilingual_drafts import format_multilingual_draft
+        return format_multilingual_draft(draft_type, "hi", case_data, draft_text)
+    except Exception as ex:
+        logger.error(f"Multilingual Hindi fallback error: {ex}")
+        today, amount_str = _case_meta(case_data)
+        complainant = case_data.get("complainant_name") or "________ (शिकायतकर्ता)"
+        accused = case_data.get("accused_name") or "________ (अभियुक्त)"
+        return f"कानूनी प्रारूप (हिंदी) — {draft_type}\n\nदिनांक: {today}\nशिकायतकर्ता: {complainant}\nबनाम\nअभियुक्त: {accused}\n\n{draft_text}"
 
 

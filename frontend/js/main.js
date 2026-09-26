@@ -6886,6 +6886,8 @@ window.handleDraftLanguageChange = async function (targetLang) {
         const userEmail = (user && user.email) || (userQuota && userQuota.email) || '';
         const draftType = (window.activeDraftType && window.activeDraftType.id) || 'LEGAL_NOTICE';
 
+        const caseData = window.currentAnalysisCaseData || (window.state && window.state.currentCaseData) || (window.state && window.state.lastAnalysisResult && window.state.lastAnalysisResult.case_data) || {};
+
         const res = await fetch(`${API_BASE_URL}/api/v1/documents/translate-draft`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -6895,7 +6897,8 @@ window.handleDraftLanguageChange = async function (targetLang) {
                 lang: lang,
                 user_id: userId,
                 email: userEmail,
-                role: role
+                role: role,
+                case_data: caseData
             })
         });
 
