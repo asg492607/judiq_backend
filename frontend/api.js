@@ -599,6 +599,33 @@ export const api = {
         try { return await response.json(); } catch (e) { throw new Error("Failed to extend subscription validity."); }
     },
 
+    async getDeploymentAlert() {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/system/deployment-alert`);
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load deployment alert."); }
+    },
+
+    async setDeploymentAlert(payload, token) {
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/system/deployment-alert`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(payload)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to update deployment alert."); }
+    },
+
+    async toggleDeploymentAlert(isActive, token) {
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/system/deployment-alert/toggle`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ is_active: isActive })
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to toggle deployment alert."); }
+    },
+
     async getAdminPayments(token, limit = 100, status = '', userId = '') {
         let url = `${API_BASE_URL}/api/v1/admin/payments?limit=${limit}`;
         if (status && status !== 'ALL') url += `&status=${encodeURIComponent(status)}`;

@@ -57,6 +57,39 @@
     <!-- Main Container -->
     <div id="app" class="app-container">
 
+        <!-- System Deployment & Release Warning Alert Banner -->
+        <div id="systemDeploymentAlertBanner" class="system-deployment-alert-banner u-hidden" role="alert" aria-live="polite">
+            <div class="deployment-alert-inner">
+                <div class="deployment-alert-badge" id="deploymentAlertBadge">
+                    <i class="fas fa-bullhorn" id="deploymentAlertIcon"></i>
+                    <span id="deploymentAlertTypeLabel">SYSTEM DEPLOYMENT</span>
+                </div>
+                <div class="deployment-alert-content">
+                    <div class="deployment-alert-headline">
+                        <strong id="deploymentAlertTitle">Scheduled Release &amp; Maintenance</strong>
+                        <span class="deployment-version-tag" id="deploymentAlertVersionTag">v2.5.0</span>
+                        <span class="deployment-schedule-chip" id="deploymentAlertScheduleChip">
+                            <i class="fas fa-clock"></i> <span id="deploymentAlertScheduledTime">Scheduled: Sunday 02:00 AM IST</span>
+                        </span>
+                        <span class="deployment-duration-chip" id="deploymentAlertDurationChip">
+                            <i class="fas fa-hourglass-half"></i> <span id="deploymentAlertDuration">Est. 25 mins</span>
+                        </span>
+                    </div>
+                    <div class="deployment-alert-message" id="deploymentAlertMessage">
+                        JudIQ AI will undergo scheduled maintenance to roll out core engine enhancements and bilingual draft templates. Please save your ongoing drafts and exports prior to the maintenance window.
+                    </div>
+                </div>
+                <div class="deployment-alert-actions">
+                    <button class="deployment-alert-btn deployment-alert-btn-acknowledge" id="btnAcknowledgeDeploymentAlert" onclick="acknowledgeDeploymentAlert()" title="Acknowledge alert">
+                        <i class="fas fa-check"></i> <span>Understood</span>
+                    </button>
+                    <button class="deployment-alert-btn-close" onclick="dismissDeploymentAlertBanner()" title="Close banner" aria-label="Close notification">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <!-- LANDING PAGE SECTION -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -3389,6 +3422,94 @@
                             <button class="btn btn-outline u-is-228" onclick="loadAdminSystemHealth()">
                                 <i class="fas fa-heart-pulse"></i> Run Live Diagnostic Health Check
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- System Deployment & Release Warning Alert Manager -->
+                    <div class="admin-users-panel" id="adminDeploymentAlertPanel" style="border: 1px solid rgba(245, 158, 11, 0.35); background: linear-gradient(180deg, rgba(245, 158, 11, 0.04) 0%, transparent 100%);">
+                        <div class="u-is-183" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                                        <i class="fas fa-bullhorn"></i>
+                                    </span>
+                                    <h3 class="u-is-184" style="margin: 0; color: var(--text-primary);">Deployment &amp; Version Release Alert Manager</h3>
+                                    <span id="adminAlertStatusBadge" class="admin-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 700;">
+                                        ACTIVE
+                                    </span>
+                                </div>
+                                <p class="u-is-185" style="margin-top: 6px;">
+                                    Schedule release times, notify users of upcoming deployment downtimes, and broadcast advisory alerts across all active sessions in real-time.
+                                </p>
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <button type="button" class="btn btn-outline btn-sm" id="btnAdminToggleAlertStatus" onclick="toggleAdminDeploymentAlert()" style="display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-power-off"></i> <span id="btnAdminToggleAlertText">Deactivate Alert</span>
+                                </button>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="saveAdminDeploymentAlert()" style="display: flex; align-items: center; gap: 6px; background: #f59e0b; border-color: #d97706; color: #000; font-weight: 600;">
+                                    <i class="fas fa-paper-plane"></i> Save &amp; Broadcast Alert
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Alert Configuration Form -->
+                        <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">Alert Type</label>
+                                <select id="adminAlertInputType" class="form-input" style="width: 100%;" onchange="updateAdminAlertPreview()">
+                                    <option value="DEPLOYMENT">Scheduled Deployment</option>
+                                    <option value="VERSION_RELEASE">Version Release Upgrade</option>
+                                    <option value="MAINTENANCE">Platform Maintenance</option>
+                                    <option value="CRITICAL_WARNING">Critical System Advisory</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">Target Version Tag</label>
+                                <input type="text" id="adminAlertInputVersion" class="form-input" style="width: 100%;" placeholder="e.g. v2.5.0" value="v2.5.0" oninput="updateAdminAlertPreview()">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">Scheduled Release Time (Fixed Window)</label>
+                                <input type="text" id="adminAlertInputTime" class="form-input" style="width: 100%;" placeholder="e.g. Sunday, 28 Sep 2026, 02:00 AM IST (20:30 UTC)" oninput="updateAdminAlertPreview()">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">Estimated Duration</label>
+                                <input type="text" id="adminAlertInputDuration" class="form-input" style="width: 100%;" placeholder="e.g. 25 minutes" value="25 minutes" oninput="updateAdminAlertPreview()">
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">Alert Headline Title</label>
+                                <input type="text" id="adminAlertInputTitle" class="form-input" style="width: 100%;" placeholder="e.g. Scheduled Core Engine & Platform Release" oninput="updateAdminAlertPreview()">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">Affected Services / Modules</label>
+                                <input type="text" id="adminAlertInputServices" class="form-input" style="width: 100%;" placeholder="e.g. Draft Studio, AI Analysis Engine & Cloud Sync">
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 14px;">
+                            <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">Notification &amp; Advisory Notice (User Guidance)</label>
+                            <textarea id="adminAlertInputMessage" class="form-input" rows="3" style="width: 100%; resize: vertical;" placeholder="Guidance message to advise users to save drafts and export reports before release window..." oninput="updateAdminAlertPreview()"></textarea>
+                        </div>
+
+                        <!-- Live Preview Card in Admin Panel -->
+                        <div style="margin-top: 18px; padding: 14px; border-radius: 8px; background: var(--bg-hover, rgba(0,0,0,0.2)); border: 1px dashed rgba(245, 158, 11, 0.4);">
+                            <div style="font-size: 0.75rem; font-weight: 700; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-eye"></i> Live User Banner Preview:
+                            </div>
+                            <div id="adminAlertLivePreview" style="padding: 10px 14px; border-radius: 8px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: var(--text-primary); font-size: 0.85rem; line-height: 1.45;">
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
+                                    <span style="font-weight: 800; color: #f59e0b;" id="previewAlertBadge">⚠️ SYSTEM DEPLOYMENT</span>
+                                    <strong id="previewAlertTitle" style="font-size: 0.9rem;">Scheduled Core Engine &amp; Platform Release</strong>
+                                    <span id="previewAlertVersion" style="background: rgba(245, 158, 11, 0.2); padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.75rem; border: 1px solid rgba(245, 158, 11, 0.4);">v2.5.0</span>
+                                    <span id="previewAlertTime" style="font-size: 0.8rem; color: var(--text-secondary);"><i class="fas fa-clock"></i> Sunday, 28 Sep 2026, 02:00 AM IST</span>
+                                    <span id="previewAlertDuration" style="font-size: 0.8rem; color: var(--text-secondary);"><i class="fas fa-hourglass-half"></i> Est. 25 mins</span>
+                                </div>
+                                <div id="previewAlertMessage" style="color: var(--text-secondary); font-size: 0.82rem;">
+                                    JudIQ AI will undergo scheduled maintenance to deploy version updates, enhanced bilingual draft generators, and database performance optimizations. Please save active draft documents and download required case analysis reports prior to the window.
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

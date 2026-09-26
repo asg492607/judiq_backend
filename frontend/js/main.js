@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDraftWorkflow();
     initCmsAnalytics();
     initDocIntel();
+    if (window.initSystemDeploymentAlert) window.initSystemDeploymentAlert();
 
     // Initialize Co-Counsel Dock & Strategy Simulator
     window.judiqDock = new JudiQCoCounselDock();
@@ -4477,6 +4478,7 @@ window.switchAdminTab = (tabName) => {
         window.loadAdminSecurityLogs();
     } else if (tabName === 'health') {
         window.loadAdminSystemHealth();
+        if (window.loadAdminDeploymentAlert) window.loadAdminDeploymentAlert();
     }
 };
 
@@ -6371,6 +6373,307 @@ window.performAdminCacheClear = async () => {
         }
     } catch (err) {
         if (window.ui) window.ui.toast('Cache clear error: ' + err.message, 'error');
+    }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SYSTEM DEPLOYMENT & VERSION RELEASE WARNING ALERT
+// ═══════════════════════════════════════════════════════════════════════════
+let currentDeploymentAlert = null;
+let currentDeploymentAlertUpdatedAt = null;
+
+window.initSystemDeploymentAlert = () => {
+    window.checkSystemDeploymentAlert();
+    // Periodically re-check every 60 seconds across all active sessions
+    setInterval(() => {
+        window.checkSystemDeploymentAlert();
+    }, 60000);
+};
+
+window.checkSystemDeploymentAlert = async () => {
+    try {
+        const res = await api.getDeploymentAlert();
+        if (res && res.success && res.alert) {
+            const alert = res.alert;
+            currentDeploymentAlert = alert;
+            currentDeploymentAlertUpdatedAt = alert.updated_at || alert.created_at || 'v1';
+
+            if (!alert.is_active) {
+                window.hideDeploymentAlertBanner();
+                return;
+            }
+
+            // Check if user dismissed this alert update
+            const dismissedKey = localStorage.getItem('judiq_dismissed_deployment_alert');
+            if (dismissedKey && dismissedKey === currentDeploymentAlertUpdatedAt) {
+                window.hideDeploymentAlertBanner();
+                return;
+            }
+
+            window.renderDeploymentAlertBanner(alert);
+        } else {
+            window.hideDeploymentAlertBanner();
+        }
+    } catch (e) {
+        console.warn('System deployment alert check deferred:', e);
+    }
+};
+
+window.renderDeploymentAlertBanner = (alert) => {
+    const banner = document.getElementById('systemDeploymentAlertBanner');
+    if (!banner) return;
+
+    banner.classList.remove('alert-closing');
+    banner.classList.remove('alert-type-deployment', 'alert-type-version_release', 'alert-type-maintenance', 'alert-type-critical_warning');
+
+    const alertType = (alert.alert_type || 'DEPLOYMENT').toUpperCase();
+    const typeClass = `alert-type-${alertType.toLowerCase()}`;
+    banner.classList.add(typeClass);
+
+    // Update Icon & Type label
+    const iconEl = document.getElementById('deploymentAlertIcon');
+    const typeLabelEl = document.getElementById('deploymentAlertTypeLabel');
+    if (alertType === 'VERSION_RELEASE') {
+        if (iconEl) iconEl.className = 'fas fa-rocket';
+        if (typeLabelEl) typeLabelEl.textContent = 'VERSION RELEASE';
+    } else if (alertType === 'MAINTENANCE') {
+        if (iconEl) iconEl.className = 'fas fa-tools';
+        if (typeLabelEl) typeLabelEl.textContent = 'PLATFORM MAINTENANCE';
+    } else if (alertType === 'CRITICAL_WARNING') {
+        if (iconEl) iconEl.className = 'fas fa-triangle-exclamation';
+        if (typeLabelEl) typeLabelEl.textContent = 'CRITICAL ADVISORY';
+    } else {
+        if (iconEl) iconEl.className = 'fas fa-bullhorn';
+        if (typeLabelEl) typeLabelEl.textContent = 'SYSTEM DEPLOYMENT';
+    }
+
+    // Title
+    const titleEl = document.getElementById('deploymentAlertTitle');
+    if (titleEl) titleEl.textContent = alert.title || 'Scheduled Release & Maintenance';
+
+    // Version Tag
+    const versionEl = document.getElementById('deploymentAlertVersionTag');
+    if (versionEl) {
+        versionEl.textContent = alert.version_tag || 'v2.5.0';
+        versionEl.style.display = alert.version_tag ? 'inline-flex' : 'none';
+    }
+
+    // Scheduled Time
+    const timeEl = document.getElementById('deploymentAlertScheduledTime');
+    const timeChip = document.getElementById('deploymentAlertScheduleChip');
+    if (timeEl && timeChip) {
+        if (alert.scheduled_time && alert.scheduled_time.trim()) {
+            timeEl.textContent = `Scheduled: ${alert.scheduled_time.trim()}`;
+            timeChip.style.display = 'inline-flex';
+        } else {
+            timeChip.style.display = 'none';
+        }
+    }
+
+    // Duration
+    const durationEl = document.getElementById('deploymentAlertDuration');
+    const durationChip = document.getElementById('deploymentAlertDurationChip');
+    if (durationEl && durationChip) {
+        if (alert.estimated_duration && alert.estimated_duration.trim()) {
+            durationEl.textContent = `Est. ${alert.estimated_duration.trim()}`;
+            durationChip.style.display = 'inline-flex';
+        } else {
+            durationChip.style.display = 'none';
+        }
+    }
+
+    // Message
+    const msgEl = document.getElementById('deploymentAlertMessage');
+    if (msgEl) {
+        msgEl.textContent = alert.message || 'JudIQ AI will undergo scheduled maintenance. Please save your ongoing drafts and exports prior to the window.';
+    }
+
+    banner.classList.remove('u-hidden');
+};
+
+window.acknowledgeDeploymentAlert = () => {
+    if (currentDeploymentAlertUpdatedAt) {
+        localStorage.setItem('judiq_dismissed_deployment_alert', currentDeploymentAlertUpdatedAt);
+    }
+    window.dismissDeploymentAlertBanner();
+    if (window.ui) window.ui.toast('Deployment notification acknowledged.', 'info');
+};
+
+window.dismissDeploymentAlertBanner = () => {
+    const banner = document.getElementById('systemDeploymentAlertBanner');
+    if (!banner) return;
+    banner.classList.add('alert-closing');
+    setTimeout(() => {
+        banner.classList.add('u-hidden');
+        banner.classList.remove('alert-closing');
+    }, 300);
+};
+
+window.hideDeploymentAlertBanner = () => {
+    const banner = document.getElementById('systemDeploymentAlertBanner');
+    if (banner) {
+        banner.classList.add('u-hidden');
+    }
+};
+
+// Admin Deployment Alert Control Methods
+window.loadAdminDeploymentAlert = async () => {
+    try {
+        const res = await api.getDeploymentAlert();
+        if (res && res.success && res.alert) {
+            const a = res.alert;
+            currentDeploymentAlert = a;
+            const typeInput = document.getElementById('adminAlertInputType');
+            const versionInput = document.getElementById('adminAlertInputVersion');
+            const timeInput = document.getElementById('adminAlertInputTime');
+            const durationInput = document.getElementById('adminAlertInputDuration');
+            const titleInput = document.getElementById('adminAlertInputTitle');
+            const servicesInput = document.getElementById('adminAlertInputServices');
+            const msgInput = document.getElementById('adminAlertInputMessage');
+
+            if (typeInput) typeInput.value = a.alert_type || 'DEPLOYMENT';
+            if (versionInput) versionInput.value = a.version_tag || 'v2.5.0';
+            if (timeInput) timeInput.value = a.scheduled_time || '';
+            if (durationInput) durationInput.value = a.estimated_duration || '25 minutes';
+            if (titleInput) titleInput.value = a.title || '';
+            if (servicesInput) servicesInput.value = a.affected_services || '';
+            if (msgInput) msgInput.value = a.message || '';
+
+            window.updateAdminAlertStatusUI(a.is_active);
+            window.updateAdminAlertPreview();
+        }
+    } catch (e) {
+        console.warn('Failed to load admin deployment alert:', e);
+    }
+};
+
+window.updateAdminAlertStatusUI = (isActive) => {
+    const badge = document.getElementById('adminAlertStatusBadge');
+    const toggleBtnText = document.getElementById('btnAdminToggleAlertText');
+    const toggleBtn = document.getElementById('btnAdminToggleAlertStatus');
+
+    if (badge) {
+        if (isActive) {
+            badge.textContent = 'ACTIVE';
+            badge.style.background = 'rgba(16, 185, 129, 0.15)';
+            badge.style.color = '#10b981';
+            badge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+        } else {
+            badge.textContent = 'INACTIVE';
+            badge.style.background = 'rgba(239, 68, 68, 0.15)';
+            badge.style.color = '#ef4444';
+            badge.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+        }
+    }
+
+    if (toggleBtnText) {
+        toggleBtnText.textContent = isActive ? 'Deactivate Alert' : 'Activate Alert';
+    }
+    if (toggleBtn) {
+        toggleBtn.style.color = isActive ? '#ef4444' : '#10b981';
+        toggleBtn.style.borderColor = isActive ? 'rgba(239, 68, 68, 0.4)' : 'rgba(16, 185, 129, 0.4)';
+    }
+};
+
+window.updateAdminAlertPreview = () => {
+    const type = document.getElementById('adminAlertInputType')?.value || 'DEPLOYMENT';
+    const version = document.getElementById('adminAlertInputVersion')?.value || 'v2.5.0';
+    const time = document.getElementById('adminAlertInputTime')?.value || '';
+    const duration = document.getElementById('adminAlertInputDuration')?.value || '';
+    const title = document.getElementById('adminAlertInputTitle')?.value || '';
+    const msg = document.getElementById('adminAlertInputMessage')?.value || '';
+
+    const badgeEl = document.getElementById('previewAlertBadge');
+    const titleEl = document.getElementById('previewAlertTitle');
+    const verEl = document.getElementById('previewAlertVersion');
+    const timeEl = document.getElementById('previewAlertTime');
+    const durEl = document.getElementById('previewAlertDuration');
+    const msgEl = document.getElementById('previewAlertMessage');
+
+    if (badgeEl) {
+        if (type === 'VERSION_RELEASE') badgeEl.innerHTML = '<i class="fas fa-rocket"></i> VERSION RELEASE';
+        else if (type === 'MAINTENANCE') badgeEl.innerHTML = '<i class="fas fa-tools"></i> PLATFORM MAINTENANCE';
+        else if (type === 'CRITICAL_WARNING') badgeEl.innerHTML = '<i class="fas fa-triangle-exclamation"></i> CRITICAL ADVISORY';
+        else badgeEl.innerHTML = '<i class="fas fa-bullhorn"></i> SYSTEM DEPLOYMENT';
+    }
+
+    if (titleEl) titleEl.textContent = title || 'Scheduled Release & Maintenance';
+    if (verEl) verEl.textContent = version || 'v2.5.0';
+    if (timeEl) timeEl.innerHTML = time ? `<i class="fas fa-clock"></i> ${time}` : '';
+    if (durEl) durEl.innerHTML = duration ? `<i class="fas fa-hourglass-half"></i> Est. ${duration}` : '';
+    if (msgEl) msgEl.textContent = msg || 'JudIQ AI will undergo scheduled maintenance to deploy platform enhancements.';
+};
+
+window.saveAdminDeploymentAlert = async () => {
+    if (!adminAuthToken) {
+        if (window.ui) window.ui.toast('Admin authorization required.', 'error');
+        return;
+    }
+
+    const type = document.getElementById('adminAlertInputType')?.value || 'DEPLOYMENT';
+    const version = document.getElementById('adminAlertInputVersion')?.value.trim() || 'v2.5.0';
+    const time = document.getElementById('adminAlertInputTime')?.value.trim() || '';
+    const duration = document.getElementById('adminAlertInputDuration')?.value.trim() || '25 minutes';
+    const title = document.getElementById('adminAlertInputTitle')?.value.trim();
+    const services = document.getElementById('adminAlertInputServices')?.value.trim() || '';
+    const message = document.getElementById('adminAlertInputMessage')?.value.trim();
+
+    if (!title) {
+        if (window.ui) window.ui.toast('Please provide an alert headline title.', 'warning');
+        return;
+    }
+    if (!message) {
+        if (window.ui) window.ui.toast('Please provide an advisory notice message.', 'warning');
+        return;
+    }
+
+    const isActive = currentDeploymentAlert ? currentDeploymentAlert.is_active : true;
+
+    try {
+        const payload = {
+            title,
+            message,
+            alert_type: type,
+            version_tag: version,
+            scheduled_time: time,
+            estimated_duration: duration,
+            affected_services: services,
+            is_active: isActive
+        };
+
+        const res = await api.setDeploymentAlert(payload, adminAuthToken);
+        if (res && res.success) {
+            currentDeploymentAlert = res.alert;
+            localStorage.removeItem('judiq_dismissed_deployment_alert');
+            window.updateAdminAlertStatusUI(res.alert.is_active);
+            window.checkSystemDeploymentAlert();
+            if (window.ui) window.ui.toast('System deployment alert updated and broadcasted!', 'success');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Failed to update deployment alert: ' + err.message, 'error');
+    }
+};
+
+window.toggleAdminDeploymentAlert = async () => {
+    if (!adminAuthToken) {
+        if (window.ui) window.ui.toast('Admin authorization required.', 'error');
+        return;
+    }
+
+    const currentStatus = currentDeploymentAlert ? currentDeploymentAlert.is_active : true;
+    const newStatus = !currentStatus;
+
+    try {
+        const res = await api.toggleDeploymentAlert(newStatus, adminAuthToken);
+        if (res && res.success) {
+            currentDeploymentAlert = res.alert;
+            localStorage.removeItem('judiq_dismissed_deployment_alert');
+            window.updateAdminAlertStatusUI(newStatus);
+            window.checkSystemDeploymentAlert();
+            if (window.ui) window.ui.toast(`Deployment alert banner ${newStatus ? 'ACTIVATED' : 'DEACTIVATED'}.`, 'success');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Failed to toggle deployment alert: ' + err.message, 'error');
     }
 };
 

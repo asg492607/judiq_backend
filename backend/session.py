@@ -554,12 +554,29 @@ class DatabaseManager:
                     updated_at TEXT
                 )
             """)
+
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS system_deployment_alerts (
+                    id TEXT PRIMARY KEY,
+                    title TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    alert_type TEXT DEFAULT 'DEPLOYMENT',
+                    version_tag TEXT DEFAULT 'v2.5.0',
+                    scheduled_time TEXT,
+                    estimated_duration TEXT DEFAULT '25 minutes',
+                    affected_services TEXT DEFAULT 'Draft Studio, Case Analytics & API Services',
+                    is_active INTEGER DEFAULT 1,
+                    created_at TEXT,
+                    updated_at TEXT
+                )
+            """)
             conn.commit()
-            logger.info("Database, Caseroom, User Quota, Bank Recovery, Payments, and Plans Catalog tables initialized successfully.")
+            logger.info("Database, Caseroom, User Quota, Bank Recovery, Payments, Plans Catalog, and System Deployment Alerts tables initialized successfully.")
             DatabaseManager._seed_initial_litigators(cursor, conn)
             DatabaseManager._seed_initial_bank_officers(cursor, conn)
             DatabaseManager._seed_initial_plans_catalog(cursor, conn)
             DatabaseManager._seed_initial_payments(cursor, conn)
+            DatabaseManager._seed_initial_deployment_alert(cursor, conn)
         except Exception as e:
             logger.error(f"Database init failed: {e}")
             raise e
@@ -4418,3 +4435,167 @@ class DatabaseManager:
         finally:
             if conn:
                 DatabaseManager.release_connection(conn)
+
+    @staticmethod
+    def _seed_initial_deployment_alert(cursor, conn):
+        try:
+            cursor.execute("SELECT COUNT(*) FROM system_deployment_alerts WHERE id = 'primary_deployment_alert'")
+            row = cursor.fetchone()
+            if row and row[0] > 0:
+                return
+            p = DatabaseManager.get_dialect_placeholder()
+            now_iso = datetime.now().isoformat()
+            sql = f"""
+                INSERT INTO system_deployment_alerts
+                (id, title, message, alert_type, version_tag, scheduled_time, estimated_duration, affected_services, is_active, created_at, updated_at)
+                VALUES ({', '.join([p]*11)})
+            """
+            cursor.execute(sql, (
+                "primary_deployment_alert",
+                "Scheduled Core Engine & Platform Release",
+                "JudIQ AI will undergo scheduled maintenance to deploy version updates, enhanced bilingual draft generators, and database performance optimizations. Please save active draft documents and download required case analysis reports prior to the window.",
+                "DEPLOYMENT",
+                "v2.5.0",
+                "Sunday, 28 Sep 2026, 02:00 AM IST (20:30 UTC)",
+                "25 minutes",
+                "Draft Studio, AI Analysis Engine & Cloud Sync",
+                1,
+                now_iso,
+                now_iso
+            ))
+            conn.commit()
+        except Exception as e:
+            logger.warning(f"Seed system deployment alert skipped or failed: {e}")
+
+    @staticmethod
+    def get_deployment_alert():
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, title, message, alert_type, version_tag, scheduled_time,
+                       estimated_duration, affected_services, is_active, created_at, updated_at
+                FROM system_deployment_alerts
+                WHERE id = 'primary_deployment_alert'
+            """)
+            row = cursor.fetchone()
+            if not row:
+                return None
+            return {
+                "id": row[0],
+                "title": row[1],
+                "message": row[2],
+                "alert_type": row[3],
+                "version_tag": row[4],
+                "scheduled_time": row[5],
+                "estimated_duration": row[6],
+                "affected_services": row[7],
+                "is_active": bool(row[8]),
+                "created_at": row[9],
+                "updated_at": row[10]
+            }
+        except Exception as e:
+            logger.error(f"Failed to get system deployment alert: {e}")
+            return None
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    @staticmethod
+    def set_deployment_alert(
+        title: str,
+        message: str,
+        alert_type: str = "DEPLOYMENT",
+        version_tag: str = "v2.5.0",
+        scheduled_time: str = "",
+        estimated_duration: str = "25 minutes",
+        affected_services: str = "Draft Studio, AI Analysis Engine & Cloud Sync",
+        is_active: bool = True
+    ) -> dict:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now_iso = datetime.now().isoformat()
+            
+            cursor.execute("SELECT id FROM system_deployment_alerts WHERE id = 'primary_deployment_alert'")
+            exists = cursor.fetchone()
+            if exists:
+                cursor.execute(f"""
+                    UPDATE system_deployment_alerts
+                    SET title = {p},
+                        message = {p},
+                        alert_type = {p},
+                        version_tag = {p},
+                        scheduled_time = {p},
+                        estimated_duration = {p},
+                        affected_services = {p},
+                        is_active = {p},
+                        updated_at = {p}
+                    WHERE id = 'primary_deployment_alert'
+                """, (
+                    title,
+                    message,
+                    alert_type,
+                    version_tag,
+                    scheduled_time,
+                    estimated_duration,
+                    affected_services,
+                    1 if is_active else 0,
+                    now_iso
+                ))
+            else:
+                cursor.execute(f"""
+                    INSERT INTO system_deployment_alerts
+                    (id, title, message, alert_type, version_tag, scheduled_time, estimated_duration, affected_services, is_active, created_at, updated_at)
+                    VALUES ({', '.join([p]*11)})
+                """, (
+                    "primary_deployment_alert",
+                    title,
+                    message,
+                    alert_type,
+                    version_tag,
+                    scheduled_time,
+                    estimated_duration,
+                    affected_services,
+                    1 if is_active else 0,
+                    now_iso,
+                    now_iso
+                ))
+            conn.commit()
+            return DatabaseManager.get_deployment_alert()
+        except Exception as e:
+            logger.error(f"Failed to set system deployment alert: {e}")
+            if conn:
+                conn.rollback()
+            return None
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    @staticmethod
+    def toggle_deployment_alert(is_active: bool) -> dict:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now_iso = datetime.now().isoformat()
+            cursor.execute(f"""
+                UPDATE system_deployment_alerts
+                SET is_active = {p}, updated_at = {p}
+                WHERE id = 'primary_deployment_alert'
+            """, (1 if is_active else 0, now_iso))
+            conn.commit()
+            return DatabaseManager.get_deployment_alert()
+        except Exception as e:
+            logger.error(f"Failed to toggle system deployment alert: {e}")
+            if conn:
+                conn.rollback()
+            return None
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+

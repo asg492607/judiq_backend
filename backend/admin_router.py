@@ -753,3 +753,95 @@ def consume_draft_endpoint(req: ConsumeDraftRequest = Body(...)):
     return {"success": True, **res}
 
 
+class SetDeploymentAlertRequest(BaseModel):
+    title: str = Field(..., description="Alert Title")
+    message: str = Field(..., description="Notification / advisory message")
+    alert_type: str = Field("DEPLOYMENT", description="DEPLOYMENT, VERSION_RELEASE, MAINTENANCE, or CRITICAL_WARNING")
+    version_tag: str = Field("v2.5.0", description="Target release version tag")
+    scheduled_time: Optional[str] = Field("", description="Fixed deployment/release time or schedule window")
+    estimated_duration: Optional[str] = Field("25 minutes", description="Estimated downtime / deployment duration")
+    affected_services: Optional[str] = Field("Draft Studio, AI Analysis Engine & Cloud Sync", description="Affected modules / services")
+    is_active: bool = Field(True, description="Whether alert is displayed")
+
+
+class ToggleDeploymentAlertRequest(BaseModel):
+    is_active: bool = Field(..., description="Active status flag")
+
+
+system_public_router = APIRouter()
+
+@system_public_router.get("/deployment-alert", tags=["System Status & Alerts"])
+@router.get("/system/deployment-alert", tags=["Admin Control"])
+def get_deployment_alert_endpoint():
+    """
+    Returns the current deployment or release warning alert.
+    Accessible to all users and visitors to check scheduled maintenance/release downtime.
+    """
+    alert = DatabaseManager.get_deployment_alert()
+    return {"success": True, "alert": alert}
+
+
+@router.post("/system/deployment-alert", tags=["Admin Control"])
+def set_deployment_alert_endpoint(
+    req: SetDeploymentAlertRequest = Body(...),
+    admin: dict = Depends(require_admin)
+):
+    """
+    Creates or updates the system-wide deployment or version release warning alert.
+    Requires administrator authorization.
+    """
+    alert = DatabaseManager.set_deployment_alert(
+        title=req.title,
+        message=req.message,
+        alert_type=req.alert_type,
+        version_tag=req.version_tag,
+        scheduled_time=req.scheduled_time or "",
+        estimated_duration=req.estimated_duration or "25 minutes",
+        affected_services=req.affected_services or "Draft Studio, AI Analysis Engine & Cloud Sync",
+        is_active=req.is_active
+    )
+    if not alert:
+        raise HTTPException(status_code=500, detail="Failed to save deployment alert.")
+
+    DatabaseManager.log_audit_event(
+        user_id=admin.get("email") or "admin",
+        action="UPDATE_DEPLOYMENT_ALERT",
+        case_id="SYSTEM",
+        metadata={
+            "title": req.title,
+            "alert_type": req.alert_type,
+            "version_tag": req.version_tag,
+            "scheduled_time": req.scheduled_time,
+            "is_active": req.is_active
+        }
+    )
+    return {"success": True, "message": "Deployment alert updated successfully.", "alert": alert}
+
+
+@router.post("/system/deployment-alert/toggle", tags=["Admin Control"])
+def toggle_deployment_alert_endpoint(
+    req: ToggleDeploymentAlertRequest = Body(...),
+    admin: dict = Depends(require_admin)
+):
+    """
+    Quickly toggles the active/inactive state of the deployment alert.
+    Requires administrator authorization.
+    """
+    alert = DatabaseManager.toggle_deployment_alert(is_active=req.is_active)
+    if not alert:
+        raise HTTPException(status_code=500, detail="Failed to toggle deployment alert.")
+
+    DatabaseManager.log_audit_event(
+        user_id=admin.get("email") or "admin",
+        action="TOGGLE_DEPLOYMENT_ALERT",
+        case_id="SYSTEM",
+        metadata={"is_active": req.is_active}
+    )
+    return {
+        "success": True,
+        "message": f"Deployment alert {'activated' if req.is_active else 'deactivated'}.",
+        "alert": alert
+    }
+
+
+

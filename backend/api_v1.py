@@ -8,7 +8,7 @@ def create_anonymous_session():
     user_id = f"ANON_{uuid.uuid4().hex[:12]}"
     token = SecurityManager.create_access_token(data={"sub": user_id})
     return {"access_token": token, "token_type": "bearer", "user_id": user_id}
-from admin_router import router as admin_control_router, user_quota_router
+from admin_router import router as admin_control_router, user_quota_router, system_public_router
 from counsel_router import router as counsel_router
 from analytics_router import router as analytics_router
 from client_portal_router import router as client_portal_router
@@ -36,6 +36,7 @@ api_router.include_router(documents.router, prefix="/documents", tags=["Document
 api_router.include_router(cases.router, prefix="/cases", tags=["Cases"])
 api_router.include_router(telemetry.router, prefix="/telemetry", tags=["Telemetry"])
 api_router.include_router(admin_control_router, prefix="/admin", tags=["Admin Control"])
+api_router.include_router(system_public_router, prefix="/system", tags=["System Status & Alerts"])
 from reports_router import router as reports_router
 api_router.include_router(reports_router, prefix="/reports", tags=["Share Reports"])
 api_router.include_router(user_quota_router, prefix="/user", tags=["User Quota"])
