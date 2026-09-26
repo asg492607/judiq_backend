@@ -152,6 +152,12 @@ def update_draft(
     if not wf:
         raise HTTPException(status_code=404, detail=f"Draft workflow {workflow_id} not found")
 
+    if wf.get("status") in ["FINALIZED", "APPROVED", "FILED"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Draft is finalized and locked. Document details cannot be modified once finalized."
+        )
+
     new_version = (wf.get("current_version") or 1) + 1
     updates = {
         "draft_content": payload.content,
@@ -175,6 +181,67 @@ def update_draft(
     )
 
     return {"success": True, "workflow_id": workflow_id, "version": new_version}
+
+@router.post("/drafts/{workflow_id}/finalize")
+def finalize_draft_endpoint(
+    workflow_id: str,
+    request: Request,
+    user_id: str = Depends(get_current_user_optional)
+):
+    actual_user = user_id or "ANONYMOUS"
+    wf = DatabaseManager.cms_get_draft_workflow(workflow_id=workflow_id)
+    if not wf:
+        raise HTTPException(status_code=404, detail=f"Draft workflow {workflow_id} not found")
+
+    now_iso = datetime.now().isoformat()
+    DatabaseManager.cms_update_draft_workflow(workflow_id=workflow_id, updates={
+        "status": "FINALIZED",
+        "finalized_at": now_iso,
+        "finalized_by": actual_user
+    })
+
+    client_ip = request.client.host if request.client else None
+    AuditService.log(
+        user_id=actual_user,
+        action="DRAFT_FINALIZED",
+        entity_type="draft",
+        entity_id=workflow_id,
+        case_id=wf.get("case_id"),
+        ip_address=client_ip,
+        note=f"Finalized and locked draft {workflow_id}"
+    )
+
+    return {"success": True, "workflow_id": workflow_id, "status": "FINALIZED", "finalized_at": now_iso}
+
+@router.post("/drafts/{workflow_id}/unlock")
+def unlock_draft_endpoint(
+    workflow_id: str,
+    request: Request,
+    user_id: str = Depends(get_current_user_optional)
+):
+    actual_user = user_id or "ANONYMOUS"
+    wf = DatabaseManager.cms_get_draft_workflow(workflow_id=workflow_id)
+    if not wf:
+        raise HTTPException(status_code=404, detail=f"Draft workflow {workflow_id} not found")
+
+    DatabaseManager.cms_update_draft_workflow(workflow_id=workflow_id, updates={
+        "status": "DRAFT",
+        "unlocked_at": datetime.now().isoformat(),
+        "unlocked_by": actual_user
+    })
+
+    client_ip = request.client.host if request.client else None
+    AuditService.log(
+        user_id=actual_user,
+        action="DRAFT_UNLOCKED",
+        entity_type="draft",
+        entity_id=workflow_id,
+        case_id=wf.get("case_id"),
+        ip_address=client_ip,
+        note=f"Unlocked draft {workflow_id} for editing"
+    )
+
+    return {"success": True, "workflow_id": workflow_id, "status": "DRAFT"}
 
 @router.post("/drafts/{workflow_id}/submit")
 def submit_draft_for_review(

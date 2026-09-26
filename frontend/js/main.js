@@ -1928,6 +1928,11 @@ window.startCaseAnalysis = (initialData = null) => {
 
     window.state.currentStep = 1;
     window.state.caseData = normalizedData;
+    window.isDraftFinalized = false;
+    window.draftFinalizedTimestamp = null;
+    if (typeof window.applyDraftFinalizedUI === 'function') {
+        window.applyDraftFinalizedUI(false);
+    }
     try {
         localStorage.setItem('judiq_wizard_autosave', JSON.stringify(window.state.caseData));
     } catch (_) { }
@@ -2108,6 +2113,10 @@ window.showDraftTypeSelection = () => {
 };
 
 window.showDraftInputForm = () => {
+    if (window.isDraftFinalized) {
+        if (window.ui) window.ui.toast('Draft is finalized and locked. Click "Unlock & Re-edit" to modify details.', 'warning');
+        return;
+    }
     ui.hide('draftTypeSelection');
     ui.show('draftInputForm');
     ui.hide('draftOutputView');
@@ -2787,6 +2796,225 @@ window.downloadPDF = async () => {
 
 window.generateReport = () => window.downloadPDF();
 
+/* ═══════════════════════════════════════════════════════════════════
+   LEGAL DRAFT FINALIZATION & EVIDENTIARY LOCK WORKFLOW
+   ═══════════════════════════════════════════════════════════════════ */
+window.isDraftFinalized = false;
+window.draftFinalizedTimestamp = null;
+let lastLockToastTime = 0;
+
+function showLockWarningToast(msg) {
+    const now = Date.now();
+    if (now - lastLockToastTime > 2500) {
+        lastLockToastTime = now;
+        if (window.ui && typeof window.ui.toast === 'function') {
+            window.ui.toast(msg || 'Draft is finalized and locked. Details cannot be edited.', 'warning');
+        }
+    }
+}
+
+window.finalizeDraft = () => {
+    // Determine active draft content element across tabs/screens
+    const ta = document.getElementById("draftPreviewContent") ||
+               document.getElementById("generatedDraftContent") ||
+               document.getElementById("draftContent");
+
+    const content = (ta && ta.value) ? ta.value.trim() : '';
+    if (!content) {
+        if (window.ui) window.ui.toast('No draft content available to finalize.', 'warning');
+        return;
+    }
+
+    const confirmFinalize = window.confirm(
+        "Finalize this Legal Draft?\n\n" +
+        "• All case details and draft text will be locked against editing to protect legal evidentiary integrity.\n" +
+        "• Certified court-ready download and printing will be prepared.\n\n" +
+        "Proceed with finalization?"
+    );
+
+    if (!confirmFinalize) return;
+
+    window.isDraftFinalized = true;
+    window.draftFinalizedTimestamp = new Date().toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+    });
+
+    if (window.state && window.state.caseData) {
+        window.state.caseData.draft_finalized = true;
+        window.state.caseData.draft_finalized_at = window.draftFinalizedTimestamp;
+    }
+
+    window.applyDraftFinalizedUI(true);
+
+    if (window.ui) {
+        window.ui.toast('Draft successfully finalized and locked against edits!', 'success');
+    }
+};
+
+window.unlockDraftForEditing = () => {
+    const confirmUnlock = window.confirm(
+        "Unlock Legal Draft for Editing?\n\n" +
+        "• This will remove the evidentiary lock and allow modifying case details and draft text.\n" +
+        "• You will need to finalize the draft again before filing or printing certified copies.\n\n" +
+        "Unlock draft now?"
+    );
+
+    if (!confirmUnlock) return;
+
+    window.isDraftFinalized = false;
+    if (window.state && window.state.caseData) {
+        window.state.caseData.draft_finalized = false;
+    }
+
+    window.applyDraftFinalizedUI(false);
+
+    if (window.ui) {
+        window.ui.toast('Draft unlocked. You can now edit details and text.', 'info');
+    }
+};
+
+window.applyDraftFinalizedUI = (isFinalized) => {
+    window.isDraftFinalized = !!isFinalized;
+    const formattedTime = window.draftFinalizedTimestamp || new Date().toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+    });
+
+    // 1. Textareas across results tab, draft screen, and generator output
+    const textareas = [
+        document.getElementById('draftPreviewContent'),
+        document.getElementById('draftContent'),
+        document.getElementById('generatedDraftContent')
+    ];
+
+    textareas.forEach(ta => {
+        if (!ta) return;
+        ta.readOnly = !!isFinalized;
+        if (isFinalized) {
+            ta.classList.add('draft-finalized-locked');
+            ta.setAttribute('title', 'Finalized & Locked: Editing disabled to protect legal evidentiary integrity.');
+        } else {
+            ta.classList.remove('draft-finalized-locked');
+            ta.removeAttribute('title');
+        }
+    });
+
+    // 2. Sealed Banners
+    const banners = [
+        { el: document.getElementById('draftFinalizedBanner'), ts: document.getElementById('draftFinalizedTimestampText') },
+        { el: document.getElementById('draftScreenFinalizedBanner'), ts: document.getElementById('draftScreenFinalizedTimestampText') },
+        { el: document.getElementById('draftGenFinalizedBanner'), ts: document.getElementById('draftGenFinalizedTimestampText') }
+    ];
+
+    banners.forEach(b => {
+        if (b.el) {
+            b.el.classList.toggle('u-hidden', !isFinalized);
+            b.el.classList.toggle('hidden', !isFinalized);
+        }
+        if (b.ts && isFinalized) {
+            b.ts.textContent = formattedTime;
+        }
+    });
+
+    // 3. Toolbars (toggle unfinalized vs finalized actions)
+    const toolbarPairs = [
+        { unfinalized: document.getElementById('draftUnfinalizedActions'), finalized: document.getElementById('draftFinalizedActions') },
+        { unfinalized: document.getElementById('draftScreenUnfinalizedActions'), finalized: document.getElementById('draftScreenFinalizedActions') },
+        { unfinalized: document.getElementById('draftGenUnfinalizedActions'), finalized: document.getElementById('draftGenFinalizedActions') }
+    ];
+
+    toolbarPairs.forEach(pair => {
+        if (pair.unfinalized) pair.unfinalized.classList.toggle('u-hidden', !!isFinalized);
+        if (pair.finalized) pair.finalized.classList.toggle('u-hidden', !isFinalized);
+    });
+
+    // 4. Template & Tone controls in results tab
+    const templateSelector = document.getElementById('draftTemplateSelector');
+    if (templateSelector) {
+        templateSelector.disabled = !!isFinalized;
+        templateSelector.classList.toggle('draft-control-disabled', !!isFinalized);
+    }
+
+    const toneBtns = document.querySelectorAll('.btn-tone');
+    toneBtns.forEach(btn => {
+        btn.classList.toggle('draft-control-disabled', !!isFinalized);
+        if (isFinalized) {
+            btn.setAttribute('aria-disabled', 'true');
+        } else {
+            btn.removeAttribute('aria-disabled');
+        }
+    });
+
+    // 5. Input form fields (if on draftGeneratorScreen)
+    const formFields = document.querySelectorAll('#draftFormBody input, #draftFormBody textarea, #draftFormBody select');
+    formFields.forEach(f => {
+        f.disabled = !!isFinalized;
+    });
+
+    // Re-bind lock listeners
+    setupDraftLockListeners();
+};
+
+window.onDraftGenBackLinkClick = () => {
+    if (window.isDraftFinalized) {
+        showLockWarningToast('Draft is finalized and locked. Please click "Unlock & Re-edit" before modifying details.');
+        return;
+    }
+    if (typeof window.showDraftInputForm === 'function') {
+        window.showDraftInputForm();
+    }
+};
+
+window.downloadFinalizedDraft = async () => {
+    const outView = document.getElementById('draftOutputView');
+    const isOutViewVisible = outView && !outView.classList.contains('hidden') && !outView.classList.contains('u-hidden');
+    if (isOutViewVisible && typeof window.downloadGeneratedDraft === 'function') {
+        await window.downloadGeneratedDraft();
+        return;
+    }
+
+    if (typeof window.downloadDraftWord === 'function') {
+        window.downloadDraftWord();
+    } else if (typeof window.downloadDraft === 'function') {
+        window.downloadDraft();
+    }
+};
+
+// Wire up keydown / paste listeners to protect finalized draft textareas
+function setupDraftLockListeners() {
+    ['draftPreviewContent', 'draftContent', 'generatedDraftContent'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el || el.dataset.lockListenerAttached) return;
+        el.dataset.lockListenerAttached = "true";
+
+        el.addEventListener('keydown', (e) => {
+            if (window.isDraftFinalized) {
+                if (e.ctrlKey || e.metaKey) {
+                    if (['c', 'a'].includes(e.key.toLowerCase())) return;
+                }
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown', 'Tab'].includes(e.key)) {
+                    return;
+                }
+                e.preventDefault();
+                showLockWarningToast('Draft is finalized and locked against edits. Click "Unlock & Re-edit" to make changes.');
+            }
+        });
+
+        el.addEventListener('paste', (e) => {
+            if (window.isDraftFinalized) {
+                e.preventDefault();
+                showLockWarningToast('Draft is finalized and locked. Editing is disabled.');
+            }
+        });
+    });
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupDraftLockListeners);
+} else {
+    setupDraftLockListeners();
+}
+
 window.copyDraft = () => {
     const ta = document.getElementById("draftPreviewContent") || document.getElementById("draftContent");
     if (!ta || !ta.value) { ui.toast("No draft available", "warning"); return; }
@@ -2826,11 +3054,21 @@ window.currentDraftTemplate = 'demand_notice';
 window.currentDraftTone = 'standard';
 
 window.onSelectDraftTemplate = (templateId) => {
+    if (window.isDraftFinalized) {
+        showLockWarningToast('Draft is finalized. Unlock draft to change template.');
+        const sel = document.getElementById('draftTemplateSelector');
+        if (sel) sel.value = window.currentDraftTemplate;
+        return;
+    }
     window.currentDraftTemplate = templateId;
     window.renderSelectedDraft();
 };
 
 window.setDraftTone = (tone, btnElement) => {
+    if (window.isDraftFinalized) {
+        showLockWarningToast('Draft is finalized. Unlock draft to change argument tone.');
+        return;
+    }
     window.currentDraftTone = tone;
     if (btnElement) {
         document.querySelectorAll('.btn-tone').forEach(b => b.classList.remove('active'));
@@ -2841,6 +3079,9 @@ window.setDraftTone = (tone, btnElement) => {
 };
 
 window.renderSelectedDraft = () => {
+    if (window.isDraftFinalized) {
+        return;
+    }
     const templateId = window.currentDraftTemplate || 'demand_notice';
     const templateObj = DRAFT_TYPES.find(t => t.id === templateId) || DRAFT_TYPES[0];
     const caseData = window.state.caseData || {};

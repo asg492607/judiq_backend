@@ -2175,6 +2175,11 @@ export function renderResults(data) {
     if (draftPreviewEl) draftPreviewEl.value = draftText || "Legal draft is being generated. Please try 'Generate Report' to download the full draft.";
     if (draftContentEl) draftContentEl.value = draftText || "Legal draft is being generated. Please try 'Generate Report' to download the full draft.";
 
+    if (typeof window.applyDraftFinalizedUI === 'function') {
+        const isFinalized = !!(data.draft_finalized || (data.case_data && data.case_data.draft_finalized));
+        window.applyDraftFinalizedUI(isFinalized);
+    }
+
     const legalAnalysisEl = document.getElementById("legalAnalysis");
     if (legalAnalysisEl) {
         legalAnalysisEl.innerText = data.legal_analysis || "No legal analysis available";

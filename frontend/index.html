@@ -2239,6 +2239,21 @@
                             </div>
                         </div>
 
+                        <!-- Draft Finalized Seal Banner -->
+                        <div id="draftFinalizedBanner" class="draft-finalized-banner u-hidden">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span class="finalized-seal-icon"><i class="fas fa-lock"></i></span>
+                                <div>
+                                    <strong style="color: #10b981; font-size: 0.9rem; display: flex; align-items: center; gap: 6px;">
+                                        <i class="fas fa-shield-halved"></i> DRAFT FINALIZED &amp; LOCKED
+                                    </strong>
+                                    <p style="margin: 2px 0 0 0; font-size: 0.78rem; color: var(--text-secondary);">
+                                        Document details have been locked against modifications to protect legal evidentiary integrity. Finalized on <span id="draftFinalizedTimestampText">—</span>.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="draft-preview-container u-is-109">
                             <textarea id="draftPreviewContent" class="draft-preview-textarea u-is-110"
                                 placeholder="Draft will appear here after analysis..."
@@ -2246,19 +2261,37 @@
                                 title="Draft Will Appear Here After Analysis..."></textarea>
                         </div>
 
-                        <div class="draft-actions u-is-111">
-                            <button class="btn btn-outline" onclick="window.copyDraftFromPreview()">
-                                <i class="fas fa-copy"></i> Copy Text
-                            </button>
-                            <button class="btn btn-outline" onclick="window.downloadDraftWord()">
-                                <i class="fas fa-file-word"></i> Download .DOC
-                            </button>
-                            <button class="btn btn-outline" onclick="window.downloadDraftText()">
-                                <i class="fas fa-download"></i> Download .TXT
-                            </button>
-                            <button class="btn btn-primary" onclick="window.printDraft()">
-                                <i class="fas fa-print"></i> Print Letterhead
-                            </button>
+                        <div class="draft-actions u-is-111" id="draftActionToolbar">
+                            <!-- Unfinalized State: Finalize Draft button -->
+                            <div id="draftUnfinalizedActions" style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 10px;">
+                                <div style="font-size: 0.82rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-pen-to-square" style="color: #6366f1;"></i>
+                                    <span>Review or edit case details above. Once satisfied, click <strong>Finalize Draft</strong> to lock the document.</span>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-finalize-draft" id="btnFinalizeDraft" onclick="window.finalizeDraft()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; font-weight: 700; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+                                    <i class="fas fa-stamp"></i> Finalize Draft
+                                </button>
+                            </div>
+
+                            <!-- Finalized State: Certified document actions -->
+                            <div id="draftFinalizedActions" class="u-hidden" style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="badge-draft-locked" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 5px 12px; border-radius: 9999px; font-size: 0.78rem; font-weight: 700;">
+                                        <i class="fas fa-lock"></i> Finalized &amp; Locked
+                                    </span>
+                                    <button type="button" class="btn btn-outline btn-sm" id="btnUnlockDraft" onclick="window.unlockDraftForEditing()" title="Unlock draft to permit revisions" style="font-size: 0.78rem;">
+                                        <i class="fas fa-unlock"></i> Unlock &amp; Re-edit
+                                    </button>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <button type="button" class="btn btn-primary" id="btnDownloadFinalized" onclick="window.downloadFinalizedDraft()" style="background: #6366f1; border-color: #4f46e5; font-weight: 700;">
+                                        <i class="fas fa-file-arrow-down"></i> Download Finalized Draft
+                                    </button>
+                                    <button type="button" class="btn btn-outline" id="btnPrintFinalized" onclick="window.printDraft()">
+                                        <i class="fas fa-print"></i> Print Certified Copy
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2303,19 +2336,53 @@
             <div class="draft-container">
                 <div class="draft-header">
                     <h2>Legal Draft</h2>
-                    <p>Court-ready complaint generated from your case analysis</p>
+                    <p>Court-ready pleading generated from your case analysis</p>
                 </div>
 
-                <div class="draft-toolbar">
-                    <button class="btn btn-outline" onclick="copyDraft()">
-                        <i class="fas fa-copy"></i> Copy to Clipboard
-                    </button>
-                    <button class="btn btn-outline" onclick="downloadDraft()">
-                        <i class="fas fa-download"></i> Download as Text
-                    </button>
-                    <button class="btn btn-primary" onclick="printDraft()">
-                        <i class="fas fa-print"></i> Print Draft
-                    </button>
+                <!-- Draft Finalized Seal Banner -->
+                <div id="draftScreenFinalizedBanner" class="draft-finalized-banner u-hidden">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="finalized-seal-icon"><i class="fas fa-lock"></i></span>
+                        <div>
+                            <strong style="color: #10b981; font-size: 0.9rem; display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-shield-halved"></i> DRAFT FINALIZED &amp; LOCKED
+                            </strong>
+                            <p style="margin: 2px 0 0 0; font-size: 0.78rem; color: var(--text-secondary);">
+                                Document details have been locked against modifications to protect legal evidentiary integrity. Finalized on <span id="draftScreenFinalizedTimestampText">—</span>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="draft-toolbar" id="draftScreenToolbar">
+                    <div id="draftScreenUnfinalizedActions" style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 10px;">
+                        <div style="font-size: 0.82rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-pen-to-square" style="color: #6366f1;"></i>
+                            <span>Edit details as needed. Finalizing will lock the draft against further edits.</span>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-finalize-draft" onclick="window.finalizeDraft()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; font-weight: 700; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+                            <i class="fas fa-stamp"></i> Finalize Draft
+                        </button>
+                    </div>
+
+                    <div id="draftScreenFinalizedActions" class="u-hidden" style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="badge-draft-locked" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 5px 12px; border-radius: 9999px; font-size: 0.78rem; font-weight: 700;">
+                                <i class="fas fa-lock"></i> Finalized &amp; Locked
+                            </span>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="window.unlockDraftForEditing()" title="Unlock draft to permit revisions" style="font-size: 0.78rem;">
+                                <i class="fas fa-unlock"></i> Unlock &amp; Re-edit
+                            </button>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button type="button" class="btn btn-primary" onclick="window.downloadFinalizedDraft()" style="background: #6366f1; border-color: #4f46e5; font-weight: 700;">
+                                <i class="fas fa-file-arrow-down"></i> Download Finalized Draft
+                            </button>
+                            <button type="button" class="btn btn-outline" onclick="window.printDraft()">
+                                <i class="fas fa-print"></i> Print Certified Copy
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="draft-editor">
@@ -2456,24 +2523,53 @@
                 <!-- STEP 3: Generated Draft -->
                 <div id="draftOutputView" class="draft-gen-step hidden">
                     <div class="draft-gen-header">
-                        <button class="draft-back-link" onclick="showDraftInputForm()">
+                        <button class="draft-back-link" id="btnDraftGenBackLink" onclick="window.onDraftGenBackLinkClick()">
                             <i class="fas fa-arrow-left"></i> Edit Details
                         </button>
                         <div class="draft-output-badge" id="draftOutputBadge"></div>
                         <h2 id="draftOutputTitle">Generated Draft</h2>
-                        <p>Review, edit, copy or download your court-ready document</p>
+                        <p id="draftOutputSubtitle">Review and finalize your court-ready document</p>
                     </div>
+
+                    <!-- Draft Generator Finalized Seal Banner -->
+                    <div id="draftGenFinalizedBanner" class="draft-finalized-banner u-hidden">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span class="finalized-seal-icon"><i class="fas fa-lock"></i></span>
+                            <div>
+                                <strong style="color: #10b981; font-size: 0.9rem; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-shield-halved"></i> DRAFT FINALIZED &amp; LOCKED
+                                </strong>
+                                <p style="margin: 2px 0 0 0; font-size: 0.78rem; color: var(--text-secondary);">
+                                    Draft details have been locked against modifications to protect legal evidentiary integrity. Finalized on <span id="draftGenFinalizedTimestampText">—</span>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="draft-output-toolbar">
-                        <div class="draft-export-btns">
-                            <button class="btn btn-outline" onclick="copyGeneratedDraft()">
-                                <i class="fas fa-copy"></i> Copy
-                            </button>
-                            <button class="btn btn-outline" onclick="downloadGeneratedDraft()">
-                                <i class="fas fa-download"></i> Download
-                            </button>
-                            <button class="btn btn-outline" onclick="printGeneratedDraft()">
-                                <i class="fas fa-print"></i> Print
-                            </button>
+                        <div class="draft-export-btns" id="draftGenExportBtns">
+                            <!-- Unfinalized State: Finalize Draft button replaces copy & download -->
+                            <div id="draftGenUnfinalizedActions" style="display: inline-flex; align-items: center;">
+                                <button type="button" class="btn btn-primary btn-finalize-draft" id="btnFinalizeGenDraft" onclick="window.finalizeDraft()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; font-weight: 700; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+                                    <i class="fas fa-stamp"></i> Finalize Draft
+                                </button>
+                            </div>
+
+                            <!-- Finalized State: Certified download & print -->
+                            <div id="draftGenFinalizedActions" class="u-hidden" style="display: inline-flex; align-items: center; gap: 8px;">
+                                <span class="badge-draft-locked" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 5px 12px; border-radius: 9999px; font-size: 0.78rem; font-weight: 700;">
+                                    <i class="fas fa-lock"></i> Finalized
+                                </span>
+                                <button type="button" class="btn btn-primary" onclick="window.downloadGeneratedDraft()" style="background: #6366f1; border-color: #4f46e5; font-weight: 700;">
+                                    <i class="fas fa-file-arrow-down"></i> Download Finalized Draft
+                                </button>
+                                <button type="button" class="btn btn-outline" onclick="window.printGeneratedDraft()">
+                                    <i class="fas fa-print"></i> Print Certified Copy
+                                </button>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="window.unlockDraftForEditing()" title="Unlock draft to permit revisions" style="font-size: 0.78rem;">
+                                    <i class="fas fa-unlock"></i> Unlock &amp; Re-edit
+                                </button>
+                            </div>
                         </div>
                         <div class="draft-lang-picker-wrap">
                             <label for="draftLanguageSelect"><i class="fas fa-language"></i> Language:</label>
