@@ -716,6 +716,15 @@ window.submitCase = async (skipValidation = false) => {
         ui.hide('analysisLoading');
         switchScreen('resultsScreen');
         renderResults(result);
+
+        if (result && (result.is_low_quota || (result.user_quota && result.user_quota.is_low_quota))) {
+            const rem = (result.user_quota && result.user_quota.remaining_reports) || (result.remaining_reports) || 2;
+            setTimeout(() => {
+                if (window.ui && typeof window.ui.toast === 'function') {
+                    window.ui.toast(`⚠️ Low Quota Alert: Only ${rem} report${rem === 1 ? '' : 's'} remaining in your account!`, 'warning');
+                }
+            }, 800);
+        }
     } catch (err) {
         ui.hide('analysisLoading');
         ui.toast(err.message, 'error');

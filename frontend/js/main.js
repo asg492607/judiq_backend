@@ -1007,7 +1007,53 @@ window.updateSubscriptionValidityDisplay = function (quota) {
         }
     }
 
-    // 3. Update Profile Settings Modal if elements present
+    // 3. Low Report Quota Warning Alert (Triggered when 2-3 reports remaining)
+    const remainingReports = (q && typeof q.remaining_reports !== 'undefined') ? parseInt(q.remaining_reports, 10) : ((localPlan && typeof localPlan.remaining_reports !== 'undefined') ? parseInt(localPlan.remaining_reports, 10) : 999999);
+    const reportLimit = (q && typeof q.monthly_report_limit !== 'undefined') ? parseInt(q.monthly_report_limit, 10) : ((localPlan && typeof localPlan.monthly_report_limit !== 'undefined') ? parseInt(localPlan.monthly_report_limit, 10) : -1);
+    const isLowQuota = !isAdmin && !isSpecialUser && reportLimit !== -1 && (remainingReports >= 1 && remainingReports <= 3);
+
+    const lowQuotaAlertEl = document.getElementById('lowQuotaWarningAlert');
+    const remainingCountEl = document.getElementById('lowQuotaRemainingCount');
+    const lowQuotaMsgEl = document.getElementById('lowQuotaAlertMessage');
+
+    if (lowQuotaAlertEl) {
+        if (isLowQuota) {
+            lowQuotaAlertEl.classList.remove('hidden');
+            if (remainingCountEl) remainingCountEl.textContent = remainingReports;
+            if (lowQuotaMsgEl) {
+                lowQuotaMsgEl.innerHTML = `⚠️ <strong>Low Quota Warning:</strong> Only <strong style="color:#f59e0b;font-size:1.05rem;">${remainingReports}</strong> report${remainingReports === 1 ? '' : 's'} remaining in your account allocation! Top up or upgrade now to prevent litigation disruptions.`;
+            }
+        } else {
+            lowQuotaAlertEl.classList.add('hidden');
+        }
+    }
+
+    // Top Navigation Quota Pill Warning State
+    if (pill) {
+        if (isLowQuota) {
+            pill.classList.add('quota-pill-warning');
+            pill.title = `⚠️ Warning: Low Quota! Only ${remainingReports} reports remaining.`;
+        } else {
+            pill.classList.remove('quota-pill-warning');
+        }
+    }
+
+    // Membership banner quota highlight when low
+    if (bannerQuotaText && isLowQuota) {
+        bannerQuotaText.innerHTML = `<span style="color:#f59e0b;font-weight:800;"><i class="fas fa-triangle-exclamation"></i> Only ${remainingReports} / ${reportLimit} Reports Left!</span>`;
+    }
+
+    if (isLowQuota) {
+        const warnedKey = 'judiq_low_quota_alert_shown_' + remainingReports;
+        if (!sessionStorage.getItem(warnedKey)) {
+            sessionStorage.setItem(warnedKey, '1');
+            if (window.ui && typeof window.ui.toast === 'function') {
+                window.ui.toast(`⚠️ Quota Alert: Only ${remainingReports} case report${remainingReports === 1 ? '' : 's'} remaining in your account!`, 'warning');
+            }
+        }
+    }
+
+    // 4. Update Profile Settings Modal if elements present
     const profileStart = document.getElementById('profileStartDate');
     const profileEnd = document.getElementById('profileEndDate');
     const profileBadge = document.getElementById('profilePlanBadge');

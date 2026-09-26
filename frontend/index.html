@@ -1271,6 +1271,32 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Low Quota Warning Alert (Shown when only 2-3 reports remain) -->
+                    <div id="lowQuotaWarningAlert" class="low-quota-warning-alert hidden">
+                        <div class="low-quota-alert-content">
+                            <div class="low-quota-icon-wrap">
+                                <i class="fas fa-triangle-exclamation"></i>
+                            </div>
+                            <div class="low-quota-alert-text">
+                                <div class="low-quota-alert-heading">
+                                    <span class="warning-pulse-dot"></span>
+                                    <span>LOW REPORT QUOTA WARNING</span>
+                                </div>
+                                <p id="lowQuotaAlertMessage">
+                                    Warning: Only <strong id="lowQuotaRemainingCount" class="remaining-count-highlight">2</strong> reports remaining in your account allocation!
+                                </p>
+                            </div>
+                        </div>
+                        <div class="low-quota-alert-actions">
+                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="window.buySingleReportTopup()">
+                                <i class="fas fa-bolt"></i> +1 Report (₹149)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-primary" onclick="window.location.hash='#pricingSection'; window.switchScreen('landingScreen');">
+                                <i class="fas fa-arrow-up-right-from-square"></i> Upgrade Plan
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Institutional Engine Status Bar -->

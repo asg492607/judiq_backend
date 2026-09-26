@@ -94,8 +94,10 @@ async def analyze(request_data: Dict[str, Any], request: Request):
     user_id = raw_data.get("user_id", "ANONYMOUS")
     email = raw_data.get("email", "")
     role = raw_data.get("role", "")
+    consumed_quota_res = None
     if user_id and user_id not in {"ANONYMOUS", "demo_user_123"}:
         quota_res = DatabaseManager.check_and_consume_report_quota(user_id, email, cost=1, role=role)
+        consumed_quota_res = quota_res
         if not quota_res.get("allowed"):
             err_msg = quota_res.get("message") or "Case analysis quota limit reached. Please subscribe to Section 138 Plan to analyze more cases."
             logger.warning(f"[{request_id}] Blocked analysis for {user_id}: {quota_res.get('reason')} - {err_msg}")
@@ -215,6 +217,11 @@ async def analyze(request_data: Dict[str, Any], request: Request):
         response_body["jurisdiction"] = None
 
     response_body["data"] = result
+    if consumed_quota_res and consumed_quota_res.get("quota"):
+        response_body["user_quota"] = consumed_quota_res.get("quota")
+        response_body["is_low_quota"] = consumed_quota_res.get("is_low_quota", False)
+        if consumed_quota_res.get("warning"):
+            response_body["quota_warning"] = consumed_quota_res.get("warning")
 
     # Single cache write with TTL timestamp
     with CACHE_LOCK:

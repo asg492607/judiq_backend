@@ -1438,6 +1438,11 @@ class DatabaseManager:
             limit = int(db_limit)
             used = int(db_used)
             remaining = (limit - used) if limit != -1 else 999999
+            is_low_quota = bool(limit != -1 and 1 <= remaining <= 3)
+            low_warning = (
+                f"Warning: Only {remaining} report{'s' if remaining != 1 else ''} remaining in your allocation!"
+                if is_low_quota else None
+            )
 
             return {
                 "user_id": db_user_id,
@@ -1446,6 +1451,8 @@ class DatabaseManager:
                 "monthly_report_limit": limit,
                 "reports_used_this_month": used,
                 "remaining_reports": remaining,
+                "is_low_quota": is_low_quota,
+                "low_quota_warning": low_warning,
                 "current_month_period": current_month,
                 "is_active": bool(db_active),
                 "created_at": db_created,
@@ -1620,6 +1627,12 @@ class DatabaseManager:
             p = DatabaseManager.get_dialect_placeholder()
             now_iso = datetime.now().isoformat()
             new_used = used + cost
+            new_remaining = (limit - new_used) if limit != -1 else 999999
+            is_low_quota = bool(limit != -1 and 1 <= new_remaining <= 3)
+            low_warning = (
+                f"Warning: Only {new_remaining} report{'s' if new_remaining != 1 else ''} remaining in your allocation! Top up or upgrade your plan."
+                if is_low_quota else None
+            )
 
             cursor.execute(f"""
                 UPDATE user_quotas
@@ -1629,10 +1642,14 @@ class DatabaseManager:
             conn.commit()
 
             quota["reports_used_this_month"] = new_used
-            quota["remaining_reports"] = (limit - new_used) if limit != -1 else 999999
+            quota["remaining_reports"] = new_remaining
+            quota["is_low_quota"] = is_low_quota
+            quota["low_quota_warning"] = low_warning
             return {
                 "allowed": True,
                 "reason": "OK",
+                "is_low_quota": is_low_quota,
+                "warning": low_warning,
                 "quota": quota
             }
         except Exception as e:
