@@ -2584,38 +2584,73 @@ async function handleFileUpload(file) {
     const zone = document.getElementById("uploadZone");
     const progress = document.getElementById("uploadProgress");
     const progressFill = document.getElementById("uploadProgressFill");
+    const progressPercent = document.getElementById("uploadProgressPercent");
     const status = document.getElementById("uploadStatus");
+    const statusIcon = document.getElementById("uploadStatusIcon");
+    const subStatusText = document.getElementById("uploadSubStatusText");
 
     if (!zone || !progress || !progressFill || !status) return;
 
     zone.classList.add("hidden");
     progress.classList.remove("hidden");
 
-    status.textContent = "Uploading document...";
-    progressFill.style.width = "30%";
+    let currentPercent = 0;
+    const updateProgressUI = (pct, mainText, subText, isSuccess = false) => {
+        currentPercent = Math.max(0, Math.min(100, Math.round(pct)));
+        progressFill.style.width = `${currentPercent}%`;
+        if (progressPercent) progressPercent.textContent = `${currentPercent}%`;
+        if (status) status.textContent = mainText;
+        if (subStatusText && subText) subStatusText.textContent = subText;
+        if (isSuccess) {
+            progressFill.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+            if (statusIcon) statusIcon.className = 'fas fa-check-circle text-success';
+            if (progressPercent) progressPercent.style.color = '#10b981';
+        } else {
+            progressFill.style.background = 'linear-gradient(90deg, #6366f1, #3b82f6)';
+            if (statusIcon) statusIcon.className = 'fas fa-circle-notch fa-spin';
+            if (progressPercent) progressPercent.style.color = '#6366f1';
+        }
+    };
+
+    updateProgressUI(8, "Streaming document bytes...", "Stage 1/3: Document Ingestion");
 
     const uploadData = new FormData();
     uploadData.append("file", file);
 
-    try {
-        status.textContent = "Extracting legal intelligence...";
-        progressFill.style.width = "70%";
+    let isDone = false;
+    const ticker = setInterval(() => {
+        if (isDone) return;
+        if (currentPercent < 30) {
+            updateProgressUI(currentPercent + 4, "Streaming document bytes...", "Stage 1/3: Document Ingestion");
+        } else if (currentPercent < 75) {
+            let ocrSub = "Stage 2/3: Scanning document layout & text blocks";
+            if (currentPercent > 50) ocrSub = "Stage 2/3: Running OCR optical character recognition";
+            updateProgressUI(currentPercent + 3, "Executing OCR text recognition...", ocrSub);
+        } else if (currentPercent < 92) {
+            updateProgressUI(currentPercent + 2, "Extracting statutory Section 138 facts...", "Stage 3/3: AI Entity & Fact Extraction");
+        }
+    }, 280);
 
+    try {
         const responseData = await api.verifyMemo(uploadData);
+        isDone = true;
+        clearInterval(ticker);
 
         if (responseData.status === "success" || responseData.status === "partial") {
-            progressFill.style.width = "100%";
+            updateProgressUI(100, "OCR & Extraction Complete!", "All legal intelligence extracted successfully.", true);
             setTimeout(() => {
                 progress.classList.add("hidden");
                 showExtractionResults(responseData.text);
                 if (responseData.status === "partial") {
                     ui.toast("Some text could not be extracted", "warning");
                 }
-            }, 500);
+            }, 600);
         } else {
             throw new Error(responseData.message || "Upload failed");
         }
     } catch (error) {
+        isDone = true;
+        clearInterval(ticker);
         ui.toast(error.message, "error");
         zone.classList.remove("hidden");
         progress.classList.add("hidden");

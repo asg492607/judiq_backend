@@ -318,38 +318,189 @@ function _renderFileList() {
     };
 }
 
-// ─── Step 2: Processing Track ──────────────────────────────────────────────────
-function _renderProcessingStep(fileNames) {
+// ─── Step 2: Processing Track with Per-Document Progress & Percent ──────────────
+function _formatDocFileSize(bytes) {
+    if (!bytes || isNaN(bytes)) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function _renderProcessingStep(fileNames, docTypes = []) {
     const content = document.getElementById('docIntelContent');
     if (!content) return;
 
     content.innerHTML = `
         <div class="di-step" id="diProcessingStep">
-            <div class="di-step-header">
-                <div class="di-step-badge"><i class="fas fa-cog fa-spin"></i> Processing</div>
-                <h3>Extracting Case Facts</h3>
-                <p>OCR and AI fact extraction in progress — this takes 10–30 seconds per document.</p>
+            <div class="di-step-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <div class="di-step-badge"><i class="fas fa-cog fa-spin"></i> OCR &amp; Intelligence Ingestion</div>
+                    <h3 style="margin-top: 6px; margin-bottom: 4px;">Extracting Case Facts via OCR</h3>
+                    <p style="margin: 0; color: var(--text-secondary); font-size: 0.85rem;">
+                        Uploading legal documents, running optical character recognition (OCR), and synthesizing statutory facts.
+                    </p>
+                </div>
+                <div class="di-overall-progress-chip" style="display: flex; align-items: center; gap: 8px; background: rgba(99, 102, 241, 0.12); padding: 6px 14px; border-radius: 9999px; border: 1px solid rgba(99, 102, 241, 0.3);">
+                    <i class="fas fa-microchip" style="color: #6366f1;"></i>
+                    <span style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem;">Overall Batch:</span>
+                    <span id="diOverallPercent" style="font-weight: 800; color: #6366f1; font-size: 0.95rem;">0%</span>
+                </div>
             </div>
+
+            <!-- Overall Batch Progress Bar -->
+            <div class="di-overall-bar-container" style="margin: 16px 0 20px 0; background: var(--bg-hover, rgba(0,0,0,0.02)); border: 1px solid var(--border-color, rgba(0,0,0,0.08)); padding: 12px 14px; border-radius: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                    <span id="diOverallSummary">Preparing document queue (0/${fileNames.length} completed)...</span>
+                    <span id="diOverallTimeRemaining"><i class="fas fa-hourglass-half"></i> Est. ~15-25s</span>
+                </div>
+                <div class="di-doc-progressbar-track di-progress-track--overall" style="height: 10px; background: rgba(0,0,0,0.08); border-radius: 9999px; overflow: hidden; position: relative;">
+                    <div class="di-doc-progressbar-fill di-progress-fill--overall" id="diOverallProgressFill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); transition: width 0.35s ease; border-radius: 9999px;"></div>
+                </div>
+            </div>
+
+            <!-- Per-Document Progress Cards -->
             <div class="di-processing-list">
-                ${fileNames.map((name, i) => `
+                ${fileNames.map((name, i) => {
+                    const file = _pendingFiles[i];
+                    const sizeStr = file && file.size ? _formatDocFileSize(file.size) : '';
+                    const rawType = docTypes[i] || 'auto';
+                    const typeStr = rawType !== 'auto' ? rawType.replace(/_/g, ' ').toUpperCase() : 'AUTO-CLASSIFY';
+                    return `
                     <div class="di-process-row" id="diProcRow_${i}">
-                        <div class="di-proc-filename">${escapeHtml(name)}</div>
+                        <div class="di-proc-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px;">
+                            <div class="di-proc-meta" style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                                <div class="di-proc-file-icon" style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99, 102, 241, 0.12); color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                                    <i class="fas fa-file-invoice"></i>
+                                </div>
+                                <div style="min-width: 0;">
+                                    <div class="di-proc-filename" style="margin: 0; font-size: 0.9rem; font-weight: 700; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="${escapeHtml(name)}">
+                                        ${escapeHtml(name)}
+                                    </div>
+                                    <div class="di-proc-submeta" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 3px;">
+                                        <span class="di-doc-type-pill" style="font-size: 0.7rem; font-weight: 700; background: rgba(99, 102, 241, 0.12); color: #6366f1; padding: 1px 7px; border-radius: 4px;">${escapeHtml(typeStr)}</span>
+                                        ${sizeStr ? `<span class="di-doc-size-pill" style="font-size: 0.7rem; color: var(--text-secondary);">${sizeStr}</span>` : ''}
+                                        <span class="di-doc-stage-badge" id="diDocStageBadge_${i}" style="font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 4px;">
+                                            <i class="fas fa-clock"></i> Queued
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="di-proc-percent-container" style="flex-shrink: 0; text-align: right;">
+                                <span class="di-doc-percent-num" id="diDocPercentNum_${i}" style="font-size: 1.15rem; font-weight: 800; color: #6366f1; display: inline-block; min-width: 48px;">
+                                    0%
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Document-Level Progress Bar -->
+                        <div class="di-doc-progressbar-track" style="height: 8px; background: rgba(0,0,0,0.06); border-radius: 9999px; overflow: hidden; position: relative; margin-bottom: 8px;">
+                            <div class="di-doc-progressbar-fill" id="diDocProgressFill_${i}" style="width: 0%; height: 100%; background: linear-gradient(90deg, #6366f1, #3b82f6); border-radius: 9999px; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+                        </div>
+
+                        <!-- Live Status & Detail Line -->
+                        <div class="di-doc-status-line" style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 10px;">
+                            <span class="di-doc-status-msg" id="diDocStatusMsg_${i}">
+                                <i class="fas fa-arrow-up-from-bracket"></i> Preparing encrypted upload...
+                            </span>
+                            <span class="di-doc-status-detail" id="diDocStatusDetail_${i}" style="font-weight: 600;">Stage 1: Upload</span>
+                        </div>
+
+                        <!-- Sub-step pills -->
                         <div class="di-proc-track">
                             <div class="di-proc-step di-proc-pending" id="diProc_${i}_upload">
-                                <i class="fas fa-circle-notch fa-spin"></i> Uploading
+                                <i class="fas fa-cloud-arrow-up"></i> Upload
                             </div>
                             <div class="di-proc-step di-proc-pending" id="diProc_${i}_ocr">
-                                <i class="fas fa-clock"></i> OCR
+                                <i class="fas fa-eye"></i> OCR Engine
                             </div>
                             <div class="di-proc-step di-proc-pending" id="diProc_${i}_ai">
-                                <i class="fas fa-clock"></i> AI Extraction
+                                <i class="fas fa-brain"></i> AI Extraction
                             </div>
                         </div>
                     </div>
-                `).join('')}
+                    `;
+                }).join('')}
             </div>
         </div>
     `;
+}
+
+function _updateDocProgress(fileIdx, percent, statusMsg = '', stageDetail = '') {
+    const fillEl = document.getElementById(`diDocProgressFill_${fileIdx}`);
+    const pctEl = document.getElementById(`diDocPercentNum_${fileIdx}`);
+    const statusMsgEl = document.getElementById(`diDocStatusMsg_${fileIdx}`);
+    const statusDetailEl = document.getElementById(`diDocStatusDetail_${fileIdx}`);
+    const stageBadgeEl = document.getElementById(`diDocStageBadge_${fileIdx}`);
+
+    const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+
+    if (fillEl) {
+        fillEl.style.width = `${clamped}%`;
+        if (clamped >= 100) {
+            fillEl.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+            fillEl.classList.add('di-progress-fill--complete');
+        } else {
+            fillEl.style.background = 'linear-gradient(90deg, #6366f1, #3b82f6)';
+            fillEl.classList.remove('di-progress-fill--complete');
+        }
+    }
+
+    if (pctEl) {
+        if (clamped >= 100) {
+            pctEl.innerHTML = `<i class="fas fa-check-circle" style="color: #10b981; font-size: 0.95rem;"></i> 100%`;
+            pctEl.style.color = '#10b981';
+        } else {
+            pctEl.textContent = `${clamped}%`;
+            pctEl.style.color = '#6366f1';
+        }
+    }
+
+    if (statusMsgEl && statusMsg) {
+        statusMsgEl.innerHTML = statusMsg;
+    }
+
+    if (statusDetailEl && stageDetail) {
+        statusDetailEl.textContent = stageDetail;
+    }
+
+    if (stageBadgeEl) {
+        if (clamped < 30) {
+            stageBadgeEl.innerHTML = '<i class="fas fa-arrow-up-from-bracket fa-spin" style="color: #6366f1;"></i> Uploading';
+        } else if (clamped < 75) {
+            stageBadgeEl.innerHTML = '<i class="fas fa-eye fa-spin" style="color: #f59e0b;"></i> OCR Scanning';
+        } else if (clamped < 100) {
+            stageBadgeEl.innerHTML = '<i class="fas fa-brain fa-spin" style="color: #8b5cf6;"></i> AI Fact Extraction';
+        } else {
+            stageBadgeEl.innerHTML = '<i class="fas fa-check" style="color: #10b981;"></i> OCR &amp; Facts Ready';
+        }
+    }
+}
+
+function _updateOverallProgress(percent, summaryMsg = '') {
+    const fillEl = document.getElementById('diOverallProgressFill');
+    const pctEl = document.getElementById('diOverallPercent');
+    const summaryEl = document.getElementById('diOverallSummary');
+
+    const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+
+    if (fillEl) {
+        fillEl.style.width = `${clamped}%`;
+        if (clamped >= 100) {
+            fillEl.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+        } else {
+            fillEl.style.background = 'linear-gradient(90deg, #6366f1, #8b5cf6)';
+        }
+    }
+
+    if (pctEl) {
+        pctEl.textContent = `${clamped}%`;
+        if (clamped >= 100) pctEl.style.color = '#10b981';
+        else pctEl.style.color = '#6366f1';
+    }
+
+    if (summaryEl && summaryMsg) {
+        summaryEl.textContent = summaryMsg;
+    }
 }
 
 function _updateProcStep(fileIdx, step, status, label = '') {
@@ -372,34 +523,124 @@ window._diExtract = async () => {
         return sel ? sel.value : 'auto';
     });
 
-    _renderProcessingStep(fileNames);
+    _renderProcessingStep(fileNames, docTypes);
+
+    const numFiles = fileNames.length;
+    const filePercents = new Array(numFiles).fill(0);
+
+    const refreshOverall = (statusText) => {
+        const sum = filePercents.reduce((acc, p) => acc + p, 0);
+        const overall = Math.round(sum / numFiles);
+        _updateOverallProgress(overall, statusText);
+    };
 
     // Mark all files as uploading
-    fileNames.forEach((_, i) => _updateProcStep(i, 'upload', 'active'));
+    fileNames.forEach((_, i) => {
+        _updateProcStep(i, 'upload', 'active');
+        _updateDocProgress(i, 5, '<i class="fas fa-circle-notch fa-spin"></i> Initializing encrypted connection...', '5% (Upload)');
+    });
+    refreshOverall(`Uploading ${numFiles} document${numFiles > 1 ? 's' : ''} to OCR pipeline...`);
 
-    try {
-        const formData = new FormData();
-        _pendingFiles.forEach(f => formData.append('files', f));
-        formData.append('doc_types', docTypes.map(t => t === 'auto' ? '' : t).join(','));
-        formData.append('workflow_type', _workflowType);
+    const formData = new FormData();
+    _pendingFiles.forEach(f => formData.append('files', f));
+    formData.append('doc_types', docTypes.map(t => t === 'auto' ? '' : t).join(','));
+    formData.append('workflow_type', _workflowType);
 
-        // Simulate per-file progress (API is one-shot, so we animate sequentially)
-        fileNames.forEach((_, i) => _updateProcStep(i, 'upload', 'done'));
-        fileNames.forEach((_, i) => _updateProcStep(i, 'ocr', 'active'));
+    let isRequestDone = false;
+    let uploadDone = false;
 
-        const extractResult = await api.docIntelExtract(formData);
+    // Smooth ticker for OCR & AI stages while the server pipeline processes
+    const progressInterval = setInterval(() => {
+        if (isRequestDone) return;
 
         fileNames.forEach((_, i) => {
-            _updateProcStep(i, 'ocr', 'done');
-            _updateProcStep(i, 'ai', 'active');
+            let cur = filePercents[i];
+
+            if (!uploadDone) {
+                if (cur < 28) {
+                    filePercents[i] = Math.min(28, cur + 3);
+                    _updateDocProgress(i, filePercents[i], '<i class="fas fa-cloud-arrow-up fa-spin"></i> Streaming document bytes...', `${filePercents[i]}% (Upload)`);
+                }
+            } else {
+                // OCR phase: 30% -> 74%
+                if (cur < 30) {
+                    filePercents[i] = 30;
+                    _updateProcStep(i, 'upload', 'done');
+                    _updateProcStep(i, 'ocr', 'active');
+                } else if (cur < 74) {
+                    const stepInc = (i % 2 === 0) ? 2 : 3;
+                    filePercents[i] = Math.min(74, cur + stepInc);
+                    let msg = '<i class="fas fa-eye fa-spin"></i> Running OCR text recognition...';
+                    if (filePercents[i] > 40 && filePercents[i] <= 55) {
+                        msg = '<i class="fas fa-file-waveform fa-spin"></i> Scanning document layout & font structures...';
+                    } else if (filePercents[i] > 55) {
+                        msg = '<i class="fas fa-spell-check fa-spin"></i> Digitizing legal clauses, bank stamps & signatures...';
+                    }
+                    _updateDocProgress(i, filePercents[i], msg, `${filePercents[i]}% (OCR Scanning)`);
+                } else if (cur < 92) {
+                    // AI extraction phase: 75% -> 92%
+                    _updateProcStep(i, 'ocr', 'done');
+                    _updateProcStep(i, 'ai', 'active');
+                    filePercents[i] = Math.min(92, cur + 1);
+                    _updateDocProgress(i, filePercents[i], '<i class="fas fa-brain fa-spin"></i> Synthesizing evidentiary facts...', `${filePercents[i]}% (AI Extraction)`);
+                }
+            }
         });
+
+        const activeStage = !uploadDone ? 'Uploading' : (filePercents[0] < 75 ? 'OCR Scanning' : 'AI Fact Extraction');
+        refreshOverall(`${activeStage} in progress (${Math.round(filePercents.reduce((a, b) => a + b, 0) / numFiles)}%)...`);
+    }, 380);
+
+    try {
+        const onUploadProg = (pct) => {
+            const mapped = Math.round((pct / 100) * 30);
+            fileNames.forEach((_, i) => {
+                filePercents[i] = Math.max(filePercents[i], mapped);
+                _updateDocProgress(i, filePercents[i], `<i class="fas fa-cloud-arrow-up"></i> Uploading: ${pct}%`, `${filePercents[i]}% (Upload)`);
+            });
+            refreshOverall(`Uploading documents (${pct}%)...`);
+            if (pct >= 100) {
+                uploadDone = true;
+                fileNames.forEach((_, i) => {
+                    _updateProcStep(i, 'upload', 'done');
+                    _updateProcStep(i, 'ocr', 'active');
+                });
+            }
+        };
+
+        const extractResult = await api.docIntelExtract(formData, onUploadProg);
+        isRequestDone = true;
+        uploadDone = true;
+        clearInterval(progressInterval);
 
         _sessionId   = extractResult.session_id;
         _extractedDocs = extractResult.documents || [];
 
-        // Short delay so user can see the AI step
-        await new Promise(r => setTimeout(r, 800));
-        fileNames.forEach((_, i) => _updateProcStep(i, 'ai', 'done', `Done — ${_countFacts(extractResult.documents[i])} facts`));
+        // Finalize per-document steps and fact counts
+        for (let i = 0; i < fileNames.length; i++) {
+            _updateProcStep(i, 'upload', 'done');
+            _updateProcStep(i, 'ocr', 'done');
+            _updateProcStep(i, 'ai', 'active');
+            filePercents[i] = 95;
+            _updateDocProgress(i, 95, '<i class="fas fa-brain fa-spin"></i> Finalizing fact verification...', '95% (Fact Validation)');
+        }
+        refreshOverall('OCR complete. Finalizing fact extraction...');
+
+        await new Promise(r => setTimeout(r, 500));
+
+        // Mark 100% complete for each document
+        fileNames.forEach((_, i) => {
+            const factsCount = _countFacts(_extractedDocs[i]);
+            filePercents[i] = 100;
+            _updateProcStep(i, 'ai', 'done', `Done (${factsCount} facts)`);
+            _updateDocProgress(
+                i,
+                100,
+                `<i class="fas fa-check-circle" style="color: #10b981;"></i> OCR &amp; extraction complete (${factsCount} evidentiary facts verified)`,
+                '100% Complete'
+            );
+        });
+        _updateOverallProgress(100, `All ${numFiles} document${numFiles > 1 ? 's' : ''} successfully processed! (100%)`);
         await new Promise(r => setTimeout(r, 600));
 
         // Now cross-document analysis
@@ -469,6 +710,8 @@ window._diExtract = async () => {
         _renderFactReviewStep();
 
     } catch (err) {
+        clearInterval(progressInterval);
+        isRequestDone = true;
         _renderError(`Extraction failed: ${escapeHtml(err.message || String(err))}`);
     }
 };

@@ -2375,11 +2375,21 @@
                             </div>
                         </div>
 
-                        <div id="uploadProgress" class="upload-progress hidden">
-                            <div class="progress-bar">
-                                <div id="uploadProgressFill" class="progress-fill"></div>
+                        <div id="uploadProgress" class="upload-progress hidden" style="padding: 16px; border-radius: 10px; background: var(--bg-hover, rgba(0,0,0,0.03)); border: 1px solid var(--border-color, rgba(0,0,0,0.1));">
+                            <div class="upload-progress-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-circle-notch fa-spin" id="uploadStatusIcon" style="color: #6366f1;"></i>
+                                    <span id="uploadStatus" style="font-size: 0.88rem; font-weight: 700; color: var(--text-primary);">Uploading document...</span>
+                                </div>
+                                <span id="uploadProgressPercent" class="upload-progress-percent" style="font-size: 0.95rem; font-weight: 800; color: #6366f1; background: rgba(99, 102, 241, 0.12); padding: 2px 10px; border-radius: 9999px; border: 1px solid rgba(99, 102, 241, 0.25);">0%</span>
                             </div>
-                            <p id="uploadStatus">Uploading and analyzing...</p>
+                            <div class="progress-bar" style="height: 10px; border-radius: 9999px; overflow: hidden; background: rgba(0,0,0,0.08); position: relative;">
+                                <div id="uploadProgressFill" class="progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #6366f1, #3b82f6); border-radius: 9999px; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+                            </div>
+                            <div id="uploadSubStatus" style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 8px; display: flex; justify-content: space-between;">
+                                <span id="uploadSubStatusText">Stage 1: Streaming document to secure memory</span>
+                                <span id="uploadEstimatedTime"><i class="fas fa-clock"></i> ~5-15s</span>
+                            </div>
                         </div>
 
                         <div id="extractionResults" class="extraction-results hidden">

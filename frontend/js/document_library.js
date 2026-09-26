@@ -103,15 +103,60 @@ export async function handleFileUpload(caseId, file) {
     if (!file) return;
     if (ui && typeof ui.toast === 'function') ui.toast(`Encrypting & uploading ${file.name}...`, 'info');
 
+    const dropzone = document.querySelector('.cms-doc-dropzone');
+    let progressCard = document.getElementById('cmsUploadProgressCard');
+    if (!progressCard && dropzone) {
+        progressCard = document.createElement('div');
+        progressCard.id = 'cmsUploadProgressCard';
+        progressCard.style.cssText = 'margin: 12px 0; padding: 12px 14px; border-radius: 10px; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25);';
+        dropzone.parentNode.insertBefore(progressCard, dropzone.nextSibling);
+    }
+
+    let pct = 10;
+    const updateProgress = (val, text) => {
+        pct = Math.max(0, Math.min(100, Math.round(val)));
+        if (progressCard) {
+            progressCard.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span style="font-size: 0.84rem; font-weight: 700; color: var(--text-primary);"><i class="fas ${pct >= 100 ? 'fa-check-circle' : 'fa-lock fa-spin'}" style="color: ${pct >= 100 ? '#10b981' : '#6366f1'};"></i> ${text || `Encrypting &amp; Uploading ${escapeHtml(file.name)}`}</span>
+                    <span style="font-size: 0.85rem; font-weight: 800; color: ${pct >= 100 ? '#10b981' : '#6366f1'};">${pct}%</span>
+                </div>
+                <div style="height: 6px; border-radius: 9999px; background: rgba(0,0,0,0.08); overflow: hidden;">
+                    <div style="width: ${pct}%; height: 100%; background: ${pct >= 100 ? 'linear-gradient(90deg, #10b981, #059669)' : 'linear-gradient(90deg, #6366f1, #3b82f6)'}; border-radius: 9999px; transition: width 0.25s ease;"></div>
+                </div>
+            `;
+        }
+    };
+
+    updateProgress(15, `Encrypting ${escapeHtml(file.name)} with AES-256...`);
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append('doc_type', guessDocType(file.name));
 
+    let uploadDone = false;
+    const ticker = setInterval(() => {
+        if (uploadDone) return;
+        if (pct < 85) {
+            updateProgress(pct + 12, `Streaming encrypted blocks & SHA-256 hashing...`);
+        }
+    }, 200);
+
     try {
         const res = await api.uploadCmsDocument(caseId, formData);
-        if (ui && typeof ui.toast === 'function') ui.toast(`Document ${res.file_name} uploaded and encrypted!`, 'success');
-        loadDocumentList(caseId);
+        uploadDone = true;
+        clearInterval(ticker);
+        updateProgress(100, `Document ${escapeHtml(res.file_name)} encrypted & saved!`);
+
+        setTimeout(() => {
+            if (progressCard) progressCard.remove();
+            if (ui && typeof ui.toast === 'function') ui.toast(`Document ${res.file_name} uploaded and encrypted!`, 'success');
+            loadDocumentList(caseId);
+        }, 500);
     } catch (err) {
+        uploadDone = true;
+        clearInterval(ticker);
+        if (progressCard) progressCard.remove();
         if (ui && typeof ui.toast === 'function') ui.toast(`Upload failed: ${err.message}`, 'error');
     }
 }

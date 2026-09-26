@@ -1063,19 +1063,63 @@ export const api = {
     /**
      * Upload documents → OCR → per-document fact extraction.
      * @param {FormData} formData — files[], doc_types (csv), workflow_type
+     * @param {Function} [onUploadProgress] — optional callback (percent: number) => void
      */
-    async docIntelExtract(formData) {
-        // NOTE: Do NOT set Content-Type — browser sets multipart boundary automatically
-        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/doc-intel/extract`, {
-            method: 'POST',
-            body: formData,
-            timeout: 180000,
-        });
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            throw new Error(err.detail || `Document extraction failed (${response.status})`);
+    async docIntelExtract(formData, onUploadProgress = null) {
+        if (!onUploadProgress) {
+            const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/doc-intel/extract`, {
+                method: 'POST',
+                body: formData,
+                timeout: 180000,
+            });
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.detail || `Document extraction failed (${response.status})`);
+            }
+            return response.json();
         }
-        return response.json();
+
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `${API_BASE_URL}/api/v1/doc-intel/extract`);
+            xhr.timeout = 180000;
+
+            const token = localStorage.getItem("judiq_admin_jwt") || localStorage.getItem("judiq_jwt");
+            if (token) {
+                xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+            }
+
+            if (xhr.upload) {
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable && e.total > 0) {
+                        const pct = Math.min(100, Math.round((e.loaded / e.total) * 100));
+                        try { onUploadProgress(pct); } catch (err) {}
+                    }
+                };
+            }
+
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        resolve(data);
+                    } catch (e) {
+                        reject(new Error("Invalid response format from extraction engine."));
+                    }
+                } else {
+                    let errMsg = `Document extraction failed (${xhr.status})`;
+                    try {
+                        const err = JSON.parse(xhr.responseText);
+                        if (err.detail) errMsg = err.detail;
+                    } catch (e) {}
+                    reject(new Error(errMsg));
+                }
+            };
+
+            xhr.onerror = () => reject(new Error("Network error during document upload."));
+            xhr.ontimeout = () => reject(new Error("Document upload & OCR processing timed out."));
+            xhr.send(formData);
+        });
     },
 
     /**
