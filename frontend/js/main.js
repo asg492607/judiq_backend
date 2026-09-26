@@ -4444,21 +4444,36 @@ let adminCachedBankAudits = [];
 let adminAuthToken = null;
 
 window.switchAdminTab = (tabName) => {
-    const tabs = ['litigators', 'plans', 'bank', 'engines', 'health', 'security'];
-    tabs.forEach(t => {
-        const btn = document.getElementById(`adminTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
-        const content = document.getElementById(`admin${t.charAt(0).toUpperCase() + t.slice(1)}TabContent`);
+    const tabMap = {
+        'litigators': { btn: 'adminTabBtnLitigators', content: 'adminLitigatorsTabContent' },
+        'plans_catalog': { btn: 'adminTabBtnPlansCatalog', content: 'adminPlansCatalogTabContent' },
+        'plans': { btn: 'adminTabBtnPlans', content: 'adminPlansTabContent' },
+        'payments': { btn: 'adminTabBtnPayments', content: 'adminPaymentsTabContent' },
+        'security': { btn: 'adminTabBtnSecurity', content: 'adminSecurityTabContent' },
+        'bank': { btn: 'adminTabBtnBank', content: 'adminBankTabContent' },
+        'engines': { btn: 'adminTabBtnEngines', content: 'adminEnginesTabContent' },
+        'health': { btn: 'adminTabBtnHealth', content: 'adminHealthTabContent' }
+    };
+
+    Object.keys(tabMap).forEach(key => {
+        const item = tabMap[key];
+        const btn = document.getElementById(item.btn);
+        const content = document.getElementById(item.content);
         if (btn) {
-            if (t === tabName) btn.classList.add('active');
+            if (key === tabName) btn.classList.add('active');
             else btn.classList.remove('active');
         }
         if (content) {
-            if (t === tabName) content.style.display = 'block';
+            if (key === tabName) content.style.display = 'block';
             else content.style.display = 'none';
         }
     });
 
-    if (tabName === 'security') {
+    if (tabName === 'plans_catalog') {
+        window.loadAdminPlansCatalog();
+    } else if (tabName === 'payments') {
+        window.loadAdminPayments();
+    } else if (tabName === 'security') {
         window.loadAdminSecurityLogs();
     } else if (tabName === 'health') {
         window.loadAdminSystemHealth();
@@ -4664,7 +4679,7 @@ window.renderAdminUsersTable = (users) => {
     if (!users || users.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" style="padding: 3rem 1.5rem; text-align: center; color: var(--gray-400);">
+                <td colspan="8" style="padding: 3rem 1.5rem; text-align: center; color: var(--gray-400);">
                     <div style="font-size: 2rem; color: var(--gray-300); margin-bottom: 0.75rem;"><i class="fas fa-user-slash"></i></div>
                     <div style="font-size: 1rem; font-weight: 700; color: var(--gray-700); margin-bottom: 0.25rem;">No litigator accounts found</div>
                     <div style="font-size: 0.82rem; color: var(--gray-400);">Try clearing search filters or add a new litigator account.</div>
@@ -4705,13 +4720,14 @@ window.renderAdminUsersTable = (users) => {
         const avatarBg = roleAvatarGradients[u.role] || (isSpecial ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'linear-gradient(135deg, #64748b, #475569)');
 
         const statusBadge = u.is_active
-            ? `<span class="status-badge-active" title="Account active and verified"><i class="fas fa-circle-check"></i> Active</span>`
-            : `<span class="status-badge-suspended" title="Account suspended"><i class="fas fa-circle-xmark"></i> Suspended</span>`;
+            ? `<span class="status-badge-active" onclick="window.toggleUserStatus('${u.user_id}', true)" title="Click to Suspend" style="cursor: pointer;"><i class="fas fa-circle-check"></i> Active</span>`
+            : `<span class="status-badge-suspended" onclick="window.toggleUserStatus('${u.user_id}', false)" title="Click to Activate" style="cursor: pointer;"><i class="fas fa-circle-xmark"></i> Suspended</span>`;
 
+        const planName = u.plan_name || (isSpecial ? 'Special Unlimited' : (u.role === 'enterprise' ? 'Firm Enterprise' : (u.role === 'law_firm' ? 'Professional Tier' : 'Starter Tier')));
         const planStatusBadge = isSpecial
             ? `<span class="badge" style="background: rgba(245, 158, 11, 0.18); color: #d97706; font-weight: 800; font-size: 0.7rem; margin-top: 3px; display: inline-flex; align-items: center; gap: 0.25rem;"><i class="fas fa-crown"></i> Special Unlimited</span>`
             : (u.plan_status === 'APPROVED'
-                ? `<span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981; font-weight: 700; font-size: 0.7rem; margin-top: 3px; display: inline-flex; align-items: center; gap: 0.25rem;"><i class="fas fa-check-circle"></i> Approved</span>`
+                ? `<span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981; font-weight: 700; font-size: 0.7rem; margin-top: 3px; display: inline-flex; align-items: center; gap: 0.25rem;"><i class="fas fa-check-circle"></i> ${planName}</span>`
                 : (u.plan_status === 'PENDING_APPROVAL'
                     ? `<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #d97706; font-weight: 700; font-size: 0.7rem; margin-top: 3px; display: inline-flex; align-items: center; gap: 0.25rem;"><i class="fas fa-hourglass-half"></i> Pending Plan</span>`
                     : `<span class="badge" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; font-weight: 700; font-size: 0.7rem; margin-top: 3px; display: inline-flex; align-items: center; gap: 0.25rem;"><i class="fas fa-ban"></i> Rejected</span>`));
@@ -4728,6 +4744,22 @@ window.renderAdminUsersTable = (users) => {
 
         const priceText = isSpecial ? 'Free (Special)' : (u.monthly_price_inr ? `₹${Number(u.monthly_price_inr).toLocaleString('en-IN')}/mo` : '₹500/mo');
         const createdDate = u.created_at ? new Date(u.created_at).toLocaleDateString() : '';
+
+        // Validity badge calculation
+        let validityBadge = '';
+        const isLifetime = u.subscription_end_date === 'Lifetime' || isSpecial;
+        if (isLifetime) {
+            validityBadge = `<span class="validity-badge validity-badge-lifetime" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6; padding: 2px 7px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-infinity"></i> Lifetime</span>`;
+        } else if (u.is_expired) {
+            validityBadge = `<span class="validity-badge validity-badge-expired" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 2px 7px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-circle-exclamation"></i> EXPIRED</span>`;
+        } else if (u.days_remaining !== null && u.days_remaining !== undefined && u.days_remaining <= 3) {
+            validityBadge = `<span class="validity-badge validity-badge-warning" style="background: rgba(245, 158, 11, 0.15); color: #d97706; padding: 2px 7px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-triangle-exclamation"></i> ${u.days_remaining}d left</span>`;
+        } else {
+            const daysText = u.days_remaining !== null && u.days_remaining !== undefined ? `${u.days_remaining}d left` : 'Active';
+            validityBadge = `<span class="validity-badge validity-badge-active" style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 7px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-clock"></i> ${daysText}</span>`;
+        }
+
+        const expiryDisplay = isLifetime ? 'Lifetime Access' : (u.subscription_end_date ? u.subscription_end_date.slice(0, 10) : 'Not specified');
 
         return `
             <tr id="adminRow_${u.user_id}">
@@ -4788,14 +4820,27 @@ window.renderAdminUsersTable = (users) => {
                     <div class="quota-progress-track" title="${pct}% of monthly quota consumed">
                         <div class="quota-progress-fill ${isWarning ? 'warning' : ''}" style="width: ${pct}%;"></div>
                     </div>
+                    <div style="font-size: 0.72rem; color: #4f46e5; font-weight: 700; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+                        <i class="fas fa-file-signature"></i> ${u.total_drafts_used || 0} drafts created
+                    </div>
+                </td>
+                <td>
+                    <div style="font-size: 0.78rem; font-weight: 600; color: var(--gray-900);">${expiryDisplay}</div>
+                    <div style="margin-top: 3px;">${validityBadge}</div>
+                    <button class="btn btn-outline btn-xs" onclick="window.openExtendValidityModal('${u.user_id}', '${u.email || ''}', '${u.subscription_end_date || ''}')" style="margin-top: 4px; padding: 2px 7px; font-size: 0.7rem; border-color: rgba(16,185,129,0.5); color: #10b981; display: inline-flex; align-items: center; gap: 3px;">
+                        <i class="fas fa-clock-rotate-left"></i> Extend
+                    </button>
                 </td>
                 <td>
                     ${statusBadge}
                 </td>
                 <td style="text-align: right;">
-                    <div style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                    <div style="display: inline-flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; justify-content: flex-end;">
                         <button class="btn btn-sm btn-primary" onclick="window.saveUserQuota('${u.user_id}', '${u.email || ''}')" title="Save Allocation Changes" style="padding: 0.3rem 0.55rem; font-size: 0.78rem;">
                             <i class="fas fa-check"></i> Save
+                        </button>
+                        <button class="btn btn-sm btn-outline" onclick="window.openAssignPlanModal('${u.user_id}', '${u.email || ''}', '${u.role || ''}', ${u.monthly_report_limit || 25})" title="Assign Plan & Validity" style="padding: 0.3rem 0.55rem; font-size: 0.78rem; color: #6366f1; border-color: rgba(99,102,241,0.4);">
+                            <i class="fas fa-layer-group"></i> Plan
                         </button>
                         <button class="btn btn-sm btn-outline" onclick="window.openUserDetailsModal('${u.user_id}')" title="View Full Litigator Dossier" style="padding: 0.3rem 0.55rem; font-size: 0.78rem; color: #4f46e5; border-color: rgba(79,70,229,0.4);">
                             <i class="fas fa-id-card"></i>
@@ -5626,16 +5671,538 @@ window.submitBulkBonus = async (e) => {
     }
 };
 
+// ============================================================================
+// PLANS CATALOG CONTROLLER (ADMIN)
+// ============================================================================
+
+let adminCachedPlansCatalog = [];
+
+window.loadAdminPlansCatalog = async () => {
+    if (!adminAuthToken) return;
+    try {
+        const res = await api.getPlansCatalog(adminAuthToken);
+        if (res && res.success && Array.isArray(res.plans)) {
+            adminCachedPlansCatalog = res.plans;
+            window.renderAdminPlansCatalogTable(adminCachedPlansCatalog);
+        }
+    } catch (err) {
+        console.warn('Failed to load plans catalog:', err);
+    }
+};
+
+window.renderAdminPlansCatalogTable = (plans) => {
+    const tbody = document.getElementById('adminPlansCatalogTableBody');
+    if (!tbody) return;
+
+    if (!plans || plans.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
+                    No plans configured in catalog.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    const moduleLabels = {
+        's138': 'S.138 NI Act',
+        'sarfaesi': 'SARFAESI & DRT',
+        'criminal': 'Criminal (BNSS)',
+        'civil': 'Civil Suits',
+        'commercial': 'Commercial Suits',
+        'bail': 'Bail & Criminal',
+        'mact': 'MACT',
+        'bank_recovery': 'Banking OS',
+        'counsel_intel': 'Counsel Intel'
+    };
+
+    tbody.innerHTML = plans.map(p => {
+        const engines = Array.isArray(p.included_engines) ? p.included_engines : [];
+        const engineBadges = engines.map(e => `
+            <span style="display: inline-block; font-size: 0.72rem; font-weight: 700; background: rgba(99, 102, 241, 0.12); color: #4f46e5; padding: 2px 6px; border-radius: 4px; margin: 2px 2px 2px 0;">
+                ${moduleLabels[e] || e}
+            </span>
+        `).join('') || '<span style="color: var(--gray-400); font-size: 0.75rem;">None</span>';
+
+        const reportsText = p.monthly_report_limit === -1 ? '∞ Unlimited' : `${p.monthly_report_limit} Reports/mo`;
+        const validityText = `${p.validity_days || 30} Days`;
+        const priceText = `₹${Number(p.monthly_price_inr || 0).toLocaleString('en-IN')}`;
+
+        return `
+            <tr>
+                <td>
+                    <div style="font-weight: 700; color: var(--gray-900); font-size: 0.88rem;">${p.display_name || p.plan_id}</div>
+                    <div style="font-size: 0.72rem; color: var(--gray-400); font-family: monospace;">ID: ${p.plan_id}</div>
+                    <div style="font-size: 0.72rem; color: var(--gray-500); margin-top: 2px;">${p.description || ''}</div>
+                </td>
+                <td>
+                    <div style="font-weight: 800; color: #4f46e5; font-size: 0.95rem;">${priceText}</div>
+                    <div style="font-size: 0.7rem; color: var(--gray-400);">per billing cycle</div>
+                </td>
+                <td>
+                    <div style="font-weight: 700; color: var(--gray-900);">${reportsText}</div>
+                </td>
+                <td>
+                    <div style="font-weight: 600; color: var(--gray-800);">${validityText}</div>
+                </td>
+                <td>
+                    <div style="display: flex; flex-wrap: wrap; max-width: 220px;">${engineBadges}</div>
+                </td>
+                <td>
+                    ${p.is_active ? '<span class="status-badge-active"><i class="fas fa-circle-check"></i> Active</span>' : '<span class="status-badge-suspended"><i class="fas fa-circle-xmark"></i> Inactive</span>'}
+                </td>
+                <td style="text-align: right;">
+                    <button class="btn btn-sm btn-outline" onclick="window.openEditCatalogPlanModal('${p.plan_id}')" style="padding: 4px 10px; font-size: 0.78rem;">
+                        <i class="fas fa-pen-to-square"></i> Edit Plan
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+};
+
+window.openEditCatalogPlanModal = (planId) => {
+    const plan = (adminCachedPlansCatalog || []).find(p => p.plan_id === planId);
+    if (!plan) return;
+
+    const modal = document.getElementById('adminEditCatalogPlanModal');
+    if (!modal) return;
+
+    document.getElementById('adminEditPlanId').value = plan.plan_id;
+    document.getElementById('adminEditPlanName').value = plan.display_name || plan.plan_id;
+    document.getElementById('adminEditPlanPrice').value = plan.monthly_price_inr || 0;
+    document.getElementById('adminEditPlanLimit').value = plan.monthly_report_limit !== undefined ? plan.monthly_report_limit : 25;
+    document.getElementById('adminEditPlanValidityDays').value = plan.validity_days || 30;
+    document.getElementById('adminEditPlanDesc').value = plan.description || '';
+
+    const engines = Array.isArray(plan.included_engines) ? plan.included_engines : [];
+    document.getElementById('editPlanSec138').checked = engines.includes('s138');
+    document.getElementById('editPlanComm').checked = engines.includes('commercial') || engines.includes('civil');
+    document.getElementById('editPlanBail').checked = engines.includes('bail') || engines.includes('criminal');
+    document.getElementById('editPlanMact').checked = engines.includes('mact');
+    document.getElementById('adminEditPlanIsActive').checked = plan.is_active !== false;
+
+    modal.classList.remove('hidden');
+};
+
+window.closeAdminEditCatalogPlanModal = () => {
+    const modal = document.getElementById('adminEditCatalogPlanModal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.submitAdminEditCatalogPlan = async (e) => {
+    if (e) e.preventDefault();
+    if (!adminAuthToken) return;
+
+    const planId = document.getElementById('adminEditPlanId').value;
+    const displayName = document.getElementById('adminEditPlanName').value.trim();
+    const priceInr = parseFloat(document.getElementById('adminEditPlanPrice').value) || 0;
+    const limit = parseInt(document.getElementById('adminEditPlanLimit').value, 10);
+    const validityDays = parseInt(document.getElementById('adminEditPlanValidityDays').value, 10) || 30;
+    const desc = document.getElementById('adminEditPlanDesc').value.trim();
+    const isActive = document.getElementById('adminEditPlanIsActive').checked;
+
+    const includedEngines = [];
+    if (document.getElementById('editPlanSec138').checked) includedEngines.push('s138');
+    if (document.getElementById('editPlanComm').checked) includedEngines.push('commercial');
+    if (document.getElementById('editPlanBail').checked) includedEngines.push('bail');
+    if (document.getElementById('editPlanMact').checked) includedEngines.push('mact');
+
+    try {
+        const res = await api.updatePlanCatalog(planId, {
+            display_name: displayName,
+            monthly_price_inr: priceInr,
+            monthly_report_limit: limit,
+            validity_days: validityDays,
+            included_engines: includedEngines,
+            description: desc,
+            is_active: isActive
+        }, adminAuthToken);
+
+        if (res && res.success) {
+            if (window.ui) window.ui.toast(`Plan [${displayName}] successfully updated in catalog!`, 'success');
+            window.closeAdminEditCatalogPlanModal();
+            await window.loadAdminPlansCatalog();
+        } else {
+            if (window.ui) window.ui.toast(res.detail || 'Failed to update plan', 'error');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Plan update error: ' + err.message, 'error');
+    }
+};
+
+// ============================================================================
+// ASSIGN PLAN & EXTEND VALIDITY CONTROLLERS (ADMIN)
+// ============================================================================
+
+window.openAssignPlanModal = (userId, email, currentRole, currentLimit) => {
+    const modal = document.getElementById('adminAssignPlanModal');
+    if (!modal) return;
+
+    document.getElementById('adminAssignUserId').value = userId;
+    document.getElementById('adminAssignUserEmail').value = email || userId;
+    document.getElementById('adminAssignQuotaLimit').value = currentLimit !== undefined ? currentLimit : 25;
+
+    // Default duration to 30 days
+    const durSelect = document.getElementById('adminAssignValidityDuration');
+    if (durSelect) durSelect.value = '30';
+    window.onAdminAssignValidityPresetChange('30');
+
+    modal.classList.remove('hidden');
+};
+
+window.closeAdminAssignPlanModal = () => {
+    const modal = document.getElementById('adminAssignPlanModal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.onAdminAssignPlanPresetChange = (presetValue) => {
+    const limitInput = document.getElementById('adminAssignQuotaLimit');
+    if (!limitInput) return;
+    if (presetValue === 'STARTER') limitInput.value = '10';
+    else if (presetValue === 'PROFESSIONAL') limitInput.value = '25';
+    else if (presetValue === 'ENTERPRISE') limitInput.value = '100';
+    else if (presetValue === 'CUSTOM') limitInput.value = '-1';
+};
+
+window.setAdminAssignQuotaPreset = (amount) => {
+    const limitInput = document.getElementById('adminAssignQuotaLimit');
+    if (limitInput) limitInput.value = amount;
+};
+
+window.onAdminAssignValidityPresetChange = (presetDays) => {
+    const dateInput = document.getElementById('adminAssignExpiryDate');
+    if (!dateInput) return;
+
+    if (presetDays === 'LIFETIME') {
+        dateInput.value = '';
+        dateInput.disabled = true;
+    } else if (presetDays === 'CUSTOM') {
+        dateInput.disabled = false;
+    } else {
+        dateInput.disabled = false;
+        const days = parseInt(presetDays, 10) || 30;
+        const target = new Date();
+        target.setDate(target.getDate() + days);
+        dateInput.value = target.toISOString().slice(0, 10);
+    }
+};
+
+window.submitAdminAssignPlan = async (e) => {
+    if (e) e.preventDefault();
+    if (!adminAuthToken) return;
+
+    const email = document.getElementById('adminAssignUserEmail').value.trim();
+    const planSelect = document.getElementById('adminAssignPlanSelect').value;
+    const limit = parseInt(document.getElementById('adminAssignQuotaLimit').value, 10);
+    const durationPreset = document.getElementById('adminAssignValidityDuration').value;
+    const explicitDate = document.getElementById('adminAssignExpiryDate').value;
+
+    const validityDays = durationPreset === 'LIFETIME' ? null : (parseInt(durationPreset, 10) || null);
+    const subscriptionEndDate = durationPreset === 'LIFETIME' ? 'Lifetime' : (explicitDate || null);
+
+    const modules = [];
+    if (document.getElementById('assignModSec138').checked) modules.push('s138');
+    if (document.getElementById('assignModCommercial').checked) modules.push('commercial');
+    if (document.getElementById('assignModBail').checked) modules.push('bail');
+    if (document.getElementById('assignModMact').checked) modules.push('mact');
+
+    try {
+        const res = await api.assignUserPlan(email, {
+            plan_name: planSelect,
+            monthly_report_limit: limit,
+            validity_days: validityDays,
+            subscription_end_date: subscriptionEndDate,
+            selected_modules: modules
+        }, adminAuthToken);
+
+        if (res && res.success) {
+            if (window.ui) window.ui.toast(`Assigned ${planSelect} plan to ${email} successfully!`, 'success');
+            window.closeAdminAssignPlanModal();
+            await window.loadAdminPortalData();
+        } else {
+            if (window.ui) window.ui.toast(res.detail || 'Failed to assign plan', 'error');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Plan assignment error: ' + err.message, 'error');
+    }
+};
+
+window.openExtendValidityModal = (userId, email, currentEnd) => {
+    const modal = document.getElementById('adminExtendValidityModal');
+    if (!modal) return;
+
+    document.getElementById('adminExtendUserEmail').value = email || userId;
+    document.getElementById('adminExtendUserDisplay').textContent = email || userId;
+    document.getElementById('adminExtendCurrentExpiryBadge').textContent = currentEnd ? currentEnd.slice(0, 10) : 'Not Set';
+    document.getElementById('adminExtendExplicitDate').value = '';
+
+    modal.classList.remove('hidden');
+};
+
+window.closeAdminExtendValidityModal = () => {
+    const modal = document.getElementById('adminExtendValidityModal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.selectExtendDays = async (days) => {
+    if (!adminAuthToken) return;
+    const email = document.getElementById('adminExtendUserEmail').value;
+    if (!email) return;
+
+    const isLifetime = days === 'LIFETIME';
+    const payload = isLifetime ? { new_subscription_end_date: 'Lifetime' } : { extension_days: parseInt(days, 10) };
+
+    try {
+        const res = await api.extendUserValidity(email, payload, adminAuthToken);
+        if (res && res.success) {
+            if (window.ui) window.ui.toast(`Validity extended for ${email}! New expiry: ${res.new_subscription_end_date || 'Updated'}`, 'success');
+            window.closeAdminExtendValidityModal();
+            await window.loadAdminPortalData();
+        } else {
+            if (window.ui) window.ui.toast(res.detail || 'Failed to extend validity', 'error');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Validity extension error: ' + err.message, 'error');
+    }
+};
+
+window.submitAdminExtendValidity = async (e) => {
+    if (e) e.preventDefault();
+    if (!adminAuthToken) return;
+
+    const email = document.getElementById('adminExtendUserEmail').value;
+    const explicitDate = document.getElementById('adminExtendExplicitDate').value;
+
+    if (!explicitDate) {
+        if (window.ui) window.ui.toast('Please choose a quick extension button or specify a date.', 'warning');
+        return;
+    }
+
+    try {
+        const res = await api.extendUserValidity(email, { new_subscription_end_date: explicitDate }, adminAuthToken);
+        if (res && res.success) {
+            if (window.ui) window.ui.toast(`Validity updated for ${email} to ${explicitDate}!`, 'success');
+            window.closeAdminExtendValidityModal();
+            await window.loadAdminPortalData();
+        } else {
+            if (window.ui) window.ui.toast(res.detail || 'Failed to extend validity', 'error');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Extension error: ' + err.message, 'error');
+    }
+};
+
+// ============================================================================
+// PAYMENTS & REVENUE CONTROLLERS (ADMIN)
+// ============================================================================
+
+let adminCachedPayments = [];
+
+window.loadAdminPayments = async () => {
+    if (!adminAuthToken) return;
+    try {
+        const res = await api.getAdminPayments(adminAuthToken);
+        if (res && res.success) {
+            adminCachedPayments = res.payments || [];
+            window.renderAdminPaymentsTable(adminCachedPayments, res.stats);
+        }
+    } catch (err) {
+        console.warn('Failed to load payments:', err);
+    }
+};
+
+window.renderAdminPaymentsTable = (payments, stats) => {
+    // Update KPI summary cards
+    if (stats) {
+        const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        setEl('statTotalRevenue', `₹${Number(stats.total_revenue_inr || 0).toLocaleString('en-IN')}`);
+        setEl('statSuccessfulTxns', stats.successful_transactions_count || 0);
+        setEl('statPendingOrders', stats.pending_transactions_count || 0);
+        setEl('statAvgOrderVal', `₹${Number(stats.avg_order_value_inr || 0).toLocaleString('en-IN')}`);
+    }
+
+    const tbody = document.getElementById('adminPaymentsTableBody');
+    if (!tbody) return;
+
+    if (!payments || payments.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
+                    No payment transactions recorded yet.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = payments.map(p => {
+        const isSuccess = p.status === 'SUCCESS';
+        const isFailed = p.status === 'FAILED';
+        const statusBadge = isSuccess
+            ? `<span style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-circle-check"></i> SUCCESS</span>`
+            : (isFailed
+                ? `<span style="background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-circle-xmark"></i> FAILED</span>`
+                : `<span style="background: rgba(245, 158, 11, 0.15); color: #d97706; padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-hourglass-half"></i> PENDING</span>`);
+
+        const amountFormatted = `₹${Number(p.amount_inr || 0).toLocaleString('en-IN')}`;
+        const dateStr = p.created_at ? new Date(p.created_at).toLocaleString() : '--';
+
+        return `
+            <tr>
+                <td>
+                    <div style="font-weight: 700; color: var(--gray-900); font-size: 0.85rem;">${p.email || p.user_id}</div>
+                    <div style="font-size: 0.72rem; color: var(--gray-400); font-family: monospace;">${p.user_id || ''}</div>
+                </td>
+                <td>
+                    <div style="font-family: monospace; font-size: 0.76rem; color: #4f46e5; font-weight: 600;">${p.order_id || '--'}</div>
+                    <div style="font-family: monospace; font-size: 0.72rem; color: var(--gray-400);">${p.payment_id || 'Awaiting Gate'}</div>
+                </td>
+                <td>
+                    <div style="font-weight: 700; color: var(--gray-800); font-size: 0.82rem;">${p.plan_tier || 'PRO'}</div>
+                </td>
+                <td>
+                    <div style="font-weight: 800; color: #10b981; font-size: 0.95rem;">${amountFormatted}</div>
+                </td>
+                <td>
+                    <span style="font-size: 0.74rem; font-weight: 700; color: var(--gray-600); background: var(--bg-hover, rgba(0,0,0,0.05)); padding: 2px 6px; border-radius: 4px;">
+                        ${p.payment_mode || 'GATEWAY'}
+                    </span>
+                </td>
+                <td>
+                    ${statusBadge}
+                </td>
+                <td style="text-align: right; font-size: 0.75rem; color: var(--gray-400);">
+                    ${dateStr}
+                </td>
+            </tr>
+        `;
+    }).join('');
+};
+
+window.filterAdminPaymentsTable = () => {
+    const query = (document.getElementById('adminPaymentsSearchInput')?.value || '').toLowerCase().trim();
+    const status = document.getElementById('adminPaymentsStatusFilter')?.value || '';
+
+    let filtered = adminCachedPayments || [];
+    if (query) {
+        filtered = filtered.filter(p => 
+            (p.email && p.email.toLowerCase().includes(query)) ||
+            (p.order_id && p.order_id.toLowerCase().includes(query)) ||
+            (p.payment_id && p.payment_id.toLowerCase().includes(query)) ||
+            (p.plan_tier && p.plan_tier.toLowerCase().includes(query)) ||
+            (p.payment_mode && p.payment_mode.toLowerCase().includes(query))
+        );
+    }
+    if (status) {
+        filtered = filtered.filter(p => p.status === status);
+    }
+    window.renderAdminPaymentsTable(filtered);
+};
+
+window.openRecordPaymentModal = () => {
+    const modal = document.getElementById('adminRecordPaymentModal');
+    if (modal) modal.classList.remove('hidden');
+};
+
+window.closeAdminRecordPaymentModal = () => {
+    const modal = document.getElementById('adminRecordPaymentModal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.submitAdminRecordPayment = async (e) => {
+    if (e) e.preventDefault();
+    if (!adminAuthToken) return;
+
+    const email = document.getElementById('adminRecordPaymentEmail').value.trim();
+    const plan = document.getElementById('adminRecordPaymentPlan').value;
+    const amount = parseFloat(document.getElementById('adminRecordPaymentAmount').value) || 0;
+    const mode = document.getElementById('adminRecordPaymentMode').value;
+    const txnId = document.getElementById('adminRecordPaymentTxnId').value.trim();
+    const notes = document.getElementById('adminRecordPaymentNotes').value.trim();
+    const applyPlan = document.getElementById('adminRecordPaymentApplyPlan').checked;
+
+    try {
+        const res = await api.recordManualPayment({
+            email: email,
+            amount_inr: amount,
+            plan_tier: plan,
+            payment_mode: mode,
+            transaction_ref: txnId,
+            notes: notes,
+            apply_plan_to_user: applyPlan
+        }, adminAuthToken);
+
+        if (res && res.success) {
+            if (window.ui) window.ui.toast(`Payment recorded for ${email}! Order ID: ${res.order_id}`, 'success');
+            window.closeAdminRecordPaymentModal();
+            await window.loadAdminPayments();
+            await window.loadAdminPortalData();
+        } else {
+            if (window.ui) window.ui.toast(res.detail || 'Failed to record payment', 'error');
+        }
+    } catch (err) {
+        if (window.ui) window.ui.toast('Payment entry error: ' + err.message, 'error');
+    }
+};
+
+window.exportAdminPayments = (format = 'json') => {
+    if (!adminCachedPayments || adminCachedPayments.length === 0) {
+        if (window.ui) window.ui.toast('No payments available to export.', 'warning');
+        return;
+    }
+
+    if (format === 'json') {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(adminCachedPayments, null, 2));
+        const dlAnchor = document.createElement('a');
+        dlAnchor.setAttribute("href", dataStr);
+        dlAnchor.setAttribute("download", `judiq_payments_${new Date().toISOString().slice(0, 10)}.json`);
+        document.body.appendChild(dlAnchor);
+        dlAnchor.click();
+        dlAnchor.remove();
+        if (window.ui) window.ui.toast('Exported payments JSON.', 'success');
+    } else if (format === 'csv') {
+        const headers = ["Order ID", "Payment ID", "Customer Email", "Plan", "Amount INR", "Status", "Channel", "Timestamp"];
+        const rows = adminCachedPayments.map(p => [
+            p.order_id || '',
+            p.payment_id || '',
+            p.email || p.user_id || '',
+            p.plan_tier || '',
+            p.amount_inr || 0,
+            p.status || '',
+            p.payment_mode || '',
+            p.created_at || ''
+        ]);
+        const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(r => r.map(cell => `"${cell}"`).join(','))].join('\n');
+        const dlAnchor = document.createElement('a');
+        dlAnchor.setAttribute("href", encodeURI(csvContent));
+        dlAnchor.setAttribute("download", `judiq_payments_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(dlAnchor);
+        dlAnchor.click();
+        dlAnchor.remove();
+        if (window.ui) window.ui.toast('Exported payments CSV.', 'success');
+    }
+};
+
+// ============================================================================
+// WHOLE PLATFORM ACTIVITY & AUDIT LOGS MONITOR CONTROLLERS (ADMIN)
+// ============================================================================
+
+let adminCachedSecurityLogs = [];
+let adminActiveLogCategory = 'ALL';
+let adminLogsAutoRefreshTimer = null;
+
 window.loadAdminSecurityLogs = async () => {
     if (!adminAuthToken) return;
     try {
-        const res = await api.getSecurityLogs(adminAuthToken);
+        const res = await api.getUnifiedLogs(adminAuthToken, adminActiveLogCategory, 120);
         if (res && res.success && Array.isArray(res.logs)) {
             adminCachedSecurityLogs = res.logs;
             window.renderAdminSecurityLogsTable(adminCachedSecurityLogs);
         }
     } catch (err) {
-        console.warn('Security logs load failed:', err);
+        console.warn('Unified activity logs load failed:', err);
     }
 };
 
@@ -5646,36 +6213,101 @@ window.renderAdminSecurityLogsTable = (logs) => {
     if (!logs || logs.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
+                <td colspan="7" style="padding: 2.5rem; text-align: center; color: var(--gray-400);">
                     <i class="fas fa-shield-check" style="font-size: 1.5rem; color: #10b981; margin-bottom: 0.5rem; display: block;"></i>
-                    No platform security events recorded. System is secure.
+                    No platform activity events recorded for category [${adminActiveLogCategory}].
                 </td>
             </tr>
         `;
         return;
     }
 
+    const categoryColors = {
+        'ANALYSIS': { bg: 'rgba(59, 130, 246, 0.15)', color: '#2563eb', icon: 'fa-chart-pie' },
+        'DRAFT': { bg: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6', icon: 'fa-file-lines' },
+        'PLAN': { bg: 'rgba(245, 158, 11, 0.15)', color: '#d97706', icon: 'fa-layer-group' },
+        'QUOTA': { bg: 'rgba(16, 185, 129, 0.15)', color: '#059669', icon: 'fa-gauge' },
+        'STATUS': { bg: 'rgba(239, 68, 68, 0.15)', color: '#dc2626', icon: 'fa-user-lock' },
+        'PAYMENT': { bg: 'rgba(16, 185, 129, 0.18)', color: '#10b981', icon: 'fa-credit-card' },
+        'AUTH': { bg: 'rgba(100, 116, 139, 0.15)', color: '#475569', icon: 'fa-key' }
+    };
+
     tbody.innerHTML = logs.map(l => {
-        const metaStr = l.metadata ? JSON.stringify(l.metadata).substring(0, 45) + (JSON.stringify(l.metadata).length > 45 ? '...' : '') : '--';
+        const cat = l.category || 'ANALYSIS';
+        const conf = categoryColors[cat] || { bg: 'rgba(99, 102, 241, 0.12)', color: '#4f46e5', icon: 'fa-bolt' };
+        const metaStr = l.metadata ? (typeof l.metadata === 'object' ? JSON.stringify(l.metadata) : String(l.metadata)) : '--';
+        const displayMeta = metaStr.length > 70 ? metaStr.substring(0, 70) + '...' : metaStr;
+        const timeStr = l.timestamp ? new Date(l.timestamp).toLocaleTimeString() : '--';
+
         return `
             <tr>
-                <td style="font-family: monospace; font-size: 0.78rem; color: #6366f1; font-weight: 700;">#${l.id}</td>
-                <td>
-                    <div style="font-weight: 700; color: var(--gray-900); font-size: 0.82rem;">${l.user_id}</div>
+                <td style="font-size: 0.74rem; color: var(--gray-500); font-family: monospace;">
+                    ${timeStr}
                 </td>
-                <td style="font-family: monospace; font-size: 0.75rem; color: var(--gray-600);">${l.case_id}</td>
                 <td>
-                    <span style="display: inline-block; font-size: 0.72rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: rgba(99, 102, 241, 0.12); color: #4f46e5;">
+                    <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; font-weight: 800; padding: 2px 7px; border-radius: 4px; background: ${conf.bg}; color: ${conf.color};">
+                        <i class="fas ${conf.icon}" style="font-size: 0.65rem;"></i> ${cat}
+                    </span>
+                </td>
+                <td>
+                    <div style="font-weight: 700; color: var(--gray-900); font-size: 0.82rem;">${l.user_id || 'System'}</div>
+                </td>
+                <td>
+                    <span style="font-size: 0.76rem; font-weight: 700; color: var(--gray-800);">
                         ${l.action}
                     </span>
                 </td>
-                <td style="font-size: 0.75rem; color: var(--gray-500); font-family: monospace;">${metaStr}</td>
-                <td style="text-align: right; font-size: 0.75rem; color: var(--gray-400);">
-                    ${l.timestamp ? new Date(l.timestamp).toLocaleTimeString() : '--'}
+                <td style="font-family: monospace; font-size: 0.74rem; color: var(--gray-600);">
+                    ${l.case_id || '--'}
+                </td>
+                <td style="font-size: 0.73rem; color: var(--gray-500); font-family: monospace; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${metaStr.replace(/"/g, '&quot;')}">
+                    ${displayMeta}
+                </td>
+                <td style="font-size: 0.72rem; color: var(--gray-400); font-family: monospace; text-align: right;">
+                    ${l.ip_address || '127.0.0.1'}
                 </td>
             </tr>
         `;
     }).join('');
+};
+
+window.setLogCategoryFilter = (category, btnElement) => {
+    adminActiveLogCategory = category;
+    document.querySelectorAll('#adminLogsFilterPills button').forEach(b => b.classList.remove('active'));
+    if (btnElement) btnElement.classList.add('active');
+    window.loadAdminSecurityLogs();
+};
+
+window.filterAdminLogsBySearch = () => {
+    const query = (document.getElementById('adminLogsSearchInput')?.value || '').toLowerCase().trim();
+    if (!query) {
+        window.renderAdminSecurityLogsTable(adminCachedSecurityLogs);
+        return;
+    }
+    const filtered = (adminCachedSecurityLogs || []).filter(l => {
+        const meta = l.metadata ? JSON.stringify(l.metadata).toLowerCase() : '';
+        return (l.user_id && l.user_id.toLowerCase().includes(query)) ||
+            (l.action && l.action.toLowerCase().includes(query)) ||
+            (l.case_id && l.case_id.toLowerCase().includes(query)) ||
+            (l.category && l.category.toLowerCase().includes(query)) ||
+            meta.includes(query);
+    });
+    window.renderAdminSecurityLogsTable(filtered);
+};
+
+window.toggleAdminLogsAutoRefresh = (enabled) => {
+    if (adminLogsAutoRefreshTimer) {
+        clearInterval(adminLogsAutoRefreshTimer);
+        adminLogsAutoRefreshTimer = null;
+    }
+    if (enabled) {
+        adminLogsAutoRefreshTimer = setInterval(() => {
+            window.loadAdminSecurityLogs();
+        }, 10000);
+        if (window.ui) window.ui.toast('Live 10-second logs auto-refresh enabled.', 'info');
+    } else {
+        if (window.ui) window.ui.toast('Logs auto-refresh paused.', 'info');
+    }
 };
 
 window.exportAdminAuditLogs = (format = 'json') => {
@@ -5683,12 +6315,36 @@ window.exportAdminAuditLogs = (format = 'json') => {
         if (window.ui) window.ui.toast('No logs available to export.', 'warning');
         return;
     }
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(adminCachedSecurityLogs, null, 2));
-    const dlAnchorElem = document.createElement('a');
-    dlAnchorElem.setAttribute("href", dataStr);
-    dlAnchorElem.setAttribute("download", `judiq_audit_logs_${new Date().toISOString().slice(0, 10)}.json`);
-    dlAnchorElem.click();
-    if (window.ui) window.ui.toast('Cryptographic audit trail downloaded.', 'success');
+    if (format === 'json') {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(adminCachedSecurityLogs, null, 2));
+        const dlAnchorElem = document.createElement('a');
+        dlAnchorElem.setAttribute("href", dataStr);
+        dlAnchorElem.setAttribute("download", `judiq_audit_logs_${new Date().toISOString().slice(0, 10)}.json`);
+        document.body.appendChild(dlAnchorElem);
+        dlAnchorElem.click();
+        dlAnchorElem.remove();
+        if (window.ui) window.ui.toast('Activity audit logs exported (JSON).', 'success');
+    } else if (format === 'csv') {
+        const headers = ["ID", "Timestamp", "Category", "User", "Action", "Case/Entity ID", "Metadata", "IP Address"];
+        const rows = adminCachedSecurityLogs.map(l => [
+            l.id || '',
+            l.timestamp || '',
+            l.category || '',
+            l.user_id || '',
+            l.action || '',
+            l.case_id || '',
+            l.metadata ? (typeof l.metadata === 'object' ? JSON.stringify(l.metadata).replace(/"/g, '""') : String(l.metadata).replace(/"/g, '""')) : '',
+            l.ip_address || ''
+        ]);
+        const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
+        const dlAnchor = document.createElement('a');
+        dlAnchor.setAttribute("href", encodeURI(csvContent));
+        dlAnchor.setAttribute("download", `judiq_audit_logs_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(dlAnchor);
+        dlAnchor.click();
+        dlAnchor.remove();
+        if (window.ui) window.ui.toast('Activity audit logs exported (CSV).', 'success');
+    }
 };
 
 window.loadAdminSystemHealth = async () => {

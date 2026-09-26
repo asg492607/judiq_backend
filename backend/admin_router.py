@@ -511,6 +511,206 @@ def generate_user_certificate(user_id: str, admin: dict = Depends(require_admin)
     }
 
 
+# ============================================================================
+# PLANS CATALOG, ASSIGNMENT & USABILITY TIME PERIOD ENDPOINTS
+# ============================================================================
+
+class AssignPlanRequest(BaseModel):
+    user_id: str = Field(..., description="Target User ID")
+    plan_name: str = Field("Standard Monthly Plan", description="Plan Name")
+    role: str = Field("law_firm", description="Role / Account Designation")
+    monthly_limit: int = Field(25, description="Monthly Report Limit (-1 for unlimited)")
+    monthly_price_inr: float = Field(1500.0, description="Monthly Price in INR")
+    selected_modules: Optional[list] = Field(default_factory=lambda: ["s138"], description="Subscribed Modules")
+    validity_days: int = Field(30, description="Validity Duration in Days (-1 for Lifetime)")
+    valid_until: Optional[str] = Field(None, description="Optional custom expiration date ISO")
+    is_active: bool = Field(True, description="Account active status")
+
+class ExtendValidityRequest(BaseModel):
+    user_id: str = Field(..., description="Target User ID")
+    days_to_add: int = Field(30, description="Days to extend (-1 for Lifetime)")
+    new_end_date: Optional[str] = Field(None, description="Optional specific new expiry date ISO")
+
+class UpdatePlanCatalogRequest(BaseModel):
+    plan_id: str = Field(..., description="Unique Plan ID in catalog")
+    plan_name: Optional[str] = Field(None, description="Plan Display Name")
+    monthly_report_limit: Optional[int] = Field(None, description="Monthly Report Limit")
+    monthly_price_inr: Optional[float] = Field(None, description="Monthly Price in INR")
+    default_validity_days: Optional[int] = Field(None, description="Default Validity Days")
+    selected_modules: Optional[list] = Field(None, description="Included Modules")
+    description: Optional[str] = Field(None, description="Plan Description")
+    is_active: Optional[bool] = Field(None, description="Plan active flag")
+
+class RecordManualPaymentRequest(BaseModel):
+    user_id: str = Field(..., description="Target User ID")
+    email: Optional[str] = Field(None, description="Customer Email")
+    amount: float = Field(..., description="Amount in INR")
+    plan_name: str = Field("Standard Monthly Plan", description="Plan / Service Purchased")
+    payment_reference: Optional[str] = Field(None, description="Payment Reference / UTR / Cheque No.")
+    method: str = Field("Bank Transfer / Cash", description="Payment Mode")
+    notes: Optional[str] = Field(None, description="Optional Notes")
+    assign_plan: bool = Field(True, description="Whether to automatically assign plan/quota")
+    monthly_limit: Optional[int] = Field(None, description="Optional report limit to assign")
+    validity_days: int = Field(30, description="Validity in days")
+
+
+@router.get("/plans/catalog", tags=["Admin Control"])
+def get_plans_catalog(admin: dict = Depends(require_admin)):
+    """
+    Returns all editable plans in the platform pricing catalog.
+    """
+    plans = DatabaseManager.get_all_plans_catalog()
+    return {"success": True, "plans": plans, "total": len(plans)}
+
+
+@router.post("/plans/catalog/update", tags=["Admin Control"])
+def update_plans_catalog(req: UpdatePlanCatalogRequest = Body(...), admin: dict = Depends(require_admin)):
+    """
+    Updates a plan's parameters (pricing, quota, validity, engines) in the platform catalog.
+    """
+    success = DatabaseManager.update_plan_catalog_item(
+        plan_id=req.plan_id,
+        plan_name=req.plan_name,
+        monthly_report_limit=req.monthly_report_limit,
+        monthly_price_inr=req.monthly_price_inr,
+        default_validity_days=req.default_validity_days,
+        selected_modules=req.selected_modules,
+        description=req.description,
+        is_active=req.is_active
+    )
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update plan catalog.")
+    DatabaseManager.log_audit_event(
+        user_id=admin.get("email", "admin"),
+        action="ADMIN_UPDATE_PLAN_CATALOG",
+        case_id=req.plan_id,
+        metadata={"plan_id": req.plan_id, "name": req.plan_name, "price": req.monthly_price_inr}
+    )
+    return {"success": True, "message": f"Plan {req.plan_id} updated successfully."}
+
+
+@router.post("/users/assign-plan", tags=["Admin Control"])
+def assign_user_plan_endpoint(req: AssignPlanRequest = Body(...), admin: dict = Depends(require_admin)):
+    """
+    Admin directly assigns a plan, report quota, and validity expiration time period to a customer.
+    """
+    try:
+        quota = DatabaseManager.assign_user_plan_and_validity(
+            user_id=req.user_id,
+            plan_name=req.plan_name,
+            role=req.role,
+            monthly_limit=req.monthly_limit,
+            monthly_price_inr=req.monthly_price_inr,
+            selected_modules=req.selected_modules,
+            validity_days=req.validity_days,
+            valid_until=req.valid_until,
+            is_active=req.is_active,
+            approved_by=admin.get("email", "Admin")
+        )
+        return {
+            "success": True,
+            "message": f"Plan '{req.plan_name}' assigned to {req.user_id} with validity until {quota.get('subscription_end_date')}.",
+            "quota": quota
+        }
+    except Exception as e:
+        logger.error(f"Error in assign_user_plan_endpoint: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/users/extend-validity", tags=["Admin Control"])
+def extend_user_validity_endpoint(req: ExtendValidityRequest = Body(...), admin: dict = Depends(require_admin)):
+    """
+    Admin extends or sets the validity duration / expiration date for a customer's subscription.
+    """
+    try:
+        quota = DatabaseManager.extend_user_validity(
+            user_id=req.user_id,
+            days_to_add=req.days_to_add,
+            new_end_date=req.new_end_date,
+            approved_by=admin.get("email", "Admin")
+        )
+        return {
+            "success": True,
+            "message": f"Subscription validity extended to {quota.get('subscription_end_date')} for {req.user_id}.",
+            "quota": quota
+        }
+    except Exception as e:
+        logger.error(f"Error in extend_user_validity_endpoint: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# PAYMENTS LEDGER & FINANCIAL MONITORING ENDPOINTS
+# ============================================================================
+
+@router.get("/payments", tags=["Admin Control"])
+def get_admin_payments(
+    limit: int = Query(100),
+    status: Optional[str] = Query(None),
+    user_id: Optional[str] = Query(None),
+    admin: dict = Depends(require_admin)
+):
+    """
+    Returns payment transactions ledger and financial metrics.
+    """
+    txs = DatabaseManager.get_payment_transactions(limit=limit, user_id=user_id, status=status)
+    stats = DatabaseManager.get_payment_stats()
+    return {"success": True, "transactions": txs, "stats": stats, "total": len(txs)}
+
+
+@router.post("/payments/record-manual", tags=["Admin Control"])
+def record_manual_payment(req: RecordManualPaymentRequest = Body(...), admin: dict = Depends(require_admin)):
+    """
+    Admin records a manual or offline payment (Bank Transfer / NEFT / Cash) and credits account.
+    """
+    import uuid
+    order_id = f"manual_{uuid.uuid4().hex[:10]}"
+    pay_id = req.payment_reference or f"rec_{uuid.uuid4().hex[:8]}"
+    res = DatabaseManager.record_payment_transaction(
+        order_id=order_id,
+        payment_id=pay_id,
+        user_id=req.user_id,
+        email=req.email,
+        amount=req.amount,
+        currency="INR",
+        plan_name=req.plan_name,
+        status="SUCCESS",
+        method=req.method,
+        metadata={"recorded_by": admin.get("email"), "notes": req.notes}
+    )
+    if req.assign_plan:
+        limit = req.monthly_limit if req.monthly_limit is not None else 25
+        DatabaseManager.assign_user_plan_and_validity(
+            user_id=req.user_id,
+            plan_name=req.plan_name,
+            role="law_firm",
+            monthly_limit=limit,
+            monthly_price_inr=req.amount,
+            validity_days=req.validity_days,
+            is_active=True,
+            approved_by=admin.get("email", "Admin")
+        )
+    return {"success": True, "message": f"Manual payment of ₹{req.amount} recorded for {req.user_id}.", "transaction": res}
+
+
+# ============================================================================
+# COMPREHENSIVE ACTIVITY & AUDIT LOGS ENDPOINT
+# ============================================================================
+
+@router.get("/logs/all", tags=["Admin Control"])
+def get_admin_unified_logs(
+    limit: int = Query(100),
+    action: Optional[str] = Query(None),
+    user_id: Optional[str] = Query(None),
+    admin: dict = Depends(require_admin)
+):
+    """
+    Returns comprehensive unified activity, security, and administrative logs.
+    """
+    logs = DatabaseManager.get_unified_logs(limit=limit, action=action, user_id=user_id)
+    return {"success": True, "logs": logs, "total": len(logs)}
+
+
 user_quota_router = APIRouter()
 
 @user_quota_router.get("/quota", tags=["User Quota"])

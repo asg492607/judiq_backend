@@ -153,6 +153,20 @@ async def create_order(payload: CreateOrderRequest) -> CreateOrderResponse:
         raise HTTPException(status_code=500, detail="Failed to create payment order.") from exc
 
     logger.info("Razorpay order created: %s (Rs.%.2f)", order["id"], payload.amount / 100)
+    try:
+        from session import DatabaseManager
+        DatabaseManager.record_payment_transaction(
+            order_id=order["id"],
+            user_id=payload.user_id or "ANON",
+            email=payload.email,
+            amount=round(payload.amount / 100, 2),
+            currency=payload.currency,
+            plan_name=payload.plan_name or "Standard Monthly Plan",
+            status="CREATED",
+            metadata={"receipt": order.get("receipt", payload.receipt)}
+        )
+    except Exception as e:
+        logger.warning(f"Error recording created order transaction: {e}")
 
     return CreateOrderResponse(
         order_id=order["id"],
@@ -209,6 +223,22 @@ async def verify_payment(payload: VerifyPaymentRequest) -> VerifyPaymentResponse
         payload.razorpay_order_id,
         payload.razorpay_payment_id,
     )
+    try:
+        from session import DatabaseManager
+        DatabaseManager.record_payment_transaction(
+            order_id=payload.razorpay_order_id,
+            payment_id=payload.razorpay_payment_id,
+            user_id=payload.user_id,
+            email=payload.email,
+            amount=payload.amount or 999.0,
+            currency="INR",
+            plan_name=payload.plan_name or "Standard Monthly Plan",
+            status="SUCCESS",
+            method="Razorpay",
+            metadata={"plan": payload.plan, "quota": payload.quota}
+        )
+    except Exception as e:
+        logger.warning(f"Error recording verified payment transaction: {e}")
 
     activated_quota = None
     if payload.user_id or payload.email:

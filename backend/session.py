@@ -521,10 +521,45 @@ class DatabaseManager:
                     updated_at TEXT
                 )
             """)
+
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS payment_transactions (
+                    id {serial_primary},
+                    order_id TEXT,
+                    payment_id TEXT,
+                    user_id TEXT,
+                    email TEXT,
+                    amount REAL DEFAULT 0.0,
+                    currency TEXT DEFAULT 'INR',
+                    plan_name TEXT,
+                    status TEXT DEFAULT 'SUCCESS',
+                    method TEXT DEFAULT 'Razorpay',
+                    created_at TEXT,
+                    metadata TEXT
+                )
+            """)
+
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS plans_catalog (
+                    plan_id TEXT PRIMARY KEY,
+                    plan_name TEXT NOT NULL,
+                    role TEXT DEFAULT 'law_firm',
+                    monthly_report_limit INTEGER DEFAULT 25,
+                    monthly_price_inr REAL DEFAULT 1500.0,
+                    default_validity_days INTEGER DEFAULT 30,
+                    selected_modules TEXT DEFAULT '["s138"]',
+                    description TEXT,
+                    is_active INTEGER DEFAULT 1,
+                    created_at TEXT,
+                    updated_at TEXT
+                )
+            """)
             conn.commit()
-            logger.info("Database, Caseroom, User Quota, and Bank Recovery tables initialized successfully.")
+            logger.info("Database, Caseroom, User Quota, Bank Recovery, Payments, and Plans Catalog tables initialized successfully.")
             DatabaseManager._seed_initial_litigators(cursor, conn)
             DatabaseManager._seed_initial_bank_officers(cursor, conn)
+            DatabaseManager._seed_initial_plans_catalog(cursor, conn)
+            DatabaseManager._seed_initial_payments(cursor, conn)
         except Exception as e:
             logger.error(f"Database init failed: {e}")
             raise e
@@ -1438,7 +1473,7 @@ class DatabaseManager:
             limit = int(db_limit)
             used = int(db_used)
             remaining = (limit - used) if limit != -1 else 999999
-            is_low_quota = bool(limit != -1 and 1 <= remaining <= 3)
+            is_low_quota = limit != -1 and 1 <= remaining <= 3
             low_warning = (
                 f"Warning: Only {remaining} report{'s' if remaining != 1 else ''} remaining in your allocation!"
                 if is_low_quota else None
@@ -2119,7 +2154,7 @@ class DatabaseManager:
             cursor.execute("""
                 SELECT user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at,
                        plan_status, selected_modules, monthly_price_inr, requested_quota, approved_by, approved_at,
-                       subscription_start_date, subscription_end_date
+                       subscription_start_date, subscription_end_date, plan_name, drafts_used
                 FROM user_quotas
                 ORDER BY updated_at DESC
             """)
@@ -2136,7 +2171,29 @@ class DatabaseManager:
                 except Exception:
                     mods = []
                 sub_start = r[15] if len(r) > 15 and r[15] else r[7]
-                sub_end = r[16] if len(r) > 16 and r[16] else "Lifetime" if r[2] == "admin" else None
+                sub_end = r[16] if len(r) > 16 and r[16] else ("Lifetime" if r[2] == "admin" else None)
+                p_name = r[17] if len(r) > 17 and r[17] else ("Special Unlimited Access" if r[2] == "special_unlimited" else "Standard Monthly Plan")
+                raw_drafts = r[18] if len(r) > 18 and r[18] else "{}"
+                try:
+                    drafts_dict = json.loads(raw_drafts) if isinstance(raw_drafts, str) else (raw_drafts or {})
+                except Exception:
+                    drafts_dict = {}
+                total_drafts = sum(int(v) for v in drafts_dict.values()) if isinstance(drafts_dict, dict) else 0
+
+                is_expired = False
+                days_remaining = None
+                if sub_end and sub_end != "Lifetime":
+                    try:
+                        end_dt = datetime.fromisoformat(sub_end)
+                        diff_sec = (end_dt - datetime.now()).total_seconds()
+                        days_remaining = int(diff_sec // 86400)
+                        if diff_sec < 0:
+                            is_expired = True
+                    except Exception:
+                        pass
+                elif sub_end == "Lifetime" or limit == -1:
+                    days_remaining = 99999
+
                 users.append({
                     "user_id": r[0],
                     "email": r[1] or "N/A",
@@ -2155,7 +2212,12 @@ class DatabaseManager:
                     "approved_by": r[13] if len(r) > 13 else "",
                     "approved_at": r[14] if len(r) > 14 else "",
                     "subscription_start_date": sub_start,
-                    "subscription_end_date": sub_end
+                    "subscription_end_date": sub_end,
+                    "plan_name": p_name,
+                    "drafts_used": drafts_dict,
+                    "total_drafts_used": total_drafts,
+                    "days_remaining": days_remaining,
+                    "is_expired": is_expired
                 })
             return users
         except Exception as e:
@@ -2840,6 +2902,494 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Error bulk adding quotas: {e}")
             return 0
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    # ────────────────────────────────────────────────────────────────
+    # AUDIT LOGGING & UNIFIED SYSTEM LOGS
+    # ────────────────────────────────────────────────────────────────
+    @staticmethod
+    def log_audit_event(user_id: str, action: str, case_id: str = "SYSTEM", metadata: Optional[dict] = None) -> bool:
+        """Records an audit event into audit_logs."""
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now_iso = datetime.now().isoformat()
+            meta_json = json.dumps(metadata or {})
+            cursor.execute(f"""
+                INSERT INTO audit_logs (user_id, case_id, action, metadata, timestamp)
+                VALUES ({p}, {p}, {p}, {p}, {p})
+            """, (user_id, case_id, action, meta_json, now_iso))
+            conn.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Error logging audit event: {e}")
+            return False
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    @staticmethod
+    def get_unified_logs(limit: int = 100, action: Optional[str] = None, user_id: Optional[str] = None) -> list:
+        """Fetches unified activity and security logs with optional action/user filters."""
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            query = "SELECT id, user_id, case_id, action, metadata, timestamp FROM audit_logs"
+            conditions = []
+            params = []
+            if action and action != "ALL":
+                conditions.append(f"action LIKE {p}")
+                params.append(f"%{action}%")
+            if user_id:
+                conditions.append(f"(user_id LIKE {p} OR case_id LIKE {p})")
+                params.extend([f"%{user_id}%", f"%{user_id}%"])
+            if conditions:
+                query += " WHERE " + " AND ".join(conditions)
+            query += f" ORDER BY id DESC LIMIT {limit}"
+            cursor.execute(query, tuple(params))
+            logs = []
+            for r in cursor.fetchall():
+                try:
+                    meta = json.loads(r[4]) if r[4] else {}
+                except Exception:
+                    meta = {}
+                logs.append({
+                    "id": r[0],
+                    "user_id": r[1] or "ANON",
+                    "case_id": r[2] or "SYS",
+                    "action": r[3] or "UNKNOWN",
+                    "metadata": meta,
+                    "timestamp": r[5]
+                })
+            return logs
+        except Exception as e:
+            logger.error(f"Error fetching unified logs: {e}")
+            return []
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    # ────────────────────────────────────────────────────────────────
+    # PAYMENT TRANSACTIONS & REVENUE LEDGER
+    # ────────────────────────────────────────────────────────────────
+    @staticmethod
+    def record_payment_transaction(
+        order_id: str,
+        payment_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        email: Optional[str] = None,
+        amount: float = 0.0,
+        currency: str = "INR",
+        plan_name: str = "Standard Monthly Plan",
+        status: str = "SUCCESS",
+        method: str = "Razorpay",
+        metadata: Optional[dict] = None
+    ) -> dict:
+        """Records or updates a payment transaction."""
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now_iso = datetime.now().isoformat()
+            meta_str = json.dumps(metadata or {})
+            
+            cursor.execute(f"SELECT id, status FROM payment_transactions WHERE order_id = {p}", (order_id,))
+            row = cursor.fetchone()
+            if row:
+                cursor.execute(f"""
+                    UPDATE payment_transactions
+                    SET payment_id = COALESCE({p}, payment_id),
+                        status = {p},
+                        amount = CASE WHEN {p} > 0 THEN {p} ELSE amount END,
+                        plan_name = COALESCE({p}, plan_name),
+                        metadata = {p}
+                    WHERE order_id = {p}
+                """, (payment_id, status, amount, amount, plan_name, meta_str, order_id))
+            else:
+                cursor.execute(f"""
+                    INSERT INTO payment_transactions
+                    (order_id, payment_id, user_id, email, amount, currency, plan_name, status, method, created_at, metadata)
+                    VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+                """, (order_id, payment_id, user_id or "ANON", email or "", amount, currency, plan_name, status, method, now_iso, meta_str))
+            
+            conn.commit()
+            
+            DatabaseManager.log_audit_event(
+                user_id=user_id or email or "ANON",
+                action="PAYMENT_RECORDED",
+                case_id=order_id,
+                metadata={"payment_id": payment_id, "amount": amount, "plan": plan_name, "status": status}
+            )
+            return {"success": True, "order_id": order_id, "status": status, "amount": amount}
+        except Exception as e:
+            logger.error(f"Error recording payment transaction: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    @staticmethod
+    def get_payment_transactions(limit: int = 100, user_id: Optional[str] = None, status: Optional[str] = None) -> list:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            query = "SELECT id, order_id, payment_id, user_id, email, amount, currency, plan_name, status, method, created_at, metadata FROM payment_transactions"
+            conditions = []
+            params = []
+            if status and status != "ALL":
+                conditions.append(f"status = {p}")
+                params.append(status)
+            if user_id:
+                conditions.append(f"(user_id LIKE {p} OR email LIKE {p})")
+                params.extend([f"%{user_id}%", f"%{user_id}%"])
+            if conditions:
+                query += " WHERE " + " AND ".join(conditions)
+            query += f" ORDER BY id DESC LIMIT {limit}"
+            cursor.execute(query, tuple(params))
+            txs = []
+            for r in cursor.fetchall():
+                try:
+                    meta = json.loads(r[11]) if r[11] else {}
+                except Exception:
+                    meta = {}
+                txs.append({
+                    "id": r[0],
+                    "order_id": r[1],
+                    "payment_id": r[2] or "--",
+                    "user_id": r[3],
+                    "email": r[4] or "--",
+                    "amount": float(r[5]) if r[5] is not None else 0.0,
+                    "currency": r[6] or "INR",
+                    "plan_name": r[7] or "Standard Monthly Plan",
+                    "status": r[8] or "SUCCESS",
+                    "method": r[9] or "Razorpay",
+                    "created_at": r[10],
+                    "metadata": meta
+                })
+            return txs
+        except Exception as e:
+            logger.error(f"Error fetching payment transactions: {e}")
+            return []
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    @staticmethod
+    def get_payment_stats() -> dict:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*), COALESCE(SUM(amount), 0) FROM payment_transactions WHERE status = 'SUCCESS'")
+            row_succ = cursor.fetchone()
+            succ_count = int(row_succ[0]) if row_succ else 0
+            total_rev = float(row_succ[1]) if row_succ else 0.0
+
+            cursor.execute("SELECT COUNT(*) FROM payment_transactions WHERE status = 'CREATED' OR status = 'PENDING'")
+            row_pend = cursor.fetchone()
+            pend_count = int(row_pend[0]) if row_pend else 0
+
+            cursor.execute("SELECT COUNT(*) FROM payment_transactions")
+            row_all = cursor.fetchone()
+            all_count = int(row_all[0]) if row_all else 0
+
+            avg_val = round(total_rev / max(1, succ_count), 2) if succ_count > 0 else 0.0
+
+            return {
+                "total_revenue_inr": total_rev,
+                "total_transactions": all_count,
+                "success_count": succ_count,
+                "pending_count": pend_count,
+                "average_order_value_inr": avg_val
+            }
+        except Exception as e:
+            logger.error(f"Error fetching payment stats: {e}")
+            return {
+                "total_revenue_inr": 0.0,
+                "total_transactions": 0,
+                "success_count": 0,
+                "pending_count": 0,
+                "average_order_value_inr": 0.0
+            }
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    @staticmethod
+    def _seed_initial_payments(cursor, conn):
+        try:
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute("SELECT COUNT(*) FROM payment_transactions")
+            row = cursor.fetchone()
+            if row and row[0] > 0:
+                return
+            now = datetime.now()
+            seed_txs = [
+                ("order_s138_del_01", "pay_98a72b1c", "USR_DEL_VERMA_88", "advocate.verma@delhibar.in", 1500.0, "INR", "Pro Law Firm Plan", "SUCCESS", "Razorpay", (now - timedelta(days=6)).isoformat(), json.dumps({"cycle": "2026-09"})),
+                ("order_topup_mum_02", "pay_88f3c4e1", "USR_MUM_TATA_CORP", "corp.legal@tatacapital.com", 2500.0, "INR", "Enterprise Legal OS", "SUCCESS", "Razorpay", (now - timedelta(days=4)).isoformat(), json.dumps({"seats": 5})),
+                ("order_topup_single_03", "pay_topup_149_001", "USR_BOM_MEHTA_HC", "counsel.mehta@bombayhc.in", 149.0, "INR", "Single Report Top-Up", "SUCCESS", "Razorpay", (now - timedelta(days=2)).isoformat(), json.dumps({"type": "topup"})),
+                ("order_std_pun_04", "pay_std_999_001", "USR_PUN_SINGH_SOL", "contact@singhpartners.in", 1500.0, "INR", "Pro Law Firm Plan", "SUCCESS", "Razorpay", (now - timedelta(days=1)).isoformat(), json.dumps({"notes": "Annual renewal"}))
+            ]
+            sql = f"""
+                INSERT INTO payment_transactions
+                (order_id, payment_id, user_id, email, amount, currency, plan_name, status, method, created_at, metadata)
+                VALUES ({', '.join([p]*11)})
+            """
+            for tx in seed_txs:
+                cursor.execute(sql, tx)
+            conn.commit()
+        except Exception as e:
+            logger.warning(f"Seed payments skipped or failed: {e}")
+
+    # ────────────────────────────────────────────────────────────────
+    # PLANS CATALOG & ASSIGNMENT CONTROLLER
+    # ────────────────────────────────────────────────────────────────
+    @staticmethod
+    def _seed_initial_plans_catalog(cursor, conn):
+        try:
+            p = DatabaseManager.get_dialect_placeholder()
+            cursor.execute("SELECT COUNT(*) FROM plans_catalog")
+            row = cursor.fetchone()
+            if row and row[0] > 0:
+                return
+            now_iso = datetime.now().isoformat()
+            plans = [
+                ("free_tier", "Free Demo Tier", "citizen", 1, 0.0, 365, json.dumps(["s138"]), "Free statutory analysis preview with Section 138 NI Act validation.", 1, now_iso, now_iso),
+                ("single_topup", "Single Report Top-Up", "citizen", 1, 149.0, 30, json.dumps(["s138"]), "+1 Instant report analysis credit for immediate case filing.", 1, now_iso, now_iso),
+                ("paid_demo", "Instant Demo Trial", "citizen", 1, 2.0, 7, json.dumps(["s138"]), "One-time ₹2 full feature verification for verified advocates.", 1, now_iso, now_iso),
+                ("starter", "Starter Individual Plan", "citizen", 10, 999.0, 30, json.dumps(["s138", "criminal"]), "Essential litigation intelligence for independent advocates and junior counsel.", 1, now_iso, now_iso),
+                ("law_firm", "Pro Law Firm / Chamber", "law_firm", 25, 1500.0, 30, json.dumps(["s138", "sarfaesi", "criminal", "civil", "counsel_intel"]), "Complete litigation OS for chambers, senior advocates, and boutique firms.", 1, now_iso, now_iso),
+                ("enterprise", "Enterprise Legal OS", "enterprise", 100, 4999.0, 30, json.dumps(["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"]), "High-volume institutional compliance, SARB bank cells, and multi-advocate panels.", 1, now_iso, now_iso),
+                ("special_unlimited", "Special Unlimited Access", "special_unlimited", -1, 0.0, -1, json.dumps(["s138", "sarfaesi", "criminal", "civil", "bank_recovery", "counsel_intel"]), "VIP partner access with unlimited queries across all statutory engines (No Admin).", 1, now_iso, now_iso)
+            ]
+            sql = f"""
+                INSERT INTO plans_catalog
+                (plan_id, plan_name, role, monthly_report_limit, monthly_price_inr, default_validity_days, selected_modules, description, is_active, created_at, updated_at)
+                VALUES ({', '.join([p]*11)})
+            """
+            for plan in plans:
+                cursor.execute(sql, plan)
+            conn.commit()
+        except Exception as e:
+            logger.warning(f"Seed plans catalog skipped or failed: {e}")
+
+    @staticmethod
+    def get_all_plans_catalog() -> list:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT plan_id, plan_name, role, monthly_report_limit, monthly_price_inr, default_validity_days, selected_modules, description, is_active, created_at, updated_at
+                FROM plans_catalog
+                ORDER BY monthly_price_inr ASC
+            """)
+            plans = []
+            for r in cursor.fetchall():
+                try:
+                    mods = json.loads(r[6]) if isinstance(r[6], str) else r[6]
+                except Exception:
+                    mods = ["s138"]
+                plans.append({
+                    "plan_id": r[0],
+                    "plan_name": r[1],
+                    "role": r[2],
+                    "monthly_report_limit": int(r[3]),
+                    "monthly_price_inr": float(r[4]),
+                    "default_validity_days": int(r[5]),
+                    "selected_modules": mods,
+                    "description": r[7] or "",
+                    "is_active": bool(r[8]),
+                    "created_at": r[9],
+                    "updated_at": r[10]
+                })
+            return plans
+        except Exception as e:
+            logger.error(f"Error fetching plans catalog: {e}")
+            return []
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    @staticmethod
+    def update_plan_catalog_item(
+        plan_id: str,
+        plan_name: Optional[str] = None,
+        monthly_report_limit: Optional[int] = None,
+        monthly_price_inr: Optional[float] = None,
+        default_validity_days: Optional[int] = None,
+        selected_modules: Optional[list] = None,
+        description: Optional[str] = None,
+        is_active: Optional[bool] = None
+    ) -> bool:
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now_iso = datetime.now().isoformat()
+            updates = ["updated_at = " + p]
+            params: List[Any] = [now_iso]
+
+            if plan_name is not None:
+                updates.append(f"plan_name = {p}")
+                params.append(plan_name)
+            if monthly_report_limit is not None:
+                updates.append(f"monthly_report_limit = {p}")
+                params.append(monthly_report_limit)
+            if monthly_price_inr is not None:
+                updates.append(f"monthly_price_inr = {p}")
+                params.append(monthly_price_inr)
+            if default_validity_days is not None:
+                updates.append(f"default_validity_days = {p}")
+                params.append(default_validity_days)
+            if selected_modules is not None:
+                updates.append(f"selected_modules = {p}")
+                params.append(json.dumps(selected_modules))
+            if description is not None:
+                updates.append(f"description = {p}")
+                params.append(description)
+            if is_active is not None:
+                updates.append(f"is_active = {p}")
+                params.append(1 if is_active else 0)
+
+            params.append(plan_id)
+            cursor.execute(f"UPDATE plans_catalog SET {', '.join(updates)} WHERE plan_id = {p}", tuple(params))
+            conn.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Error updating plan catalog item: {e}")
+            return False
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    @staticmethod
+    def assign_user_plan_and_validity(
+        user_id: str,
+        plan_name: str,
+        role: str = "law_firm",
+        monthly_limit: int = 25,
+        monthly_price_inr: float = 1500.0,
+        selected_modules: Optional[list] = None,
+        validity_days: int = 30,
+        valid_until: Optional[str] = None,
+        is_active: bool = True,
+        approved_by: str = "Admin"
+    ) -> dict:
+        """Assigns a plan, monthly quota, and validity expiration date to a customer."""
+        conn = None
+        try:
+            # Ensure user exists
+            DatabaseManager.get_or_create_user_quota(user_id)
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now_iso = datetime.now().isoformat()
+            mods = selected_modules or ["s138"]
+            mods_json = json.dumps(mods)
+
+            sub_start = now_iso
+            if valid_until:
+                sub_end = valid_until
+            elif validity_days == -1 or monthly_limit == -1 or role in ("admin", "special_unlimited"):
+                sub_end = "Lifetime"
+            else:
+                sub_end = (datetime.now() + timedelta(days=validity_days)).isoformat()
+
+            cursor.execute(f"""
+                UPDATE user_quotas
+                SET plan_name = {p},
+                    role = {p},
+                    monthly_report_limit = {p},
+                    monthly_price_inr = {p},
+                    selected_modules = {p},
+                    subscription_start_date = {p},
+                    subscription_end_date = {p},
+                    is_active = {p},
+                    plan_status = {p},
+                    approved_by = {p},
+                    approved_at = {p},
+                    updated_at = {p}
+                WHERE user_id = {p}
+            """, (plan_name, role, monthly_limit, monthly_price_inr, mods_json, sub_start, sub_end, 1 if is_active else 0, "APPROVED" if is_active else "SUSPENDED", approved_by, now_iso, now_iso, user_id))
+            conn.commit()
+
+            DatabaseManager.log_audit_event(
+                user_id=user_id,
+                action="ADMIN_ASSIGN_PLAN",
+                case_id=plan_name,
+                metadata={"monthly_limit": monthly_limit, "price": monthly_price_inr, "valid_until": sub_end, "approved_by": approved_by}
+            )
+
+            return DatabaseManager.get_or_create_user_quota(user_id)
+        except Exception as e:
+            logger.error(f"Error assigning user plan: {e}")
+            raise e
+        finally:
+            if conn:
+                DatabaseManager.release_connection(conn)
+
+    @staticmethod
+    def extend_user_validity(user_id: str, days_to_add: int = 30, new_end_date: Optional[str] = None, approved_by: str = "Admin") -> dict:
+        """Extends or sets the subscription expiration time period for a customer."""
+        conn = None
+        try:
+            conn = DatabaseManager.get_connection()
+            cursor = conn.cursor()
+            p = DatabaseManager.get_dialect_placeholder()
+            now = datetime.now()
+            now_iso = now.isoformat()
+
+            cursor.execute(f"SELECT subscription_end_date, is_active FROM user_quotas WHERE user_id = {p}", (user_id,))
+            row = cursor.fetchone()
+            cur_end = row[0] if row and row[0] else None
+
+            if new_end_date:
+                final_end = new_end_date
+            elif days_to_add == -1:
+                final_end = "Lifetime"
+            else:
+                base_dt = now
+                if cur_end and cur_end != "Lifetime":
+                    try:
+                        parsed = datetime.fromisoformat(cur_end)
+                        if parsed > now:
+                            base_dt = parsed
+                    except Exception:
+                        pass
+                final_end = (base_dt + timedelta(days=days_to_add)).isoformat()
+
+            cursor.execute(f"""
+                UPDATE user_quotas
+                SET subscription_end_date = {p},
+                    is_active = 1,
+                    plan_status = 'APPROVED',
+                    updated_at = {p}
+                WHERE user_id = {p}
+            """, (final_end, now_iso, user_id))
+            conn.commit()
+
+            DatabaseManager.log_audit_event(
+                user_id=user_id,
+                action="ADMIN_EXTEND_VALIDITY",
+                case_id="VALIDITY_EXTENSION",
+                metadata={"days_added": days_to_add, "new_end_date": final_end, "approved_by": approved_by}
+            )
+
+            return DatabaseManager.get_or_create_user_quota(user_id)
+        except Exception as e:
+            logger.error(f"Error extending validity: {e}")
+            raise e
         finally:
             if conn:
                 DatabaseManager.release_connection(conn)

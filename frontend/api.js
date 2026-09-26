@@ -556,6 +556,81 @@ export const api = {
         try { return await response.json(); } catch (e) { throw new Error("Failed to clear system cache."); }
     },
 
+    async getPlansCatalog(token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/plans/catalog`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load plans catalog."); }
+    },
+
+    async updatePlanCatalog(planData, token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/plans/catalog/update`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(planData)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to update plan in catalog."); }
+    },
+
+    async assignUserPlan(payload, token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/users/assign-plan`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to assign plan to customer."); }
+    },
+
+    async extendUserValidity(payload, token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/users/extend-validity`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to extend subscription validity."); }
+    },
+
+    async getAdminPayments(token, limit = 100, status = '', userId = '') {
+        let url = `${API_BASE_URL}/api/v1/admin/payments?limit=${limit}`;
+        if (status && status !== 'ALL') url += `&status=${encodeURIComponent(status)}`;
+        if (userId) url += `&user_id=${encodeURIComponent(userId)}`;
+        const response = await fetchWithRetry(url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load payment transactions."); }
+    },
+
+    async recordManualPayment(payload, token) {
+        const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/admin/payments/record-manual`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to record manual payment."); }
+    },
+
+    async getUnifiedLogs(token, limit = 100, action = '', userId = '') {
+        let url = `${API_BASE_URL}/api/v1/admin/logs/all?limit=${limit}`;
+        if (action && action !== 'ALL') url += `&action=${encodeURIComponent(action)}`;
+        if (userId) url += `&user_id=${encodeURIComponent(userId)}`;
+        const response = await fetchWithRetry(url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        try { return await response.json(); } catch (e) { throw new Error("Failed to load activity logs."); }
+    },
+
     async ingestPrecedent(payload) {
         const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/ingest/precedents`, {
             method: 'POST',
