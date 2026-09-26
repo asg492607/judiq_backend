@@ -6051,9 +6051,23 @@ body.dark-theme .dac-icon--sarfaesi {
     transition: all 0.3s ease;
 }
 
-.draft-type-card:hover .draft-type-chevron {
-    opacity: 1;
-    right: 0.85rem;
+.draft-type-card.card-exhausted {
+    background: rgba(239, 68, 68, 0.03);
+    border-color: rgba(239, 68, 68, 0.25);
+}
+
+.draft-type-card.card-exhausted:hover {
+    border-color: rgba(239, 68, 68, 0.45);
+    box-shadow: 0 10px 25px rgba(239, 68, 68, 0.1);
+}
+
+.draft-plan-quota-notice {
+    animation: fadeInNotice 0.4s ease-out;
+}
+
+@keyframes fadeInNotice {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .draft-back-link {

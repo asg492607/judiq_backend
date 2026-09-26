@@ -523,3 +523,33 @@ def get_user_quota_endpoint(user_id: str = Query(None), email: str = Query(None)
     quota = DatabaseManager.get_or_create_user_quota(effective_id, effective_email)
     return {"success": True, "quota": quota}
 
+class ConsumeDraftRequest(BaseModel):
+    user_id: str = Field(..., description="Target User ID")
+    email: Optional[str] = Field("", description="User email")
+    draft_type: str = Field("LEGAL_NOTICE", description="Statutory draft type identifier")
+    lang: Optional[str] = Field("en", description="Draft language (en, mr, hi)")
+    role: Optional[str] = Field("", description="User role")
+
+@user_quota_router.post("/consume-draft", tags=["User Quota"])
+def consume_draft_endpoint(req: ConsumeDraftRequest = Body(...)):
+    """
+    Checks and consumes draft quota for a specific statutory draft type.
+    - Free Tier: strictly 1 draft of each type for lifetime
+    - Premium Plan: strictly 3 drafts of each type only (13 statutory types)
+    - Admin: unlimited bypass
+    """
+    res = DatabaseManager.check_and_consume_draft_quota(
+        user_id=req.user_id,
+        email=req.email or "",
+        draft_type=req.draft_type,
+        lang=req.lang or "en",
+        role=req.role or ""
+    )
+    if not res.get("allowed"):
+        raise HTTPException(
+            status_code=403,
+            detail=res.get("message", "Draft quota exceeded for this draft type.")
+        )
+    return {"success": True, **res}
+
+

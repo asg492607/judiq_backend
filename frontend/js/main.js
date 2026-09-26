@@ -982,6 +982,31 @@ window.updateSubscriptionValidityDisplay = function (quota) {
         }
     }
 
+    const bannerDraftQuotaText = document.getElementById('membershipDraftQuotaText');
+    if (bannerDraftQuotaText) {
+        if (isAdmin || isSpecialUser || (q && q.monthly_report_limit === -1)) {
+            bannerDraftQuotaText.textContent = 'Drafts: Unlimited Bypass';
+        } else {
+            const isPaid = (q && (q.plan_status === 'ACTIVE' || q.plan_status === 'PAID' || q.plan_status === 'APPROVED') && (q.monthly_price_inr > 0 || q.monthly_report_limit > 5));
+            const draftLimitPerType = isPaid ? 3 : 1;
+            bannerDraftQuotaText.textContent = `Drafts: ${draftLimitPerType} / Type (39 Total)`;
+        }
+    }
+
+    const draftTypePlanNoticeText = document.getElementById('draftTypePlanNoticeText');
+    if (draftTypePlanNoticeText) {
+        if (isAdmin || isSpecialUser || (q && q.monthly_report_limit === -1)) {
+            draftTypePlanNoticeText.innerHTML = `Administrator Access: <strong>Unlimited drafting bypass</strong> across all 13 statutory formats`;
+        } else {
+            const isPaid = (q && (q.plan_status === 'ACTIVE' || q.plan_status === 'PAID' || q.plan_status === 'APPROVED') && (q.monthly_price_inr > 0 || q.monthly_report_limit > 5));
+            if (isPaid) {
+                draftTypePlanNoticeText.innerHTML = `Premium Plan: <strong>3 Drafts of each type allowed</strong> across all 13 statutory formats`;
+            } else {
+                draftTypePlanNoticeText.innerHTML = `Free Tier: <strong>1 Draft of each type allowed</strong> &bull; Upgrade to Premium Plan for 3 drafts of each type`;
+            }
+        }
+    }
+
     // 3. Update Profile Settings Modal if elements present
     const profileStart = document.getElementById('profileStartDate');
     const profileEnd = document.getElementById('profileEndDate');
@@ -2050,14 +2075,38 @@ window.showDraftOutputView = () => {
 function renderDraftTypeGrid() {
     const grid = document.getElementById('draftTypeGrid');
     if (!grid) return;
-    grid.innerHTML = DRAFT_TYPES.map(dt => `
-        <div class="draft-type-card" onclick="selectDraftType('${dt.id}')">
+
+    const user = window.state ? window.state.currentUser : null;
+    const userRole = (window.state && window.state.currentRole) || (user && user.role) || '';
+    const quota = (window.state && window.state.userQuota) || {};
+    const isAdmin = userRole === 'admin' || userRole === 'administrator' || (quota && quota.role === 'admin') || !!localStorage.getItem('judiq_admin_jwt');
+    const isPaid = (quota.plan_status === 'ACTIVE' || quota.plan_status === 'PAID' || quota.plan_status === 'APPROVED') && (quota.monthly_price_inr > 0 || quota.monthly_report_limit > 5);
+    const limit = isAdmin ? 9999 : (isPaid ? 3 : 1);
+    const draftsUsed = quota.drafts_used || {};
+
+    grid.innerHTML = DRAFT_TYPES.map(dt => {
+        const key = (dt.id || '').toUpperCase();
+        const used = parseInt(draftsUsed[key] || draftsUsed[dt.id] || 0, 10);
+        const remaining = isAdmin ? 'Unlimited' : Math.max(0, limit - used);
+        const isExhausted = !isAdmin && (used >= limit);
+
+        const quotaPill = isAdmin
+            ? `<span style="font-size:0.75rem;padding:0.2rem 0.6rem;border-radius:999px;background:rgba(16,185,129,0.12);color:#10b981;font-weight:700;"><i class="fas fa-infinity"></i> Unlimited</span>`
+            : isExhausted
+                ? `<span style="font-size:0.75rem;padding:0.2rem 0.6rem;border-radius:999px;background:rgba(239,68,68,0.12);color:#ef4444;font-weight:700;"><i class="fas fa-ban"></i> ${used}/${limit} Used (Limit Reached)</span>`
+                : `<span style="font-size:0.75rem;padding:0.2rem 0.6rem;border-radius:999px;background:rgba(56,189,248,0.12);color:#38bdf8;font-weight:700;"><i class="fas fa-file-contract"></i> ${used}/${limit} Used (${remaining} left)</span>`;
+
+        return `
+        <div class="draft-type-card ${isExhausted ? 'card-exhausted' : ''}" onclick="selectDraftType('${dt.id}')" style="${isExhausted ? 'border-color: rgba(239,68,68,0.3); opacity: 0.9;' : ''}">
             <div class="draft-type-num" style="background:${dt.color}18;color:${dt.color}">${dt.number}</div>
             <div class="draft-type-icon-wrap" style="color:${dt.color}">
                 <i class="fas ${dt.icon}"></i>
             </div>
             <div class="draft-type-info">
-                <h4>${dt.title}</h4>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;flex-wrap:wrap;">
+                    <h4 style="margin:0;">${dt.title}</h4>
+                    ${quotaPill}
+                </div>
                 <span class="draft-type-sub">${dt.subtitle}</span>
                 <p>${dt.description}</p>
             </div>
@@ -2065,19 +2114,37 @@ function renderDraftTypeGrid() {
                 <i class="fas fa-chevron-right"></i>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 window.selectDraftType = (id) => {
     activeDraftType = DRAFT_TYPES.find(dt => dt.id === id);
     if (!activeDraftType) return;
 
+    const user = window.state ? window.state.currentUser : null;
+    const userRole = (window.state && window.state.currentRole) || (user && user.role) || '';
+    const quota = (window.state && window.state.userQuota) || {};
+    const isAdmin = userRole === 'admin' || userRole === 'administrator' || (quota && quota.role === 'admin') || !!localStorage.getItem('judiq_admin_jwt');
+    const isPaid = (quota.plan_status === 'ACTIVE' || quota.plan_status === 'PAID' || quota.plan_status === 'APPROVED') && (quota.monthly_price_inr > 0 || quota.monthly_report_limit > 5);
+    const limit = isAdmin ? 9999 : (isPaid ? 3 : 1);
+    const draftsUsed = quota.drafts_used || {};
+    const key = (activeDraftType.id || '').toUpperCase();
+    const used = parseInt(draftsUsed[key] || draftsUsed[activeDraftType.id] || 0, 10);
+    const remaining = isAdmin ? 'Unlimited' : Math.max(0, limit - used);
+
     const badge = document.getElementById('draftSelectedBadge');
     if (badge) {
+        const quotaText = isAdmin ? 'Admin Unlimited' : `${used}/${limit} Used (${remaining} Remaining)`;
         badge.innerHTML = `
             <span style="background:${activeDraftType.color}18;color:${activeDraftType.color};padding:0.3rem 1rem;border-radius:999px;font-size:0.8rem;font-weight:600;display:inline-flex;align-items:center;gap:0.4rem;">
-                <i class="fas ${activeDraftType.icon}"></i> Type ${activeDraftType.number} of 13 &nbsp;·&nbsp; ${activeDraftType.subtitle}
+                <i class="fas ${activeDraftType.icon}"></i> Type ${activeDraftType.number} of 13 &nbsp;·&nbsp; ${activeDraftType.subtitle} &nbsp;·&nbsp; <i class="fas fa-file-contract"></i> Quota: ${quotaText}
             </span>`;
+    }
+
+    if (!isAdmin && used >= limit) {
+        const planTier = isPaid ? 'Premium Plan' : 'Free Tier';
+        ui.toast(`${planTier}: You have reached the limit of ${limit} drafts for ${activeDraftType.title}.`, 'warning');
     }
 
     ui.setText('draftFormTitle', activeDraftType.title);
@@ -2133,7 +2200,7 @@ function buildDraftPrefill() {
     return map;
 }
 
-window.generateDraftFromForm = () => {
+window.generateDraftFromForm = async () => {
     if (!activeDraftType) return;
     const missing = [];
     const data = {};
@@ -2153,7 +2220,61 @@ window.generateDraftFromForm = () => {
         ui.toast('Please fill: ' + missing.slice(0, 3).join(', ') + (missing.length > 3 ? '...' : ''), 'error');
         return;
     }
+
+    // Gate: Check draft quota (3 drafts of each type on Premium, 1 on Free, unlimited on Admin)
+    const user = window.state ? window.state.currentUser : null;
+    const userRole = (window.state && window.state.currentRole) || (user && user.role) || '';
+    const quota = (window.state && window.state.userQuota) || {};
+    const isAdmin = userRole === 'admin' || userRole === 'administrator' || (quota && quota.role === 'admin') || !!localStorage.getItem('judiq_admin_jwt');
+    const isPaid = (quota.plan_status === 'ACTIVE' || quota.plan_status === 'PAID' || quota.plan_status === 'APPROVED') && (quota.monthly_price_inr > 0 || quota.monthly_report_limit > 5);
+    const limit = isAdmin ? 9999 : (isPaid ? 3 : 1);
+    const draftsUsed = quota.drafts_used || {};
+    const draftKey = (activeDraftType.id || '').toUpperCase();
+    const currentUsed = parseInt(draftsUsed[draftKey] || draftsUsed[activeDraftType.id] || 0, 10);
+
+    if (!isAdmin && currentUsed >= limit) {
+        const planTier = isPaid ? 'Premium Plan' : 'Free Tier';
+        ui.toast(`${planTier} quota reached: Each draft type is limited to ${limit} draft${limit > 1 ? 's' : ''} only (${currentUsed}/${limit} used for ${activeDraftType.title}).`, 'error');
+        if (!isPaid && typeof window.subscribeToSelectedModularPlan === 'function') {
+            setTimeout(() => window.subscribeToSelectedModularPlan(), 1200);
+        }
+        return;
+    }
+
     try {
+        // Record quota consumption on server
+        const uid = (user && (user.uid || user.id)) || (quota && quota.user_id) || 'ANONYMOUS';
+        const email = (user && user.email) || (quota && quota.email) || '';
+        try {
+            const consumeRes = await fetch(`${API_BASE_URL}/api/v1/user/consume-draft`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: uid,
+                    email: email,
+                    draft_type: activeDraftType.id,
+                    lang: 'en',
+                    role: userRole
+                })
+            });
+            if (consumeRes.ok) {
+                const cData = await consumeRes.json();
+                if (cData && cData.quota) {
+                    window.state.userQuota = cData.quota;
+                } else {
+                    if (!window.state.userQuota) window.state.userQuota = {};
+                    if (!window.state.userQuota.drafts_used) window.state.userQuota.drafts_used = {};
+                    window.state.userQuota.drafts_used[draftKey] = currentUsed + 1;
+                }
+            } else if (consumeRes.status === 403) {
+                const errData = await consumeRes.json();
+                ui.toast(errData.detail || 'Draft quota limit reached.', 'error');
+                return;
+            }
+        } catch (cErr) {
+            console.warn('[JudiQ] Quota consume check:', cErr);
+        }
+
         const txt = activeDraftType.generate(data);
         window._cachedEnglishDraft = txt;
         const textPreview = document.getElementById('generatedDraftContent');
@@ -2161,9 +2282,11 @@ window.generateDraftFromForm = () => {
 
         const badge = document.getElementById('draftOutputBadge');
         if (badge) {
+            const newUsed = currentUsed + 1;
+            const remaining = isAdmin ? 'Unlimited' : Math.max(0, limit - newUsed);
             badge.innerHTML = `
                 <span style="background:${activeDraftType.color}18;color:${activeDraftType.color};padding:0.3rem 1rem;border-radius:999px;font-size:0.8rem;font-weight:600;display:inline-flex;align-items:center;gap:0.4rem;">
-                    <i class="fas ${activeDraftType.icon}"></i> Draft ${activeDraftType.number} – ${activeDraftType.subtitle}
+                    <i class="fas ${activeDraftType.icon}"></i> Draft ${activeDraftType.number} – ${activeDraftType.subtitle} &nbsp;·&nbsp; Quota: ${isAdmin ? 'Unlimited' : `${newUsed}/${limit} Used (${remaining} left)`}
                 </span>`;
         }
         ui.setText('draftOutputTitle', activeDraftType.title);
@@ -2293,7 +2416,8 @@ window.downloadGeneratedDraft = async () => {
             courtName: (ar.case_data && ar.case_data.court_name) || 'Competent Court',
             defences: topDefences,
             precedents: topPrecedents,
-            analysis_result: ar
+            analysis_result: ar,
+            draft_type: (activeDraftType ? activeDraftType.id : 'demand_notice')
         };
 
         const blob = await api.generateDraftPdf(title, content, metadata);
@@ -2316,7 +2440,7 @@ window.downloadGeneratedDraft = async () => {
         ui.toast('Comprehensive Dossier Downloaded!', 'success');
     } catch (error) {
         console.error('Download draft error:', error);
-        ui.toast('Failed to generate Dossier PDF.', 'error');
+        ui.toast(error.message || 'Failed to generate Dossier PDF.', 'error');
     } finally {
         clearInterval(loadingInterval);
         if (document.getElementById('dossierLoadingOverlay')) {
@@ -5604,58 +5728,58 @@ window.setBillingDuration = function (months, btnEl) {
 window.updateModularPricing = function () {
     const duration = window.selectedBillingDuration || 1;
 
-    // Pricing configurations for Standard Plan: 10 reports / month at ₹999
+    // Pricing configurations for Premium Plan: 10 reports / month at ₹999 with 3 drafts of each type (13 types)
     const durationConfigs = {
         1: {
             totalPrice: 999,
             monthlyRate: 999,
             cycleLabel: '/ month',
-            rateDetail: '30-Day Billing Cycle • 10 Reports/Month',
+            rateDetail: '30-Day Billing Cycle • 10 Reports/Month • 3 Drafts/Type',
             cases: '10 Reports',
-            costPerCase: '₹99.9/Report',
-            tierTitle: 'Standard Monthly Plan',
-            tierDesc: '10 Case Reports per month, unlimited drafting, full court-grade Marathi & Hindi drafting.',
-            badge: '<i class="fas fa-crown"></i> Standard Monthly Plan',
-            btnLabel: 'Get Started with Standard Plan (₹999 / mo)',
+            costPerCase: '3 Drafts / Type',
+            tierTitle: 'Premium Monthly Plan',
+            tierDesc: '10 Case Reports per month, 3 drafts of each statutory type (13 types), full court-grade Marathi & Hindi drafting.',
+            badge: '<i class="fas fa-crown"></i> Premium Monthly Plan',
+            btnLabel: 'Get Started with Premium Plan (₹999 / mo)',
             quota: 10
         },
         3: {
             totalPrice: 2699,
             monthlyRate: 900,
             cycleLabel: 'for 3 months',
-            rateDetail: 'Quarterly Billing Cycle • 30 Reports (10/mo)',
+            rateDetail: 'Quarterly Billing Cycle • 30 Reports (10/mo) • 3 Drafts/Type',
             cases: '30 Reports',
-            costPerCase: '₹90/Report',
-            tierTitle: 'Standard 3-Month Plan',
-            tierDesc: '30 Case Reports across 3 months, unlimited drafting, full Marathi & Hindi drafting.',
-            badge: '<i class="fas fa-crown"></i> 3-Month Plan',
-            btnLabel: 'Get Started (₹2,699 for 3 Months)',
+            costPerCase: '3 Drafts / Type',
+            tierTitle: 'Premium 3-Month Plan',
+            tierDesc: '30 Case Reports across 3 months, 3 drafts of each statutory type (13 types), full Marathi & Hindi drafting.',
+            badge: '<i class="fas fa-crown"></i> Premium 3-Month Plan',
+            btnLabel: 'Get Started with Premium Plan (₹2,699 for 3 Months)',
             quota: 30
         },
         6: {
             totalPrice: 4999,
             monthlyRate: 833,
             cycleLabel: 'for 6 months',
-            rateDetail: 'Half-Yearly Billing Cycle • 60 Reports (10/mo)',
+            rateDetail: 'Half-Yearly Billing Cycle • 60 Reports (10/mo) • 3 Drafts/Type',
             cases: '60 Reports',
-            costPerCase: '₹83.3/Report',
-            tierTitle: 'Standard 6-Month Plan',
-            tierDesc: '60 Case Reports across 6 months, unlimited drafting, full Marathi & Hindi drafting.',
-            badge: '<i class="fas fa-crown"></i> 6-Month Plan',
-            btnLabel: 'Get Started (₹4,999 for 6 Months)',
+            costPerCase: '3 Drafts / Type',
+            tierTitle: 'Premium 6-Month Plan',
+            tierDesc: '60 Case Reports across 6 months, 3 drafts of each statutory type (13 types), full Marathi & Hindi drafting.',
+            badge: '<i class="fas fa-crown"></i> Premium 6-Month Plan',
+            btnLabel: 'Get Started with Premium Plan (₹4,999 for 6 Months)',
             quota: 60
         },
         12: {
             totalPrice: 8999,
             monthlyRate: 750,
             cycleLabel: 'for 12 months',
-            rateDetail: 'Annual Billing Cycle • 120 Reports (10/mo)',
+            rateDetail: 'Annual Billing Cycle • 120 Reports (10/mo) • 3 Drafts/Type',
             cases: '120 Reports',
-            costPerCase: '₹75/Report',
-            tierTitle: 'Standard Annual Plan',
-            tierDesc: '120 Case Reports across 12 months, unlimited drafting, full Marathi & Hindi drafting.',
-            badge: '<i class="fas fa-crown"></i> Annual Plan',
-            btnLabel: 'Get Started (₹8,999 for 12 Months)',
+            costPerCase: '3 Drafts / Type',
+            tierTitle: 'Premium Annual Plan',
+            tierDesc: '120 Case Reports across 12 months, 3 drafts of each statutory type (13 types), full Marathi & Hindi drafting.',
+            badge: '<i class="fas fa-crown"></i> Premium Annual Plan',
+            btnLabel: 'Get Started with Premium Plan (₹8,999 for 12 Months)',
             quota: 120
         }
     };

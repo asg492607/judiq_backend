@@ -1,4 +1,5 @@
 import uuid
+import json
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, HTTPException, Query, Body, Request, Depends
@@ -47,6 +48,19 @@ def create_draft(
 
     workflow_id = f"DRF-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
     draft_type = payload.draft_type or "LEGAL_NOTICE"
+
+    # Enforce draft quota limits (1 per type on Free, 3 per type on Premium, unlimited on Admin)
+    quota_res = DatabaseManager.check_and_consume_draft_quota(
+        user_id=actual_user,
+        email=getattr(request.state, "user_email", "") if hasattr(request, "state") else "",
+        draft_type=draft_type,
+        lang="en"
+    )
+    if not quota_res.get("allowed"):
+        raise HTTPException(
+            status_code=403,
+            detail=quota_res.get("message", "Draft quota exceeded for this statutory draft type.")
+        )
 
     content = payload.custom_content
     if not content:

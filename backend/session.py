@@ -1700,39 +1700,51 @@ class DatabaseManager:
             return {
                 "allowed": False,
                 "reason": "MULTILINGUAL_LOCKED",
-                "message": "Multilingual court drafting (Marathi / Hindi) is an exclusive feature of the Standard Plan (₹999/mo). Free trial is in court English only.",
+                "message": "Multilingual court drafting (Marathi / Hindi) is an exclusive feature of the Premium Plan (₹999/mo). Free trial is in court English only.",
                 "language_allowed": False,
                 "quota": quota
             }
 
-        # 2. Paid users get unlimited drafting
-        if is_paid:
-            return {"allowed": True, "reason": "PAID_ACTIVE", "language_allowed": True, "quota": quota}
-
-        # 3. Free tier draft type limit: 1 draft of each type lifetime
+        # 2. Draft Type Limits:
+        # - Free Tier: strictly 1 draft of each type for lifetime, strictly English-only
+        # - Premium Plan / Paid Users: strictly 3 drafts of each type only (13 statutory types)
         draft_key = (draft_type or "GENERAL").upper().strip()
         drafts_used = quota.get("drafts_used") or {}
         if not isinstance(drafts_used, dict):
-            drafts_used = {}
+            try:
+                drafts_used = json.loads(drafts_used) if isinstance(drafts_used, str) else {}
+            except Exception:
+                drafts_used = {}
 
         used_count = int(drafts_used.get(draft_key, 0))
-        if used_count >= 1:
-            friendly_name = draft_key.replace('_', ' ').title()
+        max_limit = 3 if is_paid else 1
+        friendly_name = draft_key.replace('_', ' ').title()
+
+        if used_count >= max_limit:
+            if is_paid:
+                msg = f"Premium plan limit reached: Each draft type is limited to 3 drafts only. You have used all {max_limit} drafts for {friendly_name}. Contact admin for an enterprise extension."
+            else:
+                msg = f"Free tier includes 1 draft of each type for lifetime. You have already generated a {friendly_name} draft. Please upgrade to the Premium Plan (₹999/mo) which includes 3 drafts of each type in English, Marathi, and Hindi."
             return {
                 "allowed": False,
                 "reason": "DRAFT_LIMIT_REACHED",
-                "message": f"Free tier includes 1 draft of each type for lifetime. You have already generated a {friendly_name} draft. Please upgrade to Standard Monthly Plan (₹999/mo) or pay ₹149 for an additional report to unlock more drafts.",
-                "language_allowed": False,
-                "quota": quota
+                "message": msg,
+                "language_allowed": is_paid or (not is_multilingual),
+                "quota": quota,
+                "draft_type": draft_key,
+                "used_count": used_count,
+                "limit": max_limit,
+                "remaining_for_type": 0
             }
 
-        # Record draft consumption for Free Tier
+        # Record draft consumption
         conn = None
         try:
             conn = DatabaseManager.get_connection()
             cursor = conn.cursor()
             p = DatabaseManager.get_dialect_placeholder()
-            drafts_used[draft_key] = used_count + 1
+            new_used = used_count + 1
+            drafts_used[draft_key] = new_used
             now_iso = datetime.now().isoformat()
             cursor.execute(f"""
                 UPDATE user_quotas
@@ -1741,7 +1753,16 @@ class DatabaseManager:
             """, (json.dumps(drafts_used), now_iso, user_id))
             conn.commit()
             quota["drafts_used"] = drafts_used
-            return {"allowed": True, "reason": "FREE_TIER_FIRST_DRAFT", "language_allowed": True, "quota": quota}
+            return {
+                "allowed": True,
+                "reason": "PAID_ACTIVE_DRAFT" if is_paid else "FREE_TIER_FIRST_DRAFT",
+                "language_allowed": True,
+                "quota": quota,
+                "draft_type": draft_key,
+                "used_count": new_used,
+                "limit": max_limit,
+                "remaining_for_type": max(0, max_limit - new_used)
+            }
         except Exception as e:
             logger.error(f"Error updating drafts_used in check_and_consume_draft_quota: {e}")
             return {"allowed": True, "reason": "FALLBACK_ALLOWED", "language_allowed": True, "quota": quota}

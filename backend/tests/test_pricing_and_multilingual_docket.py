@@ -84,7 +84,7 @@ def test_free_tier_and_pricing_rules():
     assert paid_q["monthly_report_limit"] == 10
     assert paid_q["plan_status"] == "ACTIVE"
 
-    # 8. Standard Plan allows unlimited drafting and multilingual Marathi / Hindi
+    # 8. Premium Plan allows multilingual Marathi / Hindi and enforces strictly 3 drafts of each type
     res_paid_mr = DatabaseManager.check_and_consume_draft_quota(
         user_id=test_user, email=test_email, draft_type="LEGAL_NOTICE", lang="mr", role="advocate"
     )
@@ -96,6 +96,22 @@ def test_free_tier_and_pricing_rules():
     )
     assert res_paid_hi["allowed"] is True
     assert res_paid_hi["language_allowed"] is True
+
+    # 4th draft of LEGAL_NOTICE is blocked because Premium limit is 3 per type
+    res_paid_4th = DatabaseManager.check_and_consume_draft_quota(
+        user_id=test_user, email=test_email, draft_type="LEGAL_NOTICE", lang="en", role="advocate"
+    )
+    assert res_paid_4th["allowed"] is False
+    assert res_paid_4th["reason"] == "DRAFT_LIMIT_REACHED"
+    assert "3 drafts only" in res_paid_4th["message"]
+
+    # Different type (COMPLAINT) is allowed up to 3 times on Premium
+    res_comp_1 = DatabaseManager.check_and_consume_draft_quota(
+        user_id=test_user, email=test_email, draft_type="COMPLAINT", lang="mr", role="advocate"
+    )
+    assert res_comp_1["allowed"] is True
+    assert res_comp_1["limit"] == 3
+    assert res_comp_1["remaining_for_type"] == 2
 
 def test_doc_intel_extract_auto_creates_case():
     # Test uploading a text file via /api/v1/doc-intel/extract and check case_id auto-creation

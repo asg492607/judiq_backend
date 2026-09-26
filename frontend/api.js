@@ -175,18 +175,24 @@ export const api = {
         const userEmail = (metadata && metadata.email) || (currentUser ? currentUser.email : '') || localStorage.getItem('judiq_active_user_email') || '';
         const userRole = (metadata && metadata.role) || (window.state && window.state.currentRole) || (currentUser && currentUser.role) || (currentUser ? localStorage.getItem(`judiq_role_${currentUser.uid}`) : '') || '';
 
+        const draftType = (metadata && metadata.draft_type) || (window.activeDraftType && window.activeDraftType.id) || title;
         const response = await fetchWithRetry(`${API_BASE_URL}/api/v1/documents/draft-pdf`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 title, 
                 content, 
+                draft_type: draftType,
                 user_id: userId,
                 email: userEmail,
                 role: userRole,
                 metadata 
             })
         });
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || errData.detail || "Draft generation blocked: quota exceeded.");
+        }
         try { return await response.blob(); } catch (e) { throw new Error("Failed to read draft blob."); }
     },
 
