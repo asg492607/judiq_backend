@@ -131,3 +131,45 @@ def test_admin_password_verification():
     assert resp_non_admin.status_code == 200
     assert resp_non_admin.json()["success"] is False
 
+def test_subscription_validity_dates():
+    # 1. Standard user quota contains starting and ending dates
+    user_id = "test_sub_validity_701"
+    email = "counsel_validity@law.com"
+    q = DatabaseManager.get_or_create_user_quota(user_id, email, default_limit=10)
+    assert "subscription_start_date" in q
+    assert "subscription_end_date" in q
+    assert q["subscription_start_date"] is not None
+    assert q["subscription_end_date"] is not None
+    assert q["days_remaining"] >= 28
+
+    # 2. Admin user validity is Lifetime
+    admin_q = DatabaseManager.get_or_create_user_quota("test_admin_sub", "aixynztechnologies@judiq.ai", role="admin")
+    assert admin_q["subscription_end_date"] == "Lifetime"
+    assert admin_q["is_lifetime"] is True
+    assert admin_q["days_remaining"] == -1
+
+    # 3. Submitting subscription plan sets starting and ending dates
+    sub_res = DatabaseManager.submit_subscription_plan(
+        user_id=user_id,
+        email=email,
+        selected_modules=["s138"],
+        monthly_price_inr=999.0,
+        requested_quota=25,
+        status="ACTIVE",
+        plan_name="Standard Monthly Plan"
+    )
+    assert sub_res["subscription_start_date"] is not None
+    assert sub_res["subscription_end_date"] is not None
+    assert sub_res["days_remaining"] >= 28
+
+    # 4. User quota API endpoint returns subscription validity dates
+    resp = client.get(f"/api/v1/user/quota?user_id={user_id}&email={email}")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["success"] is True
+    assert "subscription_start_date" in data["quota"]
+    assert "subscription_end_date" in data["quota"]
+    assert data["quota"]["subscription_start_date"] is not None
+    assert data["quota"]["subscription_end_date"] is not None
+
+

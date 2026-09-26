@@ -165,7 +165,8 @@ def submit_modular_plan_request(
             requested_quota=req.requested_quota,
             role=req.role or "law_firm",
             status=final_status,
-            razorpay_payment_id=req.razorpay_payment_id
+            razorpay_payment_id=req.razorpay_payment_id,
+            plan_name=req.plan_name
         )
         logger.info(f"[SUBSCRIPTION] Plan request submitted for {req.user_id} ({len(req.selected_modules)} modules, ₹{req.monthly_price_inr}) - {final_status}")
         return {

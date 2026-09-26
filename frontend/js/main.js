@@ -830,6 +830,170 @@ window.selectRole = (role) => {
     switchScreen('dashboardScreen');
 };
 
+window.formatSubscriptionDate = function (dateVal, isEnd = false) {
+    if (!dateVal) {
+        const d = new Date();
+        if (isEnd) d.setDate(d.getDate() + 30);
+        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    if (typeof dateVal === 'string' && (dateVal.toLowerCase().includes('lifetime') || dateVal.toLowerCase().includes('permanent'))) {
+        return 'Lifetime (No Expiry)';
+    }
+    try {
+        const d = new Date(dateVal);
+        if (isNaN(d.getTime())) return String(dateVal);
+        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch (_) {
+        return String(dateVal);
+    }
+};
+
+window.updateSubscriptionValidityDisplay = function (quota) {
+    let q = quota || (window.state && window.state.userQuota) || null;
+    let localPlan = null;
+    try {
+        localPlan = JSON.parse(localStorage.getItem('judiq_selected_plan') || '{}');
+    } catch (_) {}
+
+    const currentUser = (window.state && window.state.currentUser) || null;
+    const userEmail = (currentUser && currentUser.email ? currentUser.email : (localStorage.getItem('judiq_active_user_email') || '')).toLowerCase().trim();
+    const userId = (currentUser && currentUser.uid ? String(currentUser.uid) : '').toLowerCase().trim();
+    const savedRole = (currentUser && localStorage.getItem(`judiq_role_${currentUser.uid}`)) || (window.state && window.state.currentRole) || '';
+
+    const isAdmin = savedRole === 'admin' ||
+        savedRole === 'administrator' ||
+        userEmail.includes('aixynztechnologies') ||
+        userId.includes('aixynztechnologies') ||
+        (userEmail.includes('admin') && savedRole !== 'special_unlimited') ||
+        (userId.includes('admin') && savedRole !== 'special_unlimited') ||
+        (window.state && window.state.currentRole === 'admin') ||
+        (!!localStorage.getItem('judiq_admin_jwt') && savedRole !== 'special_unlimited') ||
+        (q && q.role === 'admin');
+
+    const isSpecialUser = !isAdmin && (
+        savedRole === 'special_unlimited' ||
+        (q && q.role === 'special_unlimited') ||
+        (q && (q.plan_name === 'Special Unlimited Access' || q.plan_name === 'Institutional Counsel Plan'))
+    );
+
+    // Starting Date
+    const rawStart = (q && q.subscription_start_date) || (localPlan && localPlan.subscription_start_date) || (localPlan && localPlan.activated_at) || (q && q.created_at) || new Date().toISOString();
+    const formattedStart = window.formatSubscriptionDate(rawStart, false);
+
+    // Ending Date
+    let rawEnd = (q && q.subscription_end_date) || (localPlan && localPlan.subscription_end_date) || null;
+    if (isAdmin || isSpecialUser) {
+        rawEnd = 'Lifetime';
+    } else if (!rawEnd) {
+        const startDt = new Date(rawStart);
+        if (!isNaN(startDt.getTime())) {
+            const endDt = new Date(startDt.getTime() + 30 * 24 * 60 * 60 * 1000);
+            rawEnd = endDt.toISOString();
+        } else {
+            rawEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        }
+    }
+    const formattedEnd = (isAdmin || isSpecialUser || (typeof rawEnd === 'string' && rawEnd.toLowerCase().includes('lifetime')))
+        ? 'Lifetime (No Expiry)'
+        : window.formatSubscriptionDate(rawEnd, true);
+
+    // Days remaining & status
+    let daysRemaining = -1;
+    let isExpired = false;
+    if (rawEnd !== 'Lifetime' && !isAdmin && !isSpecialUser) {
+        try {
+            const endDt = new Date(rawEnd);
+            if (!isNaN(endDt.getTime())) {
+                const diffTime = endDt.getTime() - Date.now();
+                daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (daysRemaining < 0) {
+                    daysRemaining = 0;
+                    isExpired = true;
+                }
+            }
+        } catch (_) {
+            daysRemaining = 30;
+        }
+    }
+
+    // Plan name
+    let planTitle = (q && q.plan_name) || (localPlan && localPlan.plan_name) || (isAdmin ? 'Unlimited Admin Access' : isSpecialUser ? 'Institutional Counsel Plan' : 'Standard Monthly Membership');
+    if (planTitle === 'Free Tier') planTitle = 'Standard Monthly Membership (Evaluation)';
+
+    // Status label
+    const statusLabel = isExpired ? 'EXPIRED' : ((q && q.plan_status) || (localPlan && localPlan.status) || 'ACTIVE');
+
+    // 1. Update Top Navigation Validity Pill
+    const pill = document.getElementById('subscriptionValidityPill');
+    const pillText = document.getElementById('subscriptionValidityPillText');
+    if (pillText) {
+        if (isAdmin || isSpecialUser) {
+            pillText.innerHTML = `Starting: <strong>${formattedStart}</strong> &bull; Ending: <strong>Lifetime Access</strong>`;
+        } else {
+            pillText.innerHTML = `Starting: <strong>${formattedStart}</strong> &bull; Ending: <strong>${formattedEnd}</strong>`;
+        }
+    }
+    if (pill) {
+        pill.title = `Subscription Validity Period\nStarting Date: ${formattedStart}\nEnding Date: ${formattedEnd}\nStatus: ${statusLabel}`;
+    }
+
+    // 2. Update Executive Membership Validity Banner on Dashboard Home Page
+    const cardPlanName = document.getElementById('membershipCardPlanName');
+    const cardStatusBadge = document.getElementById('membershipCardStatusBadge');
+    const cardStartDate = document.getElementById('membershipCardStartDate');
+    const cardEndDate = document.getElementById('membershipCardEndDate');
+    const cardDaysRemaining = document.getElementById('membershipCardDaysRemaining');
+    const cardValidityHint = document.getElementById('membershipCardValidityHint');
+    const bannerQuotaText = document.getElementById('membershipBannerQuotaText');
+
+    if (cardPlanName) cardPlanName.textContent = planTitle;
+    if (cardStatusBadge) {
+        cardStatusBadge.textContent = statusLabel;
+        cardStatusBadge.className = `membership-status-badge ${isExpired ? 'status-expired' : statusLabel === 'PENDING_APPROVAL' ? 'status-pending' : 'status-active'}`;
+    }
+    if (cardStartDate) cardStartDate.textContent = formattedStart;
+    if (cardEndDate) cardEndDate.textContent = formattedEnd;
+
+    if (cardDaysRemaining) {
+        if (isAdmin || isSpecialUser || rawEnd === 'Lifetime') {
+            cardDaysRemaining.textContent = 'Lifetime Active';
+            cardDaysRemaining.className = 'validity-metric-value text-emerald';
+            if (cardValidityHint) cardValidityHint.textContent = 'Permanent Uncapped Platform Privileges';
+        } else if (isExpired) {
+            cardDaysRemaining.textContent = 'Validity Expired';
+            cardDaysRemaining.className = 'validity-metric-value text-danger';
+            if (cardValidityHint) cardValidityHint.textContent = 'Please renew plan to resume service';
+        } else {
+            cardDaysRemaining.textContent = `${daysRemaining} Days Remaining`;
+            cardDaysRemaining.className = 'validity-metric-value text-emerald';
+            if (cardValidityHint) cardValidityHint.textContent = 'Active Multi-Jurisdiction Engine Access';
+        }
+    }
+
+    if (bannerQuotaText) {
+        if (isAdmin || isSpecialUser || (q && q.monthly_report_limit === -1)) {
+            bannerQuotaText.textContent = 'Unlimited Cases (Unrestricted Access)';
+        } else if (q) {
+            bannerQuotaText.textContent = `${q.remaining_reports} / ${q.monthly_report_limit} Cases Available`;
+        } else if (localPlan && localPlan.monthly_report_limit) {
+            bannerQuotaText.textContent = `${localPlan.remaining_reports || localPlan.monthly_report_limit} / ${localPlan.monthly_report_limit} Cases Available`;
+        } else {
+            bannerQuotaText.textContent = '25 / 25 Cases Available';
+        }
+    }
+
+    // 3. Update Profile Settings Modal if elements present
+    const profileStart = document.getElementById('profileStartDate');
+    const profileEnd = document.getElementById('profileEndDate');
+    const profileBadge = document.getElementById('profilePlanBadge');
+    if (profileStart) profileStart.textContent = formattedStart;
+    if (profileEnd) profileEnd.textContent = formattedEnd;
+    if (profileBadge) {
+        profileBadge.textContent = statusLabel;
+        profileBadge.className = `membership-status-badge ${isExpired ? 'status-expired' : statusLabel === 'PENDING_APPROVAL' ? 'status-pending' : 'status-active'}`;
+    }
+};
+
 function renderDashboard() {
     const role = window.state.currentRole || 'citizen';
     const domain = 'ni_act';
@@ -902,11 +1066,17 @@ function renderDashboard() {
         pill.style.display = 'none';
     }
 
+    // Render Subscription Validity (Start and End Dates) immediately with available state/local data
+    window.updateSubscriptionValidityDisplay(window.state && window.state.userQuota);
+
     if (currentUser && typeof api !== 'undefined' && api.getUserQuota) {
         const uid = currentUser.uid || 'demo_user_123';
         api.getUserQuota(uid, userEmail).then(res => {
             if (res && res.success && res.quota) {
                 const q = res.quota;
+                window.state.userQuota = q;
+                // Update subscription validity display with fresh backend values
+                window.updateSubscriptionValidityDisplay(q);
                 const isSpec = q.role === 'special_unlimited' || q.plan_name === 'Special Unlimited Access' || q.plan_name === 'Institutional Counsel Plan' || isSpecialUser;
                 if (pill && qText) {
                     if (isAdmin || q.role === 'admin') {
@@ -3005,6 +3175,10 @@ window.openProfileModal = (event) => {
     if (nameInput) nameInput.value = name;
     if (firmInput) firmInput.value = firm;
     if (roleSelect) roleSelect.value = role;
+
+    if (typeof window.updateSubscriptionValidityDisplay === 'function') {
+        window.updateSubscriptionValidityDisplay(window.state && window.state.userQuota);
+    }
 
     window.openLegalModal('profileSettingsModal');
 };
@@ -5661,6 +5835,9 @@ window.subscribeToSelectedModularPlan = async function () {
                     reports_used_this_month: 0
                 };
 
+                const subStart = (activeQuota && activeQuota.subscription_start_date) || new Date().toISOString();
+                const subEnd = (activeQuota && activeQuota.subscription_end_date) || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
                 // Immediately activate subscription and bypass paywall
                 localStorage.setItem('judiq_selected_plan', JSON.stringify({
                     ...planPayload,
@@ -5669,7 +5846,9 @@ window.subscribeToSelectedModularPlan = async function () {
                     monthly_report_limit: activeQuota.monthly_report_limit || cases,
                     remaining_reports: activeQuota.remaining_reports || cases,
                     payment_id: paymentData.payment_id,
-                    activated_at: new Date().toISOString()
+                    activated_at: subStart,
+                    subscription_start_date: subStart,
+                    subscription_end_date: subEnd
                 }));
 
                 if (window.state) {
@@ -5677,6 +5856,10 @@ window.subscribeToSelectedModularPlan = async function () {
                         window.state.currentUser.plan_status = 'ACTIVE';
                     }
                     window.state.userQuota = activeQuota;
+                }
+
+                if (typeof window.updateSubscriptionValidityDisplay === 'function') {
+                    window.updateSubscriptionValidityDisplay(activeQuota);
                 }
 
                 sessionStorage.removeItem('judiq_pending_checkout');
@@ -5700,6 +5883,8 @@ window.subscribeToSelectedModularPlan = async function () {
 
             } catch (e) {
                 console.error('Plan activation error, activating locally:', e);
+                const fallbackStart = new Date().toISOString();
+                const fallbackEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
                 localStorage.setItem('judiq_selected_plan', JSON.stringify({
                     ...planPayload,
                     status: 'ACTIVE',
@@ -5707,7 +5892,9 @@ window.subscribeToSelectedModularPlan = async function () {
                     monthly_report_limit: cases,
                     remaining_reports: cases,
                     payment_id: paymentData.payment_id,
-                    activated_at: new Date().toISOString()
+                    activated_at: fallbackStart,
+                    subscription_start_date: fallbackStart,
+                    subscription_end_date: fallbackEnd
                 }));
                 sessionStorage.removeItem('judiq_pending_checkout');
                 const celebrationMsg = `🎉 Payment verified! Workspace active with immediate effect.`;

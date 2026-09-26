@@ -1159,6 +1159,14 @@
                         <i class="fas fa-file-waveform u-is-48"></i>
                         <span id="userQuotaText">25/25 Reports</span>
                     </div>
+                    <!-- Subscription / Membership Validity Pill in Top Nav -->
+                    <div class="subscription-validity-pill" id="subscriptionValidityPill" title="Membership &amp; Subscription Validity Period">
+                        <i class="fas fa-calendar-check"></i>
+                        <div class="validity-pill-text-wrapper">
+                            <span class="validity-pill-label">Validity:</span>
+                            <span id="subscriptionValidityPillText" class="validity-pill-dates">Starting: -- &bull; Ending: --</span>
+                        </div>
+                    </div>
                     <div class="user-menu">
                         <!-- Admin Control Button (visible only to authorized administrators) -->
                         <button id="adminPortalBtn" class="btn btn-sm admin-portal-btn u-is-49"
@@ -1189,6 +1197,70 @@
                         <div>
                             <div class="u-is-53">Knowledge Base</div>
                             <div class="u-is-54">Updated: 1 September 2026 (Live)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Executive Membership & Subscription Validity Banner -->
+                <div id="membershipValidityBanner" class="membership-validity-banner">
+                    <div class="membership-banner-header">
+                        <div class="membership-banner-title">
+                            <div class="membership-icon-box">
+                                <i class="fas fa-id-badge"></i>
+                            </div>
+                            <div>
+                                <div class="membership-badge-row">
+                                    <span class="membership-live-dot pulse"></span>
+                                    <h3 id="membershipCardPlanName" class="membership-plan-heading">Standard Monthly Membership</h3>
+                                    <span id="membershipCardStatusBadge" class="membership-status-badge status-active">ACTIVE</span>
+                                </div>
+                                <p class="membership-subtext">Section 138 Litigation Intelligence &bull; Statutory Precedent Clearance Engine</p>
+                            </div>
+                        </div>
+                        <div class="membership-banner-actions">
+                            <div class="membership-quota-badge" id="membershipBannerQuota">
+                                <i class="fas fa-file-waveform"></i>
+                                <span id="membershipBannerQuotaText">25 / 25 Cases Remaining</span>
+                            </div>
+                            <button class="btn btn-sm btn-outline-gold membership-upgrade-btn" onclick="window.location.hash='#pricingSection'; window.switchScreen('landingScreen');" title="Upgrade or Renew Membership">
+                                <i class="fas fa-arrow-up-right-from-square"></i> <span>Manage / Renew</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="membership-validity-metrics">
+                        <div class="validity-metric-card start-card">
+                            <div class="validity-metric-icon start-icon">
+                                <i class="fas fa-calendar-plus"></i>
+                            </div>
+                            <div class="validity-metric-body">
+                                <span class="validity-metric-label">Starting Date</span>
+                                <span id="membershipCardStartDate" class="validity-metric-value">--</span>
+                                <span class="validity-metric-hint">Subscription Commencement</span>
+                            </div>
+                        </div>
+                        <div class="validity-connector">
+                            <div class="connector-line"></div>
+                            <div class="connector-arrow"><i class="fas fa-arrow-right"></i></div>
+                        </div>
+                        <div class="validity-metric-card end-card">
+                            <div class="validity-metric-icon end-icon">
+                                <i class="fas fa-calendar-xmark"></i>
+                            </div>
+                            <div class="validity-metric-body">
+                                <span class="validity-metric-label">Ending Date</span>
+                                <span id="membershipCardEndDate" class="validity-metric-value">--</span>
+                                <span class="validity-metric-hint" id="membershipCardEndHint">Valid Until (Expiry)</span>
+                            </div>
+                        </div>
+                        <div class="validity-metric-card duration-card">
+                            <div class="validity-metric-icon duration-icon">
+                                <i class="fas fa-hourglass-half"></i>
+                            </div>
+                            <div class="validity-metric-body">
+                                <span class="validity-metric-label">Membership Validity</span>
+                                <span id="membershipCardDaysRemaining" class="validity-metric-value text-emerald">--</span>
+                                <span class="validity-metric-hint" id="membershipCardValidityHint">Full Platform Access Active</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3979,6 +4051,27 @@
                 <p class="effective-date u-is-333">Personalize your Litigation workspace &amp; manage credentials</p>
             </div>
             <div class="legal-text u-is-334">
+                <!-- Profile Subscription & Membership Validity Card -->
+                <div class="profile-subscription-box" style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-id-card text-primary" style="font-size: 1.1rem; color: #818cf8;"></i>
+                            <strong style="color: #ffffff; font-size: 0.95rem;">Membership &amp; Subscription Validity</strong>
+                        </div>
+                        <span id="profilePlanBadge" class="membership-status-badge status-active">ACTIVE</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; font-size: 0.85rem;">
+                        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.65rem 0.85rem;">
+                            <div style="color: #94a3b8; font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">Starting Date</div>
+                            <div id="profileStartDate" style="color: #f8fafc; font-weight: 700; margin-top: 0.2rem;">--</div>
+                        </div>
+                        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.65rem 0.85rem;">
+                            <div style="color: #94a3b8; font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">Ending Date</div>
+                            <div id="profileEndDate" style="color: #f8fafc; font-weight: 700; margin-top: 0.2rem;">--</div>
+                        </div>
+                    </div>
+                </div>
+
                 <form id="profileSettingsForm" onsubmit="saveUserProfile(event)">
                     <h3 class="u-is-335">Personalization Settings</h3>
 

@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List, Union
 
 logger = logging.getLogger(__name__)
@@ -280,7 +280,9 @@ class DatabaseManager:
                 ("approved_at", "TEXT"),
                 ("paid_demo_used", "INTEGER DEFAULT 0"),
                 ("plan_name", "TEXT DEFAULT 'Free Tier'"),
-                ("drafts_used", "TEXT DEFAULT '{}'")
+                ("drafts_used", "TEXT DEFAULT '{}'"),
+                ("subscription_start_date", "TEXT"),
+                ("subscription_end_date", "TEXT")
             ]:
                 try:
                     cursor.execute(f"ALTER TABLE user_quotas ADD COLUMN {col} {col_type}")
@@ -1216,7 +1218,11 @@ class DatabaseManager:
                     "monthly_price_inr": 0.0,
                     "requested_quota": -1,
                     "approved_by": "SYSTEM",
-                    "approved_at": now_iso
+                    "approved_at": now_iso,
+                    "subscription_start_date": now_iso,
+                    "subscription_end_date": "Lifetime",
+                    "days_remaining": -1,
+                    "is_lifetime": True
                 }
         except Exception:
             pass
@@ -1228,20 +1234,26 @@ class DatabaseManager:
             current_month = datetime.now().strftime("%Y-%m")
             now_iso = datetime.now().isoformat()
 
-            # Ensure drafts_used column exists without failing transaction
-            try:
-                cursor.execute(f"ALTER TABLE user_quotas ADD COLUMN drafts_used TEXT DEFAULT '{{}}'")
-                conn.commit()
-            except Exception:
-                if conn:
-                    try:
-                        conn.rollback()
-                    except Exception:
-                        pass
+            # Ensure drafts_used and subscription columns exist without failing transaction
+            for col, col_type in [
+                ("drafts_used", "TEXT DEFAULT '{}'"),
+                ("subscription_start_date", "TEXT"),
+                ("subscription_end_date", "TEXT")
+            ]:
+                try:
+                    cursor.execute(f"ALTER TABLE user_quotas ADD COLUMN {col} {col_type}")
+                    conn.commit()
+                except Exception:
+                    if conn:
+                        try:
+                            conn.rollback()
+                        except Exception:
+                            pass
 
             cursor.execute(f"""
                 SELECT user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at,
-                       plan_status, selected_modules, monthly_price_inr, requested_quota, approved_by, approved_at, paid_demo_used, plan_name, drafts_used
+                       plan_status, selected_modules, monthly_price_inr, requested_quota, approved_by, approved_at, paid_demo_used, plan_name, drafts_used,
+                       subscription_start_date, subscription_end_date
                 FROM user_quotas
                 WHERE user_id = {p}
             """, (user_id,))
@@ -1253,12 +1265,14 @@ class DatabaseManager:
                 init_limit = default_limit if is_explicit_provision else 5
                 init_status = "APPROVED" if is_explicit_provision else "ACTIVE"
                 init_active = 1
+                init_sub_start = now_iso
+                init_sub_end = (datetime.now() + timedelta(days=30)).isoformat()
 
                 cursor.execute(f"""
                     INSERT INTO user_quotas
-                    (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota, paid_demo_used, plan_name, drafts_used)
-                    VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, 0.0, {p}, 0, 'Free Tier', '{{}}')
-                """, (user_id, email, role, init_limit, current_month, init_active, now_iso, now_iso, init_status, json.dumps(["s138"]), max(5, init_limit)))
+                    (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota, paid_demo_used, plan_name, drafts_used, subscription_start_date, subscription_end_date)
+                    VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, 0.0, {p}, 0, 'Free Tier', '{{}}', {p}, {p})
+                """, (user_id, email, role, init_limit, current_month, init_active, now_iso, now_iso, init_status, json.dumps(["s138"]), max(5, init_limit), init_sub_start, init_sub_end))
                 conn.commit()
                 return {
                     "user_id": user_id,
@@ -1279,7 +1293,11 @@ class DatabaseManager:
                     "approved_at": None,
                     "paid_demo_used": False,
                     "plan_name": "Free Tier",
-                    "drafts_used": {}
+                    "drafts_used": {},
+                    "subscription_start_date": init_sub_start,
+                    "subscription_end_date": init_sub_end,
+                    "days_remaining": 30,
+                    "is_lifetime": False
                 }
 
             # If existing user, check if month period rolled over
@@ -1302,6 +1320,40 @@ class DatabaseManager:
             except Exception:
                 drafts_used = {}
 
+            sub_start = row[18] if len(row) > 18 and row[18] else None
+            sub_end = row[19] if len(row) > 19 and row[19] else None
+            needs_sub_persist = False
+            if not sub_start:
+                sub_start = approved_at or db_created or now_iso
+                needs_sub_persist = True
+            if not sub_end:
+                if db_role in ("admin", "special_unlimited", "vip_unlimited") or plan_name in ("Special Unlimited Access", "Special Unlimited", "Institutional Counsel Plan"):
+                    sub_end = "Lifetime"
+                else:
+                    try:
+                        clean_s = sub_start.split("T")[0]
+                        s_dt = datetime.strptime(clean_s, "%Y-%m-%d")
+                        sub_end = (s_dt + timedelta(days=30)).isoformat()
+                    except Exception:
+                        sub_end = (datetime.now() + timedelta(days=30)).isoformat()
+                needs_sub_persist = True
+
+            if needs_sub_persist:
+                try:
+                    cursor.execute(f"UPDATE user_quotas SET subscription_start_date = {p}, subscription_end_date = {p} WHERE user_id = {p}", (sub_start, sub_end, user_id))
+                    conn.commit()
+                except Exception:
+                    pass
+
+            days_remaining = -1
+            if sub_end and sub_end != "Lifetime":
+                try:
+                    end_clean = sub_end.split("T")[0]
+                    end_dt = datetime.strptime(end_clean, "%Y-%m-%d")
+                    days_remaining = max(0, (end_dt.date() - datetime.now().date()).days)
+                except Exception:
+                    days_remaining = 30
+
             # Check if existing DB record is admin
             if db_role == "admin" or is_admin_user(db_user_id, db_email, db_role):
                 return {
@@ -1323,7 +1375,11 @@ class DatabaseManager:
                     "approved_at": approved_at or now_iso,
                     "paid_demo_used": False,
                     "plan_name": "Unlimited Admin",
-                    "drafts_used": {}
+                    "drafts_used": {},
+                    "subscription_start_date": sub_start or db_created or now_iso,
+                    "subscription_end_date": "Lifetime",
+                    "days_remaining": -1,
+                    "is_lifetime": True
                 }
 
             # Check if existing DB record is special unlimited (all tool access, no limits, no admin panel)
@@ -1347,7 +1403,11 @@ class DatabaseManager:
                     "approved_at": approved_at or now_iso,
                     "paid_demo_used": False,
                     "plan_name": "Institutional Counsel Plan",
-                    "drafts_used": drafts_used
+                    "drafts_used": drafts_used,
+                    "subscription_start_date": sub_start or db_created or now_iso,
+                    "subscription_end_date": sub_end or "Lifetime",
+                    "days_remaining": -1,
+                    "is_lifetime": True
                 }
 
             is_free_tier = plan_name in ("Free Tier", "Free Demo") or (float(monthly_price or 0) == 0.0 and int(db_limit or 0) <= 5)
@@ -1398,7 +1458,11 @@ class DatabaseManager:
                 "approved_at": approved_at,
                 "paid_demo_used": paid_demo_used,
                 "plan_name": plan_name,
-                "drafts_used": drafts_used
+                "drafts_used": drafts_used,
+                "subscription_start_date": sub_start,
+                "subscription_end_date": sub_end,
+                "days_remaining": days_remaining,
+                "is_lifetime": (sub_end == "Lifetime")
             }
         except Exception as e:
             logger.error(f"Error in get_or_create_user_quota: {e}")
@@ -1416,6 +1480,10 @@ class DatabaseManager:
                 "monthly_price_inr": 0.0,
                 "requested_quota": default_limit,
                 "plan_name": "Free Tier",
+                "subscription_start_date": datetime.now().isoformat(),
+                "subscription_end_date": (datetime.now() + timedelta(days=30)).isoformat(),
+                "days_remaining": 30,
+                "is_lifetime": False,
                 "drafts_used": {}
             }
         finally:
@@ -1756,6 +1824,9 @@ class DatabaseManager:
             demo_flag = 1 if is_paid_demo else 0
             plan_name_val = plan_name or ("Paid Demo Plan" if is_paid_demo else "Standard Monthly Plan")
 
+            sub_start = now_iso
+            sub_end = "Lifetime" if role == "admin" else (datetime.now() + timedelta(days=30)).isoformat()
+
             cursor.execute(f"SELECT user_id FROM user_quotas WHERE user_id = {p}", (user_id,))
             exists = cursor.fetchone()
 
@@ -1767,15 +1838,17 @@ class DatabaseManager:
                         selected_modules = {p}, updated_at = {p},
                         reports_used_this_month = 0,
                         paid_demo_used = CASE WHEN {p} = 1 THEN 1 ELSE paid_demo_used END,
-                        plan_name = {p}
+                        plan_name = {p},
+                        subscription_start_date = {p},
+                        subscription_end_date = {p}
                     WHERE user_id = {p}
-                """, (email, role, plan_status_val, is_active_flag, report_limit, requested_quota, monthly_price_inr, modules_json, now_iso, demo_flag, plan_name_val, user_id))
+                """, (email, role, plan_status_val, is_active_flag, report_limit, requested_quota, monthly_price_inr, modules_json, now_iso, demo_flag, plan_name_val, sub_start, sub_end, user_id))
             else:
                 cursor.execute(f"""
                     INSERT INTO user_quotas
-                    (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota, paid_demo_used, plan_name)
-                    VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
-                """, (user_id, email, role, report_limit, current_month, is_active_flag, now_iso, now_iso, plan_status_val, modules_json, monthly_price_inr, requested_quota, demo_flag, plan_name_val))
+                    (user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at, plan_status, selected_modules, monthly_price_inr, requested_quota, paid_demo_used, plan_name, subscription_start_date, subscription_end_date)
+                    VALUES ({p}, {p}, {p}, {p}, 0, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+                """, (user_id, email, role, report_limit, current_month, is_active_flag, now_iso, now_iso, plan_status_val, modules_json, monthly_price_inr, requested_quota, demo_flag, plan_name_val, sub_start, sub_end))
             
             conn.commit()
             res = DatabaseManager.get_or_create_user_quota(user_id, email)
@@ -1831,14 +1904,17 @@ class DatabaseManager:
             cursor.execute(f"SELECT requested_quota FROM user_quotas WHERE user_id = {p}", (user_id,))
             row = cursor.fetchone()
             req_quota = int(row[0]) if row and row[0] is not None else 25
+            sub_start = now_iso
+            sub_end = (datetime.now() + timedelta(days=30)).isoformat()
 
             cursor.execute(f"""
                 UPDATE user_quotas
                 SET plan_status = 'APPROVED', is_active = 1, monthly_report_limit = {p},
-                    approved_by = {p}, approved_at = {p}, updated_at = {p}
+                    approved_by = {p}, approved_at = {p}, updated_at = {p},
+                    subscription_start_date = {p}, subscription_end_date = {p}
                 WHERE user_id = {p}
-            """, (req_quota, admin_email, now_iso, now_iso, user_id))
-            conn.commit()
+            """, (req_quota, admin_email, now_iso, now_iso, sub_start, sub_end, user_id))
+            conn.commit() 
 
 
             return DatabaseManager.get_or_create_user_quota(user_id)
@@ -2004,7 +2080,8 @@ class DatabaseManager:
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT user_id, email, role, monthly_report_limit, reports_used_this_month, current_month_period, is_active, created_at, updated_at,
-                       plan_status, selected_modules, monthly_price_inr, requested_quota, approved_by, approved_at
+                       plan_status, selected_modules, monthly_price_inr, requested_quota, approved_by, approved_at,
+                       subscription_start_date, subscription_end_date
                 FROM user_quotas
                 ORDER BY updated_at DESC
             """)
@@ -2020,6 +2097,8 @@ class DatabaseManager:
                     mods = json.loads(raw_mod) if isinstance(raw_mod, str) else raw_mod
                 except Exception:
                     mods = []
+                sub_start = r[15] if len(r) > 15 and r[15] else r[7]
+                sub_end = r[16] if len(r) > 16 and r[16] else "Lifetime" if r[2] == "admin" else None
                 users.append({
                     "user_id": r[0],
                     "email": r[1] or "N/A",
@@ -2036,7 +2115,9 @@ class DatabaseManager:
                     "monthly_price_inr": float(r[11]) if len(r) > 11 and r[11] is not None else 500.0,
                     "requested_quota": int(r[12]) if len(r) > 12 and r[12] is not None else limit,
                     "approved_by": r[13] if len(r) > 13 else "",
-                    "approved_at": r[14] if len(r) > 14 else ""
+                    "approved_at": r[14] if len(r) > 14 else "",
+                    "subscription_start_date": sub_start,
+                    "subscription_end_date": sub_end
                 })
             return users
         except Exception as e:
