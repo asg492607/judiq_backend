@@ -6189,7 +6189,7 @@ window.exportAdminPayments = (format = 'json') => {
 // WHOLE PLATFORM ACTIVITY & AUDIT LOGS MONITOR CONTROLLERS (ADMIN)
 // ============================================================================
 
-let adminCachedSecurityLogs = [];
+adminCachedSecurityLogs = [];
 let adminActiveLogCategory = 'ALL';
 let adminLogsAutoRefreshTimer = null;
 
