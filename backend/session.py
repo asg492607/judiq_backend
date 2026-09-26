@@ -4468,7 +4468,7 @@ class DatabaseManager:
             logger.warning(f"Seed system deployment alert skipped or failed: {e}")
 
     @staticmethod
-    def get_deployment_alert():
+    def get_deployment_alert() -> Optional[Dict[str, Any]]:
         conn = None
         try:
             conn = DatabaseManager.get_connection()
@@ -4512,7 +4512,7 @@ class DatabaseManager:
         estimated_duration: str = "25 minutes",
         affected_services: str = "Draft Studio, AI Analysis Engine & Cloud Sync",
         is_active: bool = True
-    ) -> dict:
+    ) -> Optional[Dict[str, Any]]:
         conn = None
         try:
             conn = DatabaseManager.get_connection()
@@ -4576,7 +4576,7 @@ class DatabaseManager:
                 DatabaseManager.release_connection(conn)
 
     @staticmethod
-    def toggle_deployment_alert(is_active: bool) -> dict:
+    def toggle_deployment_alert(is_active: bool) -> Optional[Dict[str, Any]]:
         conn = None
         try:
             conn = DatabaseManager.get_connection()

@@ -709,8 +709,8 @@ def format_multilingual_draft(draft_type: str, lang: str, case_data: Dict[str, A
     Guarantees strict statutory formatting and Devanagari numerals/terms.
     """
     v = _extract_case_vars(case_data)
-    normalized_lang = str(lang or "en").lower().strip()
-    norm_type = str(draft_type or "LEGAL_NOTICE").upper()
+    normalized_lang = (lang or "en").lower().strip()
+    norm_type = (draft_type or "LEGAL_NOTICE").upper()
 
     if normalized_lang in ("mr", "marathi"):
         header = "=" * 75 + f"\nमहाराष्ट्र न्यायालयीन विधी मसुदा (मराठी) — {norm_type}\n" + "=" * 75 + "\n\n"
